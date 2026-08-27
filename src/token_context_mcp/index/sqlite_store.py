@@ -240,6 +240,9 @@ class SQLiteStore:
     def edges_to(self, symbol_id: str) -> list[EdgeRecord]:
         return self._edges("target_symbol_id = ?", (symbol_id,))
 
+    def edges(self) -> list[EdgeRecord]:
+        return self._edges("1 = 1", ())
+
     def _edges(self, where: str, params: tuple[object, ...]) -> list[EdgeRecord]:
         with self.connection() as connection:
             rows = connection.execute(f"SELECT * FROM edges WHERE {where} ORDER BY edge_id", params).fetchall()

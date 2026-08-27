@@ -83,11 +83,22 @@ class Evidence:
     sha256: str
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        value = asdict(self)
+        # The full digest remains in the index and is used for local freshness
+        # checks.  The wire contract only needs a compact change-detection
+        # fingerprint, which keeps repeated evidence affordable in context.
+        value["sha256"] = self.sha256[:12]
+        return value
 
 
 def symbol_as_dict(symbol: SymbolRecord) -> dict[str, Any]:
-    return asdict(symbol)
+    value = asdict(symbol)
+    # Byte offsets are internal source-slicing coordinates.  Line spans are
+    # sufficient for callers and avoid leaking implementation-only fields into
+    # every symbol packet.
+    for field_name in ("start_byte", "end_byte", "body_start_byte", "body_end_byte"):
+        value.pop(field_name, None)
+    return value
 
 
 def edge_as_dict(edge: EdgeRecord) -> dict[str, Any]:

@@ -19,6 +19,16 @@
       "additionalProperties": false
     },
     "truncated": {"type": "boolean"},
+    "edge_precision": {
+      "type": "object",
+      "required": ["ambiguous_rate", "resolved_rate", "basis"],
+      "properties": {
+        "ambiguous_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "resolved_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "basis": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "completeness": {
       "type": "object",
       "required": ["value", "basis"],
@@ -40,11 +50,10 @@
         "path": {"type": "string", "pattern": "^(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
         "start_line": {"type": "integer", "minimum": 1},
         "end_line": {"type": "integer", "minimum": 1},
-        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      "sha256": {"type": "string", "pattern": "^[a-f0-9]{12}$"}
       },
       "additionalProperties": false
     }
   },
   "additionalProperties": false
 }
-

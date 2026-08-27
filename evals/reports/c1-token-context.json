@@ -1,0 +1,104 @@
+{
+  "baseline": {
+    "bytes": 101105,
+    "file_count": 36,
+    "tokens": 25277
+  },
+  "calls": [
+    {
+      "accounting_gap": 11.1,
+      "call": "repo_map@512",
+      "declared_tokens": 507,
+      "exceeds_expected_bound": true,
+      "over_server_cap": true,
+      "payload_tokens": 5628,
+      "saving_vs_baseline": 4.5,
+      "truncated": true
+    },
+    {
+      "accounting_gap": 7.66,
+      "call": "repo_map@1024",
+      "declared_tokens": 1019,
+      "exceeds_expected_bound": true,
+      "over_server_cap": true,
+      "payload_tokens": 7803,
+      "saving_vs_baseline": 3.2,
+      "truncated": true
+    },
+    {
+      "accounting_gap": 6.43,
+      "call": "repo_map@2048",
+      "declared_tokens": 2046,
+      "exceeds_expected_bound": true,
+      "over_server_cap": true,
+      "payload_tokens": 13161,
+      "saving_vs_baseline": 1.9,
+      "truncated": true
+    },
+    {
+      "accounting_gap": 1.59,
+      "call": "find_symbols(limit=5)",
+      "declared_tokens": 543,
+      "exceeds_expected_bound": null,
+      "over_server_cap": false,
+      "payload_tokens": 866,
+      "saving_vs_baseline": 29.2,
+      "truncated": false
+    },
+    {
+      "accounting_gap": 4.84,
+      "call": "file_skeleton@1024",
+      "declared_tokens": 283,
+      "exceeds_expected_bound": true,
+      "over_server_cap": false,
+      "payload_tokens": 1371,
+      "saving_vs_baseline": 18.4,
+      "truncated": false
+    },
+    {
+      "accounting_gap": 24.85,
+      "call": "symbol_context@1024",
+      "declared_tokens": 34,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "payload_tokens": 845,
+      "saving_vs_baseline": 29.9,
+      "truncated": false
+    },
+    {
+      "accounting_gap": 24.85,
+      "call": "symbol_context@2048",
+      "declared_tokens": 34,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "payload_tokens": 845,
+      "saving_vs_baseline": 29.9,
+      "truncated": false
+    },
+    {
+      "accounting_gap": 1.5,
+      "call": "impact_slice(depth=2,max_nodes=75)",
+      "declared_tokens": 628,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "payload_tokens": 942,
+      "saving_vs_baseline": 26.8,
+      "truncated": false
+    }
+  ],
+  "estimator_version": "utf8-bytes-div-4-v1",
+  "index": {
+    "ambiguous_edges": 18,
+    "ambiguous_rate": 0.0361,
+    "edges": 498,
+    "symbols": 134
+  },
+  "note": "payload_tokens is a local byte estimate, not a provider billing figure",
+  "repo_id": "token-context",
+  "server_max_result_tokens": 2048,
+  "summary": {
+    "budget_contract_holds": false,
+    "calls_over_server_cap": 3,
+    "worst_accounting_gap": 24.85
+  }
+}
