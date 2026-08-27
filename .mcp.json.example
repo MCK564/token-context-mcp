@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "token-context": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/absolute/path/to/token-context-mcp",
+        "token-context",
+        "serve",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}

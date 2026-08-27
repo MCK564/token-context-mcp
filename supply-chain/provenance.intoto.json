@@ -1,0 +1,49 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://token-context-mcp.local/build/v1",
+      "externalParameters": {
+        "platform": "Windows-11-10.0.22631-SP0",
+        "python": "3.12.5"
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "sha256": "3c2bf3599adfea826ef7d71d561bb9e765e011296ccbfe93543cb99f4de491a2"
+          },
+          "uri": "file:pyproject.toml"
+        },
+        {
+          "digest": {
+            "sha256": "652af6ff802a28965a900d507b8390b6d50648cafebec5936292502d21eee549"
+          },
+          "uri": "file:uv.lock"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "local-unattested"
+      },
+      "metadata": {
+        "invocationId": "local-unsigned"
+      }
+    }
+  },
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "3c2bf3599adfea826ef7d71d561bb9e765e011296ccbfe93543cb99f4de491a2"
+      },
+      "name": "pyproject.toml"
+    },
+    {
+      "digest": {
+        "sha256": "652af6ff802a28965a900d507b8390b6d50648cafebec5936292502d21eee549"
+      },
+      "name": "uv.lock"
+    }
+  ]
+}

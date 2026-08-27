@@ -1,0 +1,14 @@
+[server]
+max_request_bytes = 1048576
+max_result_tokens = 8192
+max_graph_nodes = 100
+max_symbol_results = 20
+network_policy = "declared-deny-not-enforced"
+
+# Register real roots with the admin CLI. Do not replace this with a broad root
+# such as D:/AI unless that scope is intentionally approved.
+# [repos.example]
+# root = "D:/AI/example"
+# allow_symlinks = false
+# max_file_bytes = 2000000
+# max_files = 25000

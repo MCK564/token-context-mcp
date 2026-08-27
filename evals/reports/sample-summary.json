@@ -1,0 +1,35 @@
+{
+  "arms": {
+    "B0": {
+      "median_input_tokens": 1000.0,
+      "median_latency_seconds": 2.0,
+      "median_output_tokens": 220.0,
+      "median_paired_token_reduction": 0.0,
+      "median_total_tokens": 1220.0,
+      "paired_count": 1,
+      "paired_reduction_ci95": [
+        0.0,
+        0.0
+      ],
+      "quality_noninferiority_delta": 0.0,
+      "run_count": 1,
+      "success_rate": 1.0
+    },
+    "B1": {
+      "median_input_tokens": 700.0,
+      "median_latency_seconds": 1.7,
+      "median_output_tokens": 210.0,
+      "median_paired_token_reduction": 0.2540983606557377,
+      "median_total_tokens": 910.0,
+      "paired_count": 1,
+      "paired_reduction_ci95": [
+        0.2540983606557377,
+        0.2540983606557377
+      ],
+      "quality_noninferiority_delta": 0.0,
+      "run_count": 1,
+      "success_rate": 1.0
+    }
+  },
+  "baseline": "B0"
+}

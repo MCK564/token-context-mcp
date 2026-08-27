@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://token-context-mcp.local/schema/mcp-result-1.0.json",
+  "title": "Token Context MCP result envelope",
+  "type": "object",
+  "required": ["schema_version", "repo_id", "index_run_id", "freshness", "budget", "truncated", "completeness", "warnings", "evidence", "data"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "repo_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}$"},
+    "index_run_id": {"type": ["string", "null"]},
+    "freshness": {"enum": ["fresh", "pending", "stale", "unknown"]},
+    "budget": {
+      "type": "object",
+      "required": ["requested_tokens", "estimated_tokens"],
+      "properties": {
+        "requested_tokens": {"type": "integer", "minimum": 0},
+        "estimated_tokens": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "truncated": {"type": "boolean"},
+    "completeness": {
+      "type": "object",
+      "required": ["value", "basis"],
+      "properties": {
+        "value": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "basis": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+    "data": {"type": "object"}
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": ["path", "start_line", "end_line", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+        "start_line": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

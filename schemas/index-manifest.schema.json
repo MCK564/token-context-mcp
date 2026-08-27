@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://token-context-mcp.local/schema/index-manifest-1.0.json",
+  "title": "Token Context index manifest",
+  "type": "object",
+  "required": ["schema_version", "repo_id", "repo_root_id", "index_run_id", "indexer_version", "generated_at", "files_seen", "files_indexed", "files_skipped", "warnings", "network_policy", "network_policy_status", "artifact_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "repo_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}$"},
+    "repo_root_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "commit_sha": {"type": ["string", "null"]},
+    "index_run_id": {"type": "string"},
+    "indexer_version": {"type": "string"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "files_seen": {"type": "integer", "minimum": 0},
+    "files_indexed": {"type": "integer", "minimum": 0},
+    "files_skipped": {"type": "integer", "minimum": 0},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "network_policy": {"type": "string"},
+    "network_policy_status": {"type": "string"},
+    "artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": true
+}
+
