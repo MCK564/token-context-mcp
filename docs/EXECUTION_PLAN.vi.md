@@ -155,6 +155,8 @@ include_body = true
 
 Chạy theo giao thức đã chốt ở X4. Runner, `--max-mcp-calls` và fail-fast đều đã sẵn sàng — **không có chặn kỹ thuật nào**.
 
+**Quy trình chạy chi tiết: [`X6_RUNBOOK.vi.md`](X6_RUNBOOK.vi.md)** — tiền kiểm, chạy theo lô từng task, trích câu trả lời để chấm, áp điểm chấm, tổng hợp. Runbook cũng nêu ba khoảng trống vận hành của `run_c3_matrix.py` mà quy trình phải bù: `--task-success` là một cờ chung cho cả 45 lượt, không có resume, và chưa có bước trích câu trả lời.
+
 **Nghiệm thu:** `benchmark-report` sinh summary với `paired_count` đầy đủ; báo cáo nêu rõ chỉ số chính; mọi khẳng định về tiết kiệm đều kèm khoảng tin cậy và số lượng mẫu.
 
 ---

@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "token-context": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run", "--no-sync",
+        "--directory", "D:/AI/token-context-mcp",
+        "token-context", "serve", "--transport", "stdio"
+      ]
+    }
+  }
+}

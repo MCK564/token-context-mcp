@@ -155,6 +155,8 @@ include_body = true
 
 Run under the protocol settled in X4. The runner, `--max-mcp-calls` and fail-fast are all in place — **nothing technical is blocking**.
 
+**Detailed procedure: [`X6_RUNBOOK.en.md`](X6_RUNBOOK.en.md)** — pre-flight, per-task batches, answer extraction for grading, grade application, aggregation. The runbook also names the three operational gaps in `run_c3_matrix.py` the procedure must compensate for: `--task-success` is one flag for all 45 sessions, there is no resume, and there is no answer-extraction step.
+
 **Acceptance:** `benchmark-report` produces a summary with full `paired_count`; the report names the primary metric; every saving claim carries a confidence interval and a sample size.
 
 ---
