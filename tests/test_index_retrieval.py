@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 import jsonschema
@@ -34,16 +35,32 @@ def test_index_excludes_env_and_emits_source_backed_symbols(indexed_config: Path
     assert found["evidence"][0]["sha256"]
 
 
-def test_module_dependents_uses_parsed_imports(indexed_config: Path) -> None:
+def test_module_dependents_uses_lexical_imports(indexed_config: Path) -> None:
     service = _service(indexed_config)
     by_path = service.module_dependents("demo", path="helpers.py")
-    assert by_path["data"]["basis"] == "parsed_import_statements"
+    assert by_path["data"]["basis"] == "lexical_import_statements"
+    assert "imports_are_lexical_not_resolved" in by_path["warnings"]
     assert by_path["data"]["imports"] == []
     assert by_path["data"]["imported_by"] == ["app.py"]
 
     by_module = service.module_dependents("demo", module="helpers")
     assert by_module["data"]["matched_paths"] == ["helpers.py"]
     assert by_module["data"]["imported_by"] == ["app.py"]
+
+
+def test_module_dependents_recovers_relative_python_imports(tmp_path: Path) -> None:
+    root = tmp_path / "relative-repo"
+    package = root / "pkg"
+    package.mkdir(parents=True)
+    (package / "helpers.py").write_text("def value() -> int:\n    return 1\n", encoding="utf-8")
+    (package / "app.py").write_text("from .helpers import value\n", encoding="utf-8")
+    config_path = tmp_path / "config" / "repos.toml"
+    repository = RepositoryConfig(repo_id="relative", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"relative": repository}, server=ServerConfig()))
+    build_index(repository, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+
+    response = _service(config_path).module_dependents("relative", path="pkg/helpers.py")
+    assert response["data"]["imported_by"] == ["pkg/app.py"]
 
 
 def test_search_source_returns_bounded_body_evidence(indexed_config: Path) -> None:
@@ -156,6 +173,41 @@ def test_symbol_context_and_impact_mark_lexical_limit(indexed_config: Path) -> N
     assert "lexical_edges_are_not_complete_semantic_analysis" in context["warnings"]
     impact = service.impact_slice("demo", symbol_id=alpha["symbol_id"], direction="callees", depth=1)
     assert any(edge["target_name"] == "beta" for edge in impact["data"]["edges"])
+
+
+def test_symbol_context_withholds_content_when_index_offsets_are_stale(indexed_config: Path) -> None:
+    service = _service(indexed_config)
+    alpha = service.find_symbols("demo", pattern="alpha")["data"]["symbols"][0]
+    root = load_config(indexed_config).repositories["demo"].root
+    (root / "app.py").write_text("# inserted line\n" + (root / "app.py").read_text(encoding="utf-8"), encoding="utf-8")
+
+    response = service.symbol_context(
+        "demo", symbol_id=alpha["symbol_id"], depth=0, include_body=True, max_tokens=1024
+    )
+    packet = response["data"]["symbols"][0]
+    assert packet["content"] is None
+    assert "stale_content_unavailable" in response["warnings"]
+
+
+def test_symbol_context_evidence_matches_current_file_when_fresh(indexed_config: Path) -> None:
+    service = _service(indexed_config)
+    alpha = service.find_symbols("demo", pattern="alpha")["data"]["symbols"][0]
+    response = service.symbol_context(
+        "demo", symbol_id=alpha["symbol_id"], depth=0, include_body=True, max_tokens=1024
+    )
+    expected = hashlib.sha256((load_config(indexed_config).repositories["demo"].root / "app.py").read_bytes()).hexdigest()[:12]
+    assert response["data"]["symbols"][0]["evidence"]["sha256"] == expected
+
+
+def test_search_source_withholds_stale_snippets(indexed_config: Path) -> None:
+    service = _service(indexed_config)
+    root = load_config(indexed_config).repositories["demo"].root
+    (root / "app.py").write_text("# inserted line\n" + (root / "app.py").read_text(encoding="utf-8"), encoding="utf-8")
+
+    response = service.search_source("demo", query="beta", limit=10, max_tokens=1024)
+    app_match = next(item for item in response["data"]["matches"] if item["path"] == "app.py")
+    assert app_match["snippet"] is None
+    assert "stale_content_unavailable:app.py" in response["warnings"]
 
 
 def test_status_becomes_stale_when_indexed_file_changes(indexed_config: Path) -> None:

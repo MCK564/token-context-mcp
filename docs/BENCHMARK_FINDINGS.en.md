@@ -257,7 +257,7 @@ R-P0 through R-P5 are now implemented:
 
 - impact and symbol cap warnings are based on actual omitted results, with
   nodes_visited and node_limit_reached;
-- get_module_dependents serves parsed import relationships and import counts;
+- get_module_dependents serves Tree-sitter-extracted lexical import relationships and import counts;
 - FTS5 indexes symbol bodies and complete indexed source files; search_source
   returns bounded snippets, spans and source-backed IDs;
 - lexical resolution prefers same-file and same-package definitions before the
@@ -873,6 +873,24 @@ full C3 matrix                2-3 h run
 ```
 
 **Do not run C3 before the primary metric is settled.** Leaving `total_tokens` primary means 45 runs produce a result dominated by conversation length — exactly what the three pilots already produced, fifteen times over.
+
+### R5 - Freshness scan measurement (2026-08-28)
+
+The review's larger-repository concern was measured with:
+
+```powershell
+uv run python evals/benchmark_freshness.py --repetitions 3
+```
+
+This measures an unchanged-file scan through the service's stat/path-validation fast path on this Windows workstation:
+
+| Indexed files | Median scan | Per-file |
+|---:|---:|---:|
+| 1,000 | 309.879 ms | 309.879 microseconds |
+| 10,000 | 2,974.462 ms | 297.446 microseconds |
+| 25,000 | 7,393.482 ms | 295.739 microseconds |
+
+R5 is therefore a real P2 at the configured 25,000-file ceiling. No TTL or sampling policy is adopted in this remediation because either would permit a changed file to be reported as fresh during the cache/sample window, weakening the provenance contract that R4 protects. The full scan remains the correctness-preserving default for the current local-repository scope; a watcher or an explicitly eventual-consistency mode should be measured separately before changing that contract. Freshness is computed once per retrieval request so budget-packing retries do not multiply this scan.
 
 ### A note on this document
 

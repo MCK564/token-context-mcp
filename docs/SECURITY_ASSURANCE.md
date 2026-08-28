@@ -1,6 +1,6 @@
 # Security assurance
 
-0.1.0 reaches only **A1 (tested)** when its regression suite passes. It is not A2 because no project can self-enforce Windows firewall, container isolation, signing or an independent review solely from Python code.
+The reviewed `935511f` tree was below the project's **A1 (tested)** bar: its regression suite could pass only in a working tree containing an ignored package, so a clean clone could not collect it. The remediation branch reaches A1 only after the source suite and clean-room wheel checks pass in CI. It is not A2 because no project can self-enforce Windows firewall, container isolation, signing or an independent review solely from Python code.
 
 The test suite covers path traversal, secret canaries, stale files, resource bounds and a real MCP `stdio` round trip. For an A2 deployment:
 
@@ -17,4 +17,3 @@ uv run token-context release-materials --output supply-chain
 ```
 
 Sign the release and attest the build in CI before claiming A3.
-

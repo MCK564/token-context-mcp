@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  source:
+    name: Source tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --extra dev
+      - run: uv run pytest
+
+  artifact:
+    name: Clean-room wheel (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv build
+      - name: Install and verify wheel in an isolated environment
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+
+          root = pathlib.Path("artifact-venv")
+          subprocess.run([sys.executable, "-m", "venv", str(root)], check=True)
+          artifact_python = root / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+          artifact_command = root / ("Scripts/token-context.exe" if sys.platform == "win32" else "bin/token-context")
+          wheel = next(pathlib.Path("dist").glob("*.whl"))
+          subprocess.run([str(artifact_python), "-m", "pip", "install", str(wheel)], check=True)
+          subprocess.run([str(artifact_python), "-c", "import token_context_mcp, token_context_mcp.security"], check=True)
+          subprocess.run([str(artifact_command), "--version"], check=True)
+          subprocess.run([str(artifact_python), "evals/stdio_smoke.py"], check=True)
+          PY

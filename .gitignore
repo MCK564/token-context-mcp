@@ -3,14 +3,14 @@ __pycache__/
 .pytest_cache/
 .coverage
 coverage.xml
-dist/
-build/
+/dist/
+/build/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
-indexes/
-security/
-.smoke/
+/indexes/
+/security/
+/.smoke/
 config/repos.toml
 config/indexes/
 __pycache__/
@@ -21,3 +21,8 @@ evals/runs/
 
 # VS Code / Copilot MCP wiring: contains a machine-specific absolute path
 .vscode/mcp.json
+
+# Local planning and review notes; keep setup and benchmark result documents tracked.
+/docs/EXECUTION_PLAN.*.md
+/docs/REMEDIATION_AND_BENCHMARK_PLAN.*.md
+/docs/REVIEW_REMEDIATION.*.md

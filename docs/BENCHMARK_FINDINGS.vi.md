@@ -871,6 +871,24 @@ ma trận C3 đầy đủ            2–3 giờ chạy
 
 **Đừng chạy C3 trước khi chốt chỉ số chính.** Nếu vẫn để `total_tokens` làm chỉ số chính thì 45 lượt chạy sẽ tạo ra một kết quả bị chi phối bởi số lượt hội thoại — chính xác là điều mà ba lượt pilot trước đã tạo ra, chỉ nhiều hơn gấp mười lăm lần.
 
+### R5 — Đo chi phí quét freshness (28/08/2026)
+
+Mối lo của review về chi phí freshness trên repository lớn đã được đo bằng:
+
+```powershell
+uv run python evals/benchmark_freshness.py --repetitions 3
+```
+
+Phép đo chạy đường đi nhanh stat/kiểm tra path trên các file không đổi ở máy Windows này:
+
+| Số file đã index | Median scan | Mỗi file |
+|---:|---:|---:|
+| 1.000 | 309,879 ms | 309,879 microsecond |
+| 10.000 | 2.974,462 ms | 297,446 microsecond |
+| 25.000 | 7.393,482 ms | 295,739 microsecond |
+
+R5 vì vậy vẫn là một P2 ở trần cấu hình 25.000 file. Bản remediation không dùng TTL hay sampling vì chúng có thể cho một file đã đổi trông như còn fresh trong cửa sổ cache/sample, làm yếu hợp đồng provenance mà R4 bảo vệ. Với phạm vi repository local hiện tại, full scan vẫn là mặc định bảo toàn tính đúng; cần đo riêng watcher hoặc chế độ eventual-consistency rõ ràng trước khi đổi hợp đồng này. Freshness được tính một lần cho mỗi request retrieval để retry đóng gói budget không nhân thêm chi phí scan.
+
 ### Ghi chú về chính tài liệu này
 
 File này giờ khoảng 960 dòng với 16 mục con và bốn chuỗi công việc (R, E, RK, và phần khắc phục gốc). Nó đã vượt quá điểm còn tra cứu được thoải mái. Nên tách `§2.7–2.16` thành `BENCHMARK_FINDINGS.vi.md` và để lại con trỏ — trước khi thêm mục thứ mười bảy.

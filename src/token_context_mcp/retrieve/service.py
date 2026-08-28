@@ -293,6 +293,7 @@ class RetrievalService:
         if not 1 <= limit <= 100:
             raise ArgumentOutOfRangeError("limit", limit, 1, 100)
         repository, store, metadata = self._repository_store(repo_id)
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
         match_query = _fts_query(query)
         try:
             total_matches = store.count_source_matches(match_query)
@@ -300,13 +301,36 @@ class RetrievalService:
         except StoreError as error:
             raise RetrievalError(str(error)) from error
         entries: list[dict[str, Any]] = []
+        stale_paths: list[str] = []
         for row in rows:
             file_record = store.file(row["path"])
             if file_record is None:
                 continue
             file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
-            source = file_path.read_text(encoding="utf-8", errors="replace")
+            raw = file_path.read_bytes()
+            current_hash = hashlib.sha256(raw).hexdigest()
             file_symbols = store.symbols(path=row["path"])
+            if current_hash != file_record.sha256:
+                stale_paths.append(row["path"])
+                symbol = None
+                line_number = 1
+                entries.append(
+                    {
+                        "symbol_id": symbol.symbol_id if symbol else None,
+                        "path": row["path"],
+                        "start_line": line_number,
+                        "end_line": line_number,
+                        "snippet": None,
+                        "evidence": (
+                            self._evidence_for_symbol(store, symbol).as_dict()
+                            if symbol
+                            else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
+                        ),
+                        "warnings": ["stale_content_unavailable"],
+                    }
+                )
+                continue
+            source = raw.decode("utf-8", errors="replace")
             line_number = _first_matching_line(source, _fts_terms(query), file_symbols)
             snippet, redacted = redact_text(_source_snippet(source, line_number))
             symbol = next(
@@ -333,6 +357,10 @@ class RetrievalService:
                 }
             )
         source_limit_omitted = max(0, total_matches - len(entries))
+        response_warnings: list[str] = []
+        if any(item.get("redacted_lines", 0) for item in entries):
+            response_warnings.append("potential_secrets_redacted")
+        response_warnings.extend(f"stale_content_unavailable:{path}" for path in stale_paths)
 
         def build_response(
             selected_items: list[dict[str, Any]],
@@ -344,8 +372,8 @@ class RetrievalService:
                 metadata,
                 requested_tokens=effective_max_tokens,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
-                warnings=["potential_secrets_redacted"] if any(item.get("redacted_lines", 0) for item in entries) else [],
+                freshness=freshness,
+                warnings=response_warnings,
                 truncated=source_limit_omitted > 0 or bool(omitted_items),
                 evidence=[],
                 data={
@@ -400,6 +428,7 @@ class RetrievalService:
             else effective_max_tokens
         )
         repository, store, metadata = self._repository_store(repo_id)
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
         derived_limit = _metadata_default(metadata, "limit_ceiling", 100)
         effective_limit = min(limit, self.config.server.max_symbol_results, derived_limit)
         available_count = store.count_symbols(pattern, kind=kind)
@@ -431,7 +460,7 @@ class RetrievalService:
                 metadata,
                 requested_tokens=effective_max_tokens if explicit_budget else 0,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
+                freshness=freshness,
                 warnings=warnings,
                 truncated=bool(omitted_items) or server_omitted_count > 0,
                 evidence=[item[1]["evidence"] for item in selected_items],
@@ -477,28 +506,35 @@ class RetrievalService:
         symbols = store.symbols(path=relative)
         if not include_private:
             symbols = [symbol for symbol in symbols if not symbol.is_private]
-        imports = _source_import_lines(source)
+        current_hash = hashlib.sha256(raw).hexdigest()
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        stale = current_hash != record.sha256
+        imports = [] if stale else _source_import_lines(source)
         parts: list[dict[str, Any]] = []
         for line_number, line in imports:
             content, count = redact_text(line)
             parts.append({"kind": "import", "start_line": line_number, "end_line": line_number, "content": content.rstrip(), "redacted_lines": count})
         for symbol in symbols:
-            header = _source_bytes(source, symbol.start_byte, symbol.body_start_byte or symbol.end_byte)
-            content, count = redact_text(header)
+            if stale:
+                content, count = None, 0
+            else:
+                header = _source_bytes(source, symbol.start_byte, symbol.body_start_byte or symbol.end_byte)
+                content, count = redact_text(header)
             parts.append(
                 {
                     "kind": symbol.kind,
                     "symbol_id": symbol.symbol_id,
                     "start_line": symbol.start_line,
                     "end_line": symbol.end_line,
-                    "content": content.strip(),
+                    "content": content.strip() if content is not None else None,
                     "redacted_lines": count,
-                    "body_elided": symbol.body_start_byte is not None,
+                    "body_elided": symbol.body_start_byte is not None and not stale,
                 }
             )
         warnings: list[str] = []
-        if self._current_hash(repository.root, record, allow_symlinks=repository.allow_symlinks) != record.sha256:
+        if stale:
             warnings.append("indexed_hash_differs_from_current_file")
+            warnings.append("stale_content_unavailable")
         if any(item["redacted_lines"] for item in parts):
             warnings.append("potential_secrets_redacted")
         imported_modules = store.imports_for_path(relative)
@@ -509,7 +545,7 @@ class RetrievalService:
                 metadata,
                 requested_tokens=max_tokens,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
+                freshness=freshness,
                 warnings=warnings,
                 truncated=bool(omitted_items),
                 evidence=[Evidence(relative, 1, max(1, source.count("\n") + 1), record.sha256).as_dict()],
@@ -578,6 +614,7 @@ class RetrievalService:
             }
         )
         importers = store.importers_for_modules(lookup_modules)
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
         entries: list[tuple[str, str]] = [
             ("import", item) for item in imported_modules
         ] + [("imported_by", item) for item in importers]
@@ -592,15 +629,24 @@ class RetrievalService:
                 metadata,
                 requested_tokens=effective_max_tokens,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
-                warnings=[],
+                freshness=freshness,
+                warnings=[
+                    "imports_are_lexical_not_resolved",
+                    *sorted(
+                        {
+                            f"dynamic_import_detected:{item.path}"
+                            for item in store.files()
+                            if item.path in matched_paths and "dynamic_import_detected" in item.warnings
+                        }
+                    ),
+                ],
                 truncated=bool(omitted_items),
                 data={
                     "query": query_value,
                     "matched_paths": matched_paths,
                     "imports": [item for kind, item in selected_items if kind == "import"],
                     "imported_by": [item for kind, item in selected_items if kind == "imported_by"],
-                    "basis": "parsed_import_statements",
+                    "basis": "lexical_import_statements",
                     "omitted_count": len(omitted_items),
                     "estimator_version": ESTIMATOR_VERSION,
                 },
@@ -645,6 +691,7 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
         canonical_symbol_id = self._resolve_symbol_id(store, symbol_id)
         root_symbol = store.symbol(canonical_symbol_id) if canonical_symbol_id else None
         if root_symbol is None:
@@ -664,6 +711,7 @@ class RetrievalService:
                 store,
                 symbol,
                 include_body and symbol.symbol_id == canonical_symbol_id,
+                allow_symlinks=repository.allow_symlinks,
             )
             for symbol in symbols
         ]
@@ -673,6 +721,12 @@ class RetrievalService:
         entries.extend(("edge", edge_as_dict(edge)) for edge in traversal_edges)
         entries.extend(("symbol", packet) for packet in packets[1:])
         warnings = _edge_warnings(traversal_edges)
+        warnings.extend(
+            warning
+            for packet in packets
+            for warning in packet.get("warnings", [])
+            if warning not in warnings
+        )
         def build_response(selected_items: list[tuple[str, dict[str, Any]]], omitted_items: list[tuple[str, dict[str, Any]]], estimated: int) -> dict[str, Any]:
             selected_symbols = [item for kind, item in selected_items if kind == "symbol"]
             selected_edges = [item for kind, item in selected_items if kind == "edge"]
@@ -683,7 +737,7 @@ class RetrievalService:
                 metadata,
                 requested_tokens=max_tokens,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
+                freshness=freshness,
                 warnings=warnings,
                 truncated=bool(omitted_items),
                 edge_precision=_edge_precision(traversal_edges),
@@ -742,6 +796,7 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
+        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
         if max_nodes is None:
             max_nodes = _metadata_default(metadata, "impact_max_nodes", 100)
         if not 1 <= max_nodes <= DEFAULT_MAX_GRAPH_NODES:
@@ -803,7 +858,7 @@ class RetrievalService:
                 metadata,
                 requested_tokens=effective_max_tokens,
                 estimated_tokens=estimated,
-                freshness=self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks),
+                freshness=freshness,
                 warnings=warnings,
                 evidence=selected_evidence,
                 completeness=completeness,
@@ -947,19 +1002,39 @@ class RetrievalService:
         assert record is not None
         return Evidence(symbol.path, symbol.start_line, symbol.end_line, record.sha256)
 
-    def _symbol_packet(self, root: Path, store: SQLiteStore, symbol: SymbolRecord, include_body: bool) -> dict[str, Any]:
+    def _symbol_packet(
+        self,
+        root: Path,
+        store: SQLiteStore,
+        symbol: SymbolRecord,
+        include_body: bool,
+        *,
+        allow_symlinks: bool = False,
+    ) -> dict[str, Any]:
         record = store.file(symbol.path)
         assert record is not None
-        file_path = safe_relative_path(root, symbol.path)
-        source = file_path.read_text(encoding="utf-8", errors="replace")
-        end = symbol.end_byte if include_body else (symbol.body_start_byte or symbol.end_byte)
-        content, redacted = redact_text(_source_bytes(source, symbol.start_byte, end))
+        warnings: list[str] = []
+        try:
+            file_path = safe_relative_path(root, symbol.path, allow_symlinks=allow_symlinks)
+            raw = file_path.read_bytes()
+            current_hash = hashlib.sha256(raw).hexdigest()
+        except (PathPolicyError, OSError):
+            current_hash = None
+            raw = b""
+        if current_hash != record.sha256:
+            content, redacted = None, 0
+            warnings.append("stale_content_unavailable")
+        else:
+            source = raw.decode("utf-8", errors="replace")
+            end = symbol.end_byte if include_body else (symbol.body_start_byte or symbol.end_byte)
+            content, redacted = redact_text(_source_bytes(source, symbol.start_byte, end))
         return {
             "symbol": symbol_as_dict(symbol),
-            "content": content.strip(),
+            "content": content.strip() if content is not None else None,
             "body_included": include_body,
             "redacted_lines": redacted,
             "evidence": Evidence(symbol.path, symbol.start_line, symbol.end_line, record.sha256).as_dict(),
+            **({"warnings": warnings} if warnings else {}),
         }
 
     def _traverse(

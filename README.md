@@ -166,8 +166,8 @@ network_policy = "declared-deny-not-enforced"
 
 - `max_result_tokens` caps output from maps, skeletons, symbol context, impact slices, and uncapped search/status responses. This is the main control for model-context consumption.
 - `max_graph_nodes` caps impact-slice traversal.
-- `get_module_dependents` reports parsed import relationships; its `basis` is
-  `parsed_import_statements`, not a lexical call-graph claim.
+- `get_module_dependents` reports Tree-sitter-extracted lexical import relationships; its `basis` is
+  `lexical_import_statements`. It does not resolve imports semantically, and dynamic imports are flagged rather than resolved.
 - `search_source` searches indexed symbol bodies and returns bounded snippets
   with source-backed symbol IDs and line evidence.
 - `list_repositories` also advertises four named budget profiles: `locate`,

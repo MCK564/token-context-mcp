@@ -102,7 +102,7 @@ def build_server(config_path: Path) -> MCPServer:
 
     @server.tool(
         title="Module dependents",
-        description="Return parsed import relationships for one indexed path or module. This is exact parsed-import evidence, not lexical call-graph inference.",
+        description="Return Tree-sitter-extracted lexical import relationships for one indexed path or module. This is not semantic import resolution or lexical call-graph inference; dynamic imports are flagged rather than resolved.",
     )
     def get_module_dependents(
         repo_id: str,

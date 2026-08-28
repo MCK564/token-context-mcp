@@ -74,8 +74,9 @@ editing or whenever a body is needed. Do not infer that an unresolved or missing
 get_repo_map defaults to compact entries [id, path:line, kind/name, optional rank marker]; pass the first
 field as symbol_id for follow-up context or impact calls. Request format="full" when per-symbol evidence
 and detailed rank basis are required.
-Use get_module_dependents for parsed import relationships and search_source for
-body-text lookup before using native search. For impact slices, treat
+Use get_module_dependents for Tree-sitter-extracted lexical import relationships
+and search_source for body-text lookup before using native search. Dynamic imports
+are flagged rather than resolved. For impact slices, treat
 node_limit_reached=false and nodes_visited below the configured cap as evidence
 that the traversal did not stop at the node limit; lexical-edge warnings still
 mean the graph is not a complete semantic call graph.
