@@ -159,7 +159,7 @@ Cùng một script, `0.1.0` đối chiếu `0.2.0`. Kỳ vọng: `repo_map`@1024
 
 ### 2.5 So sánh C3 — có tiết kiệm đầu-cuối không? *(cần agent; phần này bạn phải chạy)*
 
-Không có `codex`, `antigravity`, `gemini` hay `aider` nào trên `PATH` của máy này, nên **tôi không thể thực thi hay đo nửa này**. Giao thức:
+Codex CLI có sẵn từ extension VS Code trên máy này và đã xác thực. Đã chạy một pilot đầu tiên trên bản frozen chỉ gồm source của `invoice-scanner`; giao thức đầy đủ vẫn là:
 
 - **B0** — agent chỉ dùng công cụ file gốc của nó, tắt MCP.
 - **B1** — cùng agent, cùng model, cùng prompt, bật MCP token-context, và system prompt khuyến nghị hạn chế đọc file trực tiếp.
@@ -191,6 +191,17 @@ Cách nối từng agent — tất cả đều nhận cùng một lệnh `stdio`
 
 Khởi động lại client sau khi đổi registry — registry chỉ được đọc lúc tiến trình khởi động.
 
+Pilot đã chạy ngày 2026-08-27 (1 tác vụ, seed 1; chưa phải bộ 30 lượt đầy đủ):
+
+- Root frozen: `D:\AI\bench\invoice-scanner-frozen` (217 file, 1,79 MiB; không có data, weights, artifacts, output, docs hay ảnh).
+- Đã đăng ký/index với id `bench-invoice`: 601 symbols, 1.527 edges, 22,0% ambiguous; C1 có accounting gap 1,0x và không có call nào vượt cap 2.048 token.
+- Hai nhánh dùng cùng prompt (`prompt_sha256=add707efa635ef01bdffe1dc50d4bcdc605faee69bdab8e810ea54f19d593e97`) và đều thành công. B0 giữ nguyên user/plugin config nhưng chỉ tắt `mcp_servers.token-context.enabled`.
+- B0 native-only: 310.912 input + 4.350 output = **315.262 provider token**, 90,59 giây.
+- B1 có token-context: 282.892 input + 5.653 output = **288.545 provider token**, 117,80 giây; 2 MCP call (`get_index_status`, `get_repo_map`).
+- Kết quả ghép cặp: B1 dùng **ít hơn 8,5% tổng token** (reduction `0,0847`) nhưng chậm hơn 1,30x, không có quality delta trong pilot này.
+
+Raw session, JSONL usage và summary nằm ở `evals/runs/c3/`, `evals/reports/c3-invoice-runs.jsonl` và `evals/reports/c3-invoice-summary.json`. Đây chỉ là bằng chứng trên một agent/model/tác vụ, không phải kết quả phổ quát. Agent mới dùng MCP hai lần nhưng vẫn đọc native, nên pilot này chủ yếu chỉ ra overhead do cách agent sử dụng tool, chưa chứng minh mức lợi ích tối đa của MCP.
+
 ### 2.6 C3 cho thấy được gì và không cho thấy được gì
 
 Nó **có thể** cho thấy một agent có công cụ hoàn thành cùng những tác vụ đó với ít token hơn ở mức chất lượng không thua kém. Đó là khẳng định đáng đưa ra.
@@ -201,6 +212,12 @@ Nó **không thể** cho thấy một khoản tiết kiệm phổ quát. Năm t�
 
 ---
 
+## 2.7–2.16 Các phát hiện benchmark
+
+Các phát hiện đã đo và công việc tiếp theo trước đây nằm ở đây nay được chuyển sang [BENCHMARK_FINDINGS.vi.md](BENCHMARK_FINDINGS.vi.md). Các mục §0–§2.6 và §3–§5 vẫn ở tài liệu này.
+
+---
+
 ## 3. Lộ trình cơ hội — sau khi các bản sửa đã vào
 
 Sắp theo *bằng chứng mở khóa được trên mỗi đơn vị công sức*, không theo mức hấp dẫn.
@@ -208,8 +225,8 @@ Sắp theo *bằng chứng mở khóa được trên mỗi đơn vị công sứ
 **O1 — Công bố các con số C1/C2. (1 ngày, sau §1)**
 Khẳng định trung tâm của repository hiện chưa có bằng chứng. C1 và C2 tất định, không cần nhà cung cấp, và biến "được thiết kế để giảm việc bò quét" thành một tỷ lệ đã đo kèm phương pháp được nêu rõ. **Giá trị cao nhất trên mỗi giờ công trong toàn bộ lộ trình.** Đặt bảng đó vào `README.md` cùng với script đo đi kèm.
 
-**O2 — Chạy C3 với một agent. (2–3 ngày, chủ yếu là thời gian của bạn)**
-Biến khẳng định từ "gói ngữ cảnh nhỏ hơn" thành "ít token hơn cho cùng một tác vụ đã hoàn thành". Hãy làm **một** agent cho tử tế thay vì ba agent qua loa.
+**O2 — Chạy C3 với một agent. (2–3 ngày, chủ yếu là thời gian của bạn; pilot đã xong)**
+Pilot một tác vụ đã hoàn tất; vẫn còn bộ đầy đủ 5 tác vụ × 3 seed. Nó biến khẳng định từ "gói ngữ cảnh nhỏ hơn" thành "ít token hơn cho cùng một tác vụ đã hoàn thành". Hãy làm **một** agent cho tử tế thay vì ba agent qua loa.
 
 **O3 — Kiểm độ tươi rẻ hơn. (0,5 ngày)** = W8. Làm cho công cụ dùng được trên các repository lớn, nơi hiện tại nó băm lại hàng nghìn file mỗi lời gọi.
 
@@ -240,7 +257,7 @@ O1         công bố các con số        1 ngày
 P2  W8-W11 cạnh sắc vận hành       0,5 ngày
 P3  W12    độ mơ hồ vào phong bì   0,5 ngày
  |
-O2         C3 với một agent        2-3 ngày  (thời gian của bạn; máy này không có agent CLI)
+O2         C3 với một agent        2-3 ngày  (pilot đã xong; còn bộ ma trận 30 lượt)
  |
 O6         tag, PyPI, CI            1-2 ngày
  |

@@ -80,7 +80,7 @@ If the `codex` command is not available in your PowerShell PATH, directly add th
 ```toml
 [mcp_servers.token-context]
 command = "uv"
-args = ["run", "--directory", "D:\\AI\\token-context-mcp", "token-context", "serve", "--transport", "stdio"]
+args = ["run", "--no-sync", "--directory", "D:\\AI\\token-context-mcp", "python", "-m", "token_context_mcp.cli", "serve", "--transport", "stdio"]
 ```
 
 > **Tip for GUI:** If Codex cannot find `uv`, replace `"uv"` with the absolute path: `"C:\\Users\\<YourUser>\\AppData\\Roaming\\Python\\Python312\\Scripts\\uv.exe"`.
@@ -91,7 +91,7 @@ args = ["run", "--directory", "D:\\AI\\token-context-mcp", "token-context", "ser
 
 #### 1. Claude Code (CLI)
 ```powershell
-claude mcp add --transport stdio --scope user token-context -- uv run --directory D:\AI\token-context-mcp token-context serve --transport stdio
+claude mcp add --transport stdio --scope user token-context -- uv run --no-sync --directory D:\AI\token-context-mcp python -m token_context_mcp.cli serve --transport stdio
 claude mcp get token-context
 ```
 
@@ -105,9 +105,12 @@ Open or create `%APPDATA%\Claude\claude_desktop_config.json` (e.g. `C:\Users\<Yo
       "command": "uv",
       "args": [
         "run",
+        "--no-sync",
         "--directory",
         "D:\\AI\\token-context-mcp",
-        "token-context",
+        "python",
+        "-m",
+        "token_context_mcp.cli",
         "serve",
         "--transport",
         "stdio"
@@ -155,22 +158,70 @@ The global registry has an enforceable `[server]` policy. Edit the TOML and rest
 ```toml
 [server]
 max_request_bytes = 65536
-max_result_tokens = 2048
-max_graph_nodes = 75
-max_symbol_results = 15
+max_result_tokens = 4096
+max_graph_nodes = 200
+max_symbol_results = 30
 network_policy = "declared-deny-not-enforced"
 ```
 
-- `max_result_tokens` caps output from maps, skeletons, and symbol context. This is the main control for model-context consumption.
+- `max_result_tokens` caps output from maps, skeletons, symbol context, impact slices, and uncapped search/status responses. This is the main control for model-context consumption.
 - `max_graph_nodes` caps impact-slice traversal.
-- `max_symbol_results` caps search results.
-- `max_request_bytes` rejects oversized MCP inputs.
+- `get_module_dependents` reports parsed import relationships; its `basis` is
+  `parsed_import_statements`, not a lexical call-graph claim.
+- `search_source` searches indexed symbol bodies and returns bounded snippets
+  with source-backed symbol IDs and line evidence.
+- `list_repositories` also advertises four named budget profiles: `locate`,
+  `orient`, `impact`, and `read`. Pass `profile` to a retrieval tool to use
+  one; explicit per-tool arguments override the profile. The response budget
+  includes the reserved MCP envelope allowance.
+
+Example profile-based calls:
+
+```text
+list_repositories()
+get_repo_map(repo_id="myrepo", profile="orient")
+find_symbols(repo_id="myrepo", pattern="Invoice", profile="locate")
+get_impact_slice(repo_id="myrepo", symbol_id="...", profile="impact")
+```
 
 Lower values reduce tokens but cause more truncation and follow-up calls. The server limits only the context it returns; it cannot impose a hard provider billing limit for an entire Codex/model session.
+
+## Deterministic context-cost checks
+
+The repository includes a provider-free C1/C2 measurement script. It compares a
+naive read of all source files with the serialized payloads returned by the
+retrieval tools; all figures are local `utf8 bytes / 4` estimates, not billing
+claims.
+
+```powershell
+uv run python evals/measure_context_cost.py `
+  --repo-id token-context `
+  --config $env:APPDATA\token-context-mcp\repos.toml `
+  --output evals/reports/c1-token-context.json
+```
+
+The post-remediation measurements checked into this repository are:
+
+| Repository | Naive source read | `repo_map` @1024 (wire) | Saving | Worst accounting gap | Calls over server cap |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `token-context` | 60,760 tok | 994 tok | 61.1x | 1.19x | 0 |
+| `invoice-scanner` | 220,576 tok | 994 tok | 221.9x | 1.20x | 0 |
+
+See [`evals/measure_context_cost.py`](evals/measure_context_cost.py),
+[`evals/reports/c1-token-context-x1.json`](evals/reports/c1-token-context-x1.json)
+and [`evals/reports/c1-invoice-scanner-x1.json`](evals/reports/c1-invoice-scanner-x1.json)
+for the method and complete call table. These X1 measurements use the MCP
+wire envelope and show zero calls over the configured 4,096-token cap. The
+remaining gap between the service estimate and wire size is fixed framing;
+the 96-token reserve keeps the emitted response within the requested cap.
+The C3 protocol is recorded in [`evals/c3_protocol.md`](evals/c3_protocol.md);
+the full provider-run matrix remains a separate runtime step.
 
 ## Commands
 
 - `register`: add a canonical, non-link repository root to a local TOML registry.
+- `unregister`: remove a repository registration.
+- `update`: change a repository root; requires `--force`.
 - `index`: build an atomic SQLite snapshot and JSON manifest.
 - `status`: inspect the stored snapshot and detect files changed after indexing.
 - `serve`: start the MCP `stdio` server.
@@ -181,10 +232,21 @@ Lower values reduce tokens but cause more truncation and follow-up calls. The se
 
 - `get_repo_map`
 - `find_symbols`
+- `get_module_dependents`
+- `search_source`
 - `get_file_skeleton`
 - `get_symbol_context`
 - `get_impact_slice`
 - `get_index_status`
+
+`get_repo_map` defaults to a compact `symbols` array. Each entry is
+`[short_symbol_id, "path:line", "kind/name", optional_rank_marker]`; pass the
+first field to a follow-up symbol or impact tool. The optional marker is one
+of `E` (declared entry point), `W` (registry wiring), `D` (protocol
+definition), `I` (protocol implementation), or `M` (module entry point). Use
+`format="full"` when detailed per-symbol provenance and `rank_basis` are
+needed. Compact responses keep file SHA-256 digests once in the
+`file_digests` map instead of repeating evidence for every symbol.
 
 Every result is a JSON envelope with `index_run_id`, `freshness`, budget, warnings and source evidence. A lexical edge is explicitly marked `ambiguous`; an unresolved edge is not proof that no relation exists.
 

@@ -27,9 +27,10 @@ def build_lexical_edges(
             if not candidates:
                 continue
             line = source.start_line + body[: match.start()].count("\n")
-            target = candidates[0] if len(candidates) == 1 else None
+            target, scope = _resolve_candidate(source, candidates)
             status = "resolved" if target else "ambiguous"
             edge_kind = "call" if body[match.end() :].lstrip().startswith("(") else "reference"
+            evidence = ["identifier_match", f"scope:{scope}"]
             edges.append(
                 EdgeRecord(
                     source_symbol_id=source.symbol_id,
@@ -41,11 +42,34 @@ def build_lexical_edges(
                     confidence=0.55 if target else 0.2,
                     source_path=source.path,
                     source_line=line,
-                    evidence=["identifier_match"],
+                    evidence=evidence,
                 )
             )
             count += 1
     return _deduplicate(edges)
+
+
+def _resolve_candidate(source: SymbolRecord, candidates: list[SymbolRecord]) -> tuple[SymbolRecord | None, str]:
+    same_file = [candidate for candidate in candidates if candidate.path == source.path]
+    if len(same_file) == 1:
+        return same_file[0], "same_file"
+    if len(same_file) > 1:
+        return None, "same_file_ambiguous"
+
+    source_package = source.path.rsplit("/", 1)[0]
+    same_package = [
+        candidate
+        for candidate in candidates
+        if candidate.path.rsplit("/", 1)[0] == source_package
+    ]
+    if len(same_package) == 1:
+        return same_package[0], "same_package"
+    if len(same_package) > 1:
+        return None, "same_package_ambiguous"
+
+    if len(candidates) == 1:
+        return candidates[0], "global"
+    return None, "global_ambiguous"
 
 
 def _slice_by_byte(text: str, start_byte: int, end_byte: int) -> str:
@@ -62,4 +86,3 @@ def _deduplicate(edges: list[EdgeRecord]) -> list[EdgeRecord]:
             seen.add(key)
             unique.append(edge)
     return unique
-

@@ -1,0 +1,364 @@
+{
+  "budget_tokens": 1024,
+  "rank_mode": "global",
+  "repo_id": "invoice-scanner",
+  "result": {
+    "distinct_top_k_count": 5,
+    "mean_essential_recall": 0.667,
+    "topic_count": 5,
+    "topics": [
+      {
+        "query": "ocr text recognition",
+        "result": {
+          "essential_found": 2,
+          "essential_missing": [
+            "run"
+          ],
+          "essential_recall": 0.667,
+          "essential_total": 3,
+          "k": 10,
+          "labelled_in_top_k": 3,
+          "ndcg_at_k": 0.6278,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 37,
+          "top_k_listing": [
+            {
+              "grade": 3,
+              "name": "RapidOcrEngine",
+              "path": "src/invoice_backend/ocr_engines/rapid_engine.py"
+            },
+            {
+              "grade": null,
+              "name": "recognise",
+              "path": "src/invoice_backend/ocr_engines/rapid_engine.py"
+            },
+            {
+              "grade": null,
+              "name": "recognise",
+              "path": "src/invoice_backend/ocr_engines/base.py"
+            },
+            {
+              "grade": null,
+              "name": "OcrEngine",
+              "path": "src/invoice_backend/ocr_engines/base.py"
+            },
+            {
+              "grade": null,
+              "name": "_run_tiled_ocr",
+              "path": "src/invoice_backend/s8_ocr.py"
+            },
+            {
+              "grade": 2,
+              "name": "OcrResult",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "_compute_ocr_evidence_score",
+              "path": "src/invoice_backend/s8_ocr.py"
+            },
+            {
+              "grade": null,
+              "name": "full_text",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": 3,
+              "name": "TextBox",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "recognise",
+              "path": "src/invoice_backend/ocr_engines/tesseract_engine.py"
+            }
+          ]
+        },
+        "topic_id": "ocr"
+      },
+      {
+        "query": "field extraction amount date",
+        "result": {
+          "essential_found": 2,
+          "essential_missing": [
+            "OcrResult",
+            "TextBox"
+          ],
+          "essential_recall": 0.5,
+          "essential_total": 4,
+          "k": 10,
+          "labelled_in_top_k": 2,
+          "ndcg_at_k": 0.5205,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 41,
+          "top_k_listing": [
+            {
+              "grade": 3,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "FieldCandidate",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "ExtractedField",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "parse_amount",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "parse_date",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "generate_anchor_candidates",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": 3,
+              "name": "run",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "InvoiceProcessor",
+              "path": "src/invoice_backend/processor.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            },
+            {
+              "grade": null,
+              "name": "add_field",
+              "path": "scripts/build_s0_s6_report_revised.py"
+            }
+          ]
+        },
+        "topic_id": "field-extraction"
+      },
+      {
+        "query": "frontend registry selection",
+        "result": {
+          "essential_found": 2,
+          "essential_missing": [],
+          "essential_recall": 1.0,
+          "essential_total": 2,
+          "k": 10,
+          "labelled_in_top_k": 5,
+          "ndcg_at_k": 0.9084,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 36,
+          "top_k_listing": [
+            {
+              "grade": 3,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": 2,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": 2,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": 3,
+              "name": "register",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": 2,
+              "name": "FrontendPipeline",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "mark",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "run",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "run",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "run",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            }
+          ]
+        },
+        "topic_id": "registry"
+      },
+      {
+        "query": "render display ocr input",
+        "result": {
+          "essential_found": 1,
+          "essential_missing": [
+            "run"
+          ],
+          "essential_recall": 0.5,
+          "essential_total": 2,
+          "k": 10,
+          "labelled_in_top_k": 2,
+          "ndcg_at_k": 0.3594,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 37,
+          "top_k_listing": [
+            {
+              "grade": 2,
+              "name": "_render_ocr_input",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "RapidOcrEngine",
+              "path": "src/invoice_backend/ocr_engines/rapid_engine.py"
+            },
+            {
+              "grade": null,
+              "name": "OcrEngine",
+              "path": "src/invoice_backend/ocr_engines/base.py"
+            },
+            {
+              "grade": null,
+              "name": "_run_tiled_ocr",
+              "path": "src/invoice_backend/s8_ocr.py"
+            },
+            {
+              "grade": null,
+              "name": "_compute_ocr_evidence_score",
+              "path": "src/invoice_backend/s8_ocr.py"
+            },
+            {
+              "grade": null,
+              "name": "OcrResult",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "_validate_input",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "_render_bw_scan",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": 3,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "render_with_word",
+              "path": "docs/.s0_s6_report_work/inspect_and_render_docx.py"
+            }
+          ]
+        },
+        "topic_id": "render"
+      },
+      {
+        "query": "page detection corners geometry",
+        "result": {
+          "essential_found": 2,
+          "essential_missing": [
+            "DlFrontend"
+          ],
+          "essential_recall": 0.667,
+          "essential_total": 3,
+          "k": 10,
+          "labelled_in_top_k": 4,
+          "ndcg_at_k": 0.4904,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 34,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "detect_line_intersection",
+              "path": "src/invoice_frontend_geom/s2_page_detect.py"
+            },
+            {
+              "grade": 2,
+              "name": "detect_contour",
+              "path": "src/invoice_frontend_geom/s2_page_detect.py"
+            },
+            {
+              "grade": null,
+              "name": "mask_to_quad",
+              "path": "src/invoice_frontend_dl/s2_page_detect.py"
+            },
+            {
+              "grade": 3,
+              "name": "run",
+              "path": "src/invoice_frontend_dl/s2_page_detect.py"
+            },
+            {
+              "grade": 3,
+              "name": "PageDetection",
+              "path": "src/invoice_core/contracts.py"
+            },
+            {
+              "grade": null,
+              "name": "run",
+              "path": "src/invoice_frontend_geom/s2_page_detect.py"
+            },
+            {
+              "grade": null,
+              "name": "_geometry",
+              "path": "src/invoice_frontend_dl/s2_page_detect.py"
+            },
+            {
+              "grade": null,
+              "name": "GeometryCandidate",
+              "path": "src/invoice_frontend_dl/models/candidate_tournament.py"
+            },
+            {
+              "grade": 2,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "_try_fallback",
+              "path": "src/invoice_frontend_dl/s2_page_detect.py"
+            }
+          ]
+        },
+        "topic_id": "geometry"
+      }
+    ],
+    "topics_with_zero_noise": 5
+  },
+  "server_max_result_tokens": 4096,
+  "set_id": "query-invoice-scanner-v1"
+}

@@ -14,9 +14,11 @@ def pending_paths(root: Path, files: list[FileRecord], *, allow_symlinks: bool =
     for record in files:
         try:
             current = safe_relative_path(root, record.path, allow_symlinks=allow_symlinks)
+            stat = current.stat()
+            if stat.st_size == record.size and stat.st_mtime_ns == record.mtime_ns:
+                continue
             if sha256_file(current) != record.sha256:
                 pending.append(record.path)
         except (PathPolicyError, OSError):
             pending.append(record.path)
     return pending
-

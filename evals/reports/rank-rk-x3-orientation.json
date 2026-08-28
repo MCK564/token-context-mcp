@@ -1,0 +1,73 @@
+{
+  "budget_tokens": 4096,
+  "rank_mode": "global",
+  "repo_id": "invoice-scanner",
+  "result": {
+    "essential_found": 5,
+    "essential_missing": [
+      "InvoiceProcessor"
+    ],
+    "essential_recall": 0.833,
+    "essential_total": 6,
+    "k": 10,
+    "labelled_in_top_k": 8,
+    "ndcg_at_k": 0.7742,
+    "noise_in_top_k": 0,
+    "noise_names": [],
+    "returned": 177,
+    "top_k_listing": [
+      {
+        "grade": 3,
+        "name": "get_frontend",
+        "path": "src/invoice_core/registry.py"
+      },
+      {
+        "grade": 1,
+        "name": "PassthroughFrontend",
+        "path": "src/invoice_backend/passthrough_frontend.py"
+      },
+      {
+        "grade": 3,
+        "name": "DlFrontend",
+        "path": "src/invoice_frontend_dl/frontend.py"
+      },
+      {
+        "grade": 3,
+        "name": "GeomFrontend",
+        "path": "src/invoice_frontend_geom/frontend.py"
+      },
+      {
+        "grade": null,
+        "name": "RapidOcrEngine",
+        "path": "src/invoice_backend/ocr_engines/rapid_engine.py"
+      },
+      {
+        "grade": 3,
+        "name": "FrontendPipeline",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 3,
+        "name": "ScanResult",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 2,
+        "name": "ProcessOutput",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": null,
+        "name": "QuadAdapter",
+        "path": "src/invoice_frontend_dl/models/adapters.py"
+      },
+      {
+        "grade": 2,
+        "name": "extract_with_trace",
+        "path": "src/invoice_backend/s9_fields.py"
+      }
+    ]
+  },
+  "server_max_result_tokens": 4096,
+  "set_id": "orientation-invoice-scanner-v1"
+}

@@ -159,7 +159,7 @@ Same script, `0.1.0` vs `0.2.0`. Expected: `repo_map`@1024 8,823 → ~4,300; `sy
 
 ### 2.5 Comparison C3 — does it save end-to-end? *(needs an agent; you must run this)*
 
-None of `codex`, `antigravity`, `gemini`, `aider` is on `PATH` on this machine, so I cannot execute or measure this half. The protocol:
+Codex CLI is available from the VS Code extension on this machine and is authenticated. A source-only frozen copy of `invoice-scanner` was used for an initial pilot; the full protocol remains:
 
 - **B0** — agent with its native file tools only, MCP disabled.
 - **B1** — same agent, same model, same prompt, token-context MCP enabled, native file reads discouraged by the system prompt.
@@ -191,6 +191,17 @@ Wiring per agent — all of them take the same `stdio` command; `.mcp.json.examp
 
 Restart the client after registry changes — the registry is read at process start.
 
+Pilot executed on 2026-08-27 (one task, seed 1; not the full 30-run dataset):
+
+- Frozen root: `D:\AI\bench\invoice-scanner-frozen` (217 files, 1.79 MiB; no data, weights, artifacts, output, docs, or images).
+- Registered/indexed as `bench-invoice`: 601 symbols, 1,527 edges, 22.0% ambiguous; C1 payload accounting gap 1.0x and zero calls over the 2,048-token server cap.
+- Both arms used the same prompt (`prompt_sha256=add707efa635ef01bdffe1dc50d4bcdc605faee69bdab8e810ea54f19d593e97`) and succeeded. B0 kept the same user/plugin configuration but disabled only `mcp_servers.token-context.enabled`.
+- B0 native-only: 310,912 input + 4,350 output = **315,262 provider tokens**, 90.59 seconds.
+- B1 with token-context: 282,892 input + 5,653 output = **288,545 provider tokens**, 117.80 seconds; two MCP calls (`get_index_status`, `get_repo_map`).
+- Paired result: B1 used **8.5% fewer total tokens** (reduction `0.0847`) but took 1.30x longer, with no quality delta in this pilot.
+
+Raw sessions, provider-usage JSONL, and the generated summary are in `evals/runs/c3/`, `evals/reports/c3-invoice-runs.jsonl`, and `evals/reports/c3-invoice-summary.json`. This is evidence about one agent/model/task, not a universal result. The tool was used only twice while the agent still used native inspection, so this pilot primarily exposes agent/tool-use overhead rather than proving the maximum benefit of the MCP.
+
 ### 2.6 What C3 can and cannot show
 
 It **can** show whether an agent with the tool completes the same tasks for fewer provider tokens at non-inferior quality. That is the claim worth making.
@@ -201,6 +212,12 @@ It **cannot** show a universal saving. Five tasks on one repository with one mod
 
 ---
 
+## 2.7–2.16 Benchmark findings
+
+The measured findings and follow-up work formerly kept here now live in [BENCHMARK_FINDINGS.en.md](BENCHMARK_FINDINGS.en.md). Sections §0–§2.6 and §3–§5 remain in this document.
+
+---
+
 ## 3. Opportunity roadmap — after the fixes ship
 
 Sequenced by *evidence unlocked per unit of work*, not by appeal.
@@ -208,8 +225,8 @@ Sequenced by *evidence unlocked per unit of work*, not by appeal.
 **O1 — Publish the C1/C2 numbers. (1 day, after §1)**
 The repository's central claim is currently unevidenced. C1 and C2 are deterministic, need no provider, and turn "designed to reduce crawling" into a measured ratio with a stated method. Highest value per hour in the entire roadmap. Put the table in `README.md` with the measurement script alongside it.
 
-**O2 — Run C3 on one agent. (2–3 days, mostly your time)**
-Converts the claim from "smaller context packets" to "fewer tokens for the same completed task". Do one agent well rather than three badly.
+**O2 — Run C3 on one agent. (2–3 days, mostly your time; pilot complete)**
+The one-task pilot is complete; the full 5-task × 3-seed run remains. It converts the claim from "smaller context packets" to "fewer tokens for the same completed task". Do one agent well rather than three badly.
 
 **O3 — Cheap freshness. (0.5 day)** = W8. Makes the tool usable on large repositories where it currently re-hashes thousands of files per call.
 
@@ -240,7 +257,7 @@ O1         publish the numbers       1 d
 P2  W8-W11 operational edges        0.5 d
 P3  W12    ambiguity in envelope    0.5 d
  |
-O2         C3 with one agent        2-3 d  (your time; no agent CLI on this machine)
+O2         C3 with one agent        2-3 d  (pilot complete; full 30-run matrix pending)
  |
 O6         tag, PyPI, CI            1-2 d
  |

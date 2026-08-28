@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from token_context_mcp.config import AppConfig, RepositoryConfig, ServerConfig, save_config
+from token_context_mcp.config import (
+    AppConfig,
+    RepositoryConfig,
+    ServerConfig,
+    save_config,
+)
 from token_context_mcp.index.runner import build_index
 
 

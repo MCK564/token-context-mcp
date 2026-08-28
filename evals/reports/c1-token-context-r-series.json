@@ -1,0 +1,136 @@
+{
+  "baseline": {
+    "bytes": 177782,
+    "file_count": 38,
+    "tokens": 44446
+  },
+  "calls": [
+    {
+      "accounting_gap": 1.14,
+      "call": "repo_map@512",
+      "declared_tokens": 495,
+      "envelope_overhead": 1.14,
+      "exceeds_expected_bound": true,
+      "over_server_cap": false,
+      "saving_vs_baseline": 78.7,
+      "service_payload_tokens": 495,
+      "truncated": true,
+      "wire_tokens": 565
+    },
+    {
+      "accounting_gap": 1.07,
+      "call": "repo_map@1024",
+      "declared_tokens": 990,
+      "envelope_overhead": 1.07,
+      "exceeds_expected_bound": true,
+      "over_server_cap": false,
+      "saving_vs_baseline": 42.0,
+      "service_payload_tokens": 990,
+      "truncated": true,
+      "wire_tokens": 1059
+    },
+    {
+      "accounting_gap": 1.04,
+      "call": "repo_map@2048",
+      "declared_tokens": 1945,
+      "envelope_overhead": 1.04,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 22.1,
+      "service_payload_tokens": 1945,
+      "truncated": true,
+      "wire_tokens": 2015
+    },
+    {
+      "accounting_gap": 1.33,
+      "call": "search_source(ocr)@4096",
+      "declared_tokens": 199,
+      "envelope_overhead": 1.33,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 168.4,
+      "service_payload_tokens": 199,
+      "truncated": false,
+      "wire_tokens": 264
+    },
+    {
+      "accounting_gap": 1.08,
+      "call": "find_symbols(limit=5)",
+      "declared_tokens": 705,
+      "envelope_overhead": 1.08,
+      "exceeds_expected_bound": null,
+      "over_server_cap": false,
+      "saving_vs_baseline": 58.4,
+      "service_payload_tokens": 705,
+      "truncated": false,
+      "wire_tokens": 761
+    },
+    {
+      "accounting_gap": 1.12,
+      "call": "file_skeleton@1024",
+      "declared_tokens": 722,
+      "envelope_overhead": 1.12,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 55.1,
+      "service_payload_tokens": 722,
+      "truncated": false,
+      "wire_tokens": 806
+    },
+    {
+      "accounting_gap": 1.14,
+      "call": "symbol_context@1024",
+      "declared_tokens": 664,
+      "envelope_overhead": 1.14,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 58.6,
+      "service_payload_tokens": 664,
+      "truncated": false,
+      "wire_tokens": 759
+    },
+    {
+      "accounting_gap": 1.14,
+      "call": "symbol_context@2048",
+      "declared_tokens": 664,
+      "envelope_overhead": 1.14,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 58.6,
+      "service_payload_tokens": 664,
+      "truncated": false,
+      "wire_tokens": 759
+    },
+    {
+      "accounting_gap": 1.09,
+      "call": "impact_slice(depth=2,max_nodes=75)",
+      "declared_tokens": 1340,
+      "envelope_overhead": 1.09,
+      "exceeds_expected_bound": false,
+      "over_server_cap": false,
+      "saving_vs_baseline": 30.4,
+      "service_payload_tokens": 1340,
+      "truncated": false,
+      "wire_tokens": 1462
+    }
+  ],
+  "estimator_version": "utf8-bytes-div-4-v1",
+  "index": {
+    "ambiguous_edges": 77,
+    "ambiguous_rate": 0.0779,
+    "basis": "edge_status / observed_edges",
+    "edges": 989,
+    "resolved_rate": 0.9221,
+    "symbols": 227
+  },
+  "measurement_layer": "mcp_wire (CallToolResult, content summary + structured_content)",
+  "note": "wire_tokens is a local byte estimate of the MCP response, not a provider billing figure",
+  "repo_id": "token-context",
+  "server_max_result_tokens": 4096,
+  "summary": {
+    "budget_contract_holds": false,
+    "calls_over_server_cap": 0,
+    "search_source_ocr_files": 1,
+    "worst_accounting_gap": 1.33
+  }
+}

@@ -15,3 +15,6 @@ config/repos.toml
 config/indexes/
 __pycache__/
 .mcp.json
+
+# Agent session logs: contain source bodies from indexed repos, local paths and usernames
+evals/runs/

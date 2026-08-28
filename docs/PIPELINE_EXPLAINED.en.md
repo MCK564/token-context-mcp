@@ -3,11 +3,15 @@
 **Written:** 2026-08-27 · **Against:** version 0.1.0, 2083 lines across 27 modules in `src/token_context_mcp/`
 **Method:** the architecture is read from source; every number in §4 was measured by running the service on this machine against two registered repositories.
 
+**Status note:** Sections 4.3–4.4 and the related SWOT weakness bullets record the
+pre-remediation 0.1.0 behavior. The current contract and post-remediation C1
+measurements are in [`README.md`](../README.md) and `evals/reports/`.
+
 ---
 
 ## 1. What the package is
 
-A **read-only, local MCP `stdio` server** that indexes explicitly registered repositories into a SQLite snapshot and answers six retrieval tools with small, source-hashed context packets.
+A **read-only, local MCP `stdio` server** that indexes explicitly registered repositories into a SQLite snapshot and answers eight retrieval tools with small, source-hashed context packets.
 
 The design premise is negative and stated plainly in the README: *reduce broad repository crawling without pretending that syntax analysis is a complete semantic model.* Almost every design decision follows from taking that limitation seriously.
 
@@ -42,7 +46,7 @@ The reparse-point check is Windows-specific and correct: `os.lstat(path).st_file
 |---|---|---|
 | `index/hashing.py` | 17 | SHA-256 over bytes and over files in 1 MB chunks |
 | `index/freshness.py` | 22 | `pending_paths` re-hashes indexed files against disk. Its docstring states the trade-off: *"detect source changes without a persistent watcher or filesystem writes"* |
-| `index/sqlite_store.py` | 291 | Schema and access. Five tables — `metadata`, `files`, `symbols`, `edges`, `imports` — with indices on `symbols(path)`, `symbols(name)`, `edges(source_symbol_id)`, `edges(target_symbol_id)`. Read connections use `file:…?mode=ro` |
+| `index/sqlite_store.py` | 291 | Schema and access. Seven tables — `metadata`, `files`, `symbols`, `edges`, `imports`, `symbol_bodies`, `source_bodies` — with indices on `symbols(path)`, `symbols(name)`, `edges(source_symbol_id)`, `edges(target_symbol_id)`. Read connections use `file:…?mode=ro` |
 | `index/runner.py` | 215 | The indexing pipeline (§3) |
 
 ### 2.4 Parsing
@@ -61,7 +65,7 @@ The stubs are a design statement rather than a gap: a language server is an exec
 |---|---|---|
 | `retrieve/token_budget.py` | 33 | `estimate_tokens` = `ceil(utf8_bytes / 4)`, versioned `utf8-bytes-div-4-v1`. `pack_by_budget` greedily fills to a budget and returns `(chosen, omitted, used)` |
 | `retrieve/ranking.py` | 25 | Score = `1.0 + 2.0·in_degree + 0.5·out_degree + 8.0·(per query term hit) + 0.25·(class or interface)` |
-| `retrieve/service.py` | 416 | The six tools, the graph traversal, and the response envelope |
+| `retrieve/service.py` | 416 | The eight tools, the graph traversal, and the response envelope |
 | `server.py` | 135 | MCP tool registration. `_invoke` catches everything and returns a generic error — no stack traces, no path leakage |
 
 ---
@@ -108,12 +112,14 @@ The manifest is written twice on purpose: once to compute the database's SHA-256
 
 ### P5 — Retrieval (`RetrievalService`)
 
-Six tools, each opening the SQLite snapshot **read-only**:
+Eight tools, each opening the SQLite snapshot **read-only**:
 
 | Tool | Answers | Bound by |
 |---|---|---|
 | `get_repo_map` | "What is in this repository?" | `budget_tokens` |
 | `find_symbols` | "Where is X defined?" | `limit`, capped by `max_symbol_results` |
+| `get_module_dependents` | "Which files import this path/module?" | `path` or `module`, `max_tokens` |
+| `search_source` | "Where does the source body contain X?" | `query`, `limit`, `max_tokens` |
 | `get_file_skeleton` | "What is in this file?" | `max_tokens` |
 | `get_symbol_context` | "What does this symbol look like and touch?" | `max_tokens`, `depth` ≤ 3 |
 | `get_impact_slice` | "What might break if I change this?" | `max_nodes`, capped by `max_graph_nodes` |
@@ -121,7 +127,7 @@ Six tools, each opening the SQLite snapshot **read-only**:
 
 `get_file_skeleton` is the clearest illustration of the core idea: it returns **import lines plus symbol headers with bodies elided**, reserving a quarter of the budget for imports before packing headers into the rest.
 
-Traversal (`_traverse`) is BFS with a `visited` set and a `max_nodes` ceiling checked in both the loop condition and the enqueue branch.
+Traversal (`_traverse`) is BFS with a `visited` set and a `max_nodes` ceiling. It reports `node_limit_reached` only when an actual candidate would have been omitted, and `impact_slice` packs its serialized symbols and edges into `max_tokens` (defaulting to `min(2048, max_result_tokens)`).
 
 ### P6 — Budget packing
 
@@ -243,7 +249,7 @@ The repository does not hide this. `BENCHMARK.md` says a publishable result requ
 | Key | Range | Effect |
 |---|---|---|
 | `max_request_bytes` | 1,024 – 1,048,576 | Rejects oversized tool arguments |
-| `max_result_tokens` | 32 – 8,192 | Ceiling on any `budget_tokens` / `max_tokens` — **not applied to `impact_slice`** |
+| `max_result_tokens` | 32 – 8,192 | Ceiling on every `budget_tokens` / `max_tokens` response, including `impact_slice` |
 | `max_graph_nodes` | 1 – 500 | Caps traversal breadth |
 | `max_symbol_results` | 1 – 100 | Caps `find_symbols` |
 | `network_policy` | string | Declared only. The manifest states `declared_only; enforce at OS/container boundary` |

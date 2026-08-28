@@ -1,0 +1,80 @@
+{
+  "budget_tokens": 4096,
+  "repo_id": "invoice-scanner",
+  "result": {
+    "essential_found": 1,
+    "essential_missing": [
+      "DlFrontend",
+      "FrontendPipeline",
+      "GeomFrontend",
+      "InvoiceProcessor",
+      "get_frontend"
+    ],
+    "essential_recall": 0.167,
+    "essential_total": 6,
+    "k": 10,
+    "labelled_in_top_k": 9,
+    "ndcg_at_k": 0.4235,
+    "noise_in_top_k": 3,
+    "noise_names": [
+      "rgb",
+      "merge",
+      "audit"
+    ],
+    "returned": 187,
+    "top_k_listing": [
+      {
+        "grade": 3,
+        "name": "ScanResult",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 2,
+        "name": "PageDetection",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 2,
+        "name": "OcrResult",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 0,
+        "name": "rgb",
+        "path": "scripts/build_s0_s6_report_revised.py"
+      },
+      {
+        "grade": null,
+        "name": "probe",
+        "path": "src/invoice_frontend_dl/degradation.py"
+      },
+      {
+        "grade": 1,
+        "name": "QualityReport",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 1,
+        "name": "TextBox",
+        "path": "src/invoice_core/contracts.py"
+      },
+      {
+        "grade": 0,
+        "name": "merge",
+        "path": "src/invoice_core/config.py"
+      },
+      {
+        "grade": 0,
+        "name": "audit",
+        "path": "scripts/prepare_datasets.py"
+      },
+      {
+        "grade": 1,
+        "name": "GeometryInfo",
+        "path": "src/invoice_core/contracts.py"
+      }
+    ]
+  },
+  "server_max_result_tokens": 4096,
+  "set_id": "orientation-invoice-scanner-v1"
+}

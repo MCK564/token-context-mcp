@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from token_context_mcp.models import EdgeRecord, FileRecord, SymbolRecord
-
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -38,10 +38,21 @@ CREATE TABLE IF NOT EXISTS symbols (
   end_byte INTEGER NOT NULL,
   body_start_byte INTEGER,
   body_end_byte INTEGER,
-  is_private INTEGER NOT NULL
+  is_private INTEGER NOT NULL,
+  roles_json TEXT NOT NULL,
+  role_evidence_json TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS symbols_path_idx ON symbols(path);
 CREATE INDEX IF NOT EXISTS symbols_name_idx ON symbols(name);
+CREATE VIRTUAL TABLE IF NOT EXISTS symbol_bodies USING fts5(
+  symbol_id UNINDEXED,
+  path UNINDEXED,
+  body
+);
+CREATE VIRTUAL TABLE IF NOT EXISTS source_bodies USING fts5(
+  path UNINDEXED,
+  body
+);
 CREATE TABLE IF NOT EXISTS edges (
   edge_id INTEGER PRIMARY KEY,
   source_symbol_id TEXT NOT NULL REFERENCES symbols(symbol_id),
@@ -73,6 +84,14 @@ class SQLiteStore:
     def __init__(self, path: Path, *, read_only: bool = False) -> None:
         self.path = path
         self.read_only = read_only
+        self._query_count = 0
+
+    @property
+    def query_count(self) -> int:
+        return self._query_count
+
+    def reset_query_count(self) -> None:
+        self._query_count = 0
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
@@ -83,6 +102,7 @@ class SQLiteStore:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             connection = sqlite3.connect(self.path)
         connection.row_factory = sqlite3.Row
+        connection.set_trace_callback(self._count_query)
         try:
             yield connection
             if not self.read_only:
@@ -92,6 +112,9 @@ class SQLiteStore:
             raise
         finally:
             connection.close()
+
+    def _count_query(self, _statement: str) -> None:
+        self._query_count += 1
 
     def initialize(self) -> None:
         with self.connection() as connection:
@@ -105,12 +128,14 @@ class SQLiteStore:
         symbols: list[SymbolRecord],
         edges: list[EdgeRecord],
         imports: dict[str, list[str]],
+        symbol_bodies: dict[str, str],
+        source_bodies: dict[str, str],
     ) -> None:
         if self.read_only:
             raise StoreError("cannot write a read-only snapshot")
         self.initialize()
         with self.connection() as connection:
-            for table in ("edges", "imports", "symbols", "files", "metadata"):
+            for table in ("edges", "imports", "symbol_bodies", "source_bodies", "symbols", "files", "metadata"):
                 connection.execute(f"DELETE FROM {table}")
             connection.executemany(
                 "INSERT INTO metadata(key, value) VALUES (?, ?)",
@@ -135,8 +160,9 @@ class SQLiteStore:
             connection.executemany(
                 """INSERT INTO symbols(
                     symbol_id, path, name, qualified_name, kind, signature, start_line, end_line,
-                    start_byte, end_byte, body_start_byte, body_end_byte, is_private
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    start_byte, end_byte, body_start_byte, body_end_byte, is_private,
+                    roles_json, role_evidence_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 [
                     (
                         item.symbol_id,
@@ -152,6 +178,8 @@ class SQLiteStore:
                         item.body_start_byte,
                         item.body_end_byte,
                         int(item.is_private),
+                        json.dumps(item.roles),
+                        json.dumps(item.role_evidence, sort_keys=True),
                     )
                     for item in symbols
                 ],
@@ -180,6 +208,17 @@ class SQLiteStore:
             connection.executemany(
                 "INSERT INTO imports(path, module) VALUES (?, ?)",
                 [(path, module) for path, modules in imports.items() for module in modules],
+            )
+            connection.executemany(
+                "INSERT INTO symbol_bodies(symbol_id, path, body) VALUES (?, ?, ?)",
+                [
+                    (symbol_id, symbol_id.split(":", 2)[1], body)
+                    for symbol_id, body in symbol_bodies.items()
+                ],
+            )
+            connection.executemany(
+                "INSERT INTO source_bodies(path, body) VALUES (?, ?)",
+                [(path, body) for path, body in source_bodies.items()],
             )
         with self.connection() as connection:
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
@@ -224,6 +263,18 @@ class SQLiteStore:
             ).fetchall()
         return [_symbol_from_row(row) for row in rows]
 
+    def count_symbols(self, pattern: str, *, kind: str | None = None) -> int:
+        where = "(name LIKE ? ESCAPE '\\' OR qualified_name LIKE ? ESCAPE '\\')"
+        escaped = pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        params: list[object] = [f"%{escaped}%", f"%{escaped}%"]
+        if kind:
+            where += " AND kind = ?"
+            params.append(kind)
+        with self.connection() as connection:
+            row = connection.execute(f"SELECT COUNT(*) AS count FROM symbols WHERE {where}", tuple(params)).fetchone()
+        assert row is not None
+        return int(row["count"])
+
     def symbol(self, symbol_id: str) -> SymbolRecord | None:
         with self.connection() as connection:
             row = connection.execute("SELECT * FROM symbols WHERE symbol_id = ?", (symbol_id,)).fetchone()
@@ -233,6 +284,103 @@ class SQLiteStore:
         with self.connection() as connection:
             rows = connection.execute("SELECT module FROM imports WHERE path = ? ORDER BY module", (path,)).fetchall()
         return [str(row["module"]) for row in rows]
+
+    def importers_for_modules(self, modules: list[str]) -> list[str]:
+        if not modules:
+            return []
+        placeholders = ",".join("?" for _ in modules)
+        with self.connection() as connection:
+            rows = connection.execute(
+                f"SELECT DISTINCT path FROM imports WHERE module IN ({placeholders}) ORDER BY path",
+                tuple(modules),
+            ).fetchall()
+        return [str(row["path"]) for row in rows]
+
+    def import_count(self) -> int:
+        with self.connection() as connection:
+            row = connection.execute("SELECT COUNT(*) AS count FROM imports").fetchone()
+        assert row is not None
+        return int(row["count"])
+
+    def importer_count(self) -> int:
+        with self.connection() as connection:
+            row = connection.execute("SELECT COUNT(DISTINCT path) AS count FROM imports").fetchone()
+        assert row is not None
+        return int(row["count"])
+
+    def body_match_ids(self, query: str) -> set[str]:
+        try:
+            with self.connection() as connection:
+                rows = connection.execute(
+                    "SELECT symbol_id FROM symbol_bodies WHERE body MATCH ?",
+                    (query,),
+                ).fetchall()
+        except sqlite3.OperationalError as error:
+            raise StoreError("body search index is unavailable; rebuild the repository index") from error
+        return {str(row["symbol_id"]) for row in rows}
+
+    def count_body_matches(self, query: str) -> int:
+        try:
+            with self.connection() as connection:
+                row = connection.execute(
+                    "SELECT COUNT(*) AS count FROM symbol_bodies WHERE body MATCH ?",
+                    (query,),
+                ).fetchone()
+        except sqlite3.OperationalError as error:
+            raise StoreError("body search index is unavailable; rebuild the repository index") from error
+        assert row is not None
+        return int(row["count"])
+
+    def search_body_matches(self, query: str, *, limit: int) -> list[dict[str, str]]:
+        try:
+            with self.connection() as connection:
+                rows = connection.execute(
+                    """
+                    SELECT symbol_id, path,
+                           snippet(symbol_bodies, 2, '', '', '…', 24) AS snippet
+                    FROM symbol_bodies
+                    WHERE body MATCH ?
+                    ORDER BY bm25(symbol_bodies), path, symbol_id
+                    LIMIT ?
+                    """,
+                    (query, limit),
+                ).fetchall()
+        except sqlite3.OperationalError as error:
+            raise StoreError("body search index is unavailable; rebuild the repository index") from error
+        return [
+            {"symbol_id": str(row["symbol_id"]), "path": str(row["path"]), "snippet": str(row["snippet"])}
+            for row in rows
+        ]
+
+    def count_source_matches(self, query: str) -> int:
+        try:
+            with self.connection() as connection:
+                row = connection.execute(
+                    "SELECT COUNT(*) AS count FROM source_bodies WHERE body MATCH ?",
+                    (query,),
+                ).fetchone()
+        except sqlite3.OperationalError as error:
+            raise StoreError("body search index is unavailable; rebuild the repository index") from error
+        assert row is not None
+        return int(row["count"])
+
+    def search_source_matches(self, query: str, *, limit: int) -> list[dict[str, str]]:
+        try:
+            with self.connection() as connection:
+                rows = connection.execute(
+                    """
+                    SELECT path,
+                           snippet(source_bodies, 1, '', '', '…', 24) AS snippet
+                    FROM source_bodies
+                    WHERE body MATCH ?
+                    ORDER BY bm25(source_bodies), path
+                    LIMIT ?
+                    """,
+                    (query, limit),
+                ).fetchall()
+        except sqlite3.OperationalError as error:
+            raise StoreError("body search index is unavailable; rebuild the repository index") from error
+        return [{"path": str(row["path"]), "snippet": str(row["snippet"])} for row in rows]
 
     def edges_from(self, symbol_id: str) -> list[EdgeRecord]:
         return self._edges("source_symbol_id = ?", (symbol_id,))
@@ -262,6 +410,7 @@ def _file_from_row(row: sqlite3.Row) -> FileRecord:
 
 
 def _symbol_from_row(row: sqlite3.Row) -> SymbolRecord:
+    columns = row.keys()
     return SymbolRecord(
         symbol_id=row["symbol_id"],
         path=row["path"],
@@ -276,6 +425,12 @@ def _symbol_from_row(row: sqlite3.Row) -> SymbolRecord:
         body_start_byte=row["body_start_byte"],
         body_end_byte=row["body_end_byte"],
         is_private=bool(row["is_private"]),
+        roles=json.loads(row["roles_json"]) if "roles_json" in columns else [],
+        role_evidence=(
+            json.loads(row["role_evidence_json"])
+            if "role_evidence_json" in columns
+            else {}
+        ),
     )
 
 

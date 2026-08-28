@@ -5,6 +5,30 @@ max_graph_nodes = 100
 max_symbol_results = 20
 network_policy = "declared-deny-not-enforced"
 
+# Optional named retrieval profiles. Explicit tool arguments override these
+# values; the server also supplies these four profiles when this block is
+# omitted.
+[budget_profiles.locate]
+tools = ["find_symbols", "search_source"]
+budget_tokens = 1024
+limit = 30
+
+[budget_profiles.orient]
+tools = ["repo_map"]
+budget_tokens = 4096
+format = "compact"
+
+[budget_profiles.impact]
+tools = ["impact_slice", "get_module_dependents"]
+budget_tokens = 4096
+max_nodes = 200
+depth = 2
+
+[budget_profiles.read]
+tools = ["file_skeleton", "symbol_context"]
+budget_tokens = 2048
+include_body = true
+
 # Register real roots with the admin CLI. Do not replace this with a broad root
 # such as D:/AI unless that scope is intentionally approved.
 # [repos.example]

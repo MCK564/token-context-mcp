@@ -1,0 +1,207 @@
+{
+  "set_id": "orientation-invoice-scanner-v1",
+  "created": "2026-08-28",
+  "repo_id": "invoice-scanner",
+  "task": "orientation",
+  "query": null,
+  "prompt": "Produce an orientation report for a new engineer: repository scale, main modules, entry points, main data flow, the ten most important symbols, key tests, and risks.",
+  "grading_scale": {
+    "3": "essential - a correct orientation report cannot omit this",
+    "2": "useful - belongs in a top-20 orientation slice",
+    "1": "marginal - correct to include, not a failure to omit",
+    "0": "noise for this task - surfacing it in a top-10 is a ranking defect"
+  },
+  "method": "Labels are assigned from repository evidence, not from any agent's output. Every item carries the evidence that justifies its grade. The two orientation reports that motivated this set are treated as hypotheses to be checked, never as ground truth.",
+  "caveats": [
+    "One repository, one task, 22 labelled symbols. This set can detect a gross ranking inversion; it cannot establish that one ranking is generally better than another.",
+    "Grades 3 and 2 are conservative: only symbols with at least one hard evidence marker (declared entry point, protocol, frozen contract, or design-doc mention) were graded above 1.",
+    "The grade-0 items are the discriminating half of the set. A ranking that avoids them is not thereby correct, but a ranking that surfaces them in a top-10 is demonstrably wrong for orientation.",
+    "docs/ is absent from the frozen bench-invoice copy, so doc_mentions evidence was gathered against the original invoice-scanner tree that both reports actually used."
+  ],
+  "items": [
+    {
+      "symbol": "InvoiceProcessor",
+      "path": "src/invoice_backend/processor.py",
+      "grade": 3,
+      "evidence": {
+        "doc_mentions": 7,
+        "role": "orchestrator",
+        "out_degree": 18,
+        "in_degree": 5,
+        "note": "Most-named symbol in the design docs; calls into s7/s8/s9 and the frontend registry."
+      }
+    },
+    {
+      "symbol": "ScanResult",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 3,
+      "evidence": {
+        "doc_mentions": 3,
+        "frozen_contract": true,
+        "in_degree": 36,
+        "note": "The frontend/backend handoff. docs/interface_contract.md is titled FROZEN and pins this type."
+      }
+    },
+    {
+      "symbol": "FrontendPipeline",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 3,
+      "evidence": {
+        "doc_mentions": 1,
+        "protocol_definition": true,
+        "in_degree": 2,
+        "note": "The Protocol both competing frontends implement. in_degree of 2 is precisely why degree-based ranking misses it."
+      }
+    },
+    {
+      "symbol": "GeomFrontend",
+      "path": "src/invoice_frontend_geom/frontend.py",
+      "grade": 3,
+      "evidence": {
+        "doc_mentions": 1,
+        "protocol_implementation": "FrontendPipeline",
+        "registry_key": "geom",
+        "in_degree": 1,
+        "note": "One half of the A/B architecture. Wired via register(\"geom\", GeomFrontend), so only one lexical reference exists."
+      }
+    },
+    {
+      "symbol": "DlFrontend",
+      "path": "src/invoice_frontend_dl/frontend.py",
+      "grade": 3,
+      "evidence": {
+        "protocol_implementation": "FrontendPipeline",
+        "registry_key": "dl",
+        "in_degree": 6,
+        "out_degree": 10,
+        "note": "The other half of the A/B architecture. Omitting either frontend makes the architecture description wrong."
+      }
+    },
+    {
+      "symbol": "get_frontend",
+      "path": "src/invoice_core/registry.py",
+      "grade": 3,
+      "evidence": {
+        "role": "wiring",
+        "note": "String-keyed factory lookup. This function is the reason lexical edges cannot see which frontend runs; an orientation report that omits it cannot explain the A/B mechanism."
+      }
+    },
+    {
+      "symbol": "ProcessOutput",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 2,
+      "evidence": { "in_degree": 5, "out_degree": 6, "note": "System-level return type." }
+    },
+    {
+      "symbol": "OcrResult",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 2,
+      "evidence": { "in_degree": 51, "note": "Highest in-degree in the repository; a real contract, but a data type rather than logic." }
+    },
+    {
+      "symbol": "PageDetection",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 2,
+      "evidence": { "in_degree": 43, "note": "Frontend S2 output contract." }
+    },
+    {
+      "symbol": "OcrEngine",
+      "path": "src/invoice_backend/ocr_engines/base.py",
+      "grade": 2,
+      "evidence": {
+        "protocol_definition": true,
+        "implementations": ["PaddleEngine", "RapidOcrEngine", "TesseractEngine"],
+        "note": "Second Protocol in the codebase; explains the pluggable OCR backend."
+      }
+    },
+    {
+      "symbol": "extract_with_trace",
+      "path": "src/invoice_backend/s9_fields.py",
+      "grade": 2,
+      "evidence": { "in_degree": 11, "out_degree": 14, "note": "S9 field extraction; both referenced and referencing." }
+    },
+    {
+      "symbol": "run_with_diagnostics",
+      "path": "src/invoice_backend/s7_render.py",
+      "grade": 2,
+      "evidence": { "note": "S7 produces two images on purpose (display vs OCR input); a documented design decision." }
+    },
+    {
+      "symbol": "run",
+      "path": "src/invoice_backend/s8_ocr.py",
+      "grade": 2,
+      "evidence": { "out_degree": 14, "note": "S8 stage entry. Name collision with 126 other 'run' symbols is why it is hard to rank." }
+    },
+    {
+      "symbol": "register",
+      "path": "src/invoice_core/registry.py",
+      "grade": 1,
+      "evidence": { "note": "Registration side of the registry; useful once get_frontend is understood." }
+    },
+    {
+      "symbol": "QualityReport",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 1,
+      "evidence": { "in_degree": 21, "note": "S1 output contract; peripheral to orientation." }
+    },
+    {
+      "symbol": "TextBox",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 1,
+      "evidence": { "in_degree": 24, "note": "Leaf data type inside OcrResult." }
+    },
+    {
+      "symbol": "GeometryInfo",
+      "path": "src/invoice_core/contracts.py",
+      "grade": 1,
+      "evidence": { "in_degree": 13, "note": "Leaf data type." }
+    },
+    {
+      "symbol": "PassthroughFrontend",
+      "path": "src/invoice_backend/passthrough_frontend.py",
+      "grade": 1,
+      "evidence": { "protocol_implementation": "FrontendPipeline", "registry_key": "passthrough", "note": "Third frontend, test scaffolding rather than a competing branch." }
+    },
+    {
+      "symbol": "rgb",
+      "path": "scripts/build_s0_s6_report_revised.py",
+      "grade": 0,
+      "evidence": {
+        "in_degree": 24,
+        "out_degree": 0,
+        "role": "report_script_helper",
+        "note": "Colour helper in a report generator. Ranked 4th by the current formula, above InvoiceProcessor. The single clearest discriminator in this set."
+      }
+    },
+    {
+      "symbol": "merge",
+      "path": "src/invoice_core/config.py",
+      "grade": 0,
+      "evidence": { "in_degree": 16, "out_degree": 0, "role": "leaf_utility", "note": "Recursive dict merge. High in-degree, no orientation value." }
+    },
+    {
+      "symbol": "audit",
+      "path": "scripts/prepare_datasets.py",
+      "grade": 0,
+      "evidence": { "in_degree": 14, "role": "dataset_script", "note": "Dataset preparation helper, not part of the runtime pipeline." }
+    },
+    {
+      "symbol": "build_document",
+      "path": "scripts/build_s0_s6_report_revised.py",
+      "grade": 0,
+      "evidence": {
+        "out_degree": 28,
+        "in_degree": 1,
+        "role": "report_script",
+        "note": "Highest out-degree in the repository. Included so that a naive switch to out-degree ranking also fails this set."
+      }
+    }
+  ],
+  "known_repository_defects_a_ranking_could_surface": [
+    {
+      "defect": "declared_entry_point_missing",
+      "detail": "pyproject.toml declares [project.scripts] invoice-scan = \"invoice_backend.processor:main\", but processor.py defines no `main`. Both orientation reports repeated the declaration without checking it.",
+      "opportunity": "An index that resolves declared entry points against indexed symbols can report this in one call. Neither report did; ripgrep cannot do it without being told to look."
+    }
+  ]
+}

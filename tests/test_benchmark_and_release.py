@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from token_context_mcp.release import write_release_materials
 from token_context_mcp.telemetry.benchmark import load_runs, summarize
 
@@ -10,13 +12,94 @@ from token_context_mcp.telemetry.benchmark import load_runs, summarize
 def test_benchmark_summary_uses_paired_reduction(tmp_path: Path) -> None:
     events = tmp_path / "runs.jsonl"
     rows = [
-        {"arm": "B0", "task_id": "t1", "seed": 1, "total_tokens": 100, "input_tokens": 80, "output_tokens": 20, "latency_seconds": 1.0, "task_success": True},
-        {"arm": "B1", "task_id": "t1", "seed": 1, "total_tokens": 60, "input_tokens": 45, "output_tokens": 15, "latency_seconds": 0.8, "task_success": True},
+        {
+            "arm": "B0",
+            "task_id": "t1",
+            "seed": 1,
+            "total_tokens": 100,
+            "input_tokens": 80,
+            "output_tokens": 20,
+            "cached_input_tokens": 50,
+            "native_command_output_estimated_tokens": 80,
+            "retrieved_content_estimated_tokens": 80,
+            "latency_seconds": 1.0,
+            "task_success": True,
+        },
+        {
+            "arm": "B1",
+            "task_id": "t1",
+            "seed": 1,
+            "total_tokens": 60,
+            "input_tokens": 45,
+            "output_tokens": 15,
+            "cached_input_tokens": 25,
+            "native_command_output_estimated_tokens": 20,
+            "retrieved_content_estimated_tokens": 20,
+            "latency_seconds": 0.8,
+            "task_success": True,
+        },
     ]
     events.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
     report = summarize(load_runs(events), bootstrap_samples=20)
+    assert report["primary_metric"] == "retrieved_content_estimated_tokens"
     assert report["arms"]["B1"]["median_paired_token_reduction"] == 0.4
     assert report["arms"]["B1"]["quality_noninferiority_delta"] == 0.0
+    assert report["arms"]["B1"]["median_cached_input_tokens"] == 25
+    assert report["arms"]["B1"]["median_uncached_input_tokens"] == 20
+    assert report["arms"]["B1"]["median_native_command_output_estimated_tokens"] == 20
+    assert report["arms"]["B1"]["median_retrieved_content_estimated_tokens"] == 20
+    assert report["arms"]["B1"]["median_paired_retrieved_content_reduction"] == 0.75
+    assert report["arms"]["B1"]["retrieved_content_paired_count"] == 1
+
+
+def test_benchmark_rejects_runs_with_mcp_errors(tmp_path: Path) -> None:
+    events = tmp_path / "runs.jsonl"
+    row = {
+        "arm": "B1",
+        "task_id": "t1",
+        "seed": 1,
+        "total_tokens": 60,
+        "input_tokens": 45,
+        "output_tokens": 15,
+        "latency_seconds": 0.8,
+        "task_success": True,
+        "mcp_health": "failed",
+        "mcp_errors": [{"code": "unknown_repo_id"}],
+    }
+    events.write_text(json.dumps(row), encoding="utf-8")
+    with pytest.raises(ValueError, match="MCP errors"):
+        load_runs(events)
+
+
+def test_benchmark_rejects_paired_runs_with_different_prompts(tmp_path: Path) -> None:
+    events = tmp_path / "runs.jsonl"
+    rows = [
+        {
+            "arm": "B0",
+            "task_id": "t1",
+            "seed": 1,
+            "total_tokens": 100,
+            "input_tokens": 80,
+            "output_tokens": 20,
+            "latency_seconds": 1.0,
+            "task_success": True,
+            "prompt_sha256": "a",
+        },
+        {
+            "arm": "B1",
+            "task_id": "t1",
+            "seed": 1,
+            "total_tokens": 60,
+            "input_tokens": 45,
+            "output_tokens": 15,
+            "latency_seconds": 0.8,
+            "task_success": True,
+            "prompt_sha256": "b",
+        },
+    ]
+    events.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    with pytest.raises(ValueError, match="same prompt_sha256"):
+        summarize(load_runs(events), bootstrap_samples=20)
 
 
 def test_release_materials_are_explicitly_local_starter_artifacts(tmp_path: Path) -> None:
@@ -29,4 +112,3 @@ def test_release_materials_are_explicitly_local_starter_artifacts(tmp_path: Path
     assert json.loads(paths["sbom"].read_text(encoding="utf-8"))["bomFormat"] == "CycloneDX"
     provenance = json.loads(paths["provenance"].read_text(encoding="utf-8"))
     assert provenance["predicate"]["runDetails"]["builder"]["id"] == "local-unattested"
-

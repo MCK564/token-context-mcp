@@ -1,0 +1,89 @@
+{
+  "set_id": "query-invoice-scanner-v1",
+  "created": "2026-08-28",
+  "repo_id": "invoice-scanner",
+  "task": "topic orientation",
+  "method": "Grade-3 symbols are project symbols imported or directly exercised by the named topic tests. Grade-2 symbols are adjacent definitions in the same implementation area. Grade-0 symbols are cross-topic distractors, including the known high-degree helpers rgb and merge. This is a paired ranking comparison, not an absolute relevance oracle.",
+  "caveats": [
+    "The checked-in registry and geometry topic files are currently stubs containing only a docstring, so those topics use the closest executable tests and source-backed registry/geometry evidence instead of inventing direct imports.",
+    "Test imports indicate what the tests exercise, not every symbol that a human considers relevant to a natural-language question.",
+    "The set contains five topics in one repository and is intended to expose query-insensitive global ranking; it is not a general ranking benchmark."
+  ],
+  "topics": [
+    {
+      "topic_id": "ocr",
+      "query": "ocr text recognition",
+      "evidence_source": "tests/unit/test_s8_ocr.py",
+      "items": [
+        {"symbol": "run", "path": "src/invoice_backend/s8_ocr.py", "grade": 3, "evidence": {"direct_test_use": true}},
+        {"symbol": "RapidOcrEngine", "path": "src/invoice_backend/ocr_engines/rapid_engine.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "TextBox", "path": "src/invoice_core/contracts.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "OcrResult", "path": "src/invoice_core/contracts.py", "grade": 2, "evidence": {"same_contract_area": true}},
+        {"symbol": "extract_with_trace", "path": "src/invoice_backend/s9_fields.py", "grade": 0, "evidence": {"different_topic": "field extraction"}},
+        {"symbol": "get_frontend", "path": "src/invoice_core/registry.py", "grade": 0, "evidence": {"different_topic": "registry"}},
+        {"symbol": "rgb", "path": "scripts/build_s0_s6_report_revised.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}},
+        {"symbol": "merge", "path": "src/invoice_core/config.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}}
+      ]
+    },
+    {
+      "topic_id": "field-extraction",
+      "query": "field extraction amount date",
+      "evidence_source": "tests/unit/test_fields.py",
+      "items": [
+        {"symbol": "run", "path": "src/invoice_backend/s9_fields.py", "grade": 3, "evidence": {"direct_test_use": true}},
+        {"symbol": "extract_with_trace", "path": "src/invoice_backend/s9_fields.py", "grade": 3, "evidence": {"direct_test_use": true}},
+        {"symbol": "OcrResult", "path": "src/invoice_core/contracts.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "TextBox", "path": "src/invoice_core/contracts.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "RapidOcrEngine", "path": "src/invoice_backend/ocr_engines/rapid_engine.py", "grade": 0, "evidence": {"different_topic": "OCR"}},
+        {"symbol": "get_frontend", "path": "src/invoice_core/registry.py", "grade": 0, "evidence": {"different_topic": "registry"}},
+        {"symbol": "rgb", "path": "scripts/build_s0_s6_report_revised.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}},
+        {"symbol": "merge", "path": "src/invoice_core/config.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}}
+      ]
+    },
+    {
+      "topic_id": "registry",
+      "query": "frontend registry selection",
+      "evidence_source": "src/invoice_core/registry.py and tests/unit/test_registry.py",
+      "items": [
+        {"symbol": "get_frontend", "path": "src/invoice_core/registry.py", "grade": 3, "evidence": {"runtime_registry_entry": true}},
+        {"symbol": "register", "path": "src/invoice_core/registry.py", "grade": 3, "evidence": {"runtime_registry_entry": true}},
+        {"symbol": "FrontendPipeline", "path": "src/invoice_core/contracts.py", "grade": 2, "evidence": {"registry_contract": true}},
+        {"symbol": "DlFrontend", "path": "src/invoice_frontend_dl/frontend.py", "grade": 2, "evidence": {"registered_implementation": true}},
+        {"symbol": "GeomFrontend", "path": "src/invoice_frontend_geom/frontend.py", "grade": 2, "evidence": {"registered_implementation": true}},
+        {"symbol": "run", "path": "src/invoice_backend/s9_fields.py", "grade": 0, "evidence": {"different_topic": "field extraction"}},
+        {"symbol": "rgb", "path": "scripts/build_s0_s6_report_revised.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}},
+        {"symbol": "merge", "path": "src/invoice_core/config.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}}
+      ]
+    },
+    {
+      "topic_id": "render",
+      "query": "render display ocr input",
+      "evidence_source": "tests/unit/test_s7_render.py",
+      "items": [
+        {"symbol": "run_with_diagnostics", "path": "src/invoice_backend/s7_render.py", "grade": 3, "evidence": {"direct_test_use": true}},
+        {"symbol": "run", "path": "src/invoice_backend/s7_render.py", "grade": 3, "evidence": {"direct_test_use": true}},
+        {"symbol": "RenderBundle", "path": "src/invoice_core/contracts.py", "grade": 2, "evidence": {"return_contract": true}},
+        {"symbol": "_render_ocr_input", "path": "src/invoice_backend/s7_render.py", "grade": 2, "evidence": {"implementation_helper": true}},
+        {"symbol": "get_frontend", "path": "src/invoice_core/registry.py", "grade": 0, "evidence": {"different_topic": "registry"}},
+        {"symbol": "run", "path": "src/invoice_backend/s8_ocr.py", "grade": 0, "evidence": {"different_topic": "OCR"}},
+        {"symbol": "rgb", "path": "scripts/build_s0_s6_report_revised.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}},
+        {"symbol": "merge", "path": "src/invoice_core/config.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}}
+      ]
+    },
+    {
+      "topic_id": "geometry",
+      "query": "page detection corners geometry",
+      "evidence_source": "tests/unit/test_frontend_dl.py and tests/unit/test_frontend_geom.py",
+      "items": [
+        {"symbol": "DlFrontend", "path": "src/invoice_frontend_dl/frontend.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "run", "path": "src/invoice_frontend_dl/s2_page_detect.py", "grade": 3, "evidence": {"geometry_stage": true}},
+        {"symbol": "PageDetection", "path": "src/invoice_core/contracts.py", "grade": 3, "evidence": {"direct_test_import": true}},
+        {"symbol": "GeomFrontend", "path": "src/invoice_frontend_geom/frontend.py", "grade": 2, "evidence": {"geometry_implementation": true}},
+        {"symbol": "detect_contour", "path": "src/invoice_frontend_geom/s2_page_detect.py", "grade": 2, "evidence": {"geometry_helper": true}},
+        {"symbol": "extract_with_trace", "path": "src/invoice_backend/s9_fields.py", "grade": 0, "evidence": {"different_topic": "field extraction"}},
+        {"symbol": "rgb", "path": "scripts/build_s0_s6_report_revised.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}},
+        {"symbol": "merge", "path": "src/invoice_core/config.py", "grade": 0, "evidence": {"known_high_degree_distractor": true}}
+      ]
+    }
+  ]
+}

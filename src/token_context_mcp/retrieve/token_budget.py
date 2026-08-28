@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Iterable
-
+from collections.abc import Iterable
+from typing import Any
 
 ESTIMATOR_VERSION = "utf8-bytes-div-4-v1"
 

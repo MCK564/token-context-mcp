@@ -6,7 +6,16 @@ import logging
 from pathlib import Path
 
 from token_context_mcp import __version__
-from token_context_mcp.config import ConfigError, default_config_path, get_repository, index_directory, load_config, register_repository
+from token_context_mcp.config import (
+    ConfigError,
+    default_config_path,
+    get_repository,
+    index_directory,
+    load_config,
+    register_repository,
+    unregister_repository,
+    update_repository,
+)
 from token_context_mcp.index.runner import build_index
 from token_context_mcp.release import write_release_materials
 from token_context_mcp.retrieve.service import RetrievalService
@@ -22,6 +31,14 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("--repo-id", required=True)
     register.add_argument("--root", required=True, type=Path)
     register.add_argument("--config", type=Path, default=default_config_path())
+    unregister = subparsers.add_parser("unregister", help="Remove a repository from the local registry (admin-only)")
+    unregister.add_argument("--repo-id", required=True)
+    unregister.add_argument("--config", type=Path, default=default_config_path())
+    update = subparsers.add_parser("update", help="Update a registered repository root (admin-only)")
+    update.add_argument("--repo-id", required=True)
+    update.add_argument("--root", required=True, type=Path)
+    update.add_argument("--force", action="store_true", help="Acknowledge that the registered root will change")
+    update.add_argument("--config", type=Path, default=default_config_path())
     index = subparsers.add_parser("index", help="Build a local immutable snapshot (admin-only)")
     index.add_argument("--repo-id", required=True)
     index.add_argument("--config", type=Path, default=default_config_path())
@@ -49,6 +66,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "register":
             repository = register_repository(args.config, args.repo_id, args.root)
             _emit({"repo_id": repository.repo_id, "root": repository.root.as_posix(), "config": str(args.config)})
+        elif args.command == "unregister":
+            repository = unregister_repository(args.config, args.repo_id)
+            _emit({"repo_id": repository.repo_id, "root": repository.root.as_posix(), "config": str(args.config)})
+        elif args.command == "update":
+            repository = update_repository(args.config, args.repo_id, args.root, force=args.force)
+            _emit({"repo_id": repository.repo_id, "root": repository.root.as_posix(), "config": str(args.config)})
         elif args.command == "index":
             config = load_config(args.config)
             repository = get_repository(config, args.repo_id)
@@ -75,3 +98,6 @@ def main(argv: list[str] | None = None) -> int:
 def _emit(value: object) -> None:
     print(json.dumps(value, indent=2, sort_keys=True, default=str))
 
+
+if __name__ == "__main__":
+    raise SystemExit(main())

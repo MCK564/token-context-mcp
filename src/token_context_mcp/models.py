@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-
 Freshness = Literal["fresh", "pending", "stale", "unknown"]
 EdgeStatus = Literal["resolved", "ambiguous", "unresolved"]
 
@@ -31,6 +30,7 @@ class ServerConfig:
 class AppConfig:
     repositories: dict[str, RepositoryConfig]
     server: ServerConfig = field(default_factory=ServerConfig)
+    budget_profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -59,6 +59,8 @@ class SymbolRecord:
     body_start_byte: int | None
     body_end_byte: int | None
     is_private: bool
+    roles: list[str] = field(default_factory=list)
+    role_evidence: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

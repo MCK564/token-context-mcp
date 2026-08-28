@@ -3,9 +3,8 @@ from __future__ import annotations
 import hashlib
 import importlib
 import re
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass, replace
 
 from tree_sitter import Language, Parser
 
@@ -64,6 +63,7 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     text = raw.decode("utf-8", errors="replace")
     line_offsets = _line_offsets(raw)
     symbols = list(_walk_symbols(tree.root_node, raw, path, language_name, [], line_offsets))
+    symbols = _add_module_entry_roles(tree.root_node, raw, symbols)
     imports = _extract_imports(text, language_name)
     warnings: list[str] = []
     if tree.root_node.has_error:
@@ -105,23 +105,28 @@ def _walk_symbols(
     parents: list[str],
     line_offsets: list[int],
 ) -> Iterable[SymbolRecord]:
-    node_kind = getattr(node, "type")
+    node_kind = node.type
     mapping = _NODE_KINDS[language_name]
     next_parents = parents
     if node_kind in mapping:
-        name = _node_name(node, raw) or f"anonymous_{getattr(node, 'start_point')[0] + 1}"
+        name = _node_name(node, raw) or f"anonymous_{node.start_point[0] + 1}"
         qualified_name = ".".join([*parents, name])
-        start_byte = int(getattr(node, "start_byte"))
-        end_byte = int(getattr(node, "end_byte"))
+        start_byte = int(node.start_byte)
+        end_byte = int(node.end_byte)
         body = _field(node, "body")
-        body_start = int(getattr(body, "start_byte")) if body else None
-        body_end = int(getattr(body, "end_byte")) if body else None
+        body_start = int(body.start_byte) if body else None
+        body_end = int(body.end_byte) if body else None
         signature_end = body_start if body_start is not None else end_byte
         signature = _signature(raw[start_byte:signature_end])
-        start_line = int(getattr(node, "start_point")[0]) + 1
-        end_line = int(getattr(node, "end_point")[0]) + 1
+        start_line = int(node.start_point[0]) + 1
+        end_line = int(node.end_point[0]) + 1
         digest = hashlib.sha256(f"{language_name}:{path}:{qualified_name}:{start_byte}".encode()).hexdigest()[:16]
         symbol_id = f"{language_name}:{path}:{qualified_name}:{digest}"
+        roles: list[str] = []
+        role_evidence: dict[str, str] = {}
+        if language_name == "python" and node_kind == "class_definition" and _has_protocol_base(node, raw):
+            roles.append("protocol_definition")
+            role_evidence["protocol_definition"] = "base: Protocol"
         yield SymbolRecord(
             symbol_id=symbol_id,
             path=path,
@@ -136,16 +141,18 @@ def _walk_symbols(
             body_start_byte=body_start,
             body_end_byte=body_end,
             is_private=name.startswith("_"),
+            roles=roles,
+            role_evidence=role_evidence,
         )
         if mapping[node_kind] in {"class", "interface"}:
             next_parents = [*parents, name]
-    for child in getattr(node, "named_children"):
+    for child in node.named_children:
         yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets)
 
 
 def _field(node: object, field_name: str) -> object | None:
     try:
-        return getattr(node, "child_by_field_name")(field_name)
+        return node.child_by_field_name(field_name)
     except (AttributeError, TypeError):
         return None
 
@@ -154,14 +161,14 @@ def _node_name(node: object, raw: bytes) -> str | None:
     for field in ("name", "property"):
         child = _field(node, field)
         if child is not None:
-            value = raw[int(getattr(child, "start_byte")) : int(getattr(child, "end_byte"))].decode(
+            value = raw[int(child.start_byte) : int(child.end_byte)].decode(
                 "utf-8", errors="replace"
             )
             if value:
                 return value.strip()
-    for child in getattr(node, "named_children"):
+    for child in node.named_children:
         if getattr(child, "type", "") in {"identifier", "type_identifier", "property_identifier"}:
-            return raw[int(getattr(child, "start_byte")) : int(getattr(child, "end_byte"))].decode(
+            return raw[int(child.start_byte) : int(child.end_byte)].decode(
                 "utf-8", errors="replace"
             ).strip()
     return None
@@ -172,6 +179,68 @@ def _signature(raw: bytes) -> str:
     text = re.sub(r"\s+", " ", text)
     text = text.rstrip("{:")
     return text[:500]
+
+
+def _has_protocol_base(node: object, raw: bytes) -> bool:
+    superclasses = _field(node, "superclasses")
+    if superclasses is None:
+        return False
+    return bool(re.search(r"\bProtocol\b", raw[int(superclasses.start_byte) : int(superclasses.end_byte)].decode("utf-8", errors="replace")))
+
+
+def _add_module_entry_roles(node: object, raw: bytes, symbols: list[SymbolRecord]) -> list[SymbolRecord]:
+    role_targets = _module_entry_targets(node, raw)
+    if not role_targets:
+        return symbols
+    updated: list[SymbolRecord] = []
+    for symbol in symbols:
+        target_lines = role_targets.get(symbol.name, [])
+        if target_lines and "." not in symbol.qualified_name:
+            roles = list(symbol.roles)
+            evidence = dict(symbol.role_evidence)
+            if "module_entry_point" not in roles:
+                roles.append("module_entry_point")
+            evidence["module_entry_point"] = f"if __name__ == __main__ at line {target_lines[0]}"
+            updated.append(replace(symbol, roles=roles, role_evidence=evidence))
+        else:
+            updated.append(symbol)
+    return updated
+
+
+def _module_entry_targets(node: object, raw: bytes) -> dict[str, list[int]]:
+    targets: dict[str, list[int]] = {}
+
+    def visit(current: object) -> None:
+        if getattr(current, "type", "") == "if_statement":
+            condition = _field(current, "condition")
+            condition_text = ""
+            if condition is not None:
+                condition_text = raw[int(condition.start_byte) : int(condition.end_byte)].decode(
+                    "utf-8", errors="replace"
+                )
+            if "__name__" in condition_text and "__main__" in condition_text:
+                for descendant in _descendants(current):
+                    if getattr(descendant, "type", "") != "call":
+                        continue
+                    function = _field(descendant, "function")
+                    if function is None or getattr(function, "type", "") != "identifier":
+                        continue
+                    name = raw[int(function.start_byte) : int(function.end_byte)].decode(
+                        "utf-8", errors="replace"
+                    )
+                    if name:
+                        targets.setdefault(name, []).append(int(current.start_point[0]) + 1)
+        for child in getattr(current, "named_children", []):
+            visit(child)
+
+    visit(node)
+    return targets
+
+
+def _descendants(node: object) -> Iterable[object]:
+    yield node
+    for child in getattr(node, "named_children", []):
+        yield from _descendants(child)
 
 
 def _line_offsets(raw: bytes) -> list[int]:
@@ -197,4 +266,3 @@ def _extract_imports(text: str, language_name: str) -> list[str]:
     for pattern in patterns:
         imports.extend(re.findall(pattern, text))
     return sorted(set(imports))
-

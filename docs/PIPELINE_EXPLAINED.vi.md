@@ -3,11 +3,15 @@
 **Viết:** 27/08/2026 · **Đối chiếu:** phiên bản 0.1.0, 2083 dòng trên 27 module trong `src/token_context_mcp/`
 **Phương pháp:** kiến trúc đọc từ mã nguồn; **mọi con số ở §4 đều do tôi chạy thật** service trên máy này với hai repository đã đăng ký.
 
+**Ghi chu trang thai:** Cac muc 4.3–4.4 va cac diem yeu SWOT lien quan ghi lai
+hanh vi 0.1.0 truoc remediation. Contract hien tai va phep do C1 sau remediation
+nam trong [`README.md`](../README.md) va `evals/reports/`.
+
 ---
 
 ## 1. Gói này là gì
 
-Một **MCP server `stdio` cục bộ, chỉ đọc**, index các repository được đăng ký tường minh vào một snapshot SQLite và trả lời sáu công cụ truy xuất bằng những gói ngữ cảnh nhỏ, có băm nguồn kèm theo.
+Một **MCP server `stdio` cục bộ, chỉ đọc**, index các repository được đăng ký tường minh vào một snapshot SQLite và trả lời tám công cụ truy xuất bằng những gói ngữ cảnh nhỏ, có băm nguồn kèm theo.
 
 Tiền đề thiết kế mang tính phủ định và được nói thẳng trong README: *giảm việc bò quét toàn repository mà không giả vờ rằng phân tích cú pháp là một mô hình ngữ nghĩa đầy đủ.* Gần như mọi quyết định thiết kế đều bắt nguồn từ việc coi giới hạn đó là nghiêm túc.
 
@@ -42,7 +46,7 @@ Phép kiểm reparse point là đặc thù Windows và **đúng**: `os.lstat(pat
 |---|---|---|
 | `index/hashing.py` | 17 | SHA-256 trên bytes và trên file theo khối 1 MB |
 | `index/freshness.py` | 22 | `pending_paths` băm lại các file đã index so với đĩa. Docstring nêu rõ đánh đổi: *"phát hiện thay đổi nguồn mà không cần watcher thường trú hay ghi xuống hệ thống file"* |
-| `index/sqlite_store.py` | 291 | Schema và truy cập. Năm bảng — `metadata`, `files`, `symbols`, `edges`, `imports` — với index trên `symbols(path)`, `symbols(name)`, `edges(source_symbol_id)`, `edges(target_symbol_id)`. Kết nối đọc dùng `file:…?mode=ro` |
+| `index/sqlite_store.py` | 291 | Schema và truy cập. Bảy bảng — `metadata`, `files`, `symbols`, `edges`, `imports`, `symbol_bodies`, `source_bodies` — với index trên `symbols(path)`, `symbols(name)`, `edges(source_symbol_id)`, `edges(target_symbol_id)`. Kết nối đọc dùng `file:…?mode=ro` |
 | `index/runner.py` | 215 | Pipeline index (§3) |
 
 ### 2.4 Phân tích cú pháp
@@ -61,7 +65,7 @@ Các stub này là một **tuyên bố thiết kế**, không phải một kho�
 |---|---|---|
 | `retrieve/token_budget.py` | 33 | `estimate_tokens` = `ceil(utf8_bytes / 4)`, có version `utf8-bytes-div-4-v1`. `pack_by_budget` lấp tham lam tới hạn mức và trả về `(chosen, omitted, used)` |
 | `retrieve/ranking.py` | 25 | Điểm = `1.0 + 2.0·bậc_vào + 0.5·bậc_ra + 8.0·(mỗi từ khóa truy vấn khớp) + 0.25·(class hoặc interface)` |
-| `retrieve/service.py` | 416 | Sáu công cụ, phép duyệt đồ thị, và phong bì phản hồi |
+| `retrieve/service.py` | 416 | Tám công cụ, phép duyệt đồ thị, và phong bì phản hồi |
 | `server.py` | 135 | Đăng ký công cụ MCP. `_invoke` bắt mọi thứ và trả về lỗi chung chung — không stack trace, không lộ đường dẫn |
 
 ---
@@ -108,12 +112,14 @@ Manifest được ghi **hai lần** có chủ ý: một lần để tính SHA-25
 
 ### P5 — Truy xuất (`RetrievalService`)
 
-Sáu công cụ, mỗi công cụ mở snapshot SQLite ở chế độ **chỉ đọc**:
+Tám công cụ, mỗi công cụ mở snapshot SQLite ở chế độ **chỉ đọc**:
 
 | Công cụ | Trả lời câu hỏi | Bị chặn bởi |
 |---|---|---|
 | `get_repo_map` | "Trong repository này có gì?" | `budget_tokens` |
 | `find_symbols` | "X được định nghĩa ở đâu?" | `limit`, bị chặn trần bởi `max_symbol_results` |
+| `get_module_dependents` | "File/module này được file nào import?" | `path` hoặc `module`, `max_tokens` |
+| `search_source` | "Thân mã chứa X ở đâu?" | `query`, `limit`, `max_tokens` |
 | `get_file_skeleton` | "File này có gì?" | `max_tokens` |
 | `get_symbol_context` | "Symbol này trông ra sao và chạm tới đâu?" | `max_tokens`, `depth` ≤ 3 |
 | `get_impact_slice` | "Sửa cái này thì có thể hỏng cái gì?" | `max_nodes`, bị chặn trần bởi `max_graph_nodes` |
@@ -121,7 +127,7 @@ Sáu công cụ, mỗi công cụ mở snapshot SQLite ở chế độ **chỉ �
 
 `get_file_skeleton` minh họa rõ nhất ý tưởng cốt lõi: nó trả về **các dòng import cộng phần đầu của từng symbol với thân đã lược bỏ**, dành sẵn một phần tư ngân sách cho import trước khi nhồi phần đầu symbol vào chỗ còn lại.
 
-Phép duyệt (`_traverse`) là BFS với tập `visited` và trần `max_nodes` được kiểm ở **cả** điều kiện vòng lặp lẫn nhánh nạp hàng đợi.
+Phép duyệt (`_traverse`) là BFS với tập `visited` và trần `max_nodes`. Nó chỉ báo `node_limit_reached` khi thực sự có candidate bị bỏ qua; `impact_slice` cũng nhồi symbol và cạnh đã tuần tự hóa vào `max_tokens` (mặc định `min(2048, max_result_tokens)`).
 
 ### P6 — Nhồi theo ngân sách
 
@@ -243,7 +249,7 @@ Các khóa `[server]`, kèm dải giá trị được cưỡng chế lúc nạp:
 | Khóa | Dải | Tác dụng |
 |---|---|---|
 | `max_request_bytes` | 1.024 – 1.048.576 | Từ chối tham số công cụ quá lớn |
-| `max_result_tokens` | 32 – 8.192 | Trần cho mọi `budget_tokens` / `max_tokens` — **không áp dụng cho `impact_slice`** |
+| `max_result_tokens` | 32 – 8.192 | Trần cho mọi phản hồi `budget_tokens` / `max_tokens`, bao gồm cả `impact_slice` |
 | `max_graph_nodes` | 1 – 500 | Chặn bề rộng phép duyệt |
 | `max_symbol_results` | 1 – 100 | Chặn `find_symbols` |
 | `network_policy` | chuỗi | Chỉ mang tính khai báo. Manifest ghi rõ `declared_only; enforce at OS/container boundary` |

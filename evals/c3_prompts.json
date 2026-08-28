@@ -1,0 +1,11 @@
+{
+  "repo_id": "invoice-scanner",
+  "root": "D:/AI/invoice_scan/invoice-scanner",
+  "tasks": {
+    "T1-orient": "Analyze the registered invoice-scanner repository without editing files. If token-context is available, use it for orientation; otherwise use your native read-only tools. List at least five real top-level source modules and briefly state each module's responsibility. Name source-backed symbols where useful, and do not invent modules.",
+    "T2-locate": "Analyze the registered invoice-scanner repository without editing files. If token-context is available, use it first. Where is invoice OCR post-processing implemented? Give the repository-relative file, the symbol name, and an approximate source line. Use source-backed evidence and say when a lexical result is ambiguous.",
+    "T3-impact": "Analyze the registered invoice-scanner repository without editing files. If token-context is available, use it first. If the signature of extract_with_trace changes, which call sites must be updated? Name at least one true caller with a source-backed path and clearly label the result as a candidate lexical graph, not a complete semantic call graph.",
+    "T4-surface": "Analyze the registered invoice-scanner repository without editing files. If token-context is available, use it first. What is the public interface of src/invoice_backend/s9_fields.py? List every public definition in that module with signatures only; omit private definitions and function bodies.",
+    "T5-trace": "Analyze the registered invoice-scanner repository without editing files. If token-context is available, use it first. Trace how an invoice moves from input to stored result. Name at least three real pipeline stages in source order and support them with repository-relative paths or indexed symbols. Distinguish evidence from inference."
+  }
+}
