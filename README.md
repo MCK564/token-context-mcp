@@ -8,9 +8,40 @@
 - Tree-sitter parsing for Python, JavaScript and TypeScript/TSX;
 - SQLite snapshots with files, symbols, lexical edges, manifests and source hashes;
 - token-budgeted repository maps, source-backed skeletons, symbol context and bounded impact slices;
+- FTS5 search over symbol bodies and complete indexed files, returning bounded snippets with symbol IDs and line spans;
+- Tree-sitter import relationships served directly, rather than inferred from the lexical call graph;
+- lexical resolution that prefers same-file and same-package definitions before the global name index;
+- compact repository-map encoding and four named budget profiles (`locate`, `orient`, `impact`, `read`);
+- truncation and cap warnings computed from actual results, not from the request;
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
+
+## Benchmark highlights
+
+Measured in this repository. Method and raw records: [`docs/BENCHMARK_FINDINGS.en.md`](docs/BENCHMARK_FINDINGS.en.md) and [`evals/reports/`](evals/reports).
+
+**Mechanism level** — what each design decision is worth, on `invoice-scanner` (124 Python files, ≈220,576 tokens):
+
+| Mechanism | Before | After |
+| --- | ---: | ---: |
+| Signature instead of body (`get_file_skeleton`) | 19,327 tok | **≈985 tok** |
+| Compact instead of full map entries | 107 tok/symbol | **24 tok/symbol** |
+| Ranking correctness (essential-symbol recall) | 0.167, 3 noise items | **0.833, 0 noise** |
+| Removing the N+1 query loops (`repo_map@1024`) | 1,077 queries, 13.87 s | **3 queries, 0.164 s** |
+| Naive read of all source vs `repo_map@1024` (wire) | 220,576 tok | **994 tok** |
+
+**End-to-end, paired against a native-only agent** — the honest picture. C3 pilot, `bench-invoice`, one seed per task, `retrieved_content_estimated_tokens`:
+
+| Prompt shape | Native only | With token-context | Result |
+| --- | ---: | ---: | --- |
+| Trace / evidence | 76,293 | 30,746 | **−60%** |
+| Locate by name | 33,670 | 30,787 | −9% |
+| Callers / impact | 39,404 | 57,404 | **+46% worse** |
+
+Median paired total-token reduction: **−0.3%**, CI95 **−53% to +33%**, n=3. **This does not support a headline token-saving claim**, and none is made — the full 5-task × 3-seed matrix is still pending. What it does support is that *the shape of the question decides the outcome*: savings come from localisation, not enumeration. See [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)) for which questions to ask.
+
+Two figures worth reading before interpreting any of the above: `cached_input_tokens` was **89–92% of input** in every pilot row, and in one run retrieved content was 2,558 tokens against 120,832 cached — **2%** of the total. A `total_tokens` delta mostly measures conversation length, which is why the primary metric is retrieved content.
 
 ## Non-goals and security boundary
 
@@ -250,14 +281,23 @@ the full provider-run matrix remains a separate runtime step.
 
 ## Tool contract
 
-- `get_repo_map`
-- `find_symbols`
-- `get_module_dependents`
-- `search_source`
-- `get_file_skeleton`
-- `get_symbol_context`
-- `get_impact_slice`
-- `get_index_status`
+Nine read-only tools. `list_repositories` is the entry point: it returns the registered
+`repo_id` values and the budget profiles, and never exposes a repository root.
+
+| Tool | Returns | `profile` |
+| --- | --- | --- |
+| `list_repositories` | registered `repo_id` values and the four budget profiles | — |
+| `get_index_status` | snapshot metadata, freshness, edge precision, derived defaults | — |
+| `get_repo_map` | ranked definitions within a token budget, compact by default | `orient` |
+| `find_symbols` | symbols matching a name or qualified-name fragment, with spans | `locate` |
+| `search_source` | FTS5 matches in symbol bodies and indexed files, with snippets and IDs | `locate` |
+| `get_file_skeleton` | imports and source-backed headers for one file; bodies elided | `read` |
+| `get_symbol_context` | a bounded packet around one symbol plus observed edges | `read` |
+| `get_impact_slice` | caller/callee traversal from a symbol — a candidate, not a proof | `impact` |
+| `get_module_dependents` | Tree-sitter import relationships for a path or module | `impact` |
+
+Call `list_repositories` first and pass a short registered `repo_id`; a filesystem path is
+rejected. Explicit per-tool arguments override a profile.
 
 `get_repo_map` defaults to a compact `symbols` array. Each entry is
 `[short_symbol_id, "path:line", "kind/name", optional_rank_marker]`; pass the
