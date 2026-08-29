@@ -1,6 +1,6 @@
 # Cài đặt từ đầu tới khi chạy được
 
-**Bản EN:** `SETUP.en.md` · **Kiến trúc nội bộ:** `PIPELINE_EXPLAINED.vi.md` · **Số liệu đo:** `BENCHMARK_FINDINGS.vi.md`
+**Bản EN:** `SETUP.en.md` · **Số liệu đo:** `BENCHMARK_FINDINGS.vi.md` · **Runbook benchmark:** `X6_RUNBOOK.vi.md`
 
 Ký hiệu độ tin cậy trong tài liệu này:
 
@@ -58,7 +58,7 @@ Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`.
 uv run pytest
 ```
 
-Kỳ vọng: **46 passed, 1 skipped** (một test bị skip có chủ ý — nó cần một môi trường không có ở CI).
+Kỳ vọng: **54 passed, 1 skipped** (một test bị skip có chủ ý — nó cần một môi trường không có ở CI).
 
 Nếu `uv run` báo lỗi khóa file `token-context.exe` trên Windows: đó là do một tiến trình MCP đang giữ console script. Dùng đường module thay thế — **mọi lệnh quản trị trong tài liệu này đều có dạng module**:
 
@@ -109,6 +109,8 @@ network_policy     = "declared-deny-not-enforced"
 ```
 
 `max_result_tokens` là **núm điều khiển chính** cho chi phí token. Mỗi phản hồi được trừ sẵn 96 token cho khung MCP trước khi nhồi nội dung, nên không lời gọi nào vượt trần.
+
+`list_repositories` công bố bốn profile ngân sách dựng sẵn là `locate`, `orient`, `impact` và `read`. Truyền `profile` cho tool phù hợp; các tham số tường minh như `budget_tokens`, `limit`, `depth` hoặc `include_body` sẽ ghi đè profile. `get_impact_slice` nhận `max_tokens`; nếu bỏ qua thì mặc định là giá trị nhỏ hơn giữa 2.048 và trần kết quả của server.
 
 ---
 
@@ -297,7 +299,7 @@ register                    index
                                              + manifest kèm sha256 của chính DB
 ```
 
-Kết quả: `%APPDATA%\token-context-mcp\indexes\<repo_id>.sqlite` gồm 5 bảng (`metadata`, `files`, `symbols`, `edges`, `imports`) cộng chỉ mục FTS5 trên thân mã.
+Kết quả: `%APPDATA%\token-context-mcp\indexes\<repo_id>.sqlite` gồm 7 bảng (`metadata`, `files`, `symbols`, `edges`, `imports`, `symbol_bodies`, `source_bodies`), gồm chỉ mục FTS5 cho thân symbol và thân source.
 
 ### 7.2 Giai đoạn phục vụ — chạy qua MCP, chỉ đọc
 
@@ -327,6 +329,23 @@ agent gọi tool
 | `get_symbol_context` | "symbol này trông ra sao, chạm tới đâu" | `max_tokens`, `depth ≤ 3` |
 | `get_impact_slice` | "sửa cái này thì có thể hỏng gì" | `max_nodes`, `max_tokens` |
 | `get_module_dependents` | "ai import module này" | — |
+
+### 7.4 Kiến trúc hiện tại và sơ đồ mã nguồn
+
+Code có hai mặt phẳng: CLI quản trị ghi snapshot SQLite nguyên tử, còn MCP server mở snapshot ở chế độ chỉ đọc. Các lớp mã nguồn là:
+
+| Lớp | Module chính | Trách nhiệm |
+|---|---|---|
+| Nền tảng | `constants.py`, `models.py`, `config.py` | giới hạn, bản ghi bất biến và registry repository |
+| Bảo mật | `security/path_policy.py`, `security/content_policy.py` | containment đường dẫn, deny-list, kiểm tra binary và che secret |
+| Index | `index/runner.py`, `index/sqlite_store.py`, `index/freshness.py` | inventory, parse, reuse, snapshot nguyên tử và freshness |
+| Parse | `parse/treesitter.py`, `parse/lexical_edges.py` | định nghĩa/span, import lexical và cạnh identifier quan sát được |
+| Truy xuất | `retrieve/service.py`, `retrieve/token_budget.py`, `retrieve/ranking.py` | lookup có giới hạn, xếp hạng, duyệt graph và envelope bằng chứng |
+| Biên | `server.py`, `cli.py`, `telemetry/benchmark.py` | MCP stdio, lệnh quản trị và kế toán benchmark |
+
+Có ba mức phân tích rõ ràng: định nghĩa và span từ Tree-sitter; graph identifier lexical với cạnh có thể `resolved` hoặc `ambiguous`; và adapter semantic LSP/SCIP tùy chọn, hiện vẫn tắt cho tới khi có đánh giá precision/recall theo ngôn ngữ và review sandbox. Server không bao giờ xem việc thiếu một cạnh lexical là bằng chứng rằng không có cạnh semantic.
+
+Artifact bền vững gồm registry theo user tại `%APPDATA%\\token-context-mcp\\repos.toml` (hoặc đường dẫn tương đương trên nền tảng khác), snapshot tại `indexes\\<repo_id>.sqlite` và manifest chứa hash của database. Package không đọc root tùy ý ngoài allowlist đã đăng ký.
 
 ---
 
@@ -366,10 +385,11 @@ agent gọi tool
 
 Khi plan đã đủ rõ và MCP trả đủ thông tin để agent **không cần đọc lại source bằng native**:
 
-1. `find_symbols` / `search_source` → định vị
-2. `get_symbol_context` depth=1 → ngữ cảnh
-3. `include_body=true` chỉ cho symbol cuối cùng cần sửa
-4. Tạo patch, chạy test
+1. Gọi `list_repositories`, rồi `get_index_status` cho `repo_id` ngắn.
+2. Định vị ứng viên bằng `find_symbols` hoặc `search_source`; chỉ dùng `repo_map` khi cần định hướng rộng.
+3. Mở rộng ứng viên bằng `get_symbol_context` ở `depth=1`.
+4. Chỉ yêu cầu `include_body=true` cho symbol cuối cùng cần đọc implementation.
+5. Chỉ dùng lệnh native read-only để kiểm chứng khi MCP báo bị cắt, mơ hồ hoặc graph lexical không đầy đủ; sau đó tạo patch và chạy test.
 
 Lúc đó phần tiết kiệm là **toàn bộ output của `rg` và `Get-Content`** vốn sẽ trở thành input của lượt kế tiếp. Điều kiện: MCP phải báo `truncated=false`, `omitted_count=0`, `freshness=fresh` và không có cảnh báo mơ hồ. Nếu có bất kỳ cờ nào bật, agent **phải** xác minh bằng native — bỏ qua bước đó thì nhanh hơn nhưng dễ sai.
 

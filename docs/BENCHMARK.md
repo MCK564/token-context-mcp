@@ -57,7 +57,7 @@ For MCP arms it separately records `mcp_result_output_estimated_tokens` and
 compare the latter when measuring retrieved content across arms.
 
 For a publishable result, run the paired B0/B1/B2 matrix defined in
-[`evals/c3_protocol.md`](c3_protocol.md): 5 tasks × 3 seeds × 3 arms. Use the
+[`evals/c3_protocol.md`](../evals/c3_protocol.md): 5 tasks × 3 seeds × 3 arms. Use the
 same model, prompt bytes, tool permissions and working tree, collect provider
 `input_tokens`, `output_tokens`, cache and cost fields, and apply the declared
 quality gate before aggregating savings.

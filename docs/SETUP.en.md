@@ -1,6 +1,6 @@
 # Setup — from nothing to a working server
 
-**Vietnamese:** `SETUP.vi.md` · **Internals:** `PIPELINE_EXPLAINED.en.md` · **Measurements:** `BENCHMARK_FINDINGS.en.md`
+**Vietnamese:** `SETUP.vi.md` · **Measurements:** `BENCHMARK_FINDINGS.en.md` · **Benchmark runbook:** `X6_RUNBOOK.en.md`
 
 Confidence markers used throughout:
 
@@ -62,7 +62,7 @@ The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`.
 uv run pytest
 ```
 
-Expect **46 passed, 1 skipped**. The skip is deliberate — that test needs an environment CI does not provide.
+Expect **54 passed, 1 skipped**. The skip is deliberate — that test needs an environment CI does not provide.
 
 If `uv run` fails with a locked `token-context.exe` on Windows, an MCP process is holding the console script. Use the module entry point instead — **every administrative command in this document is given in module form**:
 
@@ -113,6 +113,8 @@ network_policy     = "declared-deny-not-enforced"
 ```
 
 `max_result_tokens` is the **main control** for provider token cost. Every response reserves 96 tokens for MCP framing before packing content, so no call exceeds the cap.
+
+`list_repositories` advertises the built-in `locate`, `orient`, `impact`, and `read` budget profiles. Pass a profile to a compatible retrieval tool; explicit arguments such as `budget_tokens`, `limit`, `depth`, or `include_body` override the profile. `get_impact_slice` accepts `max_tokens`; when omitted, it defaults to the smaller of 2,048 and the server result cap.
 
 ---
 
@@ -301,7 +303,7 @@ register                    index
                                               + manifest carrying the DB's own sha256
 ```
 
-Result: `%APPDATA%\token-context-mcp\indexes\<repo_id>.sqlite` with five tables (`metadata`, `files`, `symbols`, `edges`, `imports`) plus an FTS5 index over symbol bodies.
+Result: `%APPDATA%\token-context-mcp\indexes\<repo_id>.sqlite` with seven tables (`metadata`, `files`, `symbols`, `edges`, `imports`, `symbol_bodies`, `source_bodies`), including FTS5 indexes for symbol and source bodies.
 
 ### 7.2 Serving phase — MCP, read-only
 
@@ -331,6 +333,23 @@ agent calls a tool
 | `get_symbol_context` | "what does this symbol look like and touch" | `max_tokens`, `depth ≤ 3` |
 | `get_impact_slice` | "what might break if I change this" | `max_nodes`, `max_tokens` |
 | `get_module_dependents` | "who imports this module" | — |
+
+### 7.4 Current architecture and code map
+
+The implementation has two planes: the administrative CLI writes an atomic SQLite snapshot, while the MCP server opens that snapshot read-only. The source layers are:
+
+| Layer | Main modules | Responsibility |
+|---|---|---|
+| Foundation | `constants.py`, `models.py`, `config.py` | limits, immutable records, and the repository registry |
+| Security | `security/path_policy.py`, `security/content_policy.py` | path containment, deny-lists, binary checks, and secret redaction |
+| Index | `index/runner.py`, `index/sqlite_store.py`, `index/freshness.py` | inventory, parsing, reuse, atomic snapshots, and freshness |
+| Parse | `parse/treesitter.py`, `parse/lexical_edges.py` | definitions/spans, lexical imports, and observed identifier edges |
+| Retrieve | `retrieve/service.py`, `retrieve/token_budget.py`, `retrieve/ranking.py` | bounded lookup, ranking, graph traversal, and evidence envelopes |
+| Boundary | `server.py`, `cli.py`, `telemetry/benchmark.py` | MCP stdio, administrative commands, and benchmark accounting |
+
+There are three explicit analysis levels: Tree-sitter definitions and spans; a lexical identifier graph whose edges may be resolved or ambiguous; and optional LSP/SCIP semantic adapters, which remain disabled until a language-specific precision/recall and sandboxing review exists. The server never treats a missing lexical edge as proof that no semantic edge exists.
+
+Persistent artifacts are the per-user registry at `%APPDATA%\\token-context-mcp\\repos.toml` (or the platform equivalent), the snapshot at `indexes\\<repo_id>.sqlite`, and its manifest containing the database hash. The source package does not read arbitrary roots outside the registered allowlist.
 
 ---
 
@@ -370,10 +389,11 @@ Measured on `invoice-scanner` (124 Python files, 882,304 bytes ≈ 220,576 token
 
 When the plan is clear enough and MCP returns enough that the agent **does not need to re-read source natively**:
 
-1. `find_symbols` / `search_source` → locate
-2. `get_symbol_context` at `depth=1` → context
-3. `include_body=true` only for the final symbols being changed
-4. Write the patch, run the tests
+1. Call `list_repositories`, then `get_index_status` for the short `repo_id`.
+2. Locate candidates with `find_symbols` or `search_source`; use `repo_map` only for broad orientation.
+3. Expand the candidates with `get_symbol_context` at `depth=1`.
+4. Request `include_body=true` only for the final symbols whose implementation is needed.
+5. Use native read-only verification only when MCP reports truncation, ambiguity, or an incomplete lexical graph; then write the patch and run tests.
 
 The saving is then **the entire output of `rg` and `Get-Content`** that would otherwise become the next turn's input. The condition: MCP must report `truncated=false`, `omitted_count=0`, `freshness=fresh` and no ambiguity warning. If any flag is set the agent **must** verify natively — skipping that is faster and wrong.
 

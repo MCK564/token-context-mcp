@@ -26,3 +26,8 @@ evals/runs/
 /docs/EXECUTION_PLAN.*.md
 /docs/REMEDIATION_AND_BENCHMARK_PLAN.*.md
 /docs/REVIEW_REMEDIATION.*.md
+
+# Superseded/duplicated documentation; SETUP is the canonical operational guide.
+/docs/ARCHITECTURE.md
+/docs/INTEGRATION.md
+/docs/PIPELINE_EXPLAINED*.md

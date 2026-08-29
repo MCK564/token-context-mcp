@@ -34,7 +34,7 @@ Three independent causes, each sufficient on its own:
 - **C-b. `budget_tokens: 5000` exceeds `max_result_tokens: 2048`.** The call would have failed even with the correct id.
 - **C-c. The agent could not self-correct.** `server._invoke` collapses every exception into `"request rejected by read-only repository policy"`. The agent learned neither that the id was wrong, nor that a budget ceiling existed, nor what a valid id looks like — so it abandoned the tool after two attempts and fell back to native shell.
 
-C-c is the design defect. **No tool exposes the registered `repo_id` list**, and the agent instruction in `INTEGRATION.md` never states that `repo_id` is a short registered name rather than a path. Every tool demands a value the agent has no way to discover.
+C-c is the design defect. **No tool exposes the registered `repo_id` list**, and the agent instruction in `SETUP.en.md` never states that `repo_id` is a short registered name rather than a path. Every tool demands a value the agent has no way to discover.
 
 ### Finding 3 — the C1 baseline is a strawman
 
@@ -57,7 +57,7 @@ This is a real limit, not a bug: `repo_map` returns ranked symbols with metadata
 
 - **W13 — make `repo_id` discoverable.** Add a `list_repositories` tool returning ids only (never roots — those are the sensitive half). Without it the tool surface is unusable by an agent that was not hand-configured.
 - **W14 — make errors actionable without leaking paths.** Distinguish `unknown_repo_id`, `budget_out_of_range` (naming the ceiling) and `policy_rejected`. The current single opaque message is why two recoverable mistakes became a total abandonment.
-- **W15 — state the contract in the agent instruction.** `INTEGRATION.md` must say: `repo_id` is a registered short name, call `list_repositories` first, and `budget_tokens` must not exceed the server ceiling.
+- **W15 — state the contract in the agent instruction.** `SETUP.en.md` must say: `repo_id` is a registered short name, call `list_repositories` first, and `budget_tokens` must not exceed the server ceiling.
 
 ### Protocol corrections before re-running C3
 
@@ -771,7 +771,7 @@ already represented files so the one-per-file digest does not consume the
 breadth budget. This keeps provenance and meets the no-regression coverage
 gate without changing the measured ranking head.
 
-RK-P5 is documented in `docs/INTEGRATION.md` as a two-tier protocol:
+RK-P5 is documented in `docs/SETUP.en.md` as a two-tier protocol:
 MCP-first locating and bounded symbol expansion, followed by native read-only
 verification only for concrete ambiguous or truncated source claims. A bounded
 pilot completed with `mcp_health: passed`, six MCP calls, zero native commands,

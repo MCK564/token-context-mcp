@@ -34,7 +34,7 @@ Ba nguyên nhân độc lập, mỗi cái tự nó đã đủ:
 - **C-b. `budget_tokens: 5000` vượt `max_result_tokens: 2048`.** Lời gọi sẽ vẫn thất bại ngay cả với id đúng.
 - **C-c. Agent không thể tự sửa.** `server._invoke` gộp mọi ngoại lệ thành `"request rejected by read-only repository policy"`. Agent không biết được id sai, không biết có trần ngân sách, cũng không biết một id hợp lệ trông ra sao — nên nó bỏ công cụ sau hai lần thử và quay về shell gốc.
 
-C-c mới là khuyết tật thiết kế. **Không công cụ nào phơi ra danh sách `repo_id` đã đăng ký**, và phần hướng dẫn agent trong `INTEGRATION.md` không hề nói `repo_id` là một tên ngắn đã đăng ký chứ không phải đường dẫn. Mọi công cụ đều đòi một giá trị mà agent không có cách nào khám phá ra.
+C-c mới là khuyết tật thiết kế. **Không công cụ nào phơi ra danh sách `repo_id` đã đăng ký**, và phần hướng dẫn agent trong `SETUP.vi.md` không hề nói `repo_id` là một tên ngắn đã đăng ký chứ không phải đường dẫn. Mọi công cụ đều đòi một giá trị mà agent không có cách nào khám phá ra.
 
 ### Phát hiện 3 — đường cơ sở của C1 là một hình nộm
 
@@ -57,7 +57,7 @@ Một lệnh `rg --files` duy nhất của B0 tốn 18.228 token và trả về 
 
 - **W13 — làm `repo_id` khám phá được.** Thêm công cụ `list_repositories` chỉ trả về id (không bao giờ trả root — đó mới là nửa nhạy cảm). Thiếu nó, bề mặt công cụ không dùng được với một agent chưa được cấu hình bằng tay.
 - **W14 — làm lỗi hành động được mà không lộ đường dẫn.** Phân biệt `unknown_repo_id`, `budget_out_of_range` (nêu rõ trần) và `policy_rejected`. Chính một thông điệp mờ đục duy nhất đã biến hai sai sót sửa được thành một cuộc bỏ cuộc hoàn toàn.
-- **W15 — nêu hợp đồng ngay trong hướng dẫn agent.** `INTEGRATION.md` phải nói: `repo_id` là tên ngắn đã đăng ký, hãy gọi `list_repositories` trước, và `budget_tokens` không được vượt trần server.
+- **W15 — nêu hợp đồng ngay trong hướng dẫn agent.** `SETUP.vi.md` phải nói: `repo_id` là tên ngắn đã đăng ký, hãy gọi `list_repositories` trước, và `budget_tokens` không được vượt trần server.
 
 ### Sửa giao thức trước khi chạy lại C3
 
@@ -768,7 +768,7 @@ phần ngân sách còn lại bằng symbol trong các file đã xuất hiện. 
 mỗi file không ăn hết ngân sách độ phủ, vẫn giữ provenance và qua cổng không
 hồi quy mà không đổi phần đầu ranking đã đo.
 
-RK-P5 đã được ghi trong `docs/INTEGRATION.md` thành giao thức hai tầng:
+RK-P5 đã được ghi trong `docs/SETUP.vi.md` thành giao thức hai tầng:
 MCP-first để định vị và mở rộng symbol có giới hạn, sau đó chỉ dùng lệnh native
 read-only để xác minh một vị trí mã cụ thể khi có mơ hồ hoặc truncate. Một pilot
 có giới hạn đã hoàn tất với `mcp_health: passed`, sáu MCP call, không có native
