@@ -397,6 +397,16 @@ When the plan is clear enough and MCP returns enough that the agent **does not n
 
 The saving is then **the entire output of `rg` and `Get-Content`** that would otherwise become the next turn's input. The condition: MCP must report `truncated=false`, `omitted_count=0`, `freshness=fresh` and no ambiguity warning. If any flag is set the agent **must** verify natively — skipping that is faster and wrong.
 
+### 8.5 Which prompt shapes save, and which do not
+
+Configuration is half the job. The same tool measured **−60%** retrieved content on a trace
+task and **+46% worse** on a caller/impact task, in the same pilot. Savings come from
+localisation, not enumeration: a prompt that names a file, symbol or module can save 60–95%;
+a prompt that asks the tool to enumerate a repository usually loses to one `rg`.
+
+Per-shape rankings, copy-paste templates, and the hygiene rules that once invalidated a whole
+benchmark run are in [`PROMPTING.en.md`](PROMPTING.en.md) ([tiếng Việt](PROMPTING.vi.md)).
+
 ---
 
 ## 9. Troubleshooting

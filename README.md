@@ -64,6 +64,26 @@ This is a local MCP `stdio` server. It works with a client that can start local 
 
 Cloud/web agents cannot start this server on this Windows machine. They need a separately deployed, authenticated HTTP MCP service; this project intentionally ships only local `stdio` transport.
 
+### Which prompts save tokens
+
+Configuring the server is half the job; asking the right *shape* of question is the other half.
+Measured on this repository's own C3 pilot, the same tool ranged from **−60%** retrieved
+content on a trace task to **+46% worse** on a caller/impact task. Savings come from
+**localisation**, not enumeration.
+
+| Prompt shape | Measured | Use the tool? |
+| --- | --- | --- |
+| Public surface of a named file | 19,327 → ≈985 tokens | Yes — best case |
+| Trace / evidence across a large tree | −60% | Yes |
+| Locate a named symbol | −9% | Yes, modest |
+| Body-text search | ≈3,900 tokens for 41 files | Comparable to `rg`; better return shape |
+| Callers / impact | **+46% worse** | Only with the native fallback explicitly closed |
+| Enumerate everything | `rg --files` = 18,228 tokens, complete | No — `repo_map@4096` returns ~6.6% of symbols |
+| Behavioural query, no name | 90% of matching symbols invisible to `find_symbols` | Use `search_source`, not `find_symbols` |
+
+Full guidance, copy-paste templates, and the prompt-hygiene rules that once invalidated an
+entire benchmark run: [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)).
+
 ### Codex
 
 There are two ways to connect Codex to `token-context-mcp`:
@@ -257,6 +277,6 @@ uv run pytest
 uv run token-context release-materials --output supply-chain
 ```
 
-Step-by-step setup for every supported agent — Claude Code, Codex, GitHub Copilot (VS Code and CLI), Antigravity — is in [`docs/SETUP.en.md`](docs/SETUP.en.md) ([tiếng Việt](docs/SETUP.vi.md)). The procedure for running the full C3 benchmark matrix is in [`docs/X6_RUNBOOK.en.md`](docs/X6_RUNBOOK.en.md) ([tiếng Việt](docs/X6_RUNBOOK.vi.md)).
+Step-by-step setup for every supported agent — Claude Code, Codex, GitHub Copilot (VS Code and CLI), Antigravity — is in [`docs/SETUP.en.md`](docs/SETUP.en.md) ([tiếng Việt](docs/SETUP.vi.md)). Which question shapes actually save tokens is in [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)). The procedure for running the full C3 benchmark matrix is in [`docs/X6_RUNBOOK.en.md`](docs/X6_RUNBOOK.en.md) ([tiếng Việt](docs/X6_RUNBOOK.vi.md)).
 
 See [`SECURITY.md`](SECURITY.md) and [`docs/`](docs/) for the threat model, integration instructions and benchmark protocol.

@@ -393,6 +393,16 @@ Khi plan đã đủ rõ và MCP trả đủ thông tin để agent **không cầ
 
 Lúc đó phần tiết kiệm là **toàn bộ output của `rg` và `Get-Content`** vốn sẽ trở thành input của lượt kế tiếp. Điều kiện: MCP phải báo `truncated=false`, `omitted_count=0`, `freshness=fresh` và không có cảnh báo mơ hồ. Nếu có bất kỳ cờ nào bật, agent **phải** xác minh bằng native — bỏ qua bước đó thì nhanh hơn nhưng dễ sai.
 
+### 8.5 Dạng prompt nào tiết kiệm, dạng nào không
+
+Cấu hình mới là một nửa công việc. Cùng một tool, trong cùng một pilot, đo được **−60%** nội
+dung truy xuất ở task truy vết và **+46% tệ hơn** ở task hỏi "ai gọi". Tiết kiệm đến từ **định
+vị**, không đến từ **liệt kê**: prompt có nêu tên file, symbol hoặc module có thể tiết kiệm
+60–95%; prompt bắt tool liệt kê cả repository thường thua một lệnh `rg`.
+
+Thứ hạng theo từng dạng prompt, mẫu dùng ngay, và các quy tắc vệ sinh prompt từng làm hỏng
+nguyên một lần benchmark nằm ở [`PROMPTING.vi.md`](PROMPTING.vi.md) ([English](PROMPTING.en.md)).
+
 ---
 
 ## 9. Sự cố thường gặp
