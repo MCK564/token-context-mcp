@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from token_context_mcp.models import EdgeRecord, FileRecord, SymbolRecord
+from token_context_mcp.security.local_privacy import secure_directory, secure_sqlite_artifacts
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -99,8 +100,11 @@ class SQLiteStore:
             uri = f"file:{self.path.as_posix()}?mode=ro"
             connection = sqlite3.connect(uri, uri=True)
         else:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
+            secure_directory(self.path.parent)
             connection = sqlite3.connect(self.path)
+            # SQLite creates the database with the process umask, which on a
+            # default POSIX host leaves indexed source bodies world-readable.
+            secure_sqlite_artifacts(self.path)
         connection.row_factory = sqlite3.Row
         connection.set_trace_callback(self._count_query)
         try:
@@ -112,6 +116,9 @@ class SQLiteStore:
             raise
         finally:
             connection.close()
+            if not self.read_only:
+                # The WAL sidecars only appear once the session writes.
+                secure_sqlite_artifacts(self.path)
 
     def _count_query(self, _statement: str) -> None:
         self._query_count += 1

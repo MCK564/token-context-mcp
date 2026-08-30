@@ -8,6 +8,7 @@ from pathlib import Path
 
 from token_context_mcp.constants import DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILES
 from token_context_mcp.models import AppConfig, RepositoryConfig, ServerConfig
+from token_context_mcp.security.local_privacy import secure_directory, secure_file
 from token_context_mcp.security.path_policy import canonical_repository_root
 
 _REPO_ID_RE = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
@@ -104,7 +105,7 @@ def load_config(path: Path) -> AppConfig:
 
 
 def save_config(path: Path, config: AppConfig) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    secure_directory(path.parent)
     lines = [
         "[server]",
         f"max_request_bytes = {config.server.max_request_bytes}",
@@ -135,6 +136,9 @@ def save_config(path: Path, config: AppConfig) -> None:
         )
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    # Restrict the temporary file so the registry is never briefly world-readable
+    # under its final name.
+    secure_file(temporary)
     temporary.replace(path)
 
 

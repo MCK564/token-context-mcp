@@ -31,6 +31,11 @@ from token_context_mcp.models import (
 from token_context_mcp.parse.lexical_edges import build_lexical_edges
 from token_context_mcp.parse.treesitter import ParseError, parse_source
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
+from token_context_mcp.security.local_privacy import (
+    secure_directory,
+    secure_file,
+    secure_sqlite_artifacts,
+)
 from token_context_mcp.security.path_policy import is_reparse_point, relative_posix
 
 
@@ -43,7 +48,7 @@ def manifest_path(index_directory: Path, repo_id: str) -> Path:
 
 
 def build_index(repository: RepositoryConfig, index_directory: Path, *, network_policy: str) -> dict[str, object]:
-    index_directory.mkdir(parents=True, exist_ok=True)
+    secure_directory(index_directory)
     destination = database_path(index_directory, repository.repo_id)
     previous_files: dict[str, FileRecord] = {}
     previous_store: SQLiteStore | None = None
@@ -223,11 +228,13 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
             source_bodies=searchable_sources,
         )
         _atomic_replace(temporary, destination)
+        secure_sqlite_artifacts(destination)
         manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
         manifest["artifact_sha256"] = sha256_bytes(destination.read_bytes())
         manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
         temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
         temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
+        secure_file(temporary_manifest)
         temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
     finally:
         temporary.unlink(missing_ok=True)

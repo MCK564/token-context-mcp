@@ -19,6 +19,7 @@ from token_context_mcp.config import (
 from token_context_mcp.index.runner import build_index
 from token_context_mcp.release import write_release_materials
 from token_context_mcp.retrieve.service import RetrievalService
+from token_context_mcp.security.local_privacy import harden_registry
 from token_context_mcp.server import run_stdio
 from token_context_mcp.telemetry.benchmark import load_runs, summarize
 
@@ -43,6 +44,9 @@ def build_parser() -> argparse.ArgumentParser:
     index.add_argument("--repo-id", required=True)
     index.add_argument("--config", type=Path, default=default_config_path())
     index.add_argument("--network-policy", default="declared-deny-not-enforced")
+    harden = subparsers.add_parser("harden", help="Restrict the registry and snapshots to the owning account")
+    harden.add_argument("--config", type=Path, default=default_config_path())
+    harden.add_argument("--check", action="store_true", help="Report current permissions without changing them")
     status = subparsers.add_parser("status", help="Read active snapshot status")
     status.add_argument("--repo-id", required=True)
     status.add_argument("--config", type=Path, default=default_config_path())
@@ -76,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
             config = load_config(args.config)
             repository = get_repository(config, args.repo_id)
             _emit(build_index(repository, index_directory(args.config), network_policy=args.network_policy))
+        elif args.command == "harden":
+            _emit(harden_registry(args.config, check_only=args.check))
         elif args.command == "status":
             service = RetrievalService(load_config(args.config), args.config)
             _emit(service.status(args.repo_id))

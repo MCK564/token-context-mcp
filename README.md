@@ -57,7 +57,7 @@ uv run token-context status --repo-id demo
 uv run token-context serve
 ```
 
-By default the registry is global for the current Windows user at `%APPDATA%\token-context-mcp\repos.toml`; it is independent of the current working directory. Set `TOKEN_CONTEXT_CONFIG` to use an explicit shared/portable TOML path. For Codex, launch the package through a configured `stdio` MCP command. Use only the read-only tools listed by the server.
+By default the registry is global for the current user at `%APPDATA%\token-context-mcp\repos.toml` on Windows and `~/.config/token-context-mcp/repos.toml` on Linux and macOS; it is independent of the current working directory. Set `TOKEN_CONTEXT_CONFIG` to use an explicit shared/portable TOML path — on a multi-user host, read [Keeping the registry and snapshots private](#keeping-the-registry-and-snapshots-private) before pointing several accounts at one file. For Codex, launch the package through a configured `stdio` MCP command. Use only the read-only tools listed by the server.
 
 ## Register repositories safely
 
@@ -70,7 +70,7 @@ uv run token-context index --repo-id video-lecturer
 uv run token-context status --repo-id video-lecturer
 ```
 
-Use a specific project root, never a broad parent such as `D:\AI`. Re-run `index` after relevant changes; it reuses unchanged parsing results. Existing registrations and index databases are shared by every MCP process launched under the same Windows user.
+Use a specific project root, never a broad parent such as `D:\AI`. Re-run `index` after relevant changes; it reuses unchanged parsing results. Existing registrations and index databases are shared by every MCP process launched under the same account, on that machine only.
 
 To use a different registry location for one terminal or a portable deployment, set it before registering, indexing, and starting the MCP server:
 
@@ -82,7 +82,7 @@ uv run token-context index --repo-id myrepo
 
 ## Use from coding agents
 
-This is a local MCP `stdio` server. It works with a client that can start local processes and has `uv` available on its `PATH`. Each client process launched under the same Windows user automatically reads the same global repository registry. Restart the client after changing the registry or its policy.
+This is a local MCP `stdio` server. It works with a client that can start local processes and has `uv` available on its `PATH`. Each client process launched under the same account on the same machine automatically reads the same global repository registry. Restart the client after changing the registry or its policy.
 
 | Client | Local `stdio` support | Setup status |
 | --- | --- | --- |
@@ -93,7 +93,9 @@ This is a local MCP `stdio` server. It works with a client that can start local 
 | Google Antigravity IDE / CLI | Yes | Supported through global or workspace `mcp_config.json`. |
 | Claude Desktop | Conditional | It supports local MCP through Desktop Extensions, but this project does not yet publish a `.dxt` package. |
 
-Cloud/web agents cannot start this server on this Windows machine. They need a separately deployed, authenticated HTTP MCP service; this project intentionally ships only local `stdio` transport.
+For an editor connected to another host over SSH, see [Linux, macOS and VS Code Remote-SSH](#linux-macos-and-vs-code-remote-ssh): the configuration has to live on the host that holds the source.
+
+Cloud/web agents cannot start this server on a local machine. They need a separately deployed, authenticated HTTP MCP service; this project intentionally ships only local `stdio` transport.
 
 ### Which prompts save tokens
 
@@ -202,6 +204,122 @@ If a client cannot start the server, first run `uv run --directory D:\AI\token-c
 
 Official client setup references: [OpenAI Codex](https://developers.openai.com/codex/mcp), [Claude Code](https://code.claude.com/docs/en/mcp), [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers), [GitHub Copilot in IDEs](https://docs.github.com/en/copilot/how-tos/provide-context/use-mcp-in-your-ide/extend-copilot-chat-with-mcp), [Antigravity](https://antigravity.google/docs/mcp), and [Claude Desktop](https://support.anthropic.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop).
 
+## Linux, macOS and VS Code Remote-SSH
+
+Full reference — supported systems, remote placement, every limit and the permission model:
+[`docs/PLATFORMS.en.md`](docs/PLATFORMS.en.md) ([tiếng Việt](docs/PLATFORMS.vi.md)).
+
+The package is cross-platform; CI runs the test suite on Ubuntu and Windows. Only the
+registry path differs:
+
+| Host | Registry | Snapshots |
+| --- | --- | --- |
+| Windows | `%APPDATA%\token-context-mcp\repos.toml` | `%APPDATA%\token-context-mcp\indexes\` |
+| Linux | `$XDG_CONFIG_HOME/token-context-mcp/repos.toml`, else `~/.config/...` | `~/.config/token-context-mcp/indexes/` |
+| macOS | `~/.config/token-context-mcp/repos.toml` | `~/.config/token-context-mcp/indexes/` |
+
+```bash
+uv sync --extra dev
+uv run token-context register --repo-id demo --root ~/code/some-repo
+uv run token-context index --repo-id demo
+uv run token-context status --repo-id demo
+uv run token-context harden
+```
+
+### Where the server has to run
+
+The transport is `stdio` only. The client starts the server as a child process and talks
+to it over stdin/stdout, and the server reads the filesystem it is started on. **Source and
+server must therefore live on the same machine.** A server started on a Windows laptop
+indexes that laptop, whatever the editor window is connected to.
+
+VS Code decides that by where the configuration lives:
+
+| Configuration | Server runs on | Works against remote source |
+| --- | --- | --- |
+| User profile (`MCP: Open User Configuration`) | the local machine | no |
+| `.vscode/mcp.json` in a workspace on the remote | the remote host | yes |
+| Remote user settings (`Remote [SSH: host]`) | the remote host | yes |
+
+So on Remote-SSH, register and index from a **terminal on the server**, and put the
+configuration in the workspace that lives on the server:
+
+```json
+{
+  "servers": {
+    "token-context": {
+      "type": "stdio",
+      "command": "/home/you/.local/bin/uv",
+      "args": [
+        "run", "--no-sync",
+        "--directory", "/home/you/token-context-mcp",
+        "token-context", "serve", "--transport", "stdio"
+      ]
+    }
+  }
+}
+```
+
+Two details that cause most of the failures:
+
+- Use `.vscode/mcp.json` with the `"servers"` key, not a repository-root `.mcp.json`. VS Code
+  before 1.135.0 converts a workspace path with `URI.fsPath` and sends a Windows-shaped path
+  to the Linux host, which fails as `spawn ... ENOENT`.
+- Give `command` the absolute path to `uv`. The server is not spawned through a login shell,
+  so `~/.local/bin` is usually missing from `PATH`. Run `which uv` on the server and paste
+  the result.
+
+A client on the local machine can also start the server over SSH, because `ssh` forwards
+stdin and stdout unchanged:
+
+```json
+{
+  "servers": {
+    "token-context": {
+      "type": "stdio",
+      "command": "ssh",
+      "args": ["myserver", "/home/you/.local/bin/uv run --no-sync --directory /home/you/token-context-mcp token-context serve --transport stdio"]
+    }
+  }
+}
+```
+
+This also covers AWS SSM, where `~/.ssh/config` carries the `ProxyCommand`; the MCP side sees
+plain SSH either way. The cost is a session per start, and any server banner or MOTD printed
+on stdout corrupts the JSON-RPC stream.
+
+Registry and snapshots are per machine and per account. Registering on the laptop does
+nothing for the server, and vice versa.
+
+## Keeping the registry and snapshots private
+
+A snapshot stores verbatim source bodies so that `search_source` and `get_symbol_context` can
+return them. It must therefore never be easier to read than the repository it came from — an
+index under a default umask hands your source to every account on the host, whatever the
+repository's own permissions say.
+
+Registry, snapshots and manifests are created owner-only (`0700` directories, `0600` files) on
+POSIX rather than inheriting the umask. `harden` re-applies that to files created earlier and
+reports what it found:
+
+```bash
+uv run token-context harden --check   # report only
+uv run token-context harden           # repair
+```
+
+```powershell
+uv run token-context harden --check
+```
+
+Windows has no POSIX mode bits, so the same command inspects the ACL instead and lists any
+principal beyond the owner, `SYSTEM` and `Administrators`. Without `--check` it resets
+inheritance and re-grants those three. That is worth checking on a machine where tooling has
+added a group to the profile ACL — a sandbox users group there can read every snapshot.
+
+Root, and on Windows `SYSTEM` and local administrators, can read the files regardless; that
+is a property of the operating system, not something the tool can withhold. On a host you do
+not control at that level, do not index a repository you would not disclose.
+
 ## Token and resource limits
 
 The global registry has an enforceable `[server]` policy. Edit the TOML and restart Codex to apply a change:
@@ -275,6 +393,7 @@ the full provider-run matrix remains a separate runtime step.
 - `update`: change a repository root; requires `--force`.
 - `index`: build an atomic SQLite snapshot and JSON manifest.
 - `status`: inspect the stored snapshot and detect files changed after indexing.
+- `harden`: restrict the registry and snapshots to the owning account; `--check` reports without changing.
 - `serve`: start the MCP `stdio` server.
 - `benchmark-report`: calculate summary statistics from an instrumented JSONL run log.
 - `release-materials`: produce an SBOM/provenance starter artifact; signing and OS sandbox evidence remain deployment responsibilities.
@@ -317,6 +436,6 @@ uv run pytest
 uv run token-context release-materials --output supply-chain
 ```
 
-Step-by-step setup for every supported agent — Claude Code, Codex, GitHub Copilot (VS Code and CLI), Antigravity — is in [`docs/SETUP.en.md`](docs/SETUP.en.md) ([tiếng Việt](docs/SETUP.vi.md)). Which question shapes actually save tokens is in [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)). The procedure for running the full C3 benchmark matrix is in [`docs/X6_RUNBOOK.en.md`](docs/X6_RUNBOOK.en.md) ([tiếng Việt](docs/X6_RUNBOOK.vi.md)).
+Supported operating systems, remote/SSH placement, every limit and the permission model are in [`docs/PLATFORMS.en.md`](docs/PLATFORMS.en.md) ([tiếng Việt](docs/PLATFORMS.vi.md)). Step-by-step setup for every supported agent — Claude Code, Codex, GitHub Copilot (VS Code and CLI), Antigravity — is in [`docs/SETUP.en.md`](docs/SETUP.en.md) ([tiếng Việt](docs/SETUP.vi.md)). Which question shapes actually save tokens is in [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)). The procedure for running the full C3 benchmark matrix is in [`docs/X6_RUNBOOK.en.md`](docs/X6_RUNBOOK.en.md) ([tiếng Việt](docs/X6_RUNBOOK.vi.md)).
 
 See [`SECURITY.md`](SECURITY.md) and [`docs/`](docs/) for the threat model, integration instructions and benchmark protocol.
