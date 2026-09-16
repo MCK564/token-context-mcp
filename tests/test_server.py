@@ -26,6 +26,7 @@ def test_server_exports_only_read_tools(indexed_config: Path) -> None:
         "get_symbol_context",
         "get_impact_slice",
         "get_index_status",
+        "inspect_symbol",
     }
     result = asyncio.run(server.call_tool("get_index_status", {"repo_id": "demo"}))
     assert result.structured_content["repo_id"] == "demo"

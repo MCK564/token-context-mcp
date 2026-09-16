@@ -85,6 +85,8 @@ def load_config(path: Path) -> AppConfig:
         max_graph_nodes=int(raw_server.get("max_graph_nodes", ServerConfig.max_graph_nodes)),
         max_symbol_results=int(raw_server.get("max_symbol_results", ServerConfig.max_symbol_results)),
         network_policy=str(raw_server.get("network_policy", ServerConfig.network_policy)),
+        output_mode=str(raw_server.get("output_mode", ServerConfig.output_mode)),
+        default_view=str(raw_server.get("default_view", ServerConfig.default_view)),
     )
     _validate_server(server)
     repositories: dict[str, RepositoryConfig] = {}
@@ -113,6 +115,8 @@ def save_config(path: Path, config: AppConfig) -> None:
         f"max_graph_nodes = {config.server.max_graph_nodes}",
         f"max_symbol_results = {config.server.max_symbol_results}",
         f'network_policy = "{_toml_string(config.server.network_policy)}"',
+        f'output_mode = "{_toml_string(config.server.output_mode)}"',
+        f'default_view = "{_toml_string(config.server.default_view)}"',
         "",
     ]
     if config.budget_profiles:
@@ -249,3 +253,7 @@ def _validate_server(server: ServerConfig) -> None:
         raise ConfigError("server.max_graph_nodes must be between 1 and 500")
     if not 1 <= server.max_symbol_results <= 100:
         raise ConfigError("server.max_symbol_results must be between 1 and 100")
+    if server.output_mode not in ("structured", "text", "legacy_dual"):
+        raise ConfigError("server.output_mode must be one of: structured, text, legacy_dual")
+    if server.default_view not in ("minimal", "normal", "full"):
+        raise ConfigError("server.default_view must be one of: minimal, normal, full")

@@ -74,9 +74,28 @@ class ArgumentOutOfRangeError(RetrievalError):
 
 class RetrievalService:
     def __init__(self, config: AppConfig, config_path: Path) -> None:
-        self.config = config
+        self._cached_config = config
         self.config_path = config_path
+        try:
+            self._config_mtime = config_path.stat().st_mtime_ns
+        except OSError:
+            self._config_mtime = 0
         self.last_query_count = 0
+
+    @property
+    def config(self) -> AppConfig:
+        try:
+            mtime = self.config_path.stat().st_mtime_ns
+        except OSError:
+            mtime = 0
+        if mtime != self._config_mtime:
+            self._cached_config = load_config(self.config_path)
+            self._config_mtime = mtime
+        return self._cached_config
+
+    @config.setter
+    def config(self, value: AppConfig) -> None:
+        self._cached_config = value
 
     def list_repositories(self) -> dict[str, Any]:
         """Return registered IDs without exposing their filesystem roots."""

@@ -15,16 +15,25 @@ def estimate_tokens(value: Any) -> int:
     return max(1, math.ceil(len(value.encode("utf-8")) / 4))
 
 
-def pack_by_budget[T](items: Iterable[T], render: callable, budget_tokens: int) -> tuple[list[T], list[T], int]:
+def pack_by_budget[T](
+    items: Iterable[T],
+    render: callable,
+    budget_tokens: int,
+    preserve_first: bool = True,
+) -> tuple[list[T], list[T], int]:
     chosen: list[T] = []
     omitted: list[T] = []
     used = 0
-    for item in items:
+    for idx, item in enumerate(items):
         estimated = estimate_tokens(render(item))
         if chosen and used + estimated > budget_tokens:
             omitted.append(item)
             continue
         if not chosen and estimated > budget_tokens:
+            if preserve_first and idx == 0:
+                chosen.append(item)
+                used += estimated
+                continue
             omitted.append(item)
             continue
         chosen.append(item)

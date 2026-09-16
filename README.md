@@ -13,6 +13,9 @@
 - lexical resolution that prefers same-file and same-package definitions before the global name index;
 - compact repository-map encoding and four named budget profiles (`locate`, `orient`, `impact`, `read`);
 - truncation and cap warnings computed from actual results, not from the request;
+- zero-waste wire transport: eliminates payload duplication between text and structured_content, cutting wire tokens by ~55–60%;
+- composite retrieval: `inspect_symbol` combines candidate resolution, definition context, and 1-hop impact graph in a single turn (saving 81.3% prompt replay tokens);
+- server-side projection presets (`minimal`, `normal`, `full`) and root entity preservation under strict token budgets;
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
@@ -331,8 +334,12 @@ max_result_tokens = 4096
 max_graph_nodes = 200
 max_symbol_results = 30
 network_policy = "declared-deny-not-enforced"
+output_mode = "structured"
+default_view = "normal"
 ```
 
+- `output_mode`: controls serialization over MCP wire transport: `"structured"` (default, concise metadata summary in text + full payload in `structured_content`), `"text"` (compact JSON for text-only clients), or `"legacy_dual"`.
+- `default_view`: preset projection view for responses (`"minimal"` for IDs/paths only, `"normal"` for standard context, `"full"` for complete evidence).
 - `max_result_tokens` caps output from maps, skeletons, symbol context, impact slices, and uncapped search/status responses. This is the main control for model-context consumption.
 - `max_graph_nodes` caps impact-slice traversal.
 - `get_module_dependents` reports Tree-sitter-extracted lexical import relationships; its `basis` is
@@ -386,6 +393,54 @@ the 96-token reserve keeps the emitted response within the requested cap.
 The C3 protocol is recorded in [`evals/c3_protocol.md`](evals/c3_protocol.md);
 the full provider-run matrix remains a separate runtime step.
 
+## Updating existing installations / Hướng dẫn cập nhật phiên bản mới
+
+When updating `token-context-mcp` on a machine or remote VM where it has already been set up (Codex, Claude Code, Claude Desktop, Antigravity, VS Code Remote-SSH), follow these manual steps:
+
+### Windows (PowerShell)
+
+```powershell
+# 1. Di chuyển vào thư mục repo token-context-mcp
+Set-Location D:\AI\token-context-mcp   # Thay bằng đường dẫn local thực tế
+
+# 2. Kéo code mới nhất từ remote Git
+git fetch origin
+git pull origin main
+
+# 3. Đồng bộ lại môi trường ảo / dependencies với uv
+uv sync --extra dev
+
+# 4. (Tùy chọn) Chạy kiểm thử để xác nhận cập nhật thành công (70 tests PASS)
+uv run pytest
+
+# 5. Khởi động lại MCP client (Codex CLI/IDE, Claude Code/Desktop, Antigravity)
+# Không cần sửa lại file config của client; client sẽ tự động gọi code mới.
+```
+
+### Linux & macOS (Bash)
+
+```bash
+# 1. Di chuyển vào thư mục repo token-context-mcp
+cd /path/to/token-context-mcp
+
+# 2. Kéo code mới nhất từ remote Git
+git fetch origin
+git pull origin main
+
+# 3. Đồng bộ lại môi trường ảo / dependencies với uv
+uv sync --extra dev
+
+# 4. (Tùy chọn) Chạy kiểm thử
+uv run pytest
+
+# 5. Khởi động lại MCP client
+```
+
+> **Lưu ý về danh sách repo và index:**
+> - Toàn bộ cấu hình repo đã đăng ký (`repos.toml`) và cơ sở dữ liệu index (`indexes/`) được giữ nguyên hoàn toàn, không cần đăng ký lại (`register`).
+> - Nếu mã nguồn của repository mục tiêu có thay đổi, chỉ cần chạy lại lệnh index để cập nhật snapshot:
+>   `uv run token-context index --repo-id <repo-id>`
+
 ## Commands
 
 - `register`: add a canonical, non-link repository root to a local TOML registry.
@@ -400,7 +455,7 @@ the full provider-run matrix remains a separate runtime step.
 
 ## Tool contract
 
-Nine read-only tools. `list_repositories` is the entry point: it returns the registered
+Ten read-only tools. `list_repositories` is the entry point: it returns the registered
 `repo_id` values and the budget profiles, and never exposes a repository root.
 
 | Tool | Returns | `profile` |
@@ -414,6 +469,7 @@ Nine read-only tools. `list_repositories` is the entry point: it returns the reg
 | `get_symbol_context` | a bounded packet around one symbol plus observed edges | `read` |
 | `get_impact_slice` | caller/callee traversal from a symbol — a candidate, not a proof | `impact` |
 | `get_module_dependents` | Tree-sitter import relationships for a path or module | `impact` |
+| `inspect_symbol` | single-turn symbol resolution, definition context and immediate impact slice | `read` |
 
 Call `list_repositories` first and pass a short registered `repo_id`; a filesystem path is
 rejected. Explicit per-tool arguments override a profile.

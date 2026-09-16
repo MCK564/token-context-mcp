@@ -24,6 +24,8 @@ class ServerConfig:
     max_graph_nodes: int = 100
     max_symbol_results: int = 20
     network_policy: str = "declared-deny-not-enforced"
+    output_mode: str = "structured"
+    default_view: str = "normal"
 
 
 @dataclass(frozen=True)
