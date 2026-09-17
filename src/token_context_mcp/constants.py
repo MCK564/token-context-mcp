@@ -15,6 +15,12 @@ SUPPORTED_EXTENSIONS = {
     ".jsx": "javascript",
     ".ts": "typescript",
     ".tsx": "tsx",
+    ".java": "java",
+    ".cs": "c_sharp",
+    ".csx": "c_sharp",
+    ".html": "html",
+    ".htm": "html",
+    ".css": "css",
 }
 HARD_DENY_DIRECTORIES = {
     ".git", ".hg", ".svn", ".ssh", ".aws", ".gnupg", "__pycache__",

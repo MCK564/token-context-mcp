@@ -52,6 +52,36 @@ _NODE_KINDS: dict[str, dict[str, str]] = {
         "type_alias_declaration": "type",
         "enum_declaration": "enum",
     },
+    "java": {
+        "class_declaration": "class",
+        "interface_declaration": "interface",
+        "enum_declaration": "enum",
+        "annotation_type_declaration": "annotation",
+        "record_declaration": "class",
+        "method_declaration": "method",
+        "constructor_declaration": "constructor",
+    },
+    "c_sharp": {
+        "class_declaration": "class",
+        "interface_declaration": "interface",
+        "struct_declaration": "struct",
+        "enum_declaration": "enum",
+        "record_declaration": "record",
+        "method_declaration": "method",
+        "constructor_declaration": "constructor",
+        "property_declaration": "property",
+        "local_function_statement": "function",
+    },
+    "html": {
+        "element": "element",
+        "script_element": "script",
+        "style_element": "style",
+    },
+    "css": {
+        "rule_set": "rule",
+        "media_statement": "media",
+        "keyframes_statement": "keyframes",
+    },
 }
 
 
@@ -79,6 +109,10 @@ def _load_language(language_name: str) -> Language:
         "javascript": ("tree_sitter_javascript", "language"),
         "typescript": ("tree_sitter_typescript", "language_typescript"),
         "tsx": ("tree_sitter_typescript", "language_tsx"),
+        "java": ("tree_sitter_java", "language"),
+        "c_sharp": ("tree_sitter_c_sharp", "language"),
+        "html": ("tree_sitter_html", "language"),
+        "css": ("tree_sitter_css", "language"),
     }.get(language_name, ("", ""))
     if not module_name:
         raise ParseError(f"unsupported language: {language_name}")
@@ -190,7 +224,7 @@ def _field(node: object, field_name: str) -> object | None:
 
 
 def _node_name(node: object, raw: bytes) -> str | None:
-    for field in ("name", "property"):
+    for field in ("name", "property", "tag_name", "selectors"):
         child = _field(node, field)
         if child is not None:
             value = raw[int(child.start_byte) : int(child.end_byte)].decode(
@@ -199,10 +233,26 @@ def _node_name(node: object, raw: bytes) -> str | None:
             if value:
                 return value.strip()
     for child in node.named_children:
-        if getattr(child, "type", "") in {"identifier", "type_identifier", "property_identifier"}:
+        if getattr(child, "type", "") in {
+            "identifier",
+            "type_identifier",
+            "property_identifier",
+            "tag_name",
+            "class_name",
+            "selectors",
+        }:
             return raw[int(child.start_byte) : int(child.end_byte)].decode(
                 "utf-8", errors="replace"
             ).strip()
+    # HTML stores the tag name inside start_tag/end_tag nodes rather than as
+    # a direct field; CSS selectors can likewise be nested in a selector list.
+    for descendant in _descendants(node):
+        if descendant is node:
+            continue
+        if getattr(descendant, "type", "") in {"tag_name", "selectors"}:
+            value = _node_text(descendant, raw)
+            if value:
+                return value
     return None
 
 
@@ -311,6 +361,8 @@ _IMPORT_QUERY = {
     "javascript": "(import_statement) @import (export_statement) @export",
     "typescript": "(import_statement) @import (export_statement) @export",
     "tsx": "(import_statement) @import (export_statement) @export",
+    "java": "(import_declaration) @import",
+    "c_sharp": "(using_directive) @import",
 }
 
 
@@ -321,6 +373,8 @@ def _extract_imports(
     language_name: str,
     language: Language,
 ) -> tuple[list[str], list[str]]:
+    if language_name in {"html", "css"}:
+        return [], []
     query = Query(language, _IMPORT_QUERY[language_name])
     captures = QueryCursor(query).captures(root)
     imports: list[str] = []
@@ -335,6 +389,10 @@ def _extract_imports(
                     module = _field(child, "name") if child.type == "aliased_import" else child
                     if module is not None:
                         imports.append(_node_text(module, raw))
+        elif language_name in {"java", "c_sharp"}:
+            value = _normalize_declared_import(node, raw, language_name)
+            if value:
+                imports.append(value)
         else:
             source = _field(node, "source")
             value = _string_literal_value(source, raw) if source is not None else None
@@ -366,6 +424,19 @@ def _extract_imports(
                 dynamic_detected = True
     warnings = ["dynamic_import_detected"] if dynamic_detected else []
     return sorted({item for item in imports if item}), warnings
+
+
+def _normalize_declared_import(node: object, raw: bytes, language_name: str) -> str | None:
+    """Normalize Java imports and C# using directives to stable text."""
+    value = _node_text(node, raw).strip().rstrip(";").strip()
+    if language_name == "java":
+        value = re.sub(r"^import\s+", "", value)
+        return value.removeprefix("static ").strip()
+    value = re.sub(r"^using\s+", "", value)
+    value = re.sub(r"^global\s+", "", value)
+    if "=" in value:
+        value = value.split("=", 1)[1].strip()
+    return value or None
 
 
 def _normalize_python_import(module: str, path: str) -> str:

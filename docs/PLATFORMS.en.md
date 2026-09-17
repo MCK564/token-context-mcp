@@ -125,8 +125,8 @@ A value outside its range is a configuration error and the server refuses to sta
 
 ### Coverage
 
-- **Languages parsed:** `.py`, `.pyi` (Python); `.js`, `.jsx` (JavaScript); `.ts` (TypeScript); `.tsx`.
-- **Every other extension is recorded but not searchable.** A Markdown, JSON, YAML or TOML file gets an inventory row with `parse_status: unsupported` — it carries a hash and takes part in freshness checks — but it produces no symbols or edges and **its text does not reach `search_source`**. **[verified]** on this repository's own snapshot: 105 files recorded, 48 searchable. Use `rg` for prose.
+- **Languages parsed:** `.py`, `.pyi` (Python); `.js`, `.jsx` (JavaScript); `.ts` (TypeScript); `.tsx` (TSX); `.java` (Java); `.cs`, `.csx` (C#/.NET); `.html`, `.htm` (HTML); `.css` (CSS).
+- **Every other extension is recorded but not searchable.** A Markdown, JSON, YAML, TOML or `.csproj` file gets an inventory row with `parse_status: unsupported` — it carries a hash and takes part in freshness checks — but it produces no symbols or edges and **its text does not reach `search_source`**. Use `rg` for prose. `.csproj` is an XML project manifest; C# source is parsed from `.cs`/`.csx`.
 - **`repo_id` format:** `^[a-z][a-z0-9_-]{0,63}$`. MCP tools accept a `repo_id`, never a filesystem path.
 - **Never indexed:** `.git`, `.hg`, `.svn`, `.ssh`, `.aws`, `.gnupg`, `__pycache__`, `.venv`, `venv`, `env`, `.env`, `node_modules`, `site-packages`, and the usual cache directories; files named `id_rsa`, `id_dsa`, `credentials`, `credentials.json`, `.npmrc`; suffixes `.pem`, `.key`, `.p12`, `.pfx`, `.kdbx`. Binary content is detected and skipped. The repository's **root** `.gitignore` is honoured on top of that; nested `.gitignore` files are not read.
 - **Edges are lexical**, not a resolved call graph. `get_impact_slice` returns a candidate set with an `ambiguous`/`unresolved` status per edge, not a proof.

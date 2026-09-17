@@ -5,7 +5,7 @@
 ## What is implemented in 0.1.0
 
 - explicit repository registration; MCP tools receive a `repo_id`, never an arbitrary path;
-- Tree-sitter parsing for Python, JavaScript and TypeScript/TSX;
+- Tree-sitter parsing for Python, JavaScript, TypeScript/TSX, Java, C#/.NET, HTML and CSS;
 - SQLite snapshots with files, symbols, lexical edges, manifests and source hashes;
 - token-budgeted repository maps, source-backed skeletons, symbol context and bounded impact slices;
 - FTS5 search over symbol bodies and complete indexed files, returning bounded snippets with symbol IDs and line spans;

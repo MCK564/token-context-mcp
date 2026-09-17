@@ -125,8 +125,8 @@ Giá trị nằm ngoài khoảng là lỗi cấu hình và server từ chối kh
 
 ### Phạm vi hỗ trợ
 
-- **Ngôn ngữ được parse:** `.py`, `.pyi` (Python); `.js`, `.jsx` (JavaScript); `.ts` (TypeScript); `.tsx`.
-- **Mọi đuôi file khác được ghi nhận nhưng không tìm kiếm được.** File Markdown, JSON, YAML hay TOML vẫn có một dòng trong bảng inventory với `parse_status: unsupported` — có hash và tham gia kiểm tra freshness — nhưng không sinh symbol hay edge, và **nội dung của nó không vào `search_source`**. **[đã kiểm chứng]** trên chính snapshot của repo này: ghi nhận 105 file, tìm kiếm được 48 file. Với văn bản thường, hãy dùng `rg`.
+- **Ngôn ngữ được parse:** `.py`, `.pyi` (Python); `.js`, `.jsx` (JavaScript); `.ts` (TypeScript); `.tsx` (TSX); `.java` (Java); `.cs`, `.csx` (C#/.NET); `.html`, `.htm` (HTML); `.css` (CSS).
+- **Mọi đuôi file khác được ghi nhận nhưng không tìm kiếm được.** File Markdown, JSON, YAML, TOML hoặc `.csproj` vẫn có một dòng trong bảng inventory với `parse_status: unsupported` — có hash và tham gia kiểm tra freshness — nhưng không sinh symbol hay edge, và **nội dung của nó không vào `search_source`**. Dùng `rg` cho văn bản thường. `.csproj` là manifest dự án XML; mã C# được parse từ `.cs`/`.csx`.
 - **Định dạng `repo_id`:** `^[a-z][a-z0-9_-]{0,63}$`. Tool MCP chỉ nhận `repo_id`, không bao giờ nhận đường dẫn filesystem.
 - **Không bao giờ index:** `.git`, `.hg`, `.svn`, `.ssh`, `.aws`, `.gnupg`, `__pycache__`, `.venv`, `venv`, `env`, `.env`, `node_modules`, `site-packages` và các thư mục cache thông thường; file tên `id_rsa`, `id_dsa`, `credentials`, `credentials.json`, `.npmrc`; đuôi `.pem`, `.key`, `.p12`, `.pfx`, `.kdbx`. Nội dung nhị phân được phát hiện và bỏ qua. `.gitignore` ở **gốc** repository được tôn trọng thêm bên trên đó; các file `.gitignore` lồng bên trong không được đọc.
 - **Edge là kết quả từ vựng (lexical)**, không phải call graph đã phân giải. `get_impact_slice` trả về tập ứng viên kèm trạng thái `ambiguous`/`unresolved` cho từng edge, không phải một bằng chứng.
