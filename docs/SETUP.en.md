@@ -150,7 +150,7 @@ Create `.mcp.json` at the project root (a template ships as `.mcp.json.example`)
 
 If `uv` is not on the Claude Code process's PATH, replace `"command"` with the absolute path to `uv.exe`.
 
-**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 9 tools.
+**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 10 tools.
 
 ### 5.2 Codex CLI **[partly verified]**
 
@@ -200,7 +200,7 @@ Steps to enable:
 - If it does not appear: Command Palette → `MCP: Show Output` and read the start-up log. The most common cause is `uv` missing from VS Code's PATH; replace it with the absolute path to `uv.exe`.
 - In Chat, ask: *"list the repositories available from token-context"*. A list of `repo_id`s means the server is wired correctly.
 
-> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **9 tools**.
+> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **10 tools**.
 >
 > What is **not** verified is the last hop: whether Copilot Chat loads this file and surfaces the tools. Confirm that in-app with `MCP: List Servers`.
 
@@ -244,7 +244,7 @@ Steps to enable:
 1. Open Antigravity.
 2. Go to the MCP settings (Settings → MCP Servers, or the MCP configuration button in the agent panel).
 3. Hit refresh/reload to re-read `mcp_config.json`.
-4. `token-context` must appear with 9 tools.
+4. `token-context` must appear with 10 tools.
 
 **Verify:** ask the agent *"list the repositories available from token-context"*. A list of `repo_id`s means it is wired.
 

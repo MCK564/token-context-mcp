@@ -27,6 +27,20 @@ def _console_script() -> str:
     raise RuntimeError("installed token-context console script was not found")
 
 
+EXPECTED_TOOLS = {
+    "list_repositories",
+    "get_repo_map",
+    "find_symbols",
+    "get_module_dependents",
+    "search_source",
+    "get_file_skeleton",
+    "get_symbol_context",
+    "get_impact_slice",
+    "get_index_status",
+    "inspect_symbol",
+}
+
+
 async def _run() -> None:
     command = _console_script()
     with tempfile.TemporaryDirectory(prefix="token-context-smoke-") as directory:
@@ -38,8 +52,8 @@ async def _run() -> None:
         async with Client(stdio_client(parameters)) as client:
             tools = await client.list_tools()
             names = {tool.name for tool in tools.tools}
-            if len(names) != 9:
-                raise AssertionError(f"expected 9 tools, got {len(names)}: {sorted(names)}")
+            if names != EXPECTED_TOOLS:
+                raise AssertionError(f"expected {len(EXPECTED_TOOLS)} tools ({sorted(EXPECTED_TOOLS)}), got {len(names)}: {sorted(names)}")
 
 
 def main() -> None:

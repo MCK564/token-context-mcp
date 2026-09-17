@@ -146,7 +146,7 @@ Tạo `.mcp.json` ở gốc dự án (mẫu có sẵn tại `.mcp.json.example`)
 
 Nếu `uv` không nằm trên PATH của tiến trình Claude Code, thay `"command"` bằng đường dẫn tuyệt đối tới `uv.exe`.
 
-**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 9 tool.
+**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 10 tool.
 
 ### 5.2 Codex CLI **[đã kiểm chứng một phần]**
 
@@ -196,7 +196,7 @@ Các bước bật:
 - Nếu không thấy: Command Palette → `MCP: Show Output` để đọc log khởi động. Lỗi hay gặp nhất là `uv` không có trên PATH của VS Code; thay bằng đường dẫn tuyệt đối tới `uv.exe`.
 - Trong Chat, hỏi: *"list the repositories available from token-context"*. Nếu trả về danh sách `repo_id` thì server đã nối đúng.
 
-> **Đã kiểm chứng đến đâu.** Trên máy này: VS Code **1.135.0** (MCP đã GA, dùng khóa `servers`), Copilot Chat đang hoạt động — nó là extension **built-in**, nên không xuất hiện trong `code --list-extensions`. File `.vscode/mcp.json` ở trên đã được tạo sẵn trong repo và parse hợp lệ. Chính **lệnh khởi chạy** bên trong đã được kiểm chứng bằng bắt tay MCP thật qua stdio: `initialize` thành công, `tools/list` trả về đủ **9 tool**.
+> **Đã kiểm chứng đến đâu.** Trên máy này: VS Code **1.135.0** (MCP đã GA, dùng khóa `servers`), Copilot Chat đang hoạt động — nó là extension **built-in**, nên không xuất hiện trong `code --list-extensions`. File `.vscode/mcp.json` ở trên đã được tạo sẵn trong repo và parse hợp lệ. Chính **lệnh khởi chạy** bên trong đã được kiểm chứng bằng bắt tay MCP thật qua stdio: `initialize` thành công, `tools/list` trả về đủ **10 tool**.
 >
 > Phần **chưa** kiểm chứng là chặng cuối: Copilot Chat có nạp file này và hiện tool ra hay không. Đó là việc bạn xác nhận trong app bằng `MCP: List Servers`.
 
@@ -240,7 +240,7 @@ Các bước bật:
 1. Mở Antigravity.
 2. Vào cài đặt MCP (Settings → MCP Servers, hoặc nút cấu hình MCP trong panel agent).
 3. Bấm refresh/reload để nạp lại `mcp_config.json`.
-4. `token-context` phải xuất hiện kèm 9 tool.
+4. `token-context` phải xuất hiện kèm 10 tool.
 
 **Cách xác minh:** hỏi agent *"liệt kê các repository có từ token-context"*. Ra được danh sách `repo_id` là đã thông.
 
