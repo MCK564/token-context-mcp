@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskSpecExample",
+  "description": "Canonical TaskSpec contract defining a bounded subtask delegated from supervisor to worker. Labeled illustrative.",
+  "_metadata": {
+    "version": "1.0.0",
+    "status": "illustrative_example",
+    "created_at": "2026-09-17T10:38:00Z"
+  },
+  "task_id": "task_audit_auth_tokens_001",
+  "run_id": "run_20260917T103000Z_a88a6936",
+  "request_revision": 1,
+  "objective": "Inspect the token budget packing logic in src/token_context_mcp/retrieve/token_budget.py and verify whether single items exceeding budget are dropped or sliced.",
+  "allowed_scope_files": [
+    "src/token_context_mcp/retrieve/token_budget.py",
+    "tests/test_token_budget.py"
+  ],
+  "dependency_task_ids": [],
+  "acceptance_criteria": [
+    "Identify the exact function and line range responsible for item packing under budget constraints.",
+    "Report whether oversized items are elided entirely or split into chunks.",
+    "Provide verified line spans and SHA-256 source content hashes for all citations.",
+    "Worker must not propose or write code modifications."
+  ],
+  "context_evidence_refs": [
+    {
+      "file_path": "src/token_context_mcp/retrieve/token_budget.py",
+      "line_span": "10-25",
+      "content_hash": "3b37bea9453bfcc32cc37ff789979c42a940c9b5056b9eb22d2687fd54f9c86c",
+      "description": "Initial token budget utility definition"
+    }
+  ],
+  "allowed_tool_families": [
+    "mcp_token_context_read",
+    "filesystem_read"
+  ],
+  "mutation_rights": "read_only",
+  "model_policy_id": "policy_standard_pilot_v1",
+  "budget_reserve": {
+    "max_input_tokens": 4096,
+    "max_output_tokens": 1024,
+    "max_cost_usd": 0.015
+  },
+  "deadline_ms": 30000,
+  "escalation_conditions": [
+    "source_file_inaccessible",
+    "circular_dependency_detected",
+    "ambiguous_packing_algorithm_requiring_architectural_redesign"
+  ]
+}

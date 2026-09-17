@@ -1,6 +1,6 @@
 # Kế hoạch biên soạn cẩm nang multi-agent: model mạnh điều phối worker tiết kiệm
 
-Ngày: **2026-09-16**. Bản tương đương: [English](MULTI_AGENT_ROUTING_HANDBOOK_PLAN.en.md). Trạng thái: **chỉ lập kế hoạch và nghiên cứu; chưa viết runtime, sửa cấu hình, cài dependency hay chạy thử model**.
+Ngày nghiên cứu: **2026-09-16**. Rà soát tài liệu: **2026-09-17**. Bản tương đương: [English](MULTI_AGENT_ROUTING_HANDBOOK_PLAN.en.md). Trạng thái: **chỉ lập kế hoạch và nghiên cứu; không viết runtime, sửa cấu hình, cài dependency hay chạy thử model để thực hiện plan này**.
 
 ## 1. Mục tiêu và phạm vi bàn giao
 
@@ -12,9 +12,9 @@ Plan này xác định nội dung cần viết, kiến trúc tham chiếu, ví d
 
 Ưu tiên thành công đúng nhiệm vụ trong ngân sách. Giá mỗi token thấp, số agent nhiều hoặc chạy song song chưa đủ để chứng minh tiết kiệm. Cẩm nang phải hướng dẫn cả trường hợp **giữ một agent**, dùng tool xác định hoặc DAG cố định.
 
-## 2. Điểm xuất phát đã kiểm tra
+## 2. Điểm xuất phát đã kiểm tra ngày 2026-09-16
 
-| Bằng chứng hiện tại | Ý nghĩa cho cẩm nang |
+| Bằng chứng tại snapshot khảo sát | Ý nghĩa cho cẩm nang |
 | --- | --- |
 | Repo `D:\AI\token-context-mcp`, HEAD `86cea213c69d02209493451ff9cbb043fbfe246f` | Đặt hai plan trong `docs/`, nối tiếp [plan token efficiency](TOKEN_EFFICIENCY_IMPROVEMENT_PLAN.vi.md) |
 | `src/token_context_mcp/server.py:24`, `:229`; `pyproject.toml:15` | Server đọc code qua MCP stdio; chưa có orchestrator model, LangGraph, gateway hay embedding router trong các source/dependency đã rà |
@@ -25,6 +25,8 @@ Plan này xác định nội dung cần viết, kiến trúc tham chiếu, ví d
 | Phiên làm việc có công cụ subagent | Có đường native để điều phối; vẫn phải xác minh model requested/effective/actual và policy của host trước khi quảng bá recipe |
 
 Token-context MCP giữ vai trò **cấp context có provenance** cho supervisor/worker. Orchestration nên ở host hoặc một ứng dụng riêng dùng MCP client; chưa đưa model calls, provider keys hoặc graph engine vào `RetrievalService`.
+
+Lúc rà soát tài liệu ngày 2026-09-17, HEAD của repo đã chuyển sang `a88a6936eb9a79d7ae9818a3f01356eaa450f681`, gồm thay đổi server và các module context/projection/serialization/workflow mới. Bảng trên giữ snapshot khảo sát ban đầu; plan này không audit hay xác nhận runtime của các implementation mới đó. Cần đối chiếu source và wiring lại trước khi viết recipe chạy được. Lượt rà soát này chỉ sửa hai file plan cẩm nang.
 
 ## 3. Bộ tài liệu dự kiến và mục lục bắt buộc
 
@@ -97,7 +99,7 @@ Giữ vai trò điều phối bằng MODEL_STRONG. Mục tiêu: [nhiệm vụ].
 Nếu có việc độc lập đáng giao, dùng tối đa 2 worker MODEL_ECONOMY_VERIFIED.
 Worker A: [scope A]. Worker B: [scope B]. Mỗi worker chỉ nhận context cần thiết.
 Trả: kết quả ngắn, evidence path/span/hash hoặc URL, kiểm tra đã làm, phần chưa chắc.
-Không giao tiếp phần phụ thuộc trước khi đầu vào hoàn tất. Không tự sinh agent con.
+Không giao tác vụ phụ thuộc khi đầu vào chưa hoàn tất. Các worker không được tạo thêm agent con.
 Bạn tiếp tục [phần việc của parent], rồi kiểm kết quả và tổng hợp câu trả lời cuối.
 Nếu worker không đủ năng lực, báo lý do và chuyển phần đó về bạn trong ngân sách.
 Nếu model yêu cầu không được host hỗ trợ, báo rõ; không giả lập là đã đổi model.
@@ -221,6 +223,8 @@ flowchart TD
 
 Graph là thiết kế, chưa chạy. Mọi node gọi model/tool đều có deadline và budget guard, kể cả `P`, `X`, `S`. Scheduler chỉ dispatch task ready chưa chạy; khi đang chờ worker thì await event, không busy-loop hoặc spawn trùng. Dependency lỗi được xử lý thành terminal blocked/unresolved theo policy, không chạy task con thiếu input. Budget dành riêng cho synthesis phải được giữ từ đầu; khi không thể gọi tiếp, trả status/error đã có thay vì sinh thêm call vượt trần.
 
+Trước scheduling phải kiểm dependency graph không có cycle, task ID trùng hoặc dependency ID không tồn tại. Nếu còn task pending nhưng không có task ready/running, trả deadlock/unresolved thay vì chờ vô hạn.
+
 ### 8.2. Branch table
 
 | Điều kiện đã kiểm | Nhánh | Recovery/stop |
@@ -290,7 +294,7 @@ Các bucket phải loại trừ nhau: worker attempts bao gồm strong-worker es
 
 Tách **tokens**, **chi phí tiền**, **latency** và **quality**. Parallelism có thể giảm latency nhưng tăng tokens. Usage thiếu là unknown, không là 0; cache read/write và reasoning tokens dùng semantics provider, tránh cộng hai lần field đã bao gồm nhau. Shadow routing không chạy worker có thể đo quyết định/latency router, chưa đo được chất lượng counterfactual của model không gọi.
 
-Ví dụ số giả để giải thích break-even: strong-only cost 100 đơn vị; phương án worker gồm parent/router/worker/verifier/final cost 70; một lần escalation phát sinh thêm 60 với xác suất `p`. Kỳ vọng `70 + 60p` chỉ rẻ hơn 100 khi `p < 0,5`, với giả định chất lượng tương đương và mọi overhead đã được tính. Đây không phải phép đo hay bảng giá thật.
+Ví dụ số giả để giải thích break-even: strong-only cost 100 đơn vị; phương án worker gồm parent/router/worker/verifier/final cost 70; một lần escalation phát sinh thêm 60 với xác suất `p`. Kỳ vọng `70 + 60p` chỉ rẻ hơn 100 khi `p < 0.5`, với giả định chất lượng tương đương và mọi overhead đã được tính. Đây không phải phép đo hay bảng giá thật.
 
 Trước dispatch phải reserve chi phí của call trong ledger trung tâm, kể cả concurrent calls; để riêng phần parent hoàn tất. Reconcile actual khi có usage, giữ reserve cho request còn in-flight. Hạn mức tiền/latency cụ thể do operator đặt trước chạy thật; không tự chọn ngân sách trả phí trong cẩm nang. Hard bound cần tính output maximum, tool fees và fallback; nếu chỉ ước lượng thì phải gọi là soft budget.
 

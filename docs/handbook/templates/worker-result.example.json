@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WorkerResultExample",
+  "description": "Canonical WorkerResult contract returned by an economical worker to the supervisor or verification node. Labeled illustrative.",
+  "_metadata": {
+    "version": "1.0.0",
+    "status": "illustrative_example",
+    "created_at": "2026-09-17T10:38:00Z"
+  },
+  "task_id": "task_audit_auth_tokens_001",
+  "attempt_id": 1,
+  "result_revision": 1,
+  "status": "completed",
+  "bounded_answer": "In `src/token_context_mcp/retrieve/token_budget.py`, the `pack_by_budget` routine estimates token size using `ceil(utf8_bytes / 4)`. When an individual candidate item exceeds the remaining budget, the routine skips the entire item rather than slicing or streaming it. This poses a risk of dropping a large root symbol definition while retaining smaller secondary edge records.",
+  "evidence_refs": [
+    {
+      "file_path": "src/token_context_mcp/retrieve/token_budget.py",
+      "line_span": "18-42",
+      "content_hash": "3b37bea9453bfcc32cc37ff789979c42a940c9b5056b9eb22d2687fd54f9c86c",
+      "verification_method": "sha256_line_match"
+    }
+  ],
+  "artifacts_or_changes": [],
+  "checks_actually_run": [
+    {
+      "check_id": "file_scope_enforcement",
+      "outcome": "passed",
+      "details": "Only accessed files within allowed_scope_files"
+    },
+    {
+      "check_id": "read_only_compliance",
+      "outcome": "passed",
+      "details": "Zero filesystem write operations attempted"
+    },
+    {
+      "check_id": "source_hash_integrity",
+      "outcome": "passed",
+      "details": "Content matches local file hash at execution time"
+    }
+  ],
+  "unknowns": [
+    "Whether client configurations ever override utf8_bytes_div_4 with an exact model-specific BPE tokenizer."
+  ],
+  "usage_event_ref": {
+    "event_id": "evt_worker_pack_audit_001",
+    "requested_model": "MODEL_ECONOMY",
+    "resolved_model": "gemini-1.5-flash-002",
+    "actual_model": "gemini-1.5-flash-002",
+    "input_tokens": 1420,
+    "output_tokens": 285,
+    "monetary_cost_usd": 0.000185
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BudgetLedgerExample",
+  "description": "Authoritative run budget ledger and multi-attempt UsageEvent tracking. Labeled illustrative.",
+  "_metadata": {
+    "version": "1.0.0",
+    "status": "illustrative_example",
+    "created_at": "2026-09-17T10:38:00Z"
+  },
+  "run_id": "run_20260917T103000Z_a88a6936",
+  "currency": "USD",
+  "max_budget_limit_usd": 0.50,
+  "parent_synthesis_reserve_usd": 0.10,
+  "summary": {
+    "total_settled_monetary_cost_usd": 0.04828,
+    "total_active_reserved_usd": 0.01500,
+    "total_committed_usd": 0.06328,
+    "remaining_unallocated_budget_usd": 0.33672,
+    "total_input_tokens": 12850,
+    "total_output_tokens": 1940,
+    "total_cache_read_tokens": 8200,
+    "total_cache_write_tokens": 4100
+  },
+  "events": [
+    {
+      "event_id": "evt_001_parent_plan",
+      "task_id": "root_orchestration",
+      "attempt_id": 1,
+      "role": "supervisor",
+      "provider_request_id": "req_anthropic_plan_98a72b",
+      "requested_model": "MODEL_STRONG",
+      "resolved_model": "claude-3-7-sonnet-20250219",
+      "actual_model": "claude-3-7-sonnet-20250219",
+      "status": "settled",
+      "timestamps": {
+        "dispatched_at": "2026-09-17T10:30:01.120Z",
+        "settled_at": "2026-09-17T10:30:04.850Z"
+      },
+      "usage": {
+        "input_tokens": 4200,
+        "output_tokens": 620,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 4100
+      },
+      "monetary_cost_usd": 0.02190
+    },
+    {
+      "event_id": "evt_002_router_embedding",
+      "task_id": "route_task_audit_auth_tokens_001",
+      "attempt_id": 1,
+      "role": "router",
+      "provider_request_id": "req_embed_local_01",
+      "requested_model": "text-embedding-3-small",
+      "resolved_model": "text-embedding-3-small",
+      "actual_model": "text-embedding-3-small",
+      "status": "settled",
+      "timestamps": {
+        "dispatched_at": "2026-09-17T10:30:05.100Z",
+        "settled_at": "2026-09-17T10:30:05.250Z"
+      },
+      "usage": {
+        "input_tokens": 45,
+        "output_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "monetary_cost_usd": 0.000001
+    },
+    {
+      "event_id": "evt_003_worker_attempt_1",
+      "task_id": "task_audit_auth_tokens_001",
+      "attempt_id": 1,
+      "role": "worker",
+      "provider_request_id": "req_gemini_worker_11a3b",
+      "requested_model": "MODEL_ECONOMY",
+      "resolved_model": "gemini-1.5-flash-002",
+      "actual_model": "gemini-1.5-flash-002",
+      "status": "settled",
+      "timestamps": {
+        "dispatched_at": "2026-09-17T10:30:05.500Z",
+        "settled_at": "2026-09-17T10:30:07.120Z"
+      },
+      "usage": {
+        "input_tokens": 1420,
+        "output_tokens": 285,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "monetary_cost_usd": 0.000192
+    },
+    {
+      "event_id": "evt_004_parent_synthesis_reserve",
+      "task_id": "root_orchestration_synthesis",
+      "attempt_id": 1,
+      "role": "supervisor",
+      "provider_request_id": null,
+      "requested_model": "MODEL_STRONG",
+      "resolved_model": "claude-3-7-sonnet-20250219",
+      "actual_model": null,
+      "status": "reserved",
+      "timestamps": {
+        "dispatched_at": "2026-09-17T10:30:07.200Z",
+        "settled_at": null
+      },
+      "usage": {
+        "input_tokens": 5000,
+        "output_tokens": 1000,
+        "cache_read_tokens": 4100,
+        "cache_write_tokens": 0
+      },
+      "monetary_cost_usd": 0.01500
+    }
+  ]
+}

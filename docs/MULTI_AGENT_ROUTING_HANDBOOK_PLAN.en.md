@@ -1,6 +1,6 @@
 # Handbook authoring plan for multi-agent routing: a strong model coordinates economical workers
 
-Date: **2026-09-16**. Equivalent edition: [Tiếng Việt](MULTI_AGENT_ROUTING_HANDBOOK_PLAN.vi.md). Status: **planning and research only; no runtime implementation, configuration changes, dependency installation, or model experiments**.
+Research date: **2026-09-16**. Documentation reviewed: **2026-09-17**. Equivalent edition: [Tiếng Việt](MULTI_AGENT_ROUTING_HANDBOOK_PLAN.vi.md). Status: **planning and research only; no runtime implementation, configuration changes, dependency installation, or model experiments performed for this plan**.
 
 ## 1. Objective and delivery scope
 
@@ -12,9 +12,9 @@ Start with a **strong supervisor + narrowly scoped workers + rule-based routing 
 
 Prioritize successful task completion within budget. A low price per token, more agents, or parallel execution alone does not demonstrate savings. The handbook must also explain when to **keep a single agent**, use deterministic tools, or use a fixed DAG.
 
-## 2. Verified starting point
+## 2. Starting point verified on 2026-09-16
 
-| Current evidence | Implication for the handbook |
+| Evidence from the research snapshot | Implication for the handbook |
 | --- | --- |
 | Repository `D:\AI\token-context-mcp`, HEAD `86cea213c69d02209493451ff9cbb043fbfe246f` | Place the two plans in `docs/`, continuing the [token-efficiency plan](TOKEN_EFFICIENCY_IMPROVEMENT_PLAN.vi.md) |
 | `src/token_context_mcp/server.py:24`, `:229`; `pyproject.toml:15` | The server reads code through MCP stdio; no model orchestrator, LangGraph, gateway, or embedding router was found in the reviewed source/dependencies |
@@ -25,6 +25,8 @@ Prioritize successful task completion within budget. A low price per token, more
 | The working session exposes subagent tools | A native orchestration path exists; requested/effective/actual models and host policy still need verification before promoting a recipe |
 
 Token-context MCP remains the **context provider with provenance** for supervisors/workers. Orchestration should live in the host or a separate application using an MCP client; do not add model calls, provider keys, or a graph engine to `RetrievalService` at this stage.
+
+At the 2026-09-17 documentation review, the repository HEAD had advanced to `a88a6936eb9a79d7ae9818a3f01356eaa450f681`, including changes to the server and new context/projection/serialization/workflow modules. The table above preserves the earlier research snapshot; this plan does not audit or validate those later implementations. Recheck the source and runtime integration before writing executable recipes. This review edits only the two handbook plans.
 
 ## 3. Planned documentation set and required contents
 
@@ -86,7 +88,7 @@ Choose **one owner for the outer orchestration loop**. With LangGraph, an SDK ag
 1. The user selects a strong parent model and specifies worker roles with verified model aliases.
 2. The parent retains the objective/constraints and creates clearly scoped tasks; it keeps small or tightly coupled work itself.
 3. Delegate to at most two independent workers in the pilot, each receiving its own brief and output contract.
-4. The parent continues its independent work and waits for required dependencies before synthesis.
+4. If the host supports background/asynchronous workers, the parent continues its independent work; with a synchronous subagent call, it waits for the result and then continues. Always wait for required dependencies before synthesis.
 5. Check schema/evidence/scope; request bounded repairs or let the parent handle difficult parts.
 6. The parent returns one integrated answer, identifies unverified parts, and records usage when the host provides it.
 
@@ -97,7 +99,7 @@ Remain the coordinator using MODEL_STRONG. Objective: [task].
 If independent work is worth delegating, use at most 2 MODEL_ECONOMY_VERIFIED workers.
 Worker A: [scope A]. Worker B: [scope B]. Give each worker only the context it needs.
 Return: a concise result, evidence path/span/hash or URL, checks performed, and uncertainties.
-Do not delegate dependent work before its inputs are complete. Do not spawn child agents.
+Do not delegate dependent work before its inputs are complete. Workers must not spawn further subagents.
 Continue [parent's work], then verify the results and synthesize the final answer.
 If a worker lacks sufficient capability, explain why and return that part to you within budget.
 If the host does not support the requested model, say so; do not pretend it was changed.
@@ -152,6 +154,8 @@ Aurelio Semantic Router is a candidate for dense/hybrid matching and per-route t
 - Choose a local or hosted encoder based on latency, language, cost, and data-transfer permissions. Local encoding still incurs CPU/RAM and startup costs; hosted embeddings also belong in the ledger.
 - Cache embeddings by input hash + encoder/version/normalization; add policy, model registry, route index, and calibration version for decision caching. Re-evaluate when those components change.
 
+Decision caches store classification/route hints only; they do not authorize dispatch. Every reuse still checks the current request revision, identity/scope, capabilities, availability, cancellation, deadline, and budget.
+
 ### 6.3. Model selector and research options
 
 The model registry must record role alias, provider/model revision, modality, tools, structured output, context/output limits, supported effort, measured quality by task family, pricing snapshot, and deployment availability. `MODEL_STRONG`, `MODEL_ECONOMY`, and `MODEL_STANDARD` are proposed aliases, not model IDs or price commitments. SDKs can assign models per agent, but adapter and feature support remain runtime-dependent. [OpenAI models/providers](https://developers.openai.com/api/docs/guides/agents/models)
@@ -178,7 +182,7 @@ LiteLLM's older semantic auto-routing documentation is marked deprecated; the ne
 
 Gateway recipes must check every capability: tools/structured output/streaming/cancel, context limits, model-effort mapping, token usage, authentication/data boundaries, rate-limit/backoff, deployment fallback, and feature/license availability. A gateway may provide budget reservation, but hard enforcement depends on storage/configuration; verify the pinned version's semantics. The orchestrator still owns the run budget and the reserve for parent synthesis; a reservation is not actual spending. [LiteLLM budgets](https://docs.litellm.ai/docs/proxy/users#budget-reservation)
 
-Only one layer owns transport retries. When gateway fallback changes the model, record requested/resolved/actual models and the reason; recheck capability/policy and the cost allowance. Do not silently downgrade the strong parent to a model that fails the quality requirement. The graph decides quality escalation, which differs from fallback caused by 429/timeout/endpoint failure.
+Only one layer owns transport retries. Validate the fallback allowlist's capabilities/policy and reserve cost **before dispatch**; if the gateway cannot enforce this, the orchestrator owns the fallback decision. When fallback changes the model, record requested/resolved/actual models and the reason for audit. Do not silently downgrade the strong parent to a model that fails the quality requirement. The graph decides quality escalation, which differs from fallback caused by 429/timeout/endpoint failure.
 
 ## 8. Conditional Branching in Graphs
 
@@ -187,27 +191,39 @@ Only one layer owns transport retries. When gateway fallback changes the model, 
 ```mermaid
 flowchart TD
     A[User request] --> B[Strong parent frames TaskSpecs]
-    B --> C{Delegate worth doing?}
+    B --> Q{Scheduler and live guards}
+    Q -->|Ready task| C{Delegate worth doing?}
+    Q -->|Failed dependency| U[Unresolved task record]
+    Q -->|Cancelled or deadline| F0[Return available status without new model call]
     C -->|No| P[Parent handles task]
     C -->|Yes| R[Rules and optional semantic router]
     R --> K{Capability, quality and budget gate}
+    K -->|Deterministic operation| T[Bounded tool operation]
+    T --> V[Validate evidence and result]
     K -->|Pass| W[Economy worker or bounded parallel workers]
     K -->|Strong required| P
-    K -->|No feasible path| U[Unresolved task record]
-    W --> V[Validate evidence and result]
-    V -->|Accepted| J[Join required dependencies]
+    K -->|No feasible path| U
+    W --> V
+    V -->|Accepted| J[Record terminal result and update dependencies]
     V -->|Repair allowed| X[One bounded repair]
     X --> V
     V -->|Escalate allowed| P
     V -->|No budget or exhausted| U
-    P --> PV[Validate parent task result]
-    PV --> J
+    P --> PV{Parent task result accepted?}
+    PV -->|Yes| J
+    PV -->|Rejected or inconclusive| U
     U --> J
-    J --> S[Strong parent continues and synthesizes]
+    J --> D{All required tasks terminal?}
+    D -->|No| Q
+    D -->|Yes| G{Synthesis allowed and funded?}
+    G -->|Yes| S[Strong parent continues and synthesizes]
+    G -->|No| F0
     S --> F[Final answer with unresolved items]
 ```
 
-The graph is a design and has not been executed. Every node calling a model/tool has a deadline and budget guard, including `P`, `X`, and `S`. The `PV` check can also produce unresolved status; edges into the join carry checked terminal statuses and do not imply that every strong-model result is correct. Reserve synthesis budget from the start; when further calls are impossible, return the available status/error rather than issue another call beyond the cap.
+The graph is a design and has not been executed. Every node calling a model/tool has a deadline and budget guard, including `P`, `X`, and `S`. The scheduler dispatches only ready tasks that are not already running; it awaits worker events instead of busy-looping or spawning duplicates. Failed dependencies become terminal blocked/unresolved outcomes according to policy, rather than running downstream tasks without inputs. Reserve synthesis budget from the start; when further calls are impossible, return the available status/error rather than issue another call beyond the cap.
+
+Before scheduling, validate that the dependency graph is acyclic and has no duplicate task IDs or unknown dependency IDs. Pending tasks with no ready or running task must produce a deadlock/unresolved outcome instead of waiting indefinitely.
 
 ### 8.2. Branch table
 
@@ -224,9 +240,11 @@ The graph is a design and has not been executed. Every node calling a model/tool
 
 LangGraph provides conditional edges, `Command` for state updates plus routing, and `Send` for fan-out. Concurrent shared state needs explicit reducers. Use one mechanism to determine a node's outgoing path to avoid accidentally executing additional branches. [LangGraph graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)
 
-Minimum state: `run_id`, `request_revision`, `task_specs`, `dependencies`, `pending/running/terminal`, `results_by_task_id`, `attempts`, `accepted_result_ids`, `budget_ledger`, `deadline`, `policy_version`, `cancelled`, and `final_status`. Reducers merge idempotently by `(task_id, attempt_id, result_revision)`; do not append duplicates on resume. The join knows the exact set of expected task IDs and distinguishes terminal failures from unfinished tasks.
+Minimum state: `run_id`, `request_revision`, `task_specs`, `dependencies`, `pending/running/terminal`, `results_by_task_id`, `attempts`, `accepted_result_ids`, `budget_ledger_ref`, `deadline`, `policy_version`, `cancelled`, and `final_status`. Reducers merge idempotently by `(task_id, attempt_id, result_revision)`; do not append duplicates on resume. The join knows the exact set of expected task IDs and distinguishes terminal failures from unfinished tasks. The authoritative reservation/settlement ledger and call counters remain outside rewindable state; the graph stores only references/snapshots. Resume must reconcile in-flight requests and recorded spending before admitting new budget.
 
-Checkpoints preserve progress for resume; they do not guarantee exactly-once side effects. Artifact/write tools need an idempotency key or a single-owner commit; future recipes for parallel code edits need separate scopes/worktrees. Avoid checkpointing full secrets/transcripts unnecessarily. [LangGraph durable execution](https://docs.langchain.com/oss/python/langgraph/durable-execution)
+Checkpoints preserve progress for resume; replay can re-execute calls after a checkpoint and does not guarantee exactly-once side effects. Artifact/write tools need an idempotency key or a single-owner commit; future recipes for parallel code edits need separate scopes/worktrees. Recovery demonstrations across process restarts require a persistent checkpointer; in-memory state is insufficient. Avoid checkpointing full secrets/transcripts unnecessarily. [LangGraph checkpointers](https://docs.langchain.com/oss/python/langgraph/checkpointers)
+
+Node-timeout/error-handler recipes must pin compatible APIs; current documentation specifies `langgraph>=1.2` for the relevant features and applies node timeouts to async nodes. This is a compatibility check for example authoring, not an instruction to upgrade this repository's dependencies. [LangGraph fault tolerance](https://docs.langchain.com/oss/python/langgraph/fault-tolerance)
 
 Proposed pilot: `max_parallel_workers=2`, `max_delegation_depth=1`, at most one quality repair and one escalation per task, `max_generation_calls_per_run=8`, and an overall run deadline. Embedding/tool calls have separate counters/cost caps. These are **ceilings**, not required call counts; all branches compete for the same budget. SDK/gateway retries enter the ledger and must not multiply without bounds across layers.
 
@@ -269,8 +287,10 @@ FrugalGPT provides research grounding for quality/cost cascades; Self-REF studie
 
 ```text
 C_run = C_parent_plan + C_router_and_embeddings + sum(C_all_worker_attempts)
-        + C_tools_and_gateway + C_validation + C_escalations + C_parent_continue/final
+        + C_tools_and_gateway + C_validation + C_parent_continue/final
 ```
+
+Buckets must be mutually exclusive: worker attempts include strong-worker escalation; escalation handled by the parent belongs to parent continuation and must not be counted twice. Authoritative accounting sums each unique billable provider/tool request ID once, then attaches role/attempt tags for analysis. An unsettled reservation is not billed usage.
 
 Separate **tokens**, **monetary cost**, **latency**, and **quality**. Parallelism can reduce latency while increasing tokens. Missing usage is unknown, not 0; follow provider semantics for cache reads/writes and reasoning tokens, avoiding double counting fields that already include one another. Shadow routing without executing workers can measure routing decisions/latency, but not counterfactual quality for models that were never called.
 
@@ -365,7 +385,7 @@ Online sources were checked on 2026-09-16. The future handbook must record versi
 | [OpenAI orchestration](https://developers.openai.com/api/docs/guides/agents/orchestration) | Manager retains response authority; agents-as-tools/handoffs |
 | [OpenAI models/providers](https://developers.openai.com/api/docs/guides/agents/models) | Per-agent models and adapter constraints |
 | [LangGraph graph API](https://docs.langchain.com/oss/python/langgraph/graph-api) | Conditional edges, state, reducers, Send/Command |
-| [LangGraph durable execution](https://docs.langchain.com/oss/python/langgraph/durable-execution) | Resume and idempotency |
+| [LangGraph checkpointers](https://docs.langchain.com/oss/python/langgraph/checkpointers), [fault tolerance](https://docs.langchain.com/oss/python/langgraph/fault-tolerance) | Resume/replay, idempotency, and timeout compatibility |
 | [Aurelio routers](https://docs.aurelio.ai/docs/semantic-router/user-guide/components/routers) | Semantic/hybrid matching |
 | [Aurelio threshold optimization](https://docs.aurelio.ai/docs/semantic-router/user-guide/features/threshold-optimization) | Threshold-tuning API; a separate holdout is required |
 | [RouteLLM repo](https://github.com/lm-sys/RouteLLM), [paper](https://arxiv.org/abs/2406.18665) | Learned-routing experiment |
@@ -375,4 +395,4 @@ Online sources were checked on 2026-09-16. The future handbook must record versi
 | [Anthropic effective agents](https://www.anthropic.com/engineering/building-effective-agents), [multi-agent research](https://www.anthropic.com/engineering/multi-agent-research-system) | Patterns and coordination trade-offs |
 | [FrugalGPT](https://arxiv.org/abs/2305.05176), [Self-REF](https://proceedings.mlr.press/v267/chuang25b.html) | Research alternatives |
 
-This planning turn does not install dependencies, connect providers, launch gateways, create embeddings, train routers, or conduct additional provider/API experiments.
+This planning work does not install dependencies, configure provider connections, launch gateways, create embeddings, train routers, or conduct model/API experiments for the proposed system. Research and authoring assistance is not runtime validation of the proposed architecture.
