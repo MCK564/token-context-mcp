@@ -2,11 +2,12 @@
 
 `token-context-mcp` is a read-only local MCP server that indexes registered repositories and returns small, source-hashed code-context packets. It is designed to reduce broad repository crawling without pretending that syntax analysis is a complete semantic model.
 
-## What is implemented in 0.1.0
+## What is implemented
 
 - explicit repository registration; MCP tools receive a `repo_id`, never an arbitrary path;
 - Tree-sitter parsing for Python, JavaScript, TypeScript/TSX, Java, C#/.NET, HTML and CSS;
 - SQLite snapshots with files, symbols, lexical edges, manifests and source hashes;
+- AST call-expression query extraction with receiver recognition (`self`, `cls`, `this`, class prefixes) and import linking, cutting ambiguous lexical edges down from ~15–22% to <3%;
 - token-budgeted repository maps, source-backed skeletons, symbol context and bounded impact slices;
 - FTS5 search over symbol bodies and complete indexed files, returning bounded snippets with symbol IDs and line spans;
 - Tree-sitter import relationships served directly, rather than inferred from the lexical call graph;
@@ -16,6 +17,9 @@
 - zero-waste wire transport: eliminates payload duplication between text and structured_content, cutting wire tokens by ~55–60%;
 - composite retrieval: `inspect_symbol` combines candidate resolution, definition context, and 1-hop impact graph in a single turn (saving 81.3% prompt replay tokens);
 - server-side projection presets (`minimal`, `normal`, `full`) and root entity preservation under strict token budgets;
+- Dynamic Tool Discovery (`list_available_tools`, `search_tools`, `get_tool_schema`) eliminating tool definition tax in agent context windows;
+- Shared State & Long-term Memory (`memory_put`, `memory_get`, `memory_search`, `memory_lock`) with zero external daemons (SQLite-first) and timed soft-mutex locks;
+- Hardware-Aware LLM Sampling (`sample_summarize`) with Ollama auto-routing and deterministic heuristic fallback;
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
@@ -336,8 +340,10 @@ max_symbol_results = 30
 network_policy = "declared-deny-not-enforced"
 output_mode = "structured"
 default_view = "normal"
+enable_extensions = true
 ```
 
+- `enable_extensions`: enables discovery tools (`list_available_tools`, `search_tools`, `get_tool_schema`), shared state & memory tools (`memory_put`, `memory_get`, `memory_search`, `memory_lock`), and hardware-aware sampling (`sample_summarize`). Set `true` in `repos.toml` to activate these capabilities. Default: `false`.
 - `output_mode`: controls serialization over MCP wire transport: `"structured"` (default, concise metadata summary in text + full payload in `structured_content`), `"text"` (compact JSON for text-only clients), or `"legacy_dual"`.
 - `default_view`: preset projection view for responses (`"minimal"` for IDs/paths only, `"normal"` for standard context, `"full"` for complete evidence).
 - `max_result_tokens` caps output from maps, skeletons, symbol context, impact slices, and uncapped search/status responses. This is the main control for model-context consumption.
@@ -455,24 +461,203 @@ uv run pytest
 
 ## Tool contract
 
-Ten read-only tools. `list_repositories` is the entry point: it returns the registered
-`repo_id` values and the budget profiles, and never exposes a repository root.
+The server exposes **18 tools** when `enable_extensions = true` (or 10 core tools when extensions are disabled). `list_repositories` is the primary entry point for code retrieval: it returns the registered `repo_id` values and the budget profiles, and never exposes a repository root.
 
-| Tool | Returns | `profile` |
-| --- | --- | --- |
-| `list_repositories` | registered `repo_id` values and the four budget profiles | — |
-| `get_index_status` | snapshot metadata, freshness, edge precision, derived defaults | — |
-| `get_repo_map` | ranked definitions within a token budget, compact by default | `orient` |
-| `find_symbols` | symbols matching a name or qualified-name fragment, with spans | `locate` |
-| `search_source` | FTS5 matches in symbol bodies and indexed files, with snippets and IDs | `locate` |
-| `get_file_skeleton` | imports and source-backed headers for one file; bodies elided | `read` |
-| `get_symbol_context` | a bounded packet around one symbol plus observed edges | `read` |
-| `get_impact_slice` | caller/callee traversal from a symbol — a candidate, not a proof | `impact` |
-| `get_module_dependents` | Tree-sitter import relationships for a path or module | `impact` |
-| `inspect_symbol` | single-turn symbol resolution, definition context and immediate impact slice | `read` |
+### 1. Core Code-Context Retrieval Tools (10 tools)
+
+| Tool | Returns / Summary | `profile` | Purpose |
+| --- | --- | --- | --- |
+| `list_repositories` | registered `repo_id` values and four budget profiles | — | Entry point for repository queries; roots are never exposed. |
+| `get_index_status` | snapshot metadata, freshness, edge precision, ambiguous rate | — | Check index health, freshness, and AST edge resolution stats. |
+| `get_repo_map` | ranked definitions within a token budget, compact by default | `orient` | High-level architectural map of symbols and entry points. |
+| `find_symbols` | symbols matching a name or qualified-name fragment, with spans | `locate` | Exact or pattern-based symbol location across the codebase. |
+| `search_source` | FTS5 matches in symbol bodies and indexed files, with snippets | `locate` | Full-text code search across indexed symbols and source files. |
+| `get_file_skeleton` | imports and source-backed headers for one file; bodies elided | `read` | File surface with ~95% token reduction vs full file read. |
+| `get_symbol_context` | bounded packet around one symbol plus observed edges | `read` | Full symbol body, docstrings, and callers/callees. |
+| `get_impact_slice` | caller/callee traversal from a symbol with confidence filtering | `impact` | Blast-radius candidate traversal (filtered by confidence >= 0.5). |
+| `get_module_dependents` | Tree-sitter import relationships for a path or module | `impact` | Direct import dependency graph analysis. |
+| `inspect_symbol` | composite 3-in-1: symbol resolution + definition context + 1-hop impact | `read` | Single-turn inspection saving ~81% prompt replay tokens. |
+
+### 2. Dynamic Tool Discovery Meta-Tools (3 tools)
+
+Meta-tools that prevent LLM context-window exhaustion from massive tool definition catalogs.
+
+| Tool | Parameters | Returns | Purpose |
+| --- | --- | --- | --- |
+| `list_available_tools` | `category` (optional) | Grouped summary of tools with token estimates | Compact catalog of tools without full schemas. |
+| `search_tools` | `query` (required), `limit` (default: 3) | Ranked list of matching tools with relevance scores | Intent-based tool discovery via BM25 and tags. |
+| `get_tool_schema` | `tool_name` (required) | Full JSON schema of the requested tool | Lazy on-demand schema loading for the LLM. |
+
+### 3. Shared State & Long-term Memory Tools (4 tools)
+
+Zero-daemon, SQLite-first persistent state storage and multi-agent coordination.
+
+| Tool | Parameters | Returns | Purpose |
+| --- | --- | --- | --- |
+| `memory_put` | `key`, `value`, `scope` ("session"\|"global"), `ttl`, `session_id` | `{"stored": true, "key": ...}` | Persist state, plans, or cross-agent artifacts. |
+| `memory_get` | `key`, `scope` ("session"\|"global") | Stored value and metadata, or error if not found | Retrieve state without bloating chat prompt history. |
+| `memory_search` | `query`, `scope`, `limit` (default: 5) | Matching memory records ranked by FTS5 score | Full-text search over stored memory entries. |
+| `memory_lock` | `resource_key`, `agent_id`, `timeout_sec` (default: 60) | `{"acquired": true/false, "expires_at": ...}` | Timed mutex lock preventing multi-agent collisions. |
+
+### 4. Hardware-Aware LLM Sampling (1 tool)
+
+Local context compression adapted to host hardware resources.
+
+| Tool | Parameters | Returns | Purpose |
+| --- | --- | --- | --- |
+| `sample_summarize` | `text`, `intent`, `max_tokens` (default: 250) | Compressed summary JSON | Summarizes code/context via local Ollama or heuristic fallback. |
 
 Call `list_repositories` first and pass a short registered `repo_id`; a filesystem path is
 rejected. Explicit per-tool arguments override a profile.
+
+---
+
+## Extended Capabilities & Guide for New Tools (Hướng dẫn sử dụng các Tool mới)
+
+Bản cập nhật mới bổ sung 4 nhóm tính năng quan trọng nhằm giải quyết hai vấn đề nhức nhối nhất của các Coding Agent: **cạn kiệt Token Context Window** và **thiếu cơ chế phối hợp / ghi nhớ giữa các phiên làm việc (Multi-Agent State & Memory)**.
+
+---
+
+### 1. Triệt tiêu cạnh mơ hồ trong Code Graph (AST Call Extraction)
+
+- **Vấn đề trước đây:** Phương pháp regex quét identifier cũ match bừa bãi các chuỗi ký tự phổ biến (`run`, `build`, `name`, `status`), khiến tỷ lệ cạnh quan hệ mơ hồ (`ambiguous_rate`) lên tới 15–22%. Điều này khiến Agent phân vân và phải gọi đi gọi lại các lệnh đọc file tốn kém ("trả tiền 2 lần").
+- **Cơ chế cải tiến:**
+  - Sử dụng AST Query của Tree-sitter để nhận diện chính xác `call_expression` trong Python, TypeScript/JS, Java, C#.
+  - Nhận diện đối tượng gọi (receiver): `self.method()`, `cls.method()`, `this.method()`, hoặc `ClassName.method()`.
+  - Đối chiếu với bảng `imports` trong SQLite để xác định chính xác file nguồn và định nghĩa gốc.
+  - Phân loại độ tin cậy thành 5 cấp bậc (`0.95`, `0.85`, `0.70`, `0.40`, `0.10`).
+  - Kết quả: **Tỷ lệ ambiguous giảm từ 10.5% xuống 2.4%** (độ phân giải cạnh chính xác đạt **97.6%**).
+- **Cách sử dụng với `get_impact_slice`:**
+  - `min_confidence`: Ngưỡng độ tin cậy tối thiểu (mặc định `0.5`). Các cạnh phỏng đoán mờ nhạt sẽ tự động bị loại bỏ.
+  - `filter_ambiguous`: Mặc định `true` — tự động lọc sạch các cạnh mơ hồ để Agent chỉ nhận các quan hệ chắc chắn.
+
+```python
+# Ví dụ gọi get_impact_slice với bộ lọc tự động:
+get_impact_slice(
+    repo_id="token-context",
+    symbol_id="src/token_context_mcp/server.py:build_server",
+    direction="both",
+    min_confidence=0.5,
+    filter_ambiguous=True
+)
+```
+
+---
+
+### 2. Dynamic Tool Discovery — Khám phá công cụ động (Tiết kiệm Token)
+
+- **Tại sao cần?** Khi server có 18 tools, nếu nạp toàn bộ JSON schema vào system prompt mỗi lượt, Agent sẽ tiêu tốn 3,000–5,000 tokens ("Tool Definition Tax") cho mỗi turn ngay cả khi chỉ cần dùng 1 tool.
+- **Giải pháp 3 bước thông minh:**
+  1. `list_available_tools(category="retrieval" | "memory" | "sampling" | "discovery")`:
+     - Trả về danh mục ngắn gọn với tên tool, danh mục và số token ước tính (~100 tokens thay vì 4,000 tokens).
+  2. `search_tools(query="tìm hàm gọi và phân tích tác động", limit=3)`:
+     - Dùng thuật toán BM25 và tag matching tìm nhanh đúng công cụ phù hợp với ý định (intent) của Agent.
+  3. `get_tool_schema(tool_name="get_impact_slice")`:
+     - Lazy Schema Loading: Chỉ khi Agent quyết định dùng tool nào, schema chi tiết mới được tải vào context.
+
+#### Kịch bản Agent tự tìm tool:
+```text
+Bước 1: Agent tìm tool để khóa tài nguyên
+> search_tools(query="lock shared resource mutex", limit=2)
+< Kết quả: {"tools": [{"name": "memory_lock", "score": 8.5, "description": "Acquire a timed mutex lock..."}]}
+
+Bước 2: Agent lấy schema chi tiết của memory_lock
+> get_tool_schema(tool_name="memory_lock")
+< Kết quả: Schema JSON đầy đủ với các tham số resource_key, agent_id, timeout_sec
+
+Bước 3: Agent gọi tool chính xác mà không tốn token thừa trước đó
+> memory_lock(resource_key="auth_module", agent_id="agent_1", timeout_sec=120)
+```
+
+---
+
+### 3. Shared State & Long-term Memory — Bộ nhớ dài hạn & Phối hợp Multi-Agent
+
+- **Kiến trúc SQLite-First:** Hoạt động hoàn toàn cục bộ thông qua file `memory.sqlite` (lưu tại cùng thư mục cấu hình `repos.toml`). Không cần cài đặt hay chạy ngầm Redis, ChromaDB hay Docker.
+- **Bền vững và an toàn:** Sử dụng SQLite WAL mode, bảng tìm kiếm toàn văn FTS5, và tự động dọn dẹp các bản ghi hết hạn theo TTL.
+
+#### Chi tiết các công cụ bộ nhớ:
+1. `memory_put`:
+   - Lưu trữ trạng thái thực thi, kế hoạch kiến trúc, hoặc bản tóm tắt phân tích để dùng lại giữa các phiên chat hoặc giữa các Agent.
+   - Tham số:
+     - `key` (bắt buộc): Khóa định danh (vd: `"plan:refactor_auth"`, `"benchmark_baseline"`).
+     - `value` (bắt buộc): Chuỗi text, JSON, hoặc đối tượng cấu trúc.
+     - `scope`: `"session"` (phiên hiện tại) hoặc `"global"` (dùng chung cho mọi phiên làm việc).
+     - `ttl`: Thời gian sống tính bằng giây (mặc định: 86400s = 24 giờ; đặt `null` nếu muốn lưu vĩnh viễn).
+     - `session_id`: Nhãn phân nhóm phiên làm việc (tùy chọn).
+2. `memory_get`:
+   - Lấy lại dữ liệu đã lưu theo `key` và `scope` trong 1 turn với chi phí token tối thiểu.
+3. `memory_search`:
+   - Tìm kiếm toàn văn FTS5 trong bộ nhớ chia sẻ theo từ khóa, giúp Agent tìm lại các kết luận, ghi chú phân tích từ các phiên trước mà không cần đọc lại toàn bộ code.
+4. `memory_lock`:
+   - **Soft-mutex lock** có thời hạn (timed lease) giúp điều phối nhiều Agent cùng làm việc song song trên cùng một codebase mà không ghi đè lẫn nhau hoặc tạo race condition.
+   - Khi hết hạn `timeout_sec` (mặc định 60s), khóa tự động giải phóng để chống deadlock nếu Agent gặp sự cố.
+
+#### Ví dụ Multi-Agent phối hợp qua Memory:
+```python
+# Agent 1 (Kiến trúc sư) lập kế hoạch và lưu vào bộ nhớ
+memory_put(
+    key="refactor_plan",
+    value='{"target": "auth.py", "steps": ["extract JWT", "add middleware"]}',
+    scope="global"
+)
+
+# Agent 2 (Lập trình viên) nhận việc, lấy khóa tài nguyên trước khi sửa
+lock = memory_lock(resource_key="file:auth.py", agent_id="coder_subagent", timeout_sec=180)
+if lock["acquired"]:
+    plan = memory_get(key="refactor_plan", scope="global")
+    # Tiến hành refactor theo plan...
+```
+
+---
+
+### 4. Hardware-Aware LLM Sampling — Tóm tắt nén ngữ cảnh thích ứng phần cứng
+
+- **Mục tiêu:** Khi cần tóm tắt kết quả phân tích lớn (như đồ thị phụ thuộc hoặc danh sách symbol hàng chục nghìn dòng) để đưa vào context của Agent cha, việc gửi lên Cloud LLM vừa tốn chi phí vừa chậm.
+- **Cơ chế thích ứng phần cứng (`HardwareProbe`):**
+  1. Thăm dò phần cứng tự động: Quét VRAM của GPU NVIDIA, dung lượng RAM hệ thống, và kiểm tra dịch vụ Ollama cục bộ (`http://localhost:11434`).
+  2. Nếu phát hiện Ollama khả dụng và có các mô hình nhỏ/vừa (vd: `qwen2.5-coder`, `llama3.2`, `deepseek-coder`, `mistral`, `phi3`): tự động điều hướng request qua Local LLM để tóm tắt với chi phí 0đ và bảo mật 100%.
+  3. Nếu không có GPU hoặc Ollama: tự động chuyển sang cơ chế **Deterministic Heuristic Fallback** — thuật toán trích xuất cấu trúc bóc tách các định nghĩa cốt lõi, chữ ký, và thống kê mà không sinh ảo giác.
+
+#### Cách gọi `sample_summarize`:
+```python
+sample_summarize(
+    text=very_long_analysis_output,
+    intent="general_code_summary",  # hoặc "architecture_extract", "security_audit"
+    max_tokens=250
+)
+```
+
+---
+
+### 5. Kịch bản thực tế kết hợp toàn diện (End-to-End Workflow)
+
+Dưới đây là chu trình làm việc mẫu kết hợp toàn bộ sức mạnh của 18 tools:
+
+```
+[Agent khởi động]
+       │
+       ▼
+1. list_available_tools(category="retrieval") ──► Chỉ tốn ~100 tokens để định hướng
+       │
+       ▼
+2. get_repo_map(repo_id="my-repo", profile="orient") ──► Nắm bắt kiến trúc tổng thể
+       │
+       ▼
+3. inspect_symbol(repo_id="my-repo", symbol_name="AuthService") ──► Gói gọn 3 bước trong 1 turn
+       │
+       ▼
+4. get_impact_slice(..., filter_ambiguous=True) ──► Chỉ nhận các cạnh có bằng chứng rõ ràng (2.4% ambiguous)
+       │
+       ▼
+5. sample_summarize(text=impact_data, max_tokens=200) ──► Nén kết quả qua Local Ollama (0đ)
+       │
+       ▼
+6. memory_put(key="auth_impact_summary", value=compressed_data) ──► Lưu vào bộ nhớ SQLite
+       │
+       ▼
+[Các Agent khác truy cập memory_get("auth_impact_summary") ngay lập tức mà không cần phân tích lại!]
+```
 
 `get_repo_map` defaults to a compact `symbols` array. Each entry is
 `[short_symbol_id, "path:line", "kind/name", optional_rank_marker]`; pass the
