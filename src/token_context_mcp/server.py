@@ -105,7 +105,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     include_omitted_ids=include_omitted_ids,
                     format=format,
                     profile=profile,
-                )
+                ),
+                tool_name="get_repo_map",
             )
         )
 
@@ -130,7 +131,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     limit=limit,
                     max_tokens=max_tokens,
                     profile=profile,
-                )
+                ),
+                tool_name="find_symbols",
             )
         )
 
@@ -149,7 +151,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
             _invoke(
                 lambda: service.module_dependents(
                     repo_id, path=path, module=module, max_tokens=max_tokens, profile=profile
-                )
+                ),
+                tool_name="get_module_dependents",
             )
         )
 
@@ -168,7 +171,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
             _invoke(
                 lambda: service.search_source(
                     repo_id, query=query, limit=limit, max_tokens=max_tokens, profile=profile
-                )
+                ),
+                tool_name="search_source",
             )
         )
 
@@ -191,7 +195,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     include_private=include_private,
                     max_tokens=max_tokens,
                     profile=profile,
-                )
+                ),
+                tool_name="get_file_skeleton",
             )
         )
 
@@ -218,7 +223,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     max_tokens=max_tokens,
                     include_omitted_ids=include_omitted_ids,
                     profile=profile,
-                )
+                ),
+                tool_name="get_symbol_context",
             )
         )
 
@@ -249,7 +255,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     profile=profile,
                     min_confidence=min_confidence,
                     filter_ambiguous=filter_ambiguous,
-                )
+                ),
+                tool_name="get_impact_slice",
             )
         )
 
@@ -258,7 +265,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         description="Active snapshot metadata and paths changed since indexing. Run before relying on graph results.",
     )
     def get_index_status(repo_id: str) -> CallToolResult:
-        return _wrap(_invoke(lambda: service.status(repo_id)))
+        return _wrap(_invoke(lambda: service.status(repo_id), tool_name="get_index_status"))
 
     @server.tool(
         title="Inspect symbol (composite)",
@@ -277,7 +284,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                     query=query,
                     view=view,
                     budget_tokens=budget_tokens,
-                )
+                ),
+                tool_name="inspect_symbol",
             )
         )
 
@@ -290,7 +298,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def list_available_tools(category: str | None = None) -> CallToolResult:
             from token_context_mcp.discovery.tools import list_available_tools as _list_tools
-            return _wrap(_invoke(lambda: _list_tools(category=category)))
+            return _wrap(_invoke(lambda: _list_tools(category=category), tool_name="list_available_tools"))
 
         @server.tool(
             title="Search tools",
@@ -298,7 +306,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def search_tools(query: str, limit: int = 3) -> CallToolResult:
             from token_context_mcp.discovery.tools import search_tools as _search_tools
-            return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit)))
+            return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit), tool_name="search_tools"))
 
         @server.tool(
             title="Get tool schema",
@@ -306,7 +314,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def get_tool_schema(tool_name: str) -> CallToolResult:
             from token_context_mcp.discovery.tools import get_tool_schema as _get_schema
-            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name)))
+            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name), tool_name="get_tool_schema"))
 
         # --- Shared State & Long-term Memory ---
 
@@ -334,14 +342,14 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
             description="Retrieve a stored value or execution checkpoint from shared memory without prompt bloat.",
         )
         def memory_get(key: str, scope: str = "session") -> CallToolResult:
-            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope)))
+            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope), tool_name="memory_get"))
 
         @server.tool(
             title="Search memory",
             description="Full-text search over shared memory entries and stored artifacts.",
         )
         def memory_search(query: str, scope: str | None = None, limit: int = 5) -> CallToolResult:
-            return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, limit=limit)))
+            return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, limit=limit), tool_name="memory_search"))
 
         @server.tool(
             title="Acquire memory lock",

@@ -132,3 +132,25 @@ def test_cli_module_entrypoint_executes_command(tmp_path: Path, sample_repo: Pat
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_audit_logging_records_exact_tool_names(indexed_config: Path) -> None:
+    from token_context_mcp.security.audit import AuditLogger
+
+    server = build_server(indexed_config)
+    asyncio.run(server.call_tool("list_repositories", {}))
+    asyncio.run(server.call_tool("get_index_status", {"repo_id": "demo"}))
+    asyncio.run(server.call_tool("find_symbols", {"repo_id": "demo", "pattern": "alpha"}))
+    asyncio.run(server.call_tool("get_repo_map", {"repo_id": "demo", "budget_tokens": 512}))
+
+    audit_path = indexed_config.parent / "audit.sqlite"
+    assert audit_path.exists()
+    logger = AuditLogger(audit_path)
+    logs = logger.query_logs(limit=20)
+    recorded_tools = [log["tool_name"] for log in logs]
+
+    assert "list_repositories" in recorded_tools
+    assert "get_index_status" in recorded_tools
+    assert "find_symbols" in recorded_tools
+    assert "get_repo_map" in recorded_tools
+    assert "tool_call" not in recorded_tools
