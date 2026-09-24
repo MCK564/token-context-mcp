@@ -66,3 +66,22 @@ def test_catalog_matches_registered_tools(indexed_config: Path) -> None:
 
     assert catalog_tool_names == server_tool_names
     assert len(catalog_tool_names) == 21
+
+
+def test_tool_catalog_and_descriptions_alignment() -> None:
+    # 1. search_tools docstring does not claim semantic or intent
+    doc = search_tools.__doc__ or ""
+    assert "semantic" not in doc.lower()
+    assert "intent" not in doc.lower()
+
+    # 2. get_repo_map catalog summary does not claim PageRank
+    repo_map_meta = TOOL_CATALOG["get_repo_map"]
+    assert "pagerank" not in repo_map_meta.summary.lower()
+    assert "pagerank" not in [t.lower() for t in repo_map_meta.tags]
+
+    # 3. All tools in catalog have non-empty summary and non-empty tags
+    for name, meta in TOOL_CATALOG.items():
+        assert meta.summary and meta.summary.strip(), f"Tool {name} has empty summary"
+        assert meta.tags and len(meta.tags) > 0, f"Tool {name} has empty tags"
+        assert all(t and t.strip() for t in meta.tags), f"Tool {name} has blank tags"
+

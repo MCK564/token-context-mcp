@@ -302,7 +302,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
 
         @server.tool(
             title="Search tools",
-            description="Smart semantic/intent search over tool capabilities to find the right tool for an intent.",
+            description="Keyword and token-overlap search over tool metadata to find relevant tools.",
         )
         def search_tools(query: str, limit: int = 3) -> CallToolResult:
             from token_context_mcp.discovery.tools import search_tools as _search_tools

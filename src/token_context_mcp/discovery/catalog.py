@@ -38,14 +38,14 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
     "get_repo_map": ToolMeta(
         name="get_repo_map",
         category="code_navigation",
-        summary="Token-budgeted, PageRank-ordered symbols for orientation within a repository.",
+        summary="Token-budgeted symbols ranked by degree centrality and personalized random walk for orientation within a repository.",
         parameters_summary={
             "repo_id": "string (required)",
             "budget_tokens": "integer (optional)",
             "format": "compact | full",
             "profile": "locate | orient | impact | read",
         },
-        tags=["map", "overview", "symbols", "pagerank", "budget"],
+        tags=["map", "overview", "symbols", "ranking", "budget"],
         recommended_followups=["find_symbols", "get_file_skeleton"],
         prerequisites=["list_repositories"],
     ),
@@ -157,9 +157,9 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
     "search_tools": ToolMeta(
         name="search_tools",
         category="tool_discovery",
-        summary="Smart semantic/keyword search over tool capabilities to find the right tool for an intent.",
+        summary="Keyword and token-overlap search over tool metadata to find relevant tools.",
         parameters_summary={"query": "string (required)", "limit": "integer (default: 3)"},
-        tags=["tools", "search", "intent", "discovery", "recommend"],
+        tags=["tools", "search", "keyword", "discovery", "recommend"],
         recommended_followups=["get_tool_schema"],
     ),
     "get_tool_schema": ToolMeta(

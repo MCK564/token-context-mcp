@@ -32,7 +32,7 @@ def list_available_tools(category: str | None = None) -> dict[str, Any]:
 
 
 def search_tools(query: str, limit: int = 3) -> dict[str, Any]:
-    """Smart keyword and semantic token overlap search over tool capabilities."""
+    """Keyword and token-overlap search over tool metadata (name, summary, tags)."""
     query_tokens = set(re.findall(r"\w+", query.lower()))
     scored: list[tuple[float, ToolMeta]] = []
 
