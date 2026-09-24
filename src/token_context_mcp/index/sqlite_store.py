@@ -363,22 +363,39 @@ class SQLiteStore:
 
         clean_target = pattern.replace("*", "").replace("?", "").strip()
         where_sql = " AND ".join(where_clauses)
+        test_path_sql = "CASE WHEN path LIKE 'tests/%' OR path LIKE 'evals/%' THEN 2 ELSE 1 END"
 
         if clean_target:
-            order_sql = """
+            order_sql = f"""
                 CASE
-                    WHEN lower(name) = lower(?) THEN 1
-                    WHEN lower(qualified_name) = lower(?) THEN 2
-                    WHEN lower(name) LIKE lower(?) || '%' ESCAPE '\\' THEN 3
-                    WHEN lower(qualified_name) LIKE lower(?) || '%' ESCAPE '\\' THEN 4
-                    ELSE 5
-                END, name, path
+                    WHEN name = ? THEN 1
+                    WHEN lower(name) = lower(?) THEN 2
+                    WHEN qualified_name = ? THEN 3
+                    WHEN lower(qualified_name) = lower(?) THEN 4
+                    WHEN substr(name, 1, ?) = ? THEN 5
+                    WHEN lower(name) LIKE lower(?) || '%' ESCAPE '\\' THEN 6
+                    WHEN substr(qualified_name, 1, ?) = ? THEN 7
+                    WHEN lower(qualified_name) LIKE lower(?) || '%' ESCAPE '\\' THEN 8
+                    ELSE 9
+                END, {test_path_sql}, length(qualified_name), path, start_line
             """
+            target_len = len(clean_target)
             clean_escaped = clean_target.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            order_params = [clean_target, clean_target, clean_escaped, clean_escaped]
+            order_params = [
+                clean_target,
+                clean_target,
+                clean_target,
+                clean_target,
+                target_len,
+                clean_target,
+                clean_escaped,
+                target_len,
+                clean_target,
+                clean_escaped,
+            ]
             all_params = tuple(params + order_params + [limit])
         else:
-            order_sql = "name, path"
+            order_sql = f"{test_path_sql}, name, length(qualified_name), path, start_line"
             all_params = tuple(params + [limit])
 
         with self.connection() as connection:

@@ -448,9 +448,13 @@ class RetrievalService:
         effective_limit = min(limit, self.config.server.max_symbol_results, derived_limit)
         available_count = store.count_symbols(pattern, kind=kind)
         symbols = store.find_symbols(pattern, kind=kind, limit=effective_limit)
-        server_omitted_count = max(0, available_count - effective_limit) if effective_limit < limit else 0
-        symbol_limit_reached = effective_limit < limit and available_count > effective_limit
-        warnings = ["symbol_limit_capped_by_server"] if symbol_limit_reached else []
+        server_capped = effective_limit < limit and available_count > effective_limit
+        warnings: list[str] = []
+        if server_capped:
+            warnings.append("symbol_limit_capped_by_server")
+        elif limit < available_count:
+            warnings.append("more_matches_available")
+
         entries = [
             (
                 symbol,
@@ -467,21 +471,24 @@ class RetrievalService:
             omitted_items: list[tuple[SymbolRecord, dict[str, Any]]],
             estimated: int,
         ) -> dict[str, Any]:
+            resp_warnings = list(warnings)
             if omitted_items:
-                warnings.append("result_payload_capped_by_server")
+                resp_warnings.append("result_payload_capped_by_server")
             selected_symbols = [item[1]["symbol"] for item in selected_items]
+            omitted_count = max(0, available_count - len(selected_symbols))
             return self._envelope(
                 repo_id,
                 metadata,
                 requested_tokens=effective_max_tokens if explicit_budget else 0,
                 estimated_tokens=estimated,
                 freshness=freshness,
-                warnings=warnings,
-                truncated=bool(omitted_items) or server_omitted_count > 0,
+                warnings=resp_warnings,
+                truncated=omitted_count > 0,
                 evidence=[item[1]["evidence"] for item in selected_items],
                 data={
                     "symbols": selected_symbols,
-                    "omitted_count": server_omitted_count + len(omitted_items),
+                    "total_matches": available_count,
+                    "omitted_count": omitted_count,
                 },
             )
 

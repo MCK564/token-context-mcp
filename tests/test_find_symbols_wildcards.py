@@ -103,3 +103,75 @@ def test_find_symbols_kind_filtering(symbols_repo_config: Path) -> None:
     # invalid kind
     with pytest.raises(RetrievalError, match="kind must be function, class, method, or interface"):
         service.find_symbols("test-repo", pattern="Service", kind="unknown_kind")
+
+
+def test_find_symbols_truncation_and_more_matches(tmp_path: Path) -> None:
+    root = tmp_path / "trunc-repo"
+    root.mkdir()
+    (root / "models.py").write_text(
+        """
+class Alpha: pass
+class Beta: pass
+class Gamma: pass
+class Delta: pass
+class Epsilon: pass
+""",
+        encoding="utf-8",
+    )
+    tests_dir = root / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_models.py").write_text(
+        """
+class TestAlpha: pass
+class TestBeta: pass
+""",
+        encoding="utf-8",
+    )
+    config_path = tmp_path / "config" / "repos.toml"
+    repo = RepositoryConfig(repo_id="test-repo", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"test-repo": repo}, server=ServerConfig()))
+    build_index(repo, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+    service = _service(config_path)
+
+    res = service.find_symbols("test-repo", pattern="*", kind="class", limit=3)
+    data = res["data"]
+    assert len(data["symbols"]) == 3
+    assert data["total_matches"] == 7
+    assert data["omitted_count"] == 4
+    assert res["truncated"] is True
+    assert "more_matches_available" in res["warnings"]
+    assert "symbol_limit_capped_by_server" not in res["warnings"]
+
+
+def test_find_symbols_tie_breaking_order(tmp_path: Path) -> None:
+    root = tmp_path / "sort-repo"
+    root.mkdir()
+    (root / "service.py").write_text(
+        """
+class service: pass
+class Service: pass
+class ServiceManager: pass
+""",
+        encoding="utf-8",
+    )
+    tests_dir = root / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_service.py").write_text(
+        """
+class ServiceInTest: pass
+""",
+        encoding="utf-8",
+    )
+    config_path = tmp_path / "config" / "repos.toml"
+    repo = RepositoryConfig(repo_id="test-repo", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"test-repo": repo}, server=ServerConfig()))
+    build_index(repo, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+    service = _service(config_path)
+
+    res = service.find_symbols("test-repo", pattern="Service*")
+    names = [s["name"] for s in res["data"]["symbols"]]
+    # Exact case-sensitive "Service" before case-insensitive "service"
+    assert names.index("Service") < names.index("service")
+    # Non-test paths before test paths
+    assert names.index("ServiceManager") < names.index("ServiceInTest")
+
