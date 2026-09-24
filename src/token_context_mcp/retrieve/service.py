@@ -787,29 +787,17 @@ class RetrievalService:
                     }
         symbols = [store.symbol(item) for item in context_ids]
         symbols = [item for item in symbols if item is not None]
-        packets = [
-            self._symbol_packet(
-                repository.root,
-                store,
-                symbol,
-                include_body and symbol.symbol_id == canonical_symbol_id,
-                allow_symlinks=repository.allow_symlinks,
-            )
-            for symbol in symbols
-        ]
-        entries: list[tuple[str, dict[str, Any]]] = []
-        if packets:
-            entries.append(("symbol", packets[0]))
-        entries.extend(("edge", edge_as_dict(edge)) for edge in traversal_edges)
-        entries.extend(("symbol", packet) for packet in packets[1:])
-        warnings = _edge_warnings(traversal_edges)
-        warnings.extend(
-            warning
-            for packet in packets
-            for warning in packet.get("warnings", [])
-            if warning not in warnings
-        )
-        def build_response(selected_items: list[tuple[str, dict[str, Any]]], omitted_items: list[tuple[str, dict[str, Any]]], estimated: int) -> dict[str, Any]:
+        assert symbols, "root symbol must exist"
+        root_symbol = symbols[0]
+
+        warnings: list[str] = list(_edge_warnings(traversal_edges))
+        extra_data: dict[str, Any] = {}
+
+        def build_response(
+            selected_items: list[tuple[str, dict[str, Any]]],
+            omitted_items: list[tuple[str, dict[str, Any]]],
+            estimated: int,
+        ) -> dict[str, Any]:
             selected_symbols = [item for kind, item in selected_items if kind == "symbol"]
             selected_edges = [item for kind, item in selected_items if kind == "edge"]
             omitted_symbols = [item for kind, item in omitted_items if kind == "symbol"]
@@ -821,7 +809,7 @@ class RetrievalService:
                 estimated_tokens=estimated,
                 freshness=freshness,
                 warnings=warnings,
-                truncated=bool(omitted_items),
+                truncated=bool(omitted_items) or ("root_body_omitted_budget" in warnings) or ("root_omitted_budget" in warnings),
                 edge_precision=_edge_precision(traversal_edges),
                 evidence=[item["evidence"] for item in selected_symbols],
                 data={
@@ -837,8 +825,70 @@ class RetrievalService:
                     "omitted_count": len(omitted_symbols),
                     "omitted_edge_count": len(omitted_edges),
                     "estimator_version": ESTIMATOR_VERSION,
+                    **extra_data,
                 },
             )
+
+        root_packet = self._symbol_packet(
+            repository.root,
+            store,
+            root_symbol,
+            include_body,
+            allow_symlinks=repository.allow_symlinks,
+        )
+
+        root_packet_fits = True
+        if include_body:
+            preview_with_body = build_response([("symbol", root_packet)], [], 0)
+            tokens_with_body = _payload_tokens(preview_with_body)
+            final_preview = build_response([("symbol", root_packet)], [], tokens_with_body)
+            needed_with_body = _payload_tokens(final_preview)
+            if needed_with_body > packing_budget:
+                extra_data["root_body_tokens_needed"] = needed_with_body
+                if "root_body_omitted_budget" not in warnings:
+                    warnings.append("root_body_omitted_budget")
+                root_packet = self._symbol_packet(
+                    repository.root,
+                    store,
+                    root_symbol,
+                    False,
+                    allow_symlinks=repository.allow_symlinks,
+                )
+
+        preview_no_body = build_response([("symbol", root_packet)], [], 0)
+        tokens_no_body = _payload_tokens(preview_no_body)
+        final_no_body = build_response([("symbol", root_packet)], [], tokens_no_body)
+        needed_no_body = _payload_tokens(final_no_body)
+        if needed_no_body > packing_budget:
+            extra_data["min_budget_tokens"] = needed_no_body
+            if "root_omitted_budget" not in warnings:
+                warnings.append("root_omitted_budget")
+            root_packet_fits = False
+
+        packets = [root_packet]
+        for symbol in symbols[1:]:
+            packets.append(
+                self._symbol_packet(
+                    repository.root,
+                    store,
+                    symbol,
+                    False,
+                    allow_symlinks=repository.allow_symlinks,
+                )
+            )
+
+        for packet in packets:
+            for warning in packet.get("warnings", []):
+                if warning not in warnings:
+                    warnings.append(warning)
+
+        entries: list[tuple[str, dict[str, Any]]] = []
+        if root_packet_fits:
+            entries.append(("symbol", packets[0]))
+            entries.extend(("edge", edge_as_dict(edge)) for edge in traversal_edges)
+            entries.extend(("symbol", packet) for packet in packets[1:])
+        else:
+            entries = []
 
         chosen, omitted, used = self._pack_to_budget(entries, lambda item: _json(item[1]), packing_budget, build_response)
         return build_response(chosen, omitted, used)
