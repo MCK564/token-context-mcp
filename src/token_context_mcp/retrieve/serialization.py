@@ -37,6 +37,17 @@ def summarize_payload(payload: dict[str, Any]) -> str:
     return " ".join(parts)
 
 
+def normalize_line_endings(data: Any) -> Any:
+    """Recursively normalize CRLF to LF in strings within data structures."""
+    if isinstance(data, str):
+        return data.replace("\r\n", "\n")
+    elif isinstance(data, list):
+        return [normalize_line_endings(item) for item in data]
+    elif isinstance(data, dict):
+        return {key: normalize_line_endings(value) for key, value in data.items()}
+    return data
+
+
 class ResultFinalizer:
     """Formats CallToolResult according to configured output mode without duplicate payloads."""
 
@@ -45,6 +56,7 @@ class ResultFinalizer:
         self.max_wire_bytes = max_wire_bytes
 
     def finalize(self, payload: dict[str, Any], output_mode: OutputMode | None = None) -> CallToolResult:
+        payload = normalize_line_endings(payload)
         mode = output_mode or self.output_mode
 
         if mode == "structured":

@@ -528,7 +528,7 @@ class RetrievalService:
         parts: list[dict[str, Any]] = []
         for line_number, line in imports:
             content, count = redact_text(line)
-            parts.append({"kind": "import", "start_line": line_number, "end_line": line_number, "content": content.rstrip(), "redacted_lines": count})
+            parts.append({"kind": "import", "start_line": line_number, "end_line": line_number, "content": content.rstrip().replace("\r\n", "\n"), "redacted_lines": count})
         for symbol in symbols:
             if stale:
                 content, count = None, 0
@@ -541,7 +541,7 @@ class RetrievalService:
                     "symbol_id": symbol.symbol_id,
                     "start_line": symbol.start_line,
                     "end_line": symbol.end_line,
-                    "content": content.strip() if content is not None else None,
+                    "content": content.strip().replace("\r\n", "\n") if content is not None else None,
                     "redacted_lines": count,
                     "body_elided": symbol.body_start_byte is not None and not stale,
                 }
@@ -1119,7 +1119,7 @@ class RetrievalService:
             content, redacted = redact_text(_source_bytes(source, symbol.start_byte, end))
         return {
             "symbol": symbol_as_dict(symbol),
-            "content": content.strip() if content is not None else None,
+            "content": content.strip().replace("\r\n", "\n") if content is not None else None,
             "body_included": include_body,
             "redacted_lines": redacted,
             "evidence": Evidence(symbol.path, symbol.start_line, symbol.end_line, record.sha256).as_dict(),
@@ -1307,7 +1307,7 @@ def _source_import_lines(source: str) -> list[tuple[int, str]]:
 
 def _source_bytes(source: str, start: int, end: int) -> str:
     raw = source.encode("utf-8")
-    return raw[start:end].decode("utf-8", errors="replace")
+    return raw[start:end].decode("utf-8", errors="replace").replace("\r\n", "\n")
 
 
 def _looks_like_test_path(path: str) -> bool:
