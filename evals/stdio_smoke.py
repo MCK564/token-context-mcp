@@ -27,7 +27,7 @@ def _console_script() -> str:
     raise RuntimeError("installed token-context console script was not found")
 
 
-EXPECTED_TOOLS = {
+CORE_TOOLS = {
     "list_repositories",
     "get_repo_map",
     "find_symbols",
@@ -38,6 +38,18 @@ EXPECTED_TOOLS = {
     "get_impact_slice",
     "get_index_status",
     "inspect_symbol",
+}
+
+EXTENDED_TOOLS = CORE_TOOLS | {
+    "list_available_tools",
+    "search_tools",
+    "get_tool_schema",
+    "memory_put",
+    "memory_get",
+    "memory_search",
+    "memory_lock",
+    "memory_consolidate",
+    "sample_summarize",
 }
 
 
@@ -52,8 +64,10 @@ async def _run() -> None:
         async with Client(stdio_client(parameters)) as client:
             tools = await client.list_tools()
             names = {tool.name for tool in tools.tools}
-            if names != EXPECTED_TOOLS:
-                raise AssertionError(f"expected {len(EXPECTED_TOOLS)} tools ({sorted(EXPECTED_TOOLS)}), got {len(names)}: {sorted(names)}")
+            if names not in (CORE_TOOLS, EXTENDED_TOOLS):
+                raise AssertionError(
+                    f"expected 10 core tools or 19 extended tools, got {len(names)}: {sorted(names)}"
+                )
 
 
 def main() -> None:

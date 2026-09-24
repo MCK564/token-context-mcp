@@ -31,6 +31,22 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 ## 2. Cài đặt gói **[đã kiểm chứng]**
 
+### 2.1 Cài đặt tự động qua Script (Khuyến nghị)
+
+Repo cung cấp sẵn các script tự động kiểm tra Python, cài đặt `uv`, tạo môi trường ảo, đồng bộ cấu hình `repos.toml` (bật sẵn `enable_extensions = true` để hỗ trợ 19 tools) và chạy test:
+
+- **Trên Windows (PowerShell):**
+  ```powershell
+  .\scripts\setup_environment.ps1
+  ```
+- **Trên Linux / macOS / WSL (Bash):**
+  ```bash
+  chmod +x scripts/setup_environment.sh scripts/download_models.sh
+  ./scripts/setup_environment.sh
+  ```
+
+### 2.2 Cài đặt thủ công bằng Git
+
 ```powershell
 git clone https://github.com/MCK564/token-context-mcp.git
 cd token-context-mcp
@@ -39,10 +55,35 @@ uv sync --extra dev
 
 `uv sync` tự tạo `.venv/` và cài đúng phiên bản trong `uv.lock`. Không cần `python -m venv` thủ công.
 
-Phụ thuộc runtime (6 gói, không có gói nặng):
+### 2.3 Cài đặt trong Môi trường Air-Gapped / Không có mạng (Tải ZIP thủ công)
+
+Nếu máy làm việc nằm trong mạng nội bộ cô lập, không có mạng hoặc không truy cập được Git, bạn có thể tạo gói ZIP đầy đủ bánh xe (wheels) từ một máy có mạng:
+```bash
+# Trên máy có mạng: Đóng gói mã nguồn sạch kèm toàn bộ dependencies
+python scripts/bundle_offline_zip.py --with-wheels -o dist/token-context-mcp-offline.zip
+```
+Sau đó copy file ZIP sang máy đích, giải nén và cài đặt hoàn toàn offline:
+```powershell
+# Trên máy đích (hoàn toàn không cần internet):
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install --no-index --find-links=wheels -e .[dev]
+```
+
+### 2.4 Tải & Thiết lập Mô hình Cục bộ cho Nested Sampling (Ollama)
+
+Để sử dụng tính năng nén và phân tích cấu trúc mã nguồn thông minh (7B Coder Model), hãy chạy script tải mô hình tự động:
+- **Windows:** `.\scripts\download_models.ps1` (hoặc thêm `-Lightweight` để tải bản 1.5B)
+- **Linux/macOS:** `./scripts/download_models.sh` (hoặc thêm `--lightweight`)
+*(Lưu ý: Nếu không có Ollama hoặc GPU, hệ thống tự động kích hoạt Deterministic Heuristic Engine hoạt động mượt mà 100% trên CPU).*
+
+### 2.5 Danh sách Thư viện Phụ thuộc
+
+Phụ thuộc runtime (nhẹ, tối ưu):
 
 ```
 mcp>=2.0.0                    giao thức MCP
+pydantic>=2.0.0               schema phân tích ràng buộc & quote-before-synthesize
 pathspec>=0.12.1              đọc .gitignore khi kiểm kê file
 tree-sitter>=0.24.0           bộ phân tích cú pháp
 tree-sitter-python>=0.23.6    grammar Python
@@ -55,10 +96,10 @@ Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`.
 **Xác minh cài đặt:**
 
 ```powershell
-uv run pytest
+uv run --extra dev pytest
 ```
 
-Kỳ vọng: **54 passed, 1 skipped** (một test bị skip có chủ ý — nó cần một môi trường không có ở CI).
+Kỳ vọng: **94 passed, 4 skipped** (các test skip có chủ ý dành cho môi trường đặc thù không có trong CI).
 
 Nếu `uv run` báo lỗi khóa file `token-context.exe` trên Windows: đó là do một tiến trình MCP đang giữ console script. Dùng đường module thay thế — **mọi lệnh quản trị trong tài liệu này đều có dạng module**:
 
@@ -95,9 +136,9 @@ Registry mặc định nằm ở `%APPDATA%\token-context-mcp\repos.toml` (Windo
 
 ---
 
-## 4. Chỉnh giới hạn tài nguyên
+## 4. Chỉnh giới hạn tài nguyên & Tiện ích mở rộng (Extensions)
 
-Sửa khối `[server]` trong `%APPDATA%\token-context-mcp\repos.toml`, rồi **khởi động lại tiến trình MCP** (registry chỉ đọc lúc khởi động):
+Sửa khối `[server]` trong `%APPDATA%\token-context-mcp\repos.toml` (Windows) hoặc `~/.config/token-context-mcp/repos.toml` (Linux/macOS), rồi **khởi động lại tiến trình MCP** (registry chỉ đọc lúc khởi động):
 
 ```toml
 [server]
@@ -106,9 +147,11 @@ max_result_tokens  = 4096
 max_graph_nodes    = 200
 max_symbol_results = 30
 network_policy     = "declared-deny-not-enforced"
+enable_extensions  = true    # BẬT 9 EXTENDED AGENTIC TOOLS (TỔNG 19 TOOLS)
 ```
 
-`max_result_tokens` là **núm điều khiển chính** cho chi phí token. Mỗi phản hồi được trừ sẵn 96 token cho khung MCP trước khi nhồi nội dung, nên không lời gọi nào vượt trần.
+- `enable_extensions`: Khi đặt `true`, server kích hoạt thêm 9 công cụ hạ tầng agent nâng cao (Dynamic Tool Discovery, Cross-Session Episodic Memory & Consolidation, Structured Nested Sampling 7B). Mặc định là `false` để giữ trọn vẹn bề mặt công cụ tối giản 10 tools nếu người dùng chỉ muốn truy xuất kho mã nguồn thuần túy.
+- `max_result_tokens` là **núm điều khiển chính** cho chi phí token. Mỗi phản hồi được trừ sẵn 96 token cho khung MCP trước khi nhồi nội dung, nên không lời gọi nào vượt trần.
 
 `list_repositories` công bố bốn profile ngân sách dựng sẵn là `locate`, `orient`, `impact` và `read`. Truyền `profile` cho tool phù hợp; các tham số tường minh như `budget_tokens`, `limit`, `depth` hoặc `include_body` sẽ ghi đè profile. `get_impact_slice` nhận `max_tokens`; nếu bỏ qua thì mặc định là giá trị nhỏ hơn giữa 2.048 và trần kết quả của server.
 
@@ -146,7 +189,7 @@ Tạo `.mcp.json` ở gốc dự án (mẫu có sẵn tại `.mcp.json.example`)
 
 Nếu `uv` không nằm trên PATH của tiến trình Claude Code, thay `"command"` bằng đường dẫn tuyệt đối tới `uv.exe`.
 
-**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 10 tool.
+**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 10 tool (hoặc 19 tool khi cấu hình `enable_extensions = true`).
 
 ### 5.2 Codex CLI **[đã kiểm chứng một phần]**
 
@@ -196,7 +239,7 @@ Các bước bật:
 - Nếu không thấy: Command Palette → `MCP: Show Output` để đọc log khởi động. Lỗi hay gặp nhất là `uv` không có trên PATH của VS Code; thay bằng đường dẫn tuyệt đối tới `uv.exe`.
 - Trong Chat, hỏi: *"list the repositories available from token-context"*. Nếu trả về danh sách `repo_id` thì server đã nối đúng.
 
-> **Đã kiểm chứng đến đâu.** Trên máy này: VS Code **1.135.0** (MCP đã GA, dùng khóa `servers`), Copilot Chat đang hoạt động — nó là extension **built-in**, nên không xuất hiện trong `code --list-extensions`. File `.vscode/mcp.json` ở trên đã được tạo sẵn trong repo và parse hợp lệ. Chính **lệnh khởi chạy** bên trong đã được kiểm chứng bằng bắt tay MCP thật qua stdio: `initialize` thành công, `tools/list` trả về đủ **10 tool**.
+> **Đã kiểm chứng đến đâu.** Trên máy này: VS Code **1.135.0** (MCP đã GA, dùng khóa `servers`), Copilot Chat đang hoạt động — nó là extension **built-in**, nên không xuất hiện trong `code --list-extensions`. File `.vscode/mcp.json` ở trên đã được tạo sẵn trong repo và parse hợp lệ. Chính **lệnh khởi chạy** bên trong đã được kiểm chứng bằng bắt tay MCP thật qua stdio: `initialize` thành công, `tools/list` trả về đủ **10 tool lõi** (hoặc **19 tool** khi bật `enable_extensions = true`).
 >
 > Phần **chưa** kiểm chứng là chặng cuối: Copilot Chat có nạp file này và hiện tool ra hay không. Đó là việc bạn xác nhận trong app bằng `MCP: List Servers`.
 
@@ -240,7 +283,7 @@ Các bước bật:
 1. Mở Antigravity.
 2. Vào cài đặt MCP (Settings → MCP Servers, hoặc nút cấu hình MCP trong panel agent).
 3. Bấm refresh/reload để nạp lại `mcp_config.json`.
-4. `token-context` phải xuất hiện kèm 10 tool.
+4. `token-context` phải xuất hiện kèm 10 tool (hoặc 19 tool khi bật `enable_extensions = true`).
 
 **Cách xác minh:** hỏi agent *"liệt kê các repository có từ token-context"*. Ra được danh sách `repo_id` là đã thông.
 
@@ -316,7 +359,12 @@ agent gọi tool
                       completeness{value, basis}, warnings, evidence, data
 ```
 
-### 7.3 Chín tool
+### 7.3 Hệ thống 19 Tool (10 Lõi + 9 Mở rộng)
+
+Hệ thống phân tách thành hai tầng công cụ rành mạch:
+
+#### Tầng 1: 10 Công cụ Truy xuất Kho mã nguồn Lõi (Core Repository Retrieval)
+Chạy ở chế độ Read-Only hoàn toàn trên snapshot SQLite cục bộ, không phụ thuộc daemon:
 
 | Tool | Trả lời câu hỏi | Bị chặn bởi |
 |---|---|---|
@@ -329,6 +377,22 @@ agent gọi tool
 | `get_symbol_context` | "symbol này trông ra sao, chạm tới đâu" | `max_tokens`, `depth ≤ 3` |
 | `get_impact_slice` | "sửa cái này thì có thể hỏng gì" | `max_nodes`, `max_tokens` |
 | `get_module_dependents` | "ai import module này" | — |
+| `inspect_symbol` | "lấy trọn vẹn context, skeleton, dependents của symbol trong 1 lượt" | `budget_tokens` |
+
+#### Tầng 2: 9 Công cụ Hạ tầng Agent Mở rộng (Extended Infrastructure)
+Kích hoạt khi cấu hình `enable_extensions = true`. Lấy cảm hứng và kiến trúc từ kho mã nguồn mở `GoogleCloudPlatform/generative-ai`:
+
+| Nhóm | Tool | Chức năng & Kỹ thuật học hỏi |
+|---|---|---|
+| **Dynamic Discovery** | `list_available_tools` | Phân loại và khám phá công cụ theo nhóm chức năng |
+| | `search_tools` | Tìm kiếm công cụ phù hợp với mục tiêu, kèm mẹo tiết kiệm token |
+| | `get_tool_schema` | Nạp schema chi tiết theo nhu cầu (just-in-time) giảm tải system prompt |
+| **Episodic Memory** | `memory_put` | Lưu tri thức, quyết định kiến trúc, quy ước code vào SQLite cục bộ |
+| *(Google GenAI)* | `memory_get` | Đọc lại ký ức theo key |
+| | `memory_search` | Tìm kiếm toàn văn trên kho tri thức đã tích lũy |
+| | `memory_lock` | Khóa bất biến các quy tắc cốt lõi, ngăn ghi đè |
+| | `memory_consolidate` | *(Always-On Memory)* Hợp nhất, khử trùng lặp phân cấp, tổng hợp bài học sâu sắc |
+| **Nested Sampling** | `sample_summarize` | Nén mã nguồn bằng mô hình 7B cục bộ (CPU/GPU) hoặc Heuristic fallback. Áp dụng Delimited Envelopes (`<<<SOURCE_CODE_START>>>`), Quote-before-Synthesize (`ConstraintEvidence`, `line_span`), và A2A tool chaining metadata (`recommended_followups`, `prerequisites`) |
 
 ### 7.4 Kiến trúc hiện tại và sơ đồ mã nguồn
 

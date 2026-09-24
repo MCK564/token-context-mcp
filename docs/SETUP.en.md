@@ -35,6 +35,22 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 2. Install the package **[verified]**
 
+### 2.1 Automated Setup via Script (Recommended)
+
+The repository provides automated scripts that verify Python, ensure `uv` is available, set up the virtual environment, generate `repos.toml` (with `enable_extensions = true` for all 19 tools), and run the test suite:
+
+- **On Windows (PowerShell):**
+  ```powershell
+  .\scripts\setup_environment.ps1
+  ```
+- **On Linux / macOS / WSL (Bash):**
+  ```bash
+  chmod +x scripts/setup_environment.sh scripts/download_models.sh
+  ./scripts/setup_environment.sh
+  ```
+
+### 2.2 Manual Installation via Git
+
 ```powershell
 git clone https://github.com/MCK564/token-context-mcp.git
 cd token-context-mcp
@@ -43,10 +59,35 @@ uv sync --extra dev
 
 `uv sync` creates `.venv/` and installs the exact versions pinned in `uv.lock`. There is no separate `python -m venv` step.
 
-Runtime dependencies — six packages, nothing heavy:
+### 2.3 Air-Gapped / Offline Installation (Manual ZIP Bundle)
+
+For isolated corporate networks, air-gapped workstations, or machines without direct Git connectivity, package the repository with binary wheels from an internet-connected machine:
+```bash
+# On an internet-connected machine: Bundle clean codebase and wheels
+python scripts/bundle_offline_zip.py --with-wheels -o dist/token-context-mcp-offline.zip
+```
+Transfer and unpack on the target machine, then install completely offline:
+```powershell
+# On the air-gapped machine (no internet connection required):
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install --no-index --find-links=wheels -e .[dev]
+```
+
+### 2.4 Local Model Setup for Nested Sampling (Ollama)
+
+To enable local 7B AI-driven code summarization and constraint extraction, run the automated model downloader:
+- **Windows:** `.\scripts\download_models.ps1` (or add `-Lightweight` for the 1.5B model)
+- **Linux/macOS:** `./scripts/download_models.sh` (or add `--lightweight`)
+*(Note: If Ollama or GPU is unavailable, the server seamlessly falls back 100% to the Deterministic Heuristic Engine on CPU).*
+
+### 2.5 Runtime Dependencies
+
+Runtime dependencies — lightweight and self-contained:
 
 ```
 mcp>=2.0.0                    MCP protocol
+pydantic>=2.0.0               structured schemas & quote-before-synthesize constraints
 pathspec>=0.12.1              .gitignore matching during inventory
 tree-sitter>=0.24.0           parser runtime
 tree-sitter-python>=0.23.6    Python grammar
@@ -59,10 +100,10 @@ The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`.
 **Verify the install:**
 
 ```powershell
-uv run pytest
+uv run --extra dev pytest
 ```
 
-Expect **54 passed, 1 skipped**. The skip is deliberate — that test needs an environment CI does not provide.
+Expect **94 passed, 4 skipped**. The skips are deliberate — those tests need environments CI does not provide.
 
 If `uv run` fails with a locked `token-context.exe` on Windows, an MCP process is holding the console script. Use the module entry point instead — **every administrative command in this document is given in module form**:
 
@@ -99,9 +140,9 @@ The default registry is `%APPDATA%\token-context-mcp\repos.toml` on Windows, `$X
 
 ---
 
-## 4. Resource limits
+## 4. Resource limits & Server Extensions
 
-Edit the `[server]` block in the registry TOML, then **restart the MCP process** — the registry is read at start-up only:
+Edit the `[server]` block in the registry TOML (`%APPDATA%\token-context-mcp\repos.toml` on Windows, `~/.config/token-context-mcp/repos.toml` elsewhere), then **restart the MCP process** — the registry is read at start-up only:
 
 ```toml
 [server]
@@ -110,9 +151,11 @@ max_result_tokens  = 4096
 max_graph_nodes    = 200
 max_symbol_results = 30
 network_policy     = "declared-deny-not-enforced"
+enable_extensions  = true    # ENABLES ALL 9 EXTENDED AGENTIC TOOLS (19 TOOLS TOTAL)
 ```
 
-`max_result_tokens` is the **main control** for provider token cost. Every response reserves 96 tokens for MCP framing before packing content, so no call exceeds the cap.
+- `enable_extensions`: When set to `true`, enables 9 extended agentic infrastructure tools (Dynamic Discovery, Cross-Session Episodic Memory & Consolidation, Structured 7B Nested Sampling). Defaults to `false` to keep the minimalist 10 core repository retrieval tools.
+- `max_result_tokens` is the **main control** for provider token cost. Every response reserves 96 tokens for MCP framing before packing content, so no call exceeds the cap.
 
 `list_repositories` advertises the built-in `locate`, `orient`, `impact`, and `read` budget profiles. Pass a profile to a compatible retrieval tool; explicit arguments such as `budget_tokens`, `limit`, `depth`, or `include_body` override the profile. `get_impact_slice` accepts `max_tokens`; when omitted, it defaults to the smaller of 2,048 and the server result cap.
 
@@ -150,7 +193,7 @@ Create `.mcp.json` at the project root (a template ships as `.mcp.json.example`)
 
 If `uv` is not on the Claude Code process's PATH, replace `"command"` with the absolute path to `uv.exe`.
 
-**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 10 tools.
+**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 10 tools (or 19 tools when `enable_extensions = true`).
 
 ### 5.2 Codex CLI **[partly verified]**
 
@@ -200,7 +243,7 @@ Steps to enable:
 - If it does not appear: Command Palette → `MCP: Show Output` and read the start-up log. The most common cause is `uv` missing from VS Code's PATH; replace it with the absolute path to `uv.exe`.
 - In Chat, ask: *"list the repositories available from token-context"*. A list of `repo_id`s means the server is wired correctly.
 
-> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **10 tools**.
+> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **10 core tools** (or **19 tools** when `enable_extensions = true`).
 >
 > What is **not** verified is the last hop: whether Copilot Chat loads this file and surfaces the tools. Confirm that in-app with `MCP: List Servers`.
 
@@ -244,7 +287,7 @@ Steps to enable:
 1. Open Antigravity.
 2. Go to the MCP settings (Settings → MCP Servers, or the MCP configuration button in the agent panel).
 3. Hit refresh/reload to re-read `mcp_config.json`.
-4. `token-context` must appear with 10 tools.
+4. `token-context` must appear with 10 tools (or 19 tools when `enable_extensions = true`).
 
 **Verify:** ask the agent *"list the repositories available from token-context"*. A list of `repo_id`s means it is wired.
 
@@ -320,7 +363,12 @@ agent calls a tool
                     completeness{value, basis}, warnings, evidence, data
 ```
 
-### 7.3 The nine tools
+### 7.3 Tool Taxonomy (10 Core + 9 Extended Tools)
+
+The system organizes tools into two clear functional tiers:
+
+#### Tier 1: 10 Core Repository Retrieval Tools
+Operates in strict Read-Only mode over local atomic SQLite snapshots, completely zero-daemon:
 
 | Tool | Answers | Bounded by |
 |---|---|---|
@@ -333,6 +381,22 @@ agent calls a tool
 | `get_symbol_context` | "what does this symbol look like and touch" | `max_tokens`, `depth ≤ 3` |
 | `get_impact_slice` | "what might break if I change this" | `max_nodes`, `max_tokens` |
 | `get_module_dependents` | "who imports this module" | — |
+| `inspect_symbol` | "single-turn composite lookup of context, skeleton, and dependents" | `budget_tokens` |
+
+#### Tier 2: 9 Extended Agentic Infrastructure Tools
+Enabled when `enable_extensions = true` in `repos.toml`. Architectural patterns and prompt techniques inspired by Google Cloud Platform's Generative AI repository (`GoogleCloudPlatform/generative-ai`):
+
+| Category | Tool | Functionality & Inspiration |
+|---|---|---|
+| **Dynamic Discovery** | `list_available_tools` | Categorized catalog of registered tools |
+| | `search_tools` | Purpose-driven semantic tool lookup with token tips |
+| | `get_tool_schema` | Just-in-time schema loading to save prompt context |
+| **Episodic Memory** | `memory_put` | Store architecture decisions and rules in local SQLite |
+| *(Google GenAI)* | `memory_get` | Keyed retrieval of persistent memory entries |
+| | `memory_search` | Full-text FTS5 search across episodic lessons learned |
+| | `memory_lock` | Immutable locking of core engineering rules |
+| | `memory_consolidate` | *(Always-On Memory)* Deduplication, clustering, and theme synthesis |
+| **Nested Sampling** | `sample_summarize` | Local 7B model (CPU/GPU) or Deterministic Heuristic Fallback. Implements Delimited Envelopes (`<<<SOURCE_CODE_START>>>`), Quote-before-Synthesize (`ConstraintEvidence`, `line_span`), and A2A tool chaining metadata (`recommended_followups`, `prerequisites`) |
 
 ### 7.4 Current architecture and code map
 
