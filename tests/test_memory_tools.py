@@ -90,3 +90,36 @@ def test_memory_consolidate() -> None:
 
     # Check that transient keys were pruned
     assert service.memory_get("step_1", scope="session")["status"] == "not_found"
+
+
+def test_memory_search_special_queries() -> None:
+    service = MemoryService(":memory:")
+    service.memory_put("k1", {"doc": "token-context MCP architectural overview"})
+    service.memory_put("k2", {"doc": "the execution plan AND verification steps"})
+    service.memory_put("k3", {"doc": "NOT plan but fallback roadmap for tests"})
+    service.memory_put("k4", {"doc": "kế hoạch v2 tối ưu hóa bộ nhớ episodic"})
+
+    # 1. Query: "token-context"
+    res1 = service.memory_search("token-context")
+    assert res1["matches_count"] >= 1
+    assert any(m["key"] == "k1" for m in res1["matches"])
+
+    # 2. Query: "plan AND"
+    res2 = service.memory_search("plan AND")
+    assert res2["matches_count"] >= 1
+    assert any(m["key"] in ("k2", "k3") for m in res2["matches"])
+
+    # 3. Query: "NOT plan"
+    res3 = service.memory_search("NOT plan")
+    assert res3["matches_count"] >= 1
+    assert any(m["key"] in ("k2", "k3") for m in res3["matches"])
+
+    # 4. Query: "kế hoạch v2"
+    res4 = service.memory_search("kế hoạch v2")
+    assert res4["matches_count"] >= 1
+    assert any(m["key"] == "k4" for m in res4["matches"])
+
+    # 5. Empty / non-word query returns 0 matches cleanly
+    res_empty = service.memory_search("--- !!! ???")
+    assert res_empty["matches_count"] == 0
+    assert res_empty["matches"] == []

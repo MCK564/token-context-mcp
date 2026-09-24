@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import time
 from collections.abc import Iterator
@@ -153,9 +154,12 @@ class MemoryStore:
 
     def search(self, query: str, *, scope: str | None = None, limit: int = 5) -> dict[str, Any]:
         now = time.time()
-        escaped_query = "".join(c for c in query if c.isalnum() or c in (" ", "_", "-")).strip()
-        if not escaped_query:
-            return {"query": query, "matches": []}
+        terms = re.findall(r"\w+", query)
+        if not terms:
+            return {"query": query, "matches_count": 0, "matches": []}
+
+        formatted_terms = [f'"{term}"' for term in terms]
+        fts_query = " AND ".join(formatted_terms)
 
         sql = """
             SELECT m.scope, m.key, kv.value_json, kv.created_at, kv.expires_at
@@ -163,7 +167,7 @@ class MemoryStore:
             JOIN key_values kv ON m.scope = kv.scope AND m.key = kv.key
             WHERE memory_fts MATCH ?
         """
-        params: list[Any] = [escaped_query]
+        params: list[Any] = [fts_query]
         if scope:
             sql += " AND m.scope = ?"
             params.append(scope)
@@ -171,22 +175,30 @@ class MemoryStore:
         params.append(limit)
 
         matches: list[dict[str, Any]] = []
-        with self._connection() as conn:
-            for row in conn.execute(sql, params):
-                if row["expires_at"] and row["expires_at"] < now:
-                    continue
-                try:
-                    val = json.loads(row["value_json"])
-                except Exception:
-                    val = row["value_json"]
-                matches.append(
-                    {
-                        "scope": row["scope"],
-                        "key": row["key"],
-                        "value": val,
-                        "created_at": row["created_at"],
-                    }
-                )
+        try:
+            with self._connection() as conn:
+                for row in conn.execute(sql, params):
+                    if row["expires_at"] and row["expires_at"] < now:
+                        continue
+                    try:
+                        val = json.loads(row["value_json"])
+                    except Exception:
+                        val = row["value_json"]
+                    matches.append(
+                        {
+                            "scope": row["scope"],
+                            "key": row["key"],
+                            "value": val,
+                            "created_at": row["created_at"],
+                        }
+                    )
+        except sqlite3.OperationalError:
+            return {
+                "query": query,
+                "matches_count": 0,
+                "matches": [],
+                "warnings": ["invalid_query"],
+            }
 
         return {"query": query, "matches_count": len(matches), "matches": matches}
 
