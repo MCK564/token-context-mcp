@@ -91,7 +91,7 @@ tree-sitter-javascript>=0.23.1
 tree-sitter-typescript>=0.23.2
 ```
 
-Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`.
+Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`. Nhóm `gui` thêm `PySide6`, `psutil`, `pyinstaller`.
 
 **Xác minh cài đặt:**
 
@@ -99,13 +99,35 @@ Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`.
 uv run --extra dev pytest
 ```
 
-Kỳ vọng: **94 passed, 4 skipped** (các test skip có chủ ý dành cho môi trường đặc thù không có trong CI).
+Kỳ vọng: **100 passed, 4 skipped** (bao gồm 6 unit test cho GUI Bridge và Widgets chạy ở chế độ offscreen headless).
 
 Nếu `uv run` báo lỗi khóa file `token-context.exe` trên Windows: đó là do một tiến trình MCP đang giữ console script. Dùng đường module thay thế — **mọi lệnh quản trị trong tài liệu này đều có dạng module**:
 
 ```powershell
 uv run python -m token_context_mcp <lệnh>
 ```
+
+### 2.6 Bộ Điều khiển Giao diện Trực quan (PySide6 Desktop GUI)
+
+Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI đồ họa hoàn chỉnh:
+- **Khởi chạy nhanh qua CLI:**
+  ```powershell
+  uv run token-context-gui
+  # Hoặc: python -m token_context_mcp.gui.main
+  ```
+- **Khởi chạy 1-click:** Nhấp đúp vào `scripts\launch_desktop_gui.bat` hoặc chạy `scripts\launch_desktop_gui.ps1`.
+- **Đóng gói file .exe độc lập (Portable):**
+  ```powershell
+  python scripts/build_desktop_exe.py
+  ```
+  Tạo ra bộ chạy độc lập tại `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` có thể chạy trên bất kỳ máy Windows nào mà không cần cài Python.
+
+**Các tính năng trên 5 Tab của GUI:**
+1. **📊 Dashboard:** Theo dõi CPU/RAM thời gian thực, phát hiện GPU CUDA / Ollama / CPU Fallback, Start/Stop/Restart MCP Server, 1-click Copy MCP Configuration cho Claude Desktop, VS Code, Cursor, Antigravity.
+2. **📁 Repositories:** Quản lý danh sách repo, độ tươi, tỷ lệ mơ hồ, nút Add Repo (kèm Folder Picker), Re-index và thanh tiến trình bóc tách AST.
+3. **⚡ Tasks & Graph:** Log console thời gian thực, biểu đồ phân bố ngôn ngữ, tỷ lệ giải quyết cạnh và danh sách Top Entry Points.
+4. **💾 Cache & DB:** Thống kê dung lượng SQLite, nút Clean Stale Snapshots, nút VACUUM tối ưu đĩa, và nút Purge Cache.
+5. **⚙️ Settings:** Sửa trực tiếp cấu hình `repos.toml` (`max_result_tokens`, `enable_extensions` bật 19 tools).
 
 ---
 

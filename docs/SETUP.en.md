@@ -95,7 +95,7 @@ tree-sitter-javascript>=0.23.1
 tree-sitter-typescript>=0.23.2
 ```
 
-The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`.
+The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`. The `gui` extra adds `PySide6`, `psutil`, `pyinstaller`.
 
 **Verify the install:**
 
@@ -103,13 +103,35 @@ The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`.
 uv run --extra dev pytest
 ```
 
-Expect **94 passed, 4 skipped**. The skips are deliberate — those tests need environments CI does not provide.
+Expect **100 passed, 4 skipped** (including 6 unit tests covering the GUI bridge and widgets running in offscreen headless mode).
 
 If `uv run` fails with a locked `token-context.exe` on Windows, an MCP process is holding the console script. Use the module entry point instead — **every administrative command in this document is given in module form**:
 
 ```powershell
 uv run python -m token_context_mcp <command>
 ```
+
+### 2.6 Desktop Graphical User Interface (PySide6 Desktop GUI)
+
+In addition to CLI operations, the repository provides a full desktop graphical controller:
+- **Fast CLI Launch:**
+  ```powershell
+  uv run token-context-gui
+  # Or: python -m token_context_mcp.gui.main
+  ```
+- **1-Click Launchers:** Double-click `scripts\launch_desktop_gui.bat` or run `scripts\launch_desktop_gui.ps1`.
+- **Package Standalone Portable .EXE:**
+  ```powershell
+  python scripts/build_desktop_exe.py
+  ```
+  Generates a standalone portable bundle at `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` that runs on any Windows machine without requiring Python.
+
+**Key GUI Features across the 5 Tabs:**
+1. **📊 Dashboard:** Real-time CPU & RAM gauges, AI hardware detection (NVIDIA CUDA, Apple Silicon MPS, Ollama 7B, CPU Heuristic), MCP server controller (Start/Stop/Restart, PID tracking), and 1-click "Copy MCP Config JSON" for Claude Desktop, VS Code, Cursor, and Antigravity.
+2. **📁 Repositories:** Visual data grid with repository roots, snapshot freshness badges, symbol counts, ambiguous edge rates, and interactive "Add Repository" folder picker.
+3. **⚡ Tasks & Graph:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
+4. **💾 Cache & DB:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
+5. **⚙️ Settings:** Interactive editor for `repos.toml` resource caps and the 19 tools extension toggle.
 
 ---
 

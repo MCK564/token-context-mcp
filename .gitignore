@@ -5,6 +5,7 @@ __pycache__/
 coverage.xml
 /dist/
 /build/
+*.spec
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

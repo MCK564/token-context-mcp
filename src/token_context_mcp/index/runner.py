@@ -15,6 +15,8 @@ from statistics import median
 
 import pathspec
 
+from collections.abc import Callable
+
 from token_context_mcp.constants import (
     DEFAULT_MAX_GRAPH_NODES,
     INDEX_SCHEMA_VERSION,
@@ -47,7 +49,13 @@ def manifest_path(index_directory: Path, repo_id: str) -> Path:
     return index_directory / f"{repo_id}.manifest.json"
 
 
-def build_index(repository: RepositoryConfig, index_directory: Path, *, network_policy: str) -> dict[str, object]:
+def build_index(
+    repository: RepositoryConfig,
+    index_directory: Path,
+    *,
+    network_policy: str,
+    progress_callback: Callable[[str, int, int], None] | None = None,
+) -> dict[str, object]:
     secure_directory(index_directory)
     destination = database_path(index_directory, repository.repo_id)
     previous_files: dict[str, FileRecord] = {}
@@ -78,6 +86,8 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
     for file_path in _inventory(repository):
         files_seen += 1
         relative = relative_posix(repository.root, file_path)
+        if progress_callback and files_seen % 10 == 0:
+            progress_callback(f"Scanning & parsing {relative}", files_seen, files_reparsed + files_reused)
         if is_hard_denied(relative):
             files_skipped += 1
             continue
@@ -160,6 +170,8 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
         symbols.extend(parsed.symbols)
         imports[relative] = parsed.imports
         calls_by_path[relative] = parsed.calls
+    if progress_callback:
+        progress_callback("Assigning structural roles...", files_seen, len(symbols))
     declared_entry_points = _declared_entry_points(repository.root)
     symbols, entry_points = _assign_structural_roles(symbols, source_by_path, declared_entry_points)
     body_lengths = [
@@ -189,6 +201,8 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
             "formula": "ceil(3 * sqrt(symbol_count)), floor=30, cap=500",
         },
     }
+    if progress_callback:
+        progress_callback("Resolving lexical graph edges...", files_seen, len(symbols))
     edges: list[EdgeRecord] = build_lexical_edges(
         symbols,
         source_by_path,
@@ -229,6 +243,8 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
     }
     temporary = destination.with_suffix(f".tmp-{uuid.uuid4().hex}.sqlite")
     try:
+        if progress_callback:
+            progress_callback("Writing atomic SQLite snapshot...", files_seen, len(symbols))
         SQLiteStore(temporary).write_snapshot(
             metadata=manifest,
             files=files,
@@ -247,6 +263,8 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
         temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
         secure_file(temporary_manifest)
         temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
+        if progress_callback:
+            progress_callback("Index snapshot complete!", files_seen, len(symbols))
     finally:
         temporary.unlink(missing_ok=True)
     return manifest

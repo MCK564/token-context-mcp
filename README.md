@@ -64,6 +64,29 @@ uv run token-context status --repo-id demo
 uv run token-context serve
 ```
 
+### Desktop GUI Controller (PySide6)
+
+In addition to the CLI, `token-context-mcp` includes a modern desktop graphical user interface with hardware telemetry, visual repository management, live indexing progress, log streaming, and cache controls:
+
+```powershell
+# Launch Desktop GUI
+uv run token-context-gui
+
+# Or using 1-click launcher scripts:
+.\scripts\launch_desktop_gui.bat    # Windows Batch
+.\scripts\launch_desktop_gui.ps1    # PowerShell
+
+# Build a standalone portable .exe:
+python scripts/build_desktop_exe.py
+```
+
+Key GUI Capabilities:
+- **📊 Dashboard & Telemetry:** Real-time CPU & RAM gauges, AI hardware detection (NVIDIA CUDA, Apple Silicon MPS, Ollama 7B, CPU Heuristic), MCP Server Start/Stop/Restart with PID tracking, and 1-click "Copy MCP Config JSON" for Claude Desktop, VS Code, Cursor, and Antigravity.
+- **📁 Repository Management:** Visual data grid with repository roots, snapshot freshness badges, symbol counts, ambiguous edge rates, and interactive "Add Repository" folder picker.
+- **⚡ Tasks & Graph Visualizer:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
+- **💾 Cache & Storage Controller:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
+- **⚙️ Server Settings:** Interactive editor for `repos.toml` resource caps and the 19 tools extension toggle.
+
 By default the registry is global for the current user at `%APPDATA%\token-context-mcp\repos.toml` on Windows and `~/.config/token-context-mcp/repos.toml` on Linux and macOS; it is independent of the current working directory. Set `TOKEN_CONTEXT_CONFIG` to use an explicit shared/portable TOML path — on a multi-user host, read [Keeping the registry and snapshots private](#keeping-the-registry-and-snapshots-private) before pointing several accounts at one file. For Codex, launch the package through a configured `stdio` MCP command. Use only the read-only tools listed by the server.
 
 ## Register repositories safely

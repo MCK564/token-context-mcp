@@ -1,0 +1,3 @@
+"""
+GUI Widget components.
+"""

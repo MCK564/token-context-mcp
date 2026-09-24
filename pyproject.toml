@@ -30,9 +30,15 @@ dev = [
   "pytest>=8.3.0",
   "pytest-cov>=6.0.0",
 ]
+gui = [
+  "PySide6>=6.6.0",
+  "psutil>=5.9.0",
+  "pyinstaller>=6.0.0",
+]
 
 [project.scripts]
 token-context = "token_context_mcp.cli:main"
+token-context-gui = "token_context_mcp.gui.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/token_context_mcp"]
