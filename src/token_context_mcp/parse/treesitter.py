@@ -5,7 +5,7 @@ import hashlib
 import importlib
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from tree_sitter import Language, Parser, Query, QueryCursor
 
@@ -17,11 +17,21 @@ class ParseError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class CallRecord:
+    name: str
+    receiver: str | None
+    line: int
+    start_byte: int
+    end_byte: int
+
+
+@dataclass(frozen=True)
 class ParseResult:
     language: str
     symbols: list[SymbolRecord]
     imports: list[str]
     warnings: list[str]
+    calls: list[CallRecord] = field(default_factory=list)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -95,12 +105,13 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     symbols = list(_walk_symbols(tree.root_node, raw, path, language_name, [], line_offsets))
     symbols = _add_module_entry_roles(tree.root_node, raw, symbols)
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
+    calls = extract_calls(tree.root_node, raw, language_name)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
     if not symbols:
         warnings.append("parsed_file_has_zero_symbols")
-    return ParseResult(language=language_name, symbols=symbols, imports=imports, warnings=warnings)
+    return ParseResult(language=language_name, symbols=symbols, imports=imports, warnings=warnings, calls=calls)
 
 
 def _load_language(language_name: str) -> Language:
@@ -465,3 +476,108 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     except (SyntaxError, ValueError):
         return value[1:-1]
     return result if isinstance(result, str) else None
+
+
+def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallRecord]:
+    calls: list[CallRecord] = []
+
+    def visit(current: object) -> None:
+        c_type = getattr(current, "type", "")
+        if language_name == "python" and c_type == "call":
+            func = _field(current, "function")
+            if func is not None:
+                if func.type == "attribute":
+                    obj = _field(func, "object")
+                    attr = _field(func, "attribute")
+                    if attr is not None:
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(attr, raw),
+                                receiver=_node_text(obj, raw) if obj is not None else None,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                            )
+                        )
+                elif func.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(func, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                        )
+                    )
+        elif language_name in {"javascript", "typescript", "tsx"} and c_type == "call_expression":
+            func = _field(current, "function")
+            if func is not None:
+                if func.type == "member_expression":
+                    obj = _field(func, "object")
+                    prop = _field(func, "property")
+                    if prop is not None:
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(prop, raw),
+                                receiver=_node_text(obj, raw) if obj is not None else None,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                            )
+                        )
+                elif func.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(func, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                        )
+                    )
+        elif language_name == "java" and c_type == "method_invocation":
+            obj = _field(current, "object")
+            name = _field(current, "name")
+            if name is not None:
+                calls.append(
+                    CallRecord(
+                        name=_node_text(name, raw),
+                        receiver=_node_text(obj, raw) if obj is not None else None,
+                        line=int(current.start_point[0]) + 1,
+                        start_byte=int(current.start_byte),
+                        end_byte=int(current.end_byte),
+                    )
+                )
+        elif language_name == "c_sharp" and c_type == "invocation_expression":
+            expr = _field(current, "expression") or (
+                current.named_children[0] if getattr(current, "named_children", None) else None
+            )
+            if expr is not None:
+                if expr.type == "member_access_expression":
+                    expr_obj = _field(expr, "expression")
+                    expr_name = _field(expr, "name")
+                    if expr_name is not None:
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(expr_name, raw),
+                                receiver=_node_text(expr_obj, raw) if expr_obj is not None else None,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                            )
+                        )
+                elif expr.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(expr, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                        )
+                    )
+        for child in getattr(current, "named_children", []):
+            visit(child)
+
+    visit(root)
+    return calls

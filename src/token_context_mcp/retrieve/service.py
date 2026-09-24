@@ -789,6 +789,8 @@ class RetrievalService:
         max_nodes: int | None = None,
         max_tokens: int | None = None,
         profile: str | None = None,
+        min_confidence: float | None = None,
+        filter_ambiguous: bool = False,
     ) -> dict[str, Any]:
         profile_settings = self._profile_settings(profile, "impact_slice")
         if depth is None:
@@ -831,6 +833,10 @@ class RetrievalService:
             depth=depth,
             max_nodes=effective_max_nodes,
         )
+        if filter_ambiguous:
+            edges = [e for e in edges if e.status != "ambiguous"]
+        if min_confidence is not None:
+            edges = [e for e in edges if e.confidence is not None and e.confidence >= min_confidence]
         symbols = [store.symbol(item) for item in ids]
         symbols = [item for item in symbols if item]
         completeness = _completeness(edges)

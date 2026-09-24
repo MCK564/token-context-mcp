@@ -29,7 +29,7 @@ from token_context_mcp.models import (
     SymbolRecord,
 )
 from token_context_mcp.parse.lexical_edges import build_lexical_edges
-from token_context_mcp.parse.treesitter import ParseError, parse_source
+from token_context_mcp.parse.treesitter import CallRecord, ParseError, parse_source
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
 from token_context_mcp.security.local_privacy import (
     secure_directory,
@@ -68,6 +68,7 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
     files: list[FileRecord] = []
     symbols: list[SymbolRecord] = []
     imports: dict[str, list[str]] = {}
+    calls_by_path: dict[str, list[CallRecord]] = {}
     source_by_path: dict[str, str] = {}
     warnings: list[str] = []
     files_seen = 0
@@ -126,6 +127,11 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
             symbols.extend(previous_store.symbols(path=relative))
             imports[relative] = previous_store.imports_for_path(relative)
             files_reused += 1
+            try:
+                parsed_reused = parse_source(relative, raw, language)
+                calls_by_path[relative] = parsed_reused.calls
+            except Exception:
+                calls_by_path[relative] = []
             continue
         files_reparsed += 1
         try:
@@ -153,6 +159,7 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
         )
         symbols.extend(parsed.symbols)
         imports[relative] = parsed.imports
+        calls_by_path[relative] = parsed.calls
     declared_entry_points = _declared_entry_points(repository.root)
     symbols, entry_points = _assign_structural_roles(symbols, source_by_path, declared_entry_points)
     body_lengths = [
@@ -183,7 +190,11 @@ def build_index(repository: RepositoryConfig, index_directory: Path, *, network_
         },
     }
     edges: list[EdgeRecord] = build_lexical_edges(
-        symbols, source_by_path, max_edges_per_symbol=max_edges_per_symbol
+        symbols,
+        source_by_path,
+        max_edges_per_symbol=max_edges_per_symbol,
+        calls_by_path=calls_by_path,
+        imports_by_path=imports,
     )
     symbol_bodies = {
         symbol.symbol_id: _search_text(_slice_source(source_by_path[symbol.path], symbol.start_byte, symbol.end_byte))

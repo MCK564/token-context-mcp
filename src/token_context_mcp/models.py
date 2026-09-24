@@ -26,6 +26,7 @@ class ServerConfig:
     network_policy: str = "declared-deny-not-enforced"
     output_mode: str = "structured"
     default_view: str = "normal"
+    enable_extensions: bool = False
 
 
 @dataclass(frozen=True)

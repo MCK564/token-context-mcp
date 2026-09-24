@@ -17,17 +17,28 @@ from token_context_mcp.retrieve.service import (
     RetrievalError,
     RetrievalService,
 )
+from token_context_mcp.memory.service import MemoryService
 from token_context_mcp.retrieve.workflows import CompositeWorkflowEngine
+from token_context_mcp.sampling.router import SamplingRouter
 from token_context_mcp.security.path_policy import PathPolicyError
 
 logger = logging.getLogger("token_context_mcp")
 
 
-def build_server(config_path: Path) -> MCPServer:
+def build_server(config_path: Path, enable_extensions: bool | None = None) -> MCPServer:
     config = load_config(config_path)
     service = RetrievalService(config, config_path)
     workflow_engine = CompositeWorkflowEngine(service)
     finalizer = ResultFinalizer(output_mode=config.server.output_mode)
+    extensions_enabled = (
+        enable_extensions if enable_extensions is not None else getattr(config.server, "enable_extensions", False)
+    )
+    if extensions_enabled:
+        memory_service = MemoryService(config_path.parent / "memory.sqlite")
+        sampling_router = SamplingRouter()
+    else:
+        memory_service = None
+        sampling_router = None
 
     def _wrap(payload: dict[str, Any]) -> CallToolResult:
         return finalizer.finalize(payload)
@@ -205,6 +216,8 @@ def build_server(config_path: Path) -> MCPServer:
         max_nodes: int | None = None,
         max_tokens: int | None = None,
         profile: str | None = None,
+        min_confidence: float | None = None,
+        filter_ambiguous: bool = True,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -216,6 +229,8 @@ def build_server(config_path: Path) -> MCPServer:
                     max_nodes=max_nodes,
                     max_tokens=max_tokens,
                     profile=profile,
+                    min_confidence=min_confidence,
+                    filter_ambiguous=filter_ambiguous,
                 )
             )
         )
@@ -247,6 +262,78 @@ def build_server(config_path: Path) -> MCPServer:
                 )
             )
         )
+
+    if extensions_enabled and memory_service and sampling_router:
+        # --- Smart Tool Discovery ---
+
+        @server.tool(
+            title="List available tools",
+            description="Compact catalog of available tools grouped by category (minimal tokens).",
+        )
+        def list_available_tools(category: str | None = None) -> CallToolResult:
+            from token_context_mcp.discovery.tools import list_available_tools as _list_tools
+            return _wrap(_invoke(lambda: _list_tools(category=category)))
+
+        @server.tool(
+            title="Search tools",
+            description="Smart semantic/intent search over tool capabilities to find the right tool for an intent.",
+        )
+        def search_tools(query: str, limit: int = 3) -> CallToolResult:
+            from token_context_mcp.discovery.tools import search_tools as _search_tools
+            return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit)))
+
+        @server.tool(
+            title="Get tool schema",
+            description="Retrieve detailed parameter schema for a specific tool on demand.",
+        )
+        def get_tool_schema(tool_name: str) -> CallToolResult:
+            from token_context_mcp.discovery.tools import get_tool_schema as _get_schema
+            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name)))
+
+        # --- Shared State & Long-term Memory ---
+
+        @server.tool(
+            title="Store memory",
+            description="Store execution state, checkpoint, or cross-agent artifact in shared persistent memory.",
+        )
+        def memory_put(
+            key: str,
+            value: Any,
+            scope: str = "session",
+            ttl: int | None = 86400,
+            session_id: str | None = None,
+        ) -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_put(key=key, value=value, scope=scope, ttl=ttl, session_id=session_id)))
+
+        @server.tool(
+            title="Retrieve memory",
+            description="Retrieve a stored value or execution checkpoint from shared memory without prompt bloat.",
+        )
+        def memory_get(key: str, scope: str = "session") -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope)))
+
+        @server.tool(
+            title="Search memory",
+            description="Full-text search over shared memory entries and stored artifacts.",
+        )
+        def memory_search(query: str, scope: str | None = None, limit: int = 5) -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, limit=limit)))
+
+        @server.tool(
+            title="Acquire memory lock",
+            description="Acquire a timed mutex lock on a resource to coordinate multi-agent actions without collisions.",
+        )
+        def memory_lock(resource_key: str, agent_id: str, timeout_sec: int = 60) -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec)))
+
+        # --- Hardware-Aware Sampling ---
+
+        @server.tool(
+            title="Sample and summarize",
+            description="Hardware-aware context compressor/summarizer: compresses large outputs into concise JSON.",
+        )
+        def sample_summarize(text: str, intent: str = "general_code_summary", max_tokens: int = 250) -> CallToolResult:
+            return _wrap(_invoke(lambda: sampling_router.summarize(text=text, intent=intent, max_tokens=max_tokens)))
 
     return server
 

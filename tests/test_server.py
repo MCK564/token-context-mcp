@@ -63,6 +63,22 @@ def test_server_exports_only_read_tools(indexed_config: Path) -> None:
         assert "write" not in tool.input_schema.get("properties", {})
 
 
+def test_server_exports_extension_tools(indexed_config: Path) -> None:
+    server = build_server(indexed_config, enable_extensions=True)
+    tools = asyncio.run(server.list_tools())
+    tool_names = {tool.name for tool in tools}
+    assert {
+        "list_available_tools",
+        "search_tools",
+        "get_tool_schema",
+        "memory_put",
+        "memory_get",
+        "memory_search",
+        "memory_lock",
+        "sample_summarize",
+    } <= tool_names
+
+
 def test_stdio_server_round_trip(indexed_config: Path) -> None:
     async def run() -> None:
         parameters = StdioServerParameters(
