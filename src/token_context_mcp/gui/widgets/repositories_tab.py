@@ -112,6 +112,7 @@ class AddRepoDialog(QDialog):
 class RepositoriesTab(QWidget):
     indexing_started = Signal(str)
     indexing_finished = Signal(str)
+    indexing_progress = Signal(str, int, int)
 
     def __init__(self, repo_mgr: RepoManager, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -284,6 +285,7 @@ class RepositoriesTab(QWidget):
         if total > 0:
             pct = min(100, int((current / max(1, total)) * 100))
             self.progress_bar.setValue(pct)
+        self.indexing_progress.emit(msg, current, total)
 
     def _on_index_finished(self, repo_id: str, manifest: dict) -> None:
         self.progress_label.setText(f"Indexed '{repo_id}' successfully! ({manifest.get('symbols_indexed', 0)} symbols)")

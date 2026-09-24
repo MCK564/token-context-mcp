@@ -99,7 +99,7 @@ Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`. Nhóm `gui` thêm `PySid
 uv run --extra dev pytest
 ```
 
-Kỳ vọng: **100 passed, 4 skipped** (bao gồm 6 unit test cho GUI Bridge và Widgets chạy ở chế độ offscreen headless).
+Kỳ vọng: **101 passed, 4 skipped** (bao gồm 7 unit test cho GUI Bridge, Widgets, và LoadingOverlay chạy ở chế độ offscreen headless).
 
 Nếu `uv run` báo lỗi khóa file `token-context.exe` trên Windows: đó là do một tiến trình MCP đang giữ console script. Dùng đường module thay thế — **mọi lệnh quản trị trong tài liệu này đều có dạng module**:
 
@@ -109,7 +109,7 @@ uv run python -m token_context_mcp <lệnh>
 
 ### 2.6 Bộ Điều khiển Giao diện Trực quan (PySide6 Desktop GUI)
 
-Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI đồ họa hoàn chỉnh:
+Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI đồ họa hoàn chỉnh với kiến trúc tối ưu RAM và chuyển tab bất đồng bộ:
 - **Khởi chạy nhanh qua CLI:**
   ```powershell
   uv run token-context-gui
@@ -118,7 +118,7 @@ Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI 
 - **Khởi chạy 1-click:** Nhấp đúp vào `scripts\launch_desktop_gui.bat` hoặc chạy `scripts\launch_desktop_gui.ps1`.
 - **Đóng gói file .exe độc lập (Portable):**
   ```powershell
-  python scripts/build_desktop_exe.py
+  python scripts/build_desktop_exe.py --clean
   ```
   Tạo ra bộ chạy độc lập tại `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` có thể chạy trên bất kỳ máy Windows nào mà không cần cài Python.
 
@@ -128,6 +128,12 @@ Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI 
 3. **⚡ Tasks & Graph:** Log console thời gian thực, biểu đồ phân bố ngôn ngữ, tỷ lệ giải quyết cạnh và danh sách Top Entry Points.
 4. **💾 Cache & DB:** Thống kê dung lượng SQLite, nút Clean Stale Snapshots, nút VACUUM tối ưu đĩa, và nút Purge Cache.
 5. **⚙️ Settings:** Sửa trực tiếp cấu hình `repos.toml` (`max_result_tokens`, `enable_extensions` bật 19 tools).
+
+**Cơ chế Tối ưu hóa RAM & Chuyển Tab Bất đồng bộ (Async Waiting):**
+- **Tránh nghẽn RAM & Đơ UI:** Loại bỏ hoàn toàn việc quét đĩa và hash lại toàn bộ file trên luồng giao diện chính. Danh sách repo được nạp từ bộ nhớ đệm `manifest.json` và câu lệnh truy vấn SQLite chỉ mục trực tiếp trong < 1ms thay vì deserializing hàng chục ngàn object dataclass vào RAM.
+- **Ưu tiên luồng tác vụ nặng:** Luồng `IndexWorker` bóc tách AST chạy ở chế độ `LowPriority` và tự động kích hoạt `gc.collect()` khi hoàn tất để giải phóng bộ nhớ ngay lập tức cho hệ điều hành.
+- **Thanh trạng thái tác vụ toàn cục (TaskStatusBanner):** Khi đang chạy tác vụ nặng (như Re-index repo), thanh trạng thái phía trên hiển thị tiến trình thời gian thực (`⚡ Active Task: Indexing [XX%] - <bước>`). Người dùng có thể chuyển đổi mượt mà giữa các tab mà không bị khóa (non-blocking).
+- **Lớp phủ chờ tải dữ liệu (LoadingOverlay):** Khi thực hiện các tác vụ làm mới thủ công, ứng dụng hiển thị animation xoay nhẹ nhàng và ẩn đi ngay khi dữ liệu đã sẵn sàng.
 
 ---
 

@@ -32,6 +32,7 @@ EXCLUDE_DIRS = {
 EXCLUDE_FILES = {
     "repos.toml",
     "memory.sqlite",
+    "*.spec",
     "*.pyc",
     "*.pyo",
     "*.pyd",

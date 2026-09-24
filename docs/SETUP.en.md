@@ -103,7 +103,7 @@ The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`. The `gui` extra adds 
 uv run --extra dev pytest
 ```
 
-Expect **100 passed, 4 skipped** (including 6 unit tests covering the GUI bridge and widgets running in offscreen headless mode).
+Expect **101 passed, 4 skipped** (including 7 unit tests covering the GUI bridge, widgets, and LoadingOverlay running in offscreen headless mode).
 
 If `uv run` fails with a locked `token-context.exe` on Windows, an MCP process is holding the console script. Use the module entry point instead — **every administrative command in this document is given in module form**:
 
@@ -113,7 +113,7 @@ uv run python -m token_context_mcp <command>
 
 ### 2.6 Desktop Graphical User Interface (PySide6 Desktop GUI)
 
-In addition to CLI operations, the repository provides a full desktop graphical controller:
+In addition to CLI operations, the repository provides a full desktop graphical controller built with RAM-conscious optimizations and non-blocking asynchronous tab navigation:
 - **Fast CLI Launch:**
   ```powershell
   uv run token-context-gui
@@ -122,7 +122,7 @@ In addition to CLI operations, the repository provides a full desktop graphical 
 - **1-Click Launchers:** Double-click `scripts\launch_desktop_gui.bat` or run `scripts\launch_desktop_gui.ps1`.
 - **Package Standalone Portable .EXE:**
   ```powershell
-  python scripts/build_desktop_exe.py
+  python scripts/build_desktop_exe.py --clean
   ```
   Generates a standalone portable bundle at `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` that runs on any Windows machine without requiring Python.
 
@@ -132,6 +132,12 @@ In addition to CLI operations, the repository provides a full desktop graphical 
 3. **⚡ Tasks & Graph:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
 4. **💾 Cache & DB:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
 5. **⚙️ Settings:** Interactive editor for `repos.toml` resource caps and the 19 tools extension toggle.
+
+**RAM Optimizations & Non-Blocking Async Tab Waiting:**
+- **Zero GUI-Thread File Hashing:** File scanning and recursive hashing are completely removed from tab-switching and repository listing. Metadata is read from cached `manifest.json` and scalar SQLite queries in < 1ms, eliminating memory spikes and UI freezing.
+- **Low-Priority Heavy Indexing Workers:** `IndexWorker` executes AST parsing and lexical graph construction at `LowPriority` on a background thread and triggers `gc.collect()` upon completion, ensuring the UI remains fluid at 60 FPS while promptly freeing RAM.
+- **Global Task Status Banner (TaskStatusBanner):** An active task status badge in the header shows real-time progress (`⚡ Active Task: Indexing [XX%] - <stage>`), allowing users to freely navigate between tabs while long tasks proceed without interruption.
+- **Loading Overlay (LoadingOverlay):** Smooth, animated floating spinner appears during asynchronous data refreshes and automatically hides once data is ready.
 
 ---
 

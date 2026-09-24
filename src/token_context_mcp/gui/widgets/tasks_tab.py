@@ -137,33 +137,44 @@ class TasksTab(QWidget):
             self.ep_table.setRowCount(0)
             return
 
-        from token_context_mcp.config import load_config
-        from token_context_mcp.retrieve.service import RetrievalService
+        import json
+        import sqlite3
+        from token_context_mcp.index.runner import database_path, manifest_path
+
+        idx_dir = self.repo_mgr.get_index_dir()
+        db_path = database_path(idx_dir, repo_id)
+        mf_path = manifest_path(idx_dir, repo_id)
+
+        if not db_path.exists() or not mf_path.exists():
+            self.lang_label.setText("Not indexed yet")
+            self.edge_bar.setValue(0)
+            self.ep_table.setRowCount(0)
+            return
 
         try:
-            cfg = load_config(self.repo_mgr.config_path)
-            svc = RetrievalService(cfg, self.repo_mgr.config_path)
-            status = svc.status(repo_id)
-            data = status.get("data", {})
-            metadata = data.get("metadata", {})
+            mf_data = json.loads(mf_path.read_text(encoding="utf-8"))
 
             # Languages
-            parsers = metadata.get("parser_versions", {})
+            parsers = mf_data.get("parser_versions", {})
             langs = parsers.get("languages", [])
             self.lang_label.setText(", ".join(langs).title() if langs else "None detected")
 
-            # Edge precision
-            edge_prec = data.get("edge_precision", {})
-            edges_total = edge_prec.get("edges_total", 0)
-            edges_ambig = edge_prec.get("edges_ambiguous", 0)
-            if edges_total > 0:
-                resolved_pct = max(0, min(100, int(((edges_total - edges_ambig) / edges_total) * 100)))
-                self.edge_bar.setValue(resolved_pct)
-            else:
-                self.edge_bar.setValue(100)
+            # Fast edge precision
+            resolved_pct = 100
+            try:
+                con = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
+                cur = con.cursor()
+                cur.execute("SELECT count(*), count(CASE WHEN status='ambiguous' THEN 1 END) FROM edges;")
+                row = cur.fetchone()
+                con.close()
+                if row and row[0] > 0:
+                    resolved_pct = max(0, min(100, int(((row[0] - row[1]) / row[0]) * 100)))
+            except Exception:
+                pass
+            self.edge_bar.setValue(resolved_pct)
 
             # Entry points
-            entry_points = metadata.get("entry_points", [])
+            entry_points = mf_data.get("entry_points", [])
             self.ep_table.setRowCount(len(entry_points))
             for i, ep in enumerate(entry_points):
                 decl = ep.get("declared", "entry_point")
@@ -173,6 +184,6 @@ class TasksTab(QWidget):
                 self.ep_table.setItem(i, 2, QTableWidgetItem(res))
 
         except Exception as e:
-            self.lang_label.setText(f"Not indexed or error: {e}")
+            self.lang_label.setText(f"Error reading metadata: {e}")
             self.edge_bar.setValue(0)
             self.ep_table.setRowCount(0)

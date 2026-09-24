@@ -98,6 +98,13 @@ def build_executable(onefile: bool = False, clean: bool = False, output_name: st
         "token_context_mcp.gui.bridge",
         "token_context_mcp.gui.main_window",
         "token_context_mcp.gui.theme",
+        "token_context_mcp.gui.widgets",
+        "token_context_mcp.gui.widgets.loading_overlay",
+        "token_context_mcp.gui.widgets.dashboard_tab",
+        "token_context_mcp.gui.widgets.repositories_tab",
+        "token_context_mcp.gui.widgets.tasks_tab",
+        "token_context_mcp.gui.widgets.cache_tab",
+        "token_context_mcp.gui.widgets.settings_tab",
         "token_context_mcp.retrieve.service",
         "token_context_mcp.index.runner",
     ]

@@ -10,7 +10,7 @@ import pytest
 # Use offscreen platform for headless test execution
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from token_context_mcp.gui.bridge import RepoManager, ServerController
 from token_context_mcp.gui.main_window import MainWindow
@@ -80,3 +80,17 @@ def test_individual_widgets(qapp, temp_gui_env):
     # Settings tab
     settings_tab = SettingsTab(repo_mgr)
     assert settings_tab.spin_tokens.value() > 0
+
+
+def test_loading_overlay(qapp):
+    from token_context_mcp.gui.widgets.loading_overlay import LoadingOverlay
+    parent = QWidget()
+    parent.show()
+    overlay = LoadingOverlay(parent)
+    assert not overlay.isVisible()
+    overlay.show_loading("Processing task...")
+    assert overlay.isVisible()
+    assert overlay.text_label.text() == "Processing task..."
+    overlay.hide_loading()
+    assert not overlay.isVisible()
+    parent.close()
