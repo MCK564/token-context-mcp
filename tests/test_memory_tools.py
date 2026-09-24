@@ -66,3 +66,27 @@ def test_memory_lock_concurrency() -> None:
     # Now Agent B can acquire
     lock_b_retry = service.memory_lock("core/contracts.py", agent_id="agent_b", timeout_sec=10)
     assert lock_b_retry["acquired"] is True
+
+
+def test_memory_consolidate() -> None:
+    service = MemoryService(":memory:")
+    service.memory_put("step_1", {"plan": "Refactor auth JWT token parser", "status": "done"}, scope="session")
+    service.memory_put("step_2", {"plan": "Add verification middleware", "status": "in_progress"}, scope="session")
+
+    res = service.memory_consolidate(
+        scope="session",
+        target_key="architectural_summary",
+        prune_transient=True,
+    )
+    assert res["status"] == "consolidated"
+    assert res["source_entries_count"] == 2
+    assert "step_1" in res["pruned_keys"]
+    assert "step_2" in res["pruned_keys"]
+
+    # Check that consolidated target_key exists in global scope
+    cons = service.memory_get("architectural_summary", scope="global")
+    assert cons["status"] == "found"
+    assert cons["value"]["source_entries_count"] == 2
+
+    # Check that transient keys were pruned
+    assert service.memory_get("step_1", scope="session")["status"] == "not_found"

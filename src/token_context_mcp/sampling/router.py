@@ -14,7 +14,11 @@ from token_context_mcp.sampling.hardware_probe import (
     probe_hardware,
 )
 from token_context_mcp.sampling.prompts import STRUCTURED_CONTEXT_PROMPT_TEMPLATE
-from token_context_mcp.sampling.schema import CodeSummaryPayload, SymbolAnalysis
+from token_context_mcp.sampling.schema import (
+    CodeSummaryPayload,
+    ConstraintEvidence,
+    SymbolAnalysis,
+)
 from token_context_mcp.sampling.skeleton_hybrid import build_hybrid_context
 
 
@@ -140,29 +144,51 @@ class SamplingRouter:
         verified_symbols: Sequence[str],
         start_time: float,
     ) -> dict[str, Any]:
-        """Deterministic rule-based compression when no local LLM backend is available."""
+        """Deterministic rule-based compression with verbatim evidence and line attribution."""
         lines = text.splitlines()
 
-        # Parse classes and functions
-        classes = [
-            re.sub(r"[^\w.]", "", line.split("class ")[1].split("(")[0].split(":")[0])
-            for line in lines
-            if "class " in line
-        ]
-        functions = [
-            re.sub(r"[^\w.]", "", line.split("def ")[1].split("(")[0])
-            for line in lines
-            if "def " in line or "function " in line
-        ]
+        # Parse classes and functions with line spans
+        symbol_spans: dict[str, list[int]] = {}
+        classes: list[str] = []
+        functions: list[str] = []
+
+        for idx, line in enumerate(lines, start=1):
+            if "class " in line:
+                cname = re.sub(r"[^\w.]", "", line.split("class ")[1].split("(")[0].split(":")[0])
+                if cname:
+                    classes.append(cname)
+                    symbol_spans[cname] = [idx, idx]
+            elif "def " in line or "function " in line:
+                token = "def " if "def " in line else "function "
+                fname = re.sub(r"[^\w.]", "", line.split(token)[1].split("(")[0])
+                if fname:
+                    functions.append(fname)
+                    symbol_spans[fname] = [idx, idx]
+
         imports = [line.strip() for line in lines if line.strip().startswith(("import ", "from ", "using "))]
 
-        # Extract constraints and exceptions
-        exceptions = re.findall(r"raise\s+([A-Za-z_][A-Za-z0-9_]*)", text)
-        if_conditions = [line.strip() for line in lines if line.strip().startswith("if ")][:3]
-        critical_constraints: list[str] = []
-        if exceptions:
-            critical_constraints.append(f"Raises: {', '.join(set(exceptions))}")
-        critical_constraints.extend(if_conditions)
+        # Extract constraints with verbatim line proof and line numbers
+        critical_constraints: list[ConstraintEvidence] = []
+        for idx, line in enumerate(lines, start=1):
+            line_str = line.strip()
+            if line_str.startswith("raise "):
+                exc_match = re.search(r"raise\s+([A-Za-z_][A-Za-z0-9_]*)", line_str)
+                exc_name = exc_match.group(1) if exc_match else "Exception"
+                critical_constraints.append(
+                    ConstraintEvidence(
+                        verbatim_quote=line_str,
+                        rule=f"Raises: {exc_name}",
+                        line=idx,
+                    )
+                )
+            elif line_str.startswith("if ") and len(critical_constraints) < 6:
+                critical_constraints.append(
+                    ConstraintEvidence(
+                        verbatim_quote=line_str,
+                        rule=f"Guard check: {line_str}",
+                        line=idx,
+                    )
+                )
 
         # Extract method calls
         calls_external = re.findall(r"(?:self|this|\w+)\.([A-Za-z_][A-Za-z0-9_]*)\(", text)
@@ -171,14 +197,19 @@ class SamplingRouter:
         analyzed_symbols: list[SymbolAnalysis] = []
         all_syms = list(dict.fromkeys(classes + functions))
         for sym in all_syms[:10]:
-            sym_constraints = [c for c in critical_constraints if sym.lower() in c.lower()] or critical_constraints[:2]
+            sym_constraints = [
+                c for c in critical_constraints if sym.lower() in c.verbatim_quote.lower()
+            ] or critical_constraints[:2]
             sym_calls = [c for c in calls_external if c != sym][:3]
+            span = symbol_spans.get(sym)
+
             analyzed_symbols.append(
                 SymbolAnalysis(
                     name=sym,
                     responsibility=f"Implements {sym} functionality in accordance with {intent}",
                     critical_constraints=sym_constraints,
                     calls_external=sym_calls,
+                    line_span=span,
                 )
             )
 

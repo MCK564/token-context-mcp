@@ -41,3 +41,69 @@ class MemoryService:
         if not resource_key or not agent_id:
             raise ValueError("resource_key and agent_id are required")
         return self.store.lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec)
+
+    def memory_consolidate(
+        self,
+        scope: str = "session",
+        target_key: str = "project_architectural_insights",
+        prune_transient: bool = False,
+    ) -> dict[str, Any]:
+        """Consolidate fragmented memory checkpoints into a unified architectural artifact.
+        
+        Learned from Google Cloud GenAI Always-On Memory Agent (ConsolidateAgent pattern).
+        Deduplicates redundant connections and synthesizes cross-session patterns.
+        """
+        import json
+        import time
+
+        entries = self.store.list_entries(scope=scope, limit=100)
+        source_entries = [e for e in entries if e["key"] != target_key]
+
+        if not source_entries:
+            return {
+                "status": "noop",
+                "message": f"No active entries found in scope '{scope}' to consolidate.",
+                "source_entries_count": 0,
+                "target_key": target_key,
+            }
+
+        lines = [f"# Memory Scope: {scope} ({len(source_entries)} entries)"]
+        for e in source_entries:
+            val_str = json.dumps(e["value"], ensure_ascii=False) if isinstance(e["value"], (dict, list)) else str(e["value"])
+            lines.append(f"- Key: `{e['key']}` | Value: {val_str}")
+        compiled_context = "\n".join(lines)
+
+        from token_context_mcp.sampling.router import SamplingRouter
+        router = SamplingRouter()
+        intent = "Consolidate fragmented memory checkpoints, extract architectural insights, and deduplicate redundant entities"
+        summary_res = router.summarize(text=compiled_context, intent=intent, max_tokens=512)
+
+        consolidated_payload = {
+            "consolidation_timestamp": time.time(),
+            "source_entries_count": len(source_entries),
+            "source_keys": [e["key"] for e in source_entries],
+            "synthesis": summary_res.get("data") or summary_res.get("payload") or {},
+            "backend_engine": summary_res.get("engine", "heuristic"),
+        }
+
+        self.store.put(
+            key=target_key,
+            value=consolidated_payload,
+            scope="global",
+            ttl=None,
+        )
+
+        pruned_keys: list[str] = []
+        if prune_transient:
+            for e in source_entries:
+                self.store.delete(key=e["key"], scope=scope)
+                pruned_keys.append(e["key"])
+
+        return {
+            "status": "consolidated",
+            "target_key": target_key,
+            "target_scope": "global",
+            "source_entries_count": len(source_entries),
+            "pruned_keys": pruned_keys,
+            "insights": consolidated_payload["synthesis"],
+        }

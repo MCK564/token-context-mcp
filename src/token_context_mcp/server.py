@@ -326,6 +326,25 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         def memory_lock(resource_key: str, agent_id: str, timeout_sec: int = 60) -> CallToolResult:
             return _wrap(_invoke(lambda: memory_service.memory_lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec)))
 
+        @server.tool(
+            title="Consolidate memory",
+            description="Consolidate and synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent).",
+        )
+        def memory_consolidate(
+            scope: str = "session",
+            target_key: str = "project_architectural_insights",
+            prune_transient: bool = False,
+        ) -> CallToolResult:
+            return _wrap(
+                _invoke(
+                    lambda: memory_service.memory_consolidate(
+                        scope=scope,
+                        target_key=target_key,
+                        prune_transient=prune_transient,
+                    )
+                )
+            )
+
         # --- Hardware-Aware Sampling ---
 
         @server.tool(

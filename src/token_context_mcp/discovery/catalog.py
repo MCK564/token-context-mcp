@@ -1,7 +1,9 @@
-"""Catalog of tools, categories, and concise metadata for smart tool discovery."""
+"""Catalog of tools, categories, and concise metadata for smart tool discovery.
+Includes tool chaining and prerequisite declarations learned from Google Cloud GenAI A2A protocols.
+"""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -12,6 +14,8 @@ class ToolMeta:
     summary: str
     parameters_summary: dict[str, str]
     tags: list[str]
+    recommended_followups: list[str] = field(default_factory=list)
+    prerequisites: list[str] = field(default_factory=list)
 
 
 TOOL_CATALOG: dict[str, ToolMeta] = {
@@ -21,6 +25,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="List all registered repository IDs without exposing filesystem roots.",
         parameters_summary={},
         tags=["admin", "repos", "list", "registry"],
+        recommended_followups=["get_repo_map", "get_index_status"],
     ),
     "get_index_status": ToolMeta(
         name="get_index_status",
@@ -28,6 +33,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Active snapshot metadata, freshness, file/symbol counts, and ambiguous edge rate.",
         parameters_summary={"repo_id": "string (required)"},
         tags=["status", "freshness", "metrics", "snapshot"],
+        prerequisites=["list_repositories"],
     ),
     "get_repo_map": ToolMeta(
         name="get_repo_map",
@@ -40,6 +46,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "profile": "locate | orient | impact | read",
         },
         tags=["map", "overview", "symbols", "pagerank", "budget"],
+        recommended_followups=["find_symbols", "get_file_skeleton"],
+        prerequisites=["list_repositories"],
     ),
     "find_symbols": ToolMeta(
         name="find_symbols",
@@ -52,6 +60,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "limit": "integer (optional)",
         },
         tags=["symbols", "find", "search", "name", "definition"],
+        recommended_followups=["inspect_symbol", "get_symbol_context", "get_impact_slice"],
+        prerequisites=["list_repositories"],
     ),
     "search_source": ToolMeta(
         name="search_source",
@@ -64,6 +74,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "max_tokens": "integer (optional)",
         },
         tags=["search", "grep", "text", "body", "fts5", "ripgrep"],
+        recommended_followups=["get_symbol_context", "get_file_skeleton"],
+        prerequisites=["list_repositories"],
     ),
     "get_file_skeleton": ToolMeta(
         name="get_file_skeleton",
@@ -75,6 +87,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "include_private": "boolean (optional)",
         },
         tags=["skeleton", "outline", "file", "signatures", "imports"],
+        recommended_followups=["get_symbol_context", "inspect_symbol"],
+        prerequisites=["list_repositories"],
     ),
     "get_symbol_context": ToolMeta(
         name="get_symbol_context",
@@ -87,6 +101,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "include_body": "boolean (optional)",
         },
         tags=["symbol", "context", "definition", "neighborhood"],
+        recommended_followups=["get_impact_slice", "sample_summarize"],
+        prerequisites=["find_symbols"],
     ),
     "get_impact_slice": ToolMeta(
         name="get_impact_slice",
@@ -101,6 +117,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "min_confidence": "float (optional, e.g. 0.5)",
         },
         tags=["impact", "callers", "callees", "graph", "blast_radius", "dependencies"],
+        recommended_followups=["sample_summarize", "memory_put"],
+        prerequisites=["find_symbols"],
     ),
     "get_module_dependents": ToolMeta(
         name="get_module_dependents",
@@ -111,6 +129,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "module": "string (module name or relative path)",
         },
         tags=["imports", "modules", "dependents", "architecture"],
+        recommended_followups=["get_file_skeleton"],
+        prerequisites=["list_repositories"],
     ),
     "inspect_symbol": ToolMeta(
         name="inspect_symbol",
@@ -123,6 +143,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "budget_tokens": "integer (default: 2048)",
         },
         tags=["composite", "fast", "resolve", "context", "inspect"],
+        recommended_followups=["sample_summarize", "memory_put"],
+        prerequisites=["list_repositories"],
     ),
     "list_available_tools": ToolMeta(
         name="list_available_tools",
@@ -130,6 +152,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Compact catalog of available tools grouped by category (consumes minimal tokens).",
         parameters_summary={"category": "string (optional)"},
         tags=["tools", "discovery", "list", "meta"],
+        recommended_followups=["search_tools", "get_tool_schema"],
     ),
     "search_tools": ToolMeta(
         name="search_tools",
@@ -137,6 +160,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Smart semantic/keyword search over tool capabilities to find the right tool for an intent.",
         parameters_summary={"query": "string (required)", "limit": "integer (default: 3)"},
         tags=["tools", "search", "intent", "discovery", "recommend"],
+        recommended_followups=["get_tool_schema"],
     ),
     "get_tool_schema": ToolMeta(
         name="get_tool_schema",
@@ -156,6 +180,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "ttl": "integer (seconds, optional)",
         },
         tags=["memory", "state", "shared", "checkpoint", "cache"],
+        recommended_followups=["memory_consolidate", "memory_get"],
     ),
     "memory_get": ToolMeta(
         name="memory_get",
@@ -166,6 +191,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "scope": "session | project | global",
         },
         tags=["memory", "state", "get", "read", "checkpoint"],
+        prerequisites=["memory_put"],
     ),
     "memory_search": ToolMeta(
         name="memory_search",
@@ -189,6 +215,19 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         },
         tags=["memory", "lock", "mutex", "concurrency", "multi_agent"],
     ),
+    "memory_consolidate": ToolMeta(
+        name="memory_consolidate",
+        category="shared_memory",
+        summary="Consolidate and synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent).",
+        parameters_summary={
+            "scope": "session | project | global (default: session)",
+            "target_key": "string (default: project_architectural_insights)",
+            "prune_transient": "boolean (default: false)",
+        },
+        tags=["memory", "consolidate", "synthesis", "insights", "prune"],
+        recommended_followups=["memory_get", "memory_search"],
+        prerequisites=["memory_put"],
+    ),
     "sample_summarize": ToolMeta(
         name="sample_summarize",
         category="sampling_inference",
@@ -196,8 +235,10 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         parameters_summary={
             "text": "string (required)",
             "intent": "string (optional)",
-            "max_tokens": "integer (default: 250)",
+            "max_tokens": "integer (default: 512)",
+            "target_symbols": "array of strings (optional)",
         },
         tags=["sampling", "compress", "summarize", "llm", "nested"],
+        recommended_followups=["memory_put"],
     ),
 }

@@ -18,6 +18,8 @@ def list_available_tools(category: str | None = None) -> dict[str, Any]:
                 "name": name,
                 "summary": meta.summary,
                 "parameters": meta.parameters_summary,
+                "recommended_followups": meta.recommended_followups,
+                "prerequisites": meta.prerequisites,
             }
         )
 
@@ -60,6 +62,8 @@ def search_tools(query: str, limit: int = 3) -> dict[str, Any]:
             "relevance_score": round(score, 2),
             "summary": meta.summary,
             "quick_parameters": meta.parameters_summary,
+            "recommended_followups": meta.recommended_followups,
+            "prerequisites": meta.prerequisites,
         }
         for score, meta in scored[:limit]
     ]
@@ -88,5 +92,7 @@ def get_tool_schema(tool_name: str, schema_dict: dict[str, Any] | None = None) -
         "category": meta.category,
         "summary": meta.summary,
         "parameters_summary": meta.parameters_summary,
+        "recommended_followups": meta.recommended_followups,
+        "prerequisites": meta.prerequisites,
         "schema": schema,
     }

@@ -14,7 +14,11 @@ from token_context_mcp.sampling.hardware_probe import (
     probe_hardware,
 )
 from token_context_mcp.sampling.router import SamplingRouter
-from token_context_mcp.sampling.schema import CodeSummaryPayload, SymbolAnalysis
+from token_context_mcp.sampling.schema import (
+    CodeSummaryPayload,
+    ConstraintEvidence,
+    SymbolAnalysis,
+)
 from token_context_mcp.sampling.skeleton_hybrid import build_hybrid_context, extract_symbol_anchors
 
 
@@ -43,11 +47,17 @@ def test_adaptive_timeout_calculation() -> None:
 
 
 def test_pydantic_schema_validation() -> None:
+    evidence = ConstraintEvidence(
+        verbatim_quote="if amount <= 0: raise InvalidAmountException()",
+        rule="amount must be positive",
+        line=3,
+    )
     sym = SymbolAnalysis(
         name="PaymentService.refund",
         responsibility="Executes refund logic",
-        critical_constraints=["amount > 0"],
+        critical_constraints=[evidence],
         calls_external=["gateway.execute"],
+        line_span=[1, 5],
     )
     payload = CodeSummaryPayload(
         intent_alignment="Directly handles customer refund request",
@@ -59,11 +69,13 @@ def test_pydantic_schema_validation() -> None:
     assert "PaymentService.refund" in compat["key_symbols"]
     assert len(compat["relationships"]) == 1
     assert compat["relationships"][0]["target"] == "gateway.execute"
+    assert any("amount must be positive" in c for c in compat["critical_notes"])
 
     # Validation from JSON
     raw_json = payload.model_dump_json()
     reparsed = CodeSummaryPayload.model_validate_json(raw_json)
     assert reparsed.analyzed_symbols[0].name == "PaymentService.refund"
+    assert reparsed.analyzed_symbols[0].line_span == [1, 5]
 
 
 def test_skeleton_hybrid_builder_and_anchors() -> None:
@@ -169,7 +181,8 @@ def helper():
     assert len(payload["analyzed_symbols"]) >= 2
     # Verify constraint was extracted
     scan_symbol = next(s for s in payload["analyzed_symbols"] if s["name"] == "scan")
-    assert any("EmptyDocError" in c for c in scan_symbol["critical_constraints"])
+    assert any("EmptyDocError" in (c if isinstance(c, str) else str(c)) for c in scan_symbol["critical_constraints"])
+    assert scan_symbol.get("line_span") is not None
 
 
 def test_sampling_router_ollama_mock() -> None:
@@ -193,8 +206,15 @@ def test_sampling_router_ollama_mock() -> None:
                     {
                         "name": "PaymentService.refund",
                         "responsibility": "Executes customer refund",
-                        "critical_constraints": ["amount > 0"],
+                        "critical_constraints": [
+                            {
+                                "verbatim_quote": "if amount <= 0: raise InvalidAmountException('Amount must be positive')",
+                                "rule": "amount > 0",
+                                "line": 4,
+                            }
+                        ],
                         "calls_external": ["gateway.execute_refund"],
+                        "line_span": [2, 6],
                     }
                 ],
                 "technical_caveats": ["Assumes gateway initialized"],
@@ -220,3 +240,5 @@ class PaymentService:
         assert result["engine"] == "qwen2.5-coder:7b-instruct-q4_K_M"
         assert result["symbol_coverage_rate"] == 1.0
         assert "PaymentService.refund" in result["data"]["key_symbols"]
+        first_sym = result["payload"]["analyzed_symbols"][0]
+        assert first_sym["line_span"] == [2, 6]

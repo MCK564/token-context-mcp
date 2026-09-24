@@ -447,6 +447,26 @@ uv run pytest
 > - Nếu mã nguồn của repository mục tiêu có thay đổi, chỉ cần chạy lại lệnh index để cập nhật snapshot:
 >   `uv run token-context index --repo-id <repo-id>`
 
+---
+
+## Acknowledgments & Architecture Lineage (Ghi nhận nguồn cảm hứng & Đóng góp kiến trúc)
+
+Dự án `token-context-mcp` trân trọng ghi nhận các nguyên lý kiến trúc và kỹ thuật prompt nâng cao được học hỏi, kế thừa và phát triển dựa trên kho mã nguồn mở [**Google Cloud Platform Generative AI Repository** (`GoogleCloudPlatform/generative-ai`)](https://github.com/GoogleCloudPlatform/generative-ai):
+
+1. **Kiến trúc Bộ nhớ không dùng Vector DB (Vectorless Structured Memory) & Memory Consolidation:**
+   - **Nguồn cảm hứng:** Dự án [`gemini/agents/always-on-memory-agent`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/agents/always-on-memory-agent).
+   - **Ứng dụng vào `token-context-mcp`:** Triết lý nói không với Vector DB cồng kềnh cho bộ nhớ Agent, chuyển sang dùng SQLite-first có cấu trúc với giao thức đồng bộ WAL. Đặc biệt, công cụ `memory_consolidate` được xây dựng dựa trên nguyên lý hoạt động của `ConsolidateAgent` của Google để hợp nhất các mảnh ký ức vụn vặt thành insight cấp cao và giải quyết triệt để lỗi phình to liên kết trùng lặp (tránh lỗi Issue #2945 của Google).
+
+2. **Kỹ thuật Delimited Context Envelopes & Quote-before-Synthesize Fact Grounding:**
+   - **Nguồn cảm hứng:** Thư viện [`gemini/prompts/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/prompts/) và các ví dụ Text Extraction / Safety Guardrails của Google Cloud.
+   - **Ứng dụng vào `token-context-mcp`:** Bọc source code trong các thẻ an toàn `<<<SOURCE_CODE_START>>>` và `<<<SOURCE_CODE_END>>>` kèm chỉ thị cách ly dữ liệu không tin cậy (chống Prompt Injection từ comment trong code). Đồng thời áp dụng nguyên tắc bắt buộc mô hình 7B trích xuất nguyên văn câu lệnh (`verbatim_quote`) trước khi kết luận ràng buộc `critical_constraints`.
+
+3. **Giao thức Thẻ Công cụ & Khuyến nghị Tool Chaining (A2A Tool Chaining Cards):**
+   - **Nguồn cảm hứng:** Giao thức Agent-to-Agent (A2A) và Agent Engine Toolbox trong [`agents/agent_engine/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/agents/agent_engine/).
+   - **Ứng dụng vào `token-context-mcp`:** Bổ sung metadata `recommended_followups` (công cụ kế tiếp nên gọi) và `prerequisites` (công cụ tiên quyết) vào `TOOL_CATALOG` và các công cụ `search_tools`, `get_tool_schema`, giúp các Agent tự động hóa chuỗi hành động mà không cần suy đoán.
+
+---
+
 ## Commands
 
 - `register`: add a canonical, non-link repository root to a local TOML registry.
@@ -461,7 +481,7 @@ uv run pytest
 
 ## Tool contract
 
-The server exposes **18 tools** when `enable_extensions = true` (or 10 core tools when extensions are disabled). `list_repositories` is the primary entry point for code retrieval: it returns the registered `repo_id` values and the budget profiles, and never exposes a repository root.
+The server exposes **19 tools** when `enable_extensions = true` (or 10 core tools when extensions are disabled). `list_repositories` is the primary entry point for code retrieval: it returns the registered `repo_id` values and the budget profiles, and never exposes a repository root.
 
 ### 1. Core Code-Context Retrieval Tools (10 tools)
 
@@ -488,9 +508,9 @@ Meta-tools that prevent LLM context-window exhaustion from massive tool definiti
 | `search_tools` | `query` (required), `limit` (default: 3) | Ranked list of matching tools with relevance scores | Intent-based tool discovery via BM25 and tags. |
 | `get_tool_schema` | `tool_name` (required) | Full JSON schema of the requested tool | Lazy on-demand schema loading for the LLM. |
 
-### 3. Shared State & Long-term Memory Tools (4 tools)
+### 3. Shared State & Long-term Memory Tools (5 tools)
 
-Zero-daemon, SQLite-first persistent state storage and multi-agent coordination.
+Zero-daemon, SQLite-first persistent state storage, multi-agent coordination, and memory consolidation.
 
 | Tool | Parameters | Returns | Purpose |
 | --- | --- | --- | --- |
@@ -498,6 +518,7 @@ Zero-daemon, SQLite-first persistent state storage and multi-agent coordination.
 | `memory_get` | `key`, `scope` ("session"\|"global") | Stored value and metadata, or error if not found | Retrieve state without bloating chat prompt history. |
 | `memory_search` | `query`, `scope`, `limit` (default: 5) | Matching memory records ranked by FTS5 score | Full-text search over stored memory entries. |
 | `memory_lock` | `resource_key`, `agent_id`, `timeout_sec` (default: 60) | `{"acquired": true/false, "expires_at": ...}` | Timed mutex lock preventing multi-agent collisions. |
+| `memory_consolidate` | `scope`, `target_key`, `prune_transient` | `{"status": "consolidated", "insights": ...}` | Synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent). |
 
 ### 4. Hardware-Aware LLM Sampling (1 tool)
 
@@ -592,6 +613,8 @@ Bước 3: Agent gọi tool chính xác mà không tốn token thừa trước �
 4. `memory_lock`:
    - **Soft-mutex lock** có thời hạn (timed lease) giúp điều phối nhiều Agent cùng làm việc song song trên cùng một codebase mà không ghi đè lẫn nhau hoặc tạo race condition.
    - Khi hết hạn `timeout_sec` (mặc định 60s), khóa tự động giải phóng để chống deadlock nếu Agent gặp sự cố.
+5. `memory_consolidate` *(Học hỏi từ Google Cloud GenAI Always-On Memory Agent)*:
+   - **Cơ chế nén và hợp nhất trí nhớ:** Tương tự như cơ chế "giấc ngủ" của con người hay `ConsolidateAgent` của Google, tool này quét toàn bộ các checkpoint phân mảnh được lưu trong phiên, tổng hợp thành một bản tóm tắt kiến trúc hoàn chỉnh (`project_architectural_insights`), đồng thời tự động loại bỏ các liên kết trùng lặp và dọn dẹp các ghi chú vụn vặt (`prune_transient=True`).
 
 #### Ví dụ Multi-Agent phối hợp qua Memory:
 ```python

@@ -225,3 +225,34 @@ class MemoryStore:
             released = cur.rowcount > 0
 
         return {"resource_key": resource_key, "released": released}
+
+    def list_entries(self, *, scope: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+        """List active unexpired memory entries for inspection or consolidation."""
+        now = time.time()
+        sql = "SELECT scope, key, session_id, value_json, created_at, expires_at FROM key_values"
+        params: list[Any] = []
+        if scope:
+            sql += " WHERE scope = ?"
+            params.append(scope)
+        sql += " ORDER BY created_at ASC LIMIT ?"
+        params.append(limit)
+
+        results: list[dict[str, Any]] = []
+        with self._connection() as conn:
+            for row in conn.execute(sql, params):
+                if row["expires_at"] and row["expires_at"] < now:
+                    continue
+                try:
+                    val = json.loads(row["value_json"])
+                except Exception:
+                    val = row["value_json"]
+                results.append(
+                    {
+                        "scope": row["scope"],
+                        "key": row["key"],
+                        "session_id": row["session_id"],
+                        "value": val,
+                        "created_at": row["created_at"],
+                    }
+                )
+        return results
