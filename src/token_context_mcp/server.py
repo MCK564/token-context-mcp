@@ -23,8 +23,13 @@ from token_context_mcp.retrieve.service import (
 from token_context_mcp.memory.service import MemoryService
 from token_context_mcp.retrieve.workflows import CompositeWorkflowEngine
 from token_context_mcp.sampling.router import SamplingRouter
-from token_context_mcp.security.access_control import AccessControlManager, PolicyProfile
+from token_context_mcp.security.access_control import (
+    AccessControlManager,
+    PolicyProfile,
+    resolve_effective_agent_id,
+)
 from token_context_mcp.security.audit import AuditLogger
+from token_context_mcp.security.governance_store import GovernanceStore
 from token_context_mcp.security.path_policy import PathPolicyError
 
 logger = logging.getLogger("token_context_mcp")
@@ -52,8 +57,13 @@ def build_server(
         memory_service = None
         sampling_router = None
 
-    access_control = AccessControlManager()
+    gov_store = GovernanceStore(config_path.parent / "governance.sqlite")
+    access_control = AccessControlManager(store=gov_store)
     audit_logger = AuditLogger(config_path.parent / "audit.sqlite")
+
+    server_id = f"server-{os.getpid()}-{int(time.time())}"
+    gov_store.record_heartbeat(server_id, os.getpid())
+    last_heartbeat_time = [time.monotonic()]
 
     registered_tool_names: set[str] = {
         "list_repositories",
@@ -94,6 +104,11 @@ def build_server(
         agent_id: str | None = None,
         bypass_halt: bool = False,
     ) -> dict[str, Any]:
+        now_mono = time.monotonic()
+        if now_mono - last_heartbeat_time[0] >= 15.0:
+            gov_store.record_heartbeat(server_id, os.getpid())
+            last_heartbeat_time[0] = now_mono
+
         return _dispatch_invoke(
             callback,
             tool_name=tool_name,
@@ -116,6 +131,7 @@ def build_server(
             "Respect freshness, ambiguity and truncation warnings. Lexical edges are not complete semantic analysis."
         ),
     )
+    server.governance_store = gov_store     # type: ignore[attr-defined]
     server.access_control = access_control  # type: ignore[attr-defined]
     server.audit_logger = audit_logger      # type: ignore[attr-defined]
     server.memory_service = memory_service  # type: ignore[attr-defined]
@@ -568,24 +584,32 @@ def _dispatch_invoke(
     bypass_halt: bool = False,
 ) -> dict[str, Any]:
     start = time.perf_counter()
+
+    effective_agent_id, agent_err = resolve_effective_agent_id(agent_id)
+    if agent_err is not None:
+        duration_ms = (time.perf_counter() - start) * 1000
+        if audit_logger is not None:
+            audit_logger.log(tool_name, agent_id or "invalid", "DENIED", duration_ms, {"reason": agent_err})
+        return _error("invalid_request", agent_err)
+
     if access_control is not None:
-        allowed, reason = access_control.check_access(tool_name, agent_id, bypass_halt=bypass_halt)
+        allowed, reason = access_control.check_access(tool_name, effective_agent_id, bypass_halt=bypass_halt)
         if not allowed:
             duration_ms = (time.perf_counter() - start) * 1000
             if audit_logger is not None:
-                audit_logger.log(tool_name, agent_id, "DENIED", duration_ms, {"reason": reason})
-            return _error("permission_revoked", reason or "Operation denied by access control policy", agent_id=agent_id)
+                audit_logger.log(tool_name, effective_agent_id, "DENIED", duration_ms, {"reason": reason})
+            return _error("permission_revoked", reason or "Operation denied by access control policy", agent_id=effective_agent_id)
 
     try:
         result = callback()
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "SUCCESS", duration_ms)
+            audit_logger.log(tool_name, effective_agent_id, "SUCCESS", duration_ms)
         return result
     except UnknownRepositoryError:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "unknown_repo_id"})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "unknown_repo_id"})
         logger.warning("tool request rejected: unknown repo_id")
         return _error(
             "unknown_repo_id",
@@ -594,7 +618,7 @@ def _dispatch_invoke(
     except BudgetOutOfRangeError as error:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "budget_out_of_range"})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "budget_out_of_range"})
         logger.warning("tool request rejected: budget out of range")
         return _error(
             "budget_out_of_range",
@@ -605,7 +629,7 @@ def _dispatch_invoke(
     except ArgumentOutOfRangeError as error:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "argument_out_of_range"})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "argument_out_of_range"})
         logger.warning("tool request rejected: %s out of range", error.field_name)
         return _error(
             "argument_out_of_range",
@@ -617,19 +641,19 @@ def _dispatch_invoke(
     except PathPolicyError:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "policy_rejected"})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "policy_rejected"})
         logger.warning("tool request rejected by repository path policy")
         return _error("policy_rejected", "request rejected by read-only repository policy")
     except (ConfigError, RetrievalError, ValueError) as error:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "invalid_request", "type": type(error).__name__})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "invalid_request", "type": type(error).__name__})
         logger.warning("tool request rejected: %s", type(error).__name__)
         return _error("invalid_request", "request violates the read-only retrieval contract")
     except Exception as exc:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id, "ERROR", duration_ms, {"code": "internal_error", "error": str(exc)})
+            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "internal_error", "error": str(exc)})
         logger.exception("tool request failed")
         return _error("internal_error", "context service could not complete the request")
 
