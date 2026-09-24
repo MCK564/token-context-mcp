@@ -439,6 +439,8 @@ class RetrievalService:
             raise RetrievalError("pattern must contain 1-200 characters")
         if not 1 <= limit <= 100:
             raise RetrievalError("limit must be between 1 and 100")
+        if kind is not None and kind not in {"function", "class", "method", "interface"}:
+            raise RetrievalError("kind must be function, class, method, or interface")
         if explicit_budget:
             self._validate_budget(effective_max_tokens, field_name="max_tokens")
         packing_budget = (

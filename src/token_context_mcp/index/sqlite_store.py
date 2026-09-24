@@ -333,28 +333,93 @@ class SQLiteStore:
         return [_symbol_from_row(row) for row in rows]
 
     def find_symbols(self, pattern: str, *, kind: str | None = None, limit: int = 20) -> list[SymbolRecord]:
-        where = "(name LIKE ? ESCAPE '\\' OR qualified_name LIKE ? ESCAPE '\\')"
-        escaped = pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        params: list[object] = [f"%{escaped}%", f"%{escaped}%"]
-        if kind:
-            where += " AND kind = ?"
+        where_clauses: list[str] = []
+        params: list[object] = []
+
+        if "*" in pattern or "?" in pattern:
+            like_pattern = (
+                pattern.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+                .replace("*", "%")
+                .replace("?", "_")
+            )
+        else:
+            escaped = (
+                pattern.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+            )
+            like_pattern = f"%{escaped}%"
+
+        where_clauses.append("(name LIKE ? ESCAPE '\\' OR qualified_name LIKE ? ESCAPE '\\')")
+        params.extend([like_pattern, like_pattern])
+
+        if kind == "method":
+            where_clauses.append("(kind = 'method' OR (kind = 'function' AND qualified_name LIKE '%.%'))")
+        elif kind:
+            where_clauses.append("kind = ?")
             params.append(kind)
-        params.append(limit)
+
+        clean_target = pattern.replace("*", "").replace("?", "").strip()
+        where_sql = " AND ".join(where_clauses)
+
+        if clean_target:
+            order_sql = """
+                CASE
+                    WHEN lower(name) = lower(?) THEN 1
+                    WHEN lower(qualified_name) = lower(?) THEN 2
+                    WHEN lower(name) LIKE lower(?) || '%' ESCAPE '\\' THEN 3
+                    WHEN lower(qualified_name) LIKE lower(?) || '%' ESCAPE '\\' THEN 4
+                    ELSE 5
+                END, name, path
+            """
+            clean_escaped = clean_target.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            order_params = [clean_target, clean_target, clean_escaped, clean_escaped]
+            all_params = tuple(params + order_params + [limit])
+        else:
+            order_sql = "name, path"
+            all_params = tuple(params + [limit])
+
         with self.connection() as connection:
             rows = connection.execute(
-                f"SELECT * FROM symbols WHERE {where} ORDER BY name, path LIMIT ?", tuple(params)
+                f"SELECT * FROM symbols WHERE {where_sql} ORDER BY {order_sql} LIMIT ?",
+                all_params,
             ).fetchall()
         return [_symbol_from_row(row) for row in rows]
 
     def count_symbols(self, pattern: str, *, kind: str | None = None) -> int:
-        where = "(name LIKE ? ESCAPE '\\' OR qualified_name LIKE ? ESCAPE '\\')"
-        escaped = pattern.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        params: list[object] = [f"%{escaped}%", f"%{escaped}%"]
-        if kind:
-            where += " AND kind = ?"
+        where_clauses: list[str] = []
+        params: list[object] = []
+
+        if "*" in pattern or "?" in pattern:
+            like_pattern = (
+                pattern.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+                .replace("*", "%")
+                .replace("?", "_")
+            )
+        else:
+            escaped = (
+                pattern.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+            )
+            like_pattern = f"%{escaped}%"
+
+        where_clauses.append("(name LIKE ? ESCAPE '\\' OR qualified_name LIKE ? ESCAPE '\\')")
+        params.extend([like_pattern, like_pattern])
+
+        if kind == "method":
+            where_clauses.append("(kind = 'method' OR (kind = 'function' AND qualified_name LIKE '%.%'))")
+        elif kind:
+            where_clauses.append("kind = ?")
             params.append(kind)
+
+        where_sql = " AND ".join(where_clauses)
         with self.connection() as connection:
-            row = connection.execute(f"SELECT COUNT(*) AS count FROM symbols WHERE {where}", tuple(params)).fetchone()
+            row = connection.execute(f"SELECT COUNT(*) AS count FROM symbols WHERE {where_sql}", tuple(params)).fetchone()
         assert row is not None
         return int(row["count"])
 

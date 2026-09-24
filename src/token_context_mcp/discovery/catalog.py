@@ -55,8 +55,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Find source-backed symbols by name or qualified-name pattern (exact/wildcard).",
         parameters_summary={
             "repo_id": "string (required)",
-            "pattern": "string (required)",
-            "kind": "function | class | method (optional)",
+            "pattern": "string (required, supports * and ? wildcards)",
+            "kind": "function | class | method | interface (optional)",
             "limit": "integer (optional)",
         },
         tags=["symbols", "find", "search", "name", "definition"],
