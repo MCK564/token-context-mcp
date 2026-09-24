@@ -42,6 +42,15 @@ class MemoryService:
             raise ValueError("resource_key and agent_id are required")
         return self.store.lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec)
 
+    def revoke_agent_locks(self, agent_id: str) -> int:
+        return self.store.revoke_agent_locks(agent_id=agent_id)
+
+    def revoke_all_locks(self) -> int:
+        return self.store.revoke_all_locks()
+
+    def list_active_locks(self) -> list[dict[str, Any]]:
+        return self.store.list_active_locks()
+
     def memory_consolidate(
         self,
         scope: str = "session",

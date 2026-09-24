@@ -541,3 +541,109 @@ class CacheManager:
                 f.unlink(missing_ok=True)
                 count += 1
         return count
+
+
+class AgentSecurityController(QObject):
+    """Bridge for Agent Access Control, Mutex Lock Management, and Audit Log Telemetry."""
+
+    agents_updated = Signal(list)     # list of agent dicts
+    locks_updated = Signal(list)      # list of lock dicts
+    audit_logs_updated = Signal(list) # list of audit log dicts
+    emergency_state_changed = Signal(bool, str) # is_halted, reason
+
+    def __init__(self, config_path: Path | None = None, parent: QObject | None = None) -> None:
+        super().__init__(parent)
+        self.config_path = config_path or default_config_path()
+        from token_context_mcp.security.access_control import AccessControlManager, PolicyProfile
+        from token_context_mcp.security.audit import AuditLogger
+        from token_context_mcp.memory.store import MemoryStore
+
+        self._access_control = AccessControlManager()
+        self._audit_logger = AuditLogger(self.config_path.parent / "audit.sqlite")
+        self._memory_store = MemoryStore(self.config_path.parent / "memory.sqlite")
+
+    @property
+    def access_control(self) -> Any:
+        return self._access_control
+
+    @property
+    def is_emergency_halted(self) -> bool:
+        return self._access_control.is_emergency_halted
+
+    @property
+    def emergency_reason(self) -> str:
+        return self._access_control.emergency_reason
+
+    def refresh_data(self) -> None:
+        agents = self._access_control.list_agents()
+        locks = self._memory_store.list_active_locks()
+        logs = self._audit_logger.query_logs(limit=50)
+
+        known_agent_ids = {a["agent_id"] for a in agents}
+        for l in locks:
+            ag_id = l["agent_id"]
+            if ag_id not in known_agent_ids:
+                self._access_control.register_agent(ag_id, role="external_agent")
+                known_agent_ids.add(ag_id)
+        for log_entry in logs:
+            ag_id = log_entry["agent_id"]
+            if ag_id and ag_id not in ("anonymous", "admin") and ag_id not in known_agent_ids:
+                self._access_control.register_agent(ag_id, role="external_client")
+                known_agent_ids.add(ag_id)
+
+        agents = self._access_control.list_agents()
+        self.agents_updated.emit(agents)
+        self.locks_updated.emit(locks)
+        self.audit_logs_updated.emit(logs)
+        self.emergency_state_changed.emit(self._access_control.is_emergency_halted, self._access_control.emergency_reason)
+
+    def pause_agent(self, agent_id: str, reason: str = "Paused by user via Desktop GUI") -> None:
+        self._access_control.pause_agent(agent_id, reason)
+        self.refresh_data()
+
+    def resume_agent(self, agent_id: str) -> None:
+        self._access_control.resume_agent(agent_id)
+        self.refresh_data()
+
+    def block_agent(self, agent_id: str, reason: str = "Blocked by user via Desktop GUI") -> None:
+        self._access_control.block_agent(agent_id, reason)
+        self.refresh_data()
+
+    def unblock_agent(self, agent_id: str) -> None:
+        self._access_control.unblock_agent(agent_id)
+        self.refresh_data()
+
+    def set_agent_policy(self, agent_id: str, policy_str: str) -> None:
+        from token_context_mcp.security.access_control import PolicyProfile
+        try:
+            policy = PolicyProfile(policy_str)
+            self._access_control.set_agent_policy(agent_id, policy)
+            self.refresh_data()
+        except Exception:
+            pass
+
+    def revoke_agent_locks(self, agent_id: str) -> int:
+        count = self._memory_store.revoke_agent_locks(agent_id)
+        self.refresh_data()
+        return count
+
+    def revoke_all_locks(self) -> int:
+        count = self._memory_store.revoke_all_locks()
+        self.refresh_data()
+        return count
+
+    def emergency_halt(self, reason: str = "Emergency Stop triggered from Desktop GUI") -> None:
+        self._access_control.emergency_halt(reason)
+        self.emergency_state_changed.emit(True, reason)
+        self.refresh_data()
+
+    def emergency_resume(self) -> None:
+        self._access_control.emergency_resume()
+        self.emergency_state_changed.emit(False, "")
+        self.refresh_data()
+
+    def close(self) -> None:
+        try:
+            self._audit_logger.close()
+        except Exception:
+            pass

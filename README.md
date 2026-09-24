@@ -20,6 +20,9 @@
 - Dynamic Tool Discovery (`list_available_tools`, `search_tools`, `get_tool_schema`) eliminating tool definition tax in agent context windows;
 - Shared State & Long-term Memory (`memory_put`, `memory_get`, `memory_search`, `memory_lock`) with zero external daemons (SQLite-first) and timed soft-mutex locks;
 - Hardware-Aware LLM Sampling (`sample_summarize`) with Ollama auto-routing and deterministic heuristic fallback;
+- Agent Governance & Permission Revocation Control Plane (`agent_control`): pause, resume, block, and emergency-halt agents (Claude, Antigravity, Cursor, Codex) with sub-0.05ms fast-path in-memory checks;
+- Real-time Security Audit Logging (`audit_logs`) via SQLite WAL mode, capturing forensics, latency, and authorization results with zero response-time penalty;
+- Modern Desktop Controller (PySide6) featuring real-time hardware telemetry, interactive graph viewer, task queueing, and a dedicated **Agents & Security** management tab;
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.

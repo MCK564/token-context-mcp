@@ -507,3 +507,32 @@ nguyên một lần benchmark nằm ở [`PROMPTING.vi.md`](PROMPTING.vi.md) ([E
 | `freshness: "stale"` | code đã đổi sau lần index | chạy lại `index` |
 | Server không hiện trong agent | `uv` không có trên PATH của tiến trình agent | thay bằng đường dẫn tuyệt đối tới `uv.exe` |
 | `python -m token_context_mcp.cli` thoát 0 không làm gì | sai đường module | dùng `python -m token_context_mcp` |
+
+---
+
+## 10. Quản Trị Agent, Thu Hồi Quyền Hạn & Bảo Mật Tăng Cường (Zero-Latency Security Plane)
+
+Hệ thống tích hợp một tầng **Access Control & Security Plane** tối ưu thời gian phản hồi:
+
+### 10.1 Quản Trị & Thu Hồi Quyền Agent (Access Control & Revocation)
+- **Tạm dừng / Khóa tác vụ (Pause / Block)**: Khi agent (Claude, Antigravity, Cursor, Codex) có hành vi bất thường hoặc người dùng muốn rà soát code, người dùng có thể bấm **Pause** hoặc **Block** trên Desktop GUI. Lời gọi tool sau đó sẽ lập tức trả về mã `permission_revoked` (`HALT_BY_USER`), buộc agent dừng lại ngay lập tức.
+- **Thu hồi khóa tài nguyên (Revoke Locks)**: Cưỡng bức thu hồi các mutex locks (`memory_lock`) mà một agent đang chiếm giữ để chống deadlock.
+- **Nút Dừng Khẩn Cấp (Emergency Stop / Panic Button)**: Ngắt toàn bộ lời gọi tool trên tất cả agent trong hệ thống ngay lập tức khi phát hiện sự cố bảo mật.
+- **Phân quyền chính sách (ACL Policies)**:
+  - `READ_ONLY`: Chỉ cho phép 15 công cụ tra cứu ngữ cảnh và đọc bộ nhớ. Ngăn cản ghi đè memory hoặc thu thập lock.
+  - `FULL_ACCESS`: Toàn quyền 19 công cụ.
+  - `CUSTOM`: Giới hạn danh sách tool cụ thể theo từng agent.
+
+### 10.2 Hiệu Năng Phản Hồi Tối Ưu (< 0.05ms)
+- Tầng kiểm tra quyền hạn sử dụng **In-Memory Fast-Path Cache** O(1).
+- Thời gian kiểm tra quyền hạn đạt mức **< 0.02ms (20 micro-giây)**, hoàn toàn không gây chậm trễ cho luồng xử lý của LLM.
+
+### 10.3 Nhật Ký Kiểm Toán Thời Gian Thực (SQLite WAL Audit Stream)
+- Ghi nhận chi tiết mọi tương tác: `timestamp`, `agent_id`, `tool_name`, `status` (`SUCCESS`, `DENIED`, `ERROR`), `duration_ms` và `details`.
+- Cơ chế ghi bất đồng bộ trên SQLite WAL không gây khóa dữ liệu (non-blocking).
+
+### 10.4 Giao Diện Quản Trị Trực Quan
+- Mở tab **🛡️ Agents** trên giao diện desktop controller (`uv run token-context gui`) để:
+  - Xem bảng Live Agents, phân loại trạng thái (`ACTIVE`, `PAUSED`, `BLOCKED`).
+  - Quản lý tài nguyên đang bị khóa (Active Mutex Locks) và mở khóa thủ công.
+  - Theo dõi nhật ký kiểm toán (Security Audit Stream) kèm bộ lọc theo kết quả thực thi.

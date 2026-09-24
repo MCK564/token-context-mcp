@@ -17,11 +17,13 @@ from PySide6.QtWidgets import (
 )
 
 from token_context_mcp.gui.bridge import (
+    AgentSecurityController,
     RepoManager,
     ServerController,
     SystemMonitor,
     SystemTelemetry,
 )
+from token_context_mcp.gui.widgets.agents_tab import AgentsTab
 from token_context_mcp.gui.widgets.cache_tab import CacheTab
 from token_context_mcp.gui.widgets.dashboard_tab import DashboardTab
 from token_context_mcp.gui.widgets.loading_overlay import LoadingOverlay
@@ -40,6 +42,7 @@ class MainWindow(QMainWindow):
         # Core Bridges
         self.repo_mgr = RepoManager(config_path)
         self.server_ctrl = ServerController(config_path, self)
+        self.security_ctrl = AgentSecurityController(config_path, self)
         self.sys_monitor = SystemMonitor(self, interval=2.5)
 
         self._active_task_desc = "All tasks idle"
@@ -83,6 +86,7 @@ class MainWindow(QMainWindow):
             ("Repositories", "Allowlist & Snapshot Inventory"),
             ("Tasks & Graph", "Live Log Stream & Graph Precision"),
             ("Cache & Storage", "SQLite DB Breakdown & Defragmentation"),
+            ("Agents & Security", "Access Control, Mutex Locks & Audit Trail"),
             ("Settings", "Resource Caps & Extension Configuration"),
         ]
 
@@ -91,7 +95,8 @@ class MainWindow(QMainWindow):
             ("📁 Repositories", 1),
             ("⚡ Tasks & Graph", 2),
             ("💾 Cache & DB", 3),
-            ("⚙️ Settings", 4),
+            ("🛡️ Agents", 4),
+            ("⚙️ Settings", 5),
         ]
 
         self.nav_buttons: list[QPushButton] = []
@@ -168,12 +173,14 @@ class MainWindow(QMainWindow):
         self.tab_repos = RepositoriesTab(self.repo_mgr)
         self.tab_tasks = TasksTab(self.repo_mgr)
         self.tab_cache = CacheTab(self.repo_mgr)
+        self.tab_agents = AgentsTab(self.security_ctrl, self.repo_mgr)
         self.tab_settings = SettingsTab(self.repo_mgr)
 
         self.stack.addWidget(self.tab_dashboard)
         self.stack.addWidget(self.tab_repos)
         self.stack.addWidget(self.tab_tasks)
         self.stack.addWidget(self.tab_cache)
+        self.stack.addWidget(self.tab_agents)
         self.stack.addWidget(self.tab_settings)
 
         stack_box.addWidget(self.stack)
@@ -227,6 +234,8 @@ class MainWindow(QMainWindow):
         elif idx == 3:
             self.tab_cache.refresh_stats()
         elif idx == 4:
+            self.tab_agents.refresh()
+        elif idx == 5:
             self.tab_settings.load_settings()
 
     def _manual_refresh_current_tab(self) -> None:
@@ -287,4 +296,6 @@ class MainWindow(QMainWindow):
             self.sys_monitor.stop()
         if self.server_ctrl.status == "RUNNING":
             self.server_ctrl.stop_server()
+        if hasattr(self, "security_ctrl"):
+            self.security_ctrl.close()
         event.accept()

@@ -12,8 +12,9 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from PySide6.QtWidgets import QApplication, QWidget
 
-from token_context_mcp.gui.bridge import RepoManager, ServerController
+from token_context_mcp.gui.bridge import AgentSecurityController, RepoManager, ServerController
 from token_context_mcp.gui.main_window import MainWindow
+from token_context_mcp.gui.widgets.agents_tab import AgentsTab
 from token_context_mcp.gui.widgets.cache_tab import CacheTab
 from token_context_mcp.gui.widgets.dashboard_tab import DashboardTab
 from token_context_mcp.gui.widgets.repositories_tab import RepositoriesTab
@@ -31,7 +32,7 @@ def qapp():
 
 @pytest.fixture
 def temp_gui_env():
-    with tempfile.TemporaryDirectory(prefix="tcmcp_gui_widget_test_") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="tcmcp_gui_widget_test_", ignore_cleanup_errors=True) as tmpdir:
         config_path = Path(tmpdir) / "repos.toml"
         repo_dir = Path(tmpdir) / "test-repo"
         repo_dir.mkdir()
@@ -43,10 +44,10 @@ def test_main_window_instantiation(qapp, temp_gui_env):
     config_path, _ = temp_gui_env
     window = MainWindow(config_path=config_path)
     assert window is not None
-    assert window.stack.count() == 5
+    assert window.stack.count() == 6
 
     # Switch tabs
-    for idx in range(5):
+    for idx in range(6):
         window._on_nav_clicked(idx)
         assert window.stack.currentIndex() == idx
 
@@ -58,6 +59,7 @@ def test_individual_widgets(qapp, temp_gui_env):
     repo_mgr = RepoManager(config_path)
     repo_mgr.add_repository("testrepo", repo_dir)
     server_ctrl = ServerController(config_path)
+    security_ctrl = AgentSecurityController(config_path)
 
     # Dashboard tab
     dashboard = DashboardTab(repo_mgr, server_ctrl)
@@ -77,9 +79,28 @@ def test_individual_widgets(qapp, temp_gui_env):
     cache_tab = CacheTab(repo_mgr)
     assert cache_tab.table is not None
 
+    # Agents tab
+    agents_tab = AgentsTab(security_ctrl, repo_mgr)
+    security_ctrl.access_control.register_agent("test-agent-1", role="unit-tester")
+    security_ctrl.refresh_data()
+    assert agents_tab.agents_table.rowCount() >= 1
+
+    # Pause agent via controller and verify UI reflection
+    security_ctrl.pause_agent("test-agent-1", reason="Testing pause")
+    assert security_ctrl.access_control.get_agent_state("test-agent-1").value == "PAUSED"
+
+    # Emergency halt
+    security_ctrl.emergency_halt("Testing emergency stop")
+    assert security_ctrl.is_emergency_halted is True
+    assert "EMERGENCY STOP ACTIVE" in agents_tab.status_indicator.text()
+    security_ctrl.emergency_resume()
+    assert security_ctrl.is_emergency_halted is False
+
     # Settings tab
     settings_tab = SettingsTab(repo_mgr)
     assert settings_tab.spin_tokens.value() > 0
+
+    security_ctrl.close()
 
 
 def test_loading_overlay(qapp):

@@ -241,4 +241,27 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         tags=["sampling", "compress", "summarize", "llm", "nested"],
         recommended_followups=["memory_put"],
     ),
+    "agent_control": ToolMeta(
+        name="agent_control",
+        category="security_governance",
+        summary="Manage agent execution state, revoke locks, or trigger emergency stops.",
+        parameters_summary={
+            "action": "status | pause | resume | block | unblock | revoke_locks | emergency_halt | emergency_resume",
+            "agent_id": "string (optional)",
+            "reason": "string (optional)",
+            "policy": "FULL_ACCESS | READ_ONLY | CUSTOM (optional)",
+        },
+        tags=["security", "agent", "governance", "pause", "resume", "block", "emergency"],
+    ),
+    "audit_logs": ToolMeta(
+        name="audit_logs",
+        category="security_governance",
+        summary="Query recent tool execution and security audit logs.",
+        parameters_summary={
+            "limit": "integer (default: 50)",
+            "agent_id": "string (optional)",
+            "status": "SUCCESS | DENIED | ERROR (optional)",
+        },
+        tags=["security", "audit", "logs", "forensics", "history"],
+    ),
 }

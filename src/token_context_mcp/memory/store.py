@@ -74,10 +74,18 @@ class MemoryStore:
         ttl: int | None = 86400,
         session_id: str | None = None,
     ) -> dict[str, Any]:
+        if not key or len(key.encode("utf-8")) > 256:
+            raise ValueError("Key must be non-empty and at most 256 bytes")
         now = time.time()
         expires_at = now + ttl if ttl and ttl > 0 else None
         value_json = json.dumps(value, ensure_ascii=False)
-        content_text = f"{key} {value_json}"
+        if len(value_json.encode("utf-8")) > 1_048_576:
+            raise ValueError("Payload exceeds maximum size limit of 1MB")
+
+        # Redact potential secrets before FTS indexing
+        from token_context_mcp.security.content_policy import redact_text
+        sanitized_json, _ = redact_text(value_json)
+        content_text = f"{key} {sanitized_json}"
 
         with self._connection() as conn:
             conn.execute(
@@ -225,6 +233,34 @@ class MemoryStore:
             released = cur.rowcount > 0
 
         return {"resource_key": resource_key, "released": released}
+
+    def revoke_agent_locks(self, agent_id: str) -> int:
+        """Forcefully revoke all resource locks held by a specific agent."""
+        with self._connection() as conn:
+            cur = conn.execute("DELETE FROM locks WHERE agent_id = ?", (agent_id,))
+            return cur.rowcount
+
+    def revoke_all_locks(self) -> int:
+        """Emergency release of all resource locks across all agents."""
+        with self._connection() as conn:
+            cur = conn.execute("DELETE FROM locks")
+            return cur.rowcount
+
+    def list_active_locks(self) -> list[dict[str, Any]]:
+        """List currently active (non-expired) resource locks."""
+        now = time.time()
+        results: list[dict[str, Any]] = []
+        with self._connection() as conn:
+            rows = conn.execute("SELECT resource_key, agent_id, acquired_at, expires_at FROM locks WHERE expires_at > ? ORDER BY acquired_at DESC", (now,)).fetchall()
+            for r in rows:
+                results.append({
+                    "resource_key": r["resource_key"],
+                    "agent_id": r["agent_id"],
+                    "acquired_at": r["acquired_at"],
+                    "expires_at": r["expires_at"],
+                    "remaining_sec": max(0.0, round(r["expires_at"] - now, 1)),
+                })
+        return results
 
     def list_entries(self, *, scope: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
         """List active unexpired memory entries for inspection or consolidation."""
