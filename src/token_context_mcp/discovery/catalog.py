@@ -215,6 +215,18 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         },
         tags=["memory", "lock", "mutex", "concurrency", "multi_agent"],
     ),
+    "memory_unlock": ToolMeta(
+        name="memory_unlock",
+        category="shared_memory",
+        summary="Release a distributed resource lock previously acquired with memory_lock.",
+        parameters_summary={
+            "resource_key": "string (required)",
+            "agent_id": "string (optional)",
+        },
+        tags=["memory", "lock", "unlock", "concurrency", "release"],
+        prerequisites=["memory_lock"],
+        recommended_followups=["memory_lock", "memory_put"],
+    ),
     "memory_consolidate": ToolMeta(
         name="memory_consolidate",
         category="shared_memory",

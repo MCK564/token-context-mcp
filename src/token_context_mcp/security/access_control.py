@@ -67,6 +67,7 @@ READ_ONLY_TOOLS: frozenset[str] = frozenset({
 WRITE_OR_MUTATING_TOOLS: frozenset[str] = frozenset({
     "memory_put",
     "memory_lock",
+    "memory_unlock",
     "sample_summarize",
 })
 

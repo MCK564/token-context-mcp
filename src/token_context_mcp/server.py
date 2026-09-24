@@ -86,6 +86,7 @@ def build_server(
             "memory_get",
             "memory_search",
             "memory_lock",
+            "memory_unlock",
             "memory_consolidate",
             "sample_summarize",
         })
@@ -421,6 +422,20 @@ def build_server(
                 _invoke(
                     lambda: memory_service.memory_lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec),
                     tool_name="memory_lock",
+                    agent_id=agent_id,
+                )
+            )
+
+        @server.tool(
+            title="Release distributed lock",
+            description="Release a distributed lock previously acquired on a resource key.",
+        )
+        def memory_unlock(resource_key: str, agent_id: str | None = None) -> CallToolResult:
+            effective_id = resolve_effective_agent_id(agent_id)[0]
+            return _wrap(
+                _invoke(
+                    lambda: memory_service.memory_unlock(resource_key=resource_key, agent_id=effective_id),
+                    tool_name="memory_unlock",
                     agent_id=agent_id,
                 )
             )

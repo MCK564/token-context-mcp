@@ -65,7 +65,7 @@ def test_catalog_matches_registered_tools(indexed_config: Path) -> None:
     catalog_tool_names = set(TOOL_CATALOG.keys())
 
     assert catalog_tool_names == server_tool_names
-    assert len(catalog_tool_names) == 21
+    assert len(catalog_tool_names) == 22
 
 
 def test_tool_catalog_and_descriptions_alignment() -> None:

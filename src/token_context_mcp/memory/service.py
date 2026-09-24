@@ -42,6 +42,19 @@ class MemoryService:
             raise ValueError("resource_key and agent_id are required")
         return self.store.lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec)
 
+    def memory_unlock(self, resource_key: str, agent_id: str) -> dict[str, Any]:
+        if not resource_key or not agent_id:
+            raise ValueError("resource_key and agent_id are required")
+        released = self.store.unlock(resource_key=resource_key, agent_id=agent_id)
+        if released:
+            return {"status": "released", "resource_key": resource_key}
+        else:
+            return {
+                "status": "not_locked",
+                "message": f"Lock on '{resource_key}' was not found or is held by another agent",
+                "resource_key": resource_key,
+            }
+
     def revoke_agent_locks(self, agent_id: str) -> int:
         return self.store.revoke_agent_locks(agent_id=agent_id)
 

@@ -43,8 +43,9 @@ class MemoryStore:
     def __init__(self, db_path: Path | str = ":memory:") -> None:
         self.db_path = str(db_path)
         if self.db_path == ":memory:":
-            self._persistent_conn: sqlite3.Connection | None = sqlite3.connect(":memory:", check_same_thread=False)
+            self._persistent_conn: sqlite3.Connection | None = sqlite3.connect(":memory:", timeout=5.0, check_same_thread=False)
             self._persistent_conn.row_factory = sqlite3.Row
+            self._persistent_conn.execute("PRAGMA busy_timeout = 5000;")
             self._persistent_conn.executescript(MEMORY_SCHEMA)
         else:
             self._persistent_conn = None
@@ -58,8 +59,9 @@ class MemoryStore:
             yield self._persistent_conn
             self._persistent_conn.commit()
         else:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=5.0)
             conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA busy_timeout = 5000;")
             try:
                 yield conn
                 conn.commit()
@@ -207,43 +209,52 @@ class MemoryStore:
         expires_at = now + timeout_sec
 
         with self._connection() as conn:
-            # Check existing lock
-            row = conn.execute("SELECT agent_id, expires_at FROM locks WHERE resource_key = ?", (resource_key,)).fetchone()
-            if row:
-                if row["expires_at"] > now and row["agent_id"] != agent_id:
-                    return {
-                        "status": "locked",
-                        "acquired": False,
-                        "resource_key": resource_key,
-                        "held_by": row["agent_id"],
-                        "remaining_sec": round(row["expires_at"] - now, 1),
-                    }
-            # Acquire or renew
-            conn.execute(
+            cur = conn.execute(
                 """
                 INSERT INTO locks (resource_key, agent_id, acquired_at, expires_at)
-                VALUES (?, ?, ?, ?)
+                VALUES (:key, :agent, :now, :expires)
                 ON CONFLICT(resource_key) DO UPDATE SET
-                  agent_id=excluded.agent_id,
-                  acquired_at=excluded.acquired_at,
-                  expires_at=excluded.expires_at
+                    agent_id = excluded.agent_id,
+                    acquired_at = excluded.acquired_at,
+                    expires_at = excluded.expires_at
+                WHERE locks.expires_at <= :now
+                   OR locks.agent_id = excluded.agent_id;
                 """,
-                (resource_key, agent_id, now, expires_at),
+                {"key": resource_key, "agent": agent_id, "now": now, "expires": expires_at},
             )
+            if cur.rowcount > 0:
+                return {
+                    "status": "acquired",
+                    "acquired": True,
+                    "resource_key": resource_key,
+                    "agent_id": agent_id,
+                    "expires_in_sec": timeout_sec,
+                }
 
-        return {
-            "status": "acquired",
-            "acquired": True,
-            "resource_key": resource_key,
-            "agent_id": agent_id,
-            "expires_in_sec": timeout_sec,
-        }
+            row = conn.execute(
+                "SELECT agent_id, expires_at FROM locks WHERE resource_key = :key",
+                {"key": resource_key},
+            ).fetchone()
+            held_by = row["agent_id"] if row else "unknown"
+            rem = max(0.0, round(row["expires_at"] - now, 1)) if row else 0.0
+            return {
+                "status": "locked",
+                "acquired": False,
+                "resource_key": resource_key,
+                "held_by": held_by,
+                "remaining_sec": rem,
+            }
+
+    def unlock(self, resource_key: str, agent_id: str) -> bool:
+        with self._connection() as conn:
+            cur = conn.execute(
+                "DELETE FROM locks WHERE resource_key = :key AND agent_id = :agent",
+                {"key": resource_key, "agent": agent_id},
+            )
+            return cur.rowcount > 0
 
     def release_lock(self, resource_key: str, agent_id: str) -> dict[str, Any]:
-        with self._connection() as conn:
-            cur = conn.execute("DELETE FROM locks WHERE resource_key = ? AND agent_id = ?", (resource_key, agent_id))
-            released = cur.rowcount > 0
-
+        released = self.unlock(resource_key, agent_id)
         return {"resource_key": resource_key, "released": released}
 
     def revoke_agent_locks(self, agent_id: str) -> int:
