@@ -131,17 +131,36 @@ def test_composite_inspect_symbol_workflow(indexed_config: Path) -> None:
     service = RetrievalService(config, indexed_config)
     engine = CompositeWorkflowEngine(service)
 
-    # Test resolved symbol
-    res = engine.inspect_symbol(repo_id="demo", query="alpha")
+    # Test resolved symbol (normal view)
+    res = engine.inspect_symbol(repo_id="demo", query="alpha", view="normal")
     assert res["schema_version"] == "1.0"
     assert res["data"]["status"] == "resolved"
     assert res["data"]["target_symbol_id"]
     assert "symbol" in res["data"]
+    assert res["data"]["symbol"]["name"] == "alpha"
+    assert "signature" in res["data"]["symbol"]
+    assert "def alpha" in res["data"]["symbol"]["signature"]
+    assert "content" in res["data"]
+    assert "def alpha" in res["data"]["content"]
     assert "relationships" in res["data"]
 
-    # Test minimal projection
+    # Test minimal projection (has signature, no content, concise edges)
     res_min = engine.inspect_symbol(repo_id="demo", query="alpha", view="minimal")
     assert res_min["data"]["status"] == "resolved"
+    assert res_min["data"]["symbol"]["name"] == "alpha"
+    assert "def alpha" in res_min["data"]["symbol"]["signature"]
+    assert "content" not in res_min["data"]
+    assert "qualified_name" not in res_min["data"]["symbol"]
+
+    # Test full view (has content, all symbol metadata, envelope evidence/budget)
+    res_full = engine.inspect_symbol(repo_id="demo", query="alpha", view="full")
+    assert res_full["data"]["status"] == "resolved"
+    assert "content" in res_full["data"]
+    assert "def alpha" in res_full["data"]["content"]
+    assert "is_private" in res_full["data"]["symbol"]
+    assert "role_evidence" in res_full["data"]["symbol"]
+    assert "role_evidence" not in res["data"]["symbol"]
+    assert "budget" in res_full
 
     # Test not found
     res_not_found = engine.inspect_symbol(repo_id="demo", query="non_existent_symbol_xyz")
