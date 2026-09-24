@@ -74,3 +74,67 @@ def test_search_source_caps_at_two_lines_per_file(nested_repo_config: Path) -> N
     assert len(file_matches) == 2
     matched_lines = [m["start_line"] for m in file_matches]
     assert matched_lines == [2, 4]
+
+
+def test_search_source_symbol_scoring_distinct_terms(nested_repo_config: Path) -> None:
+    root = load_config(nested_repo_config).repositories["test-nested"].root
+    (root / "scoring.py").write_text(
+        """def b():
+    x = "term_alpha"
+    y = "term_alpha"
+
+def a():
+    x = "term_alpha"
+    y = "term_beta"
+    z = "term_gamma"
+""",
+        encoding="utf-8",
+    )
+    repo = RepositoryConfig(repo_id="test-nested", root=root.resolve())
+    build_index(repo, nested_repo_config.parent / "indexes", network_policy="declared-deny-not-enforced")
+
+    service = _service(nested_repo_config)
+    res = service.search_source("test-nested", query="term_alpha term_beta term_gamma", limit=10)
+    file_matches = [m for m in res["data"]["matches"] if m["path"] == "scoring.py"]
+
+    # a() has 3 distinct terms in its span, b() has only 1.
+    # Therefore, a() must be scored higher and appear before b().
+    assert file_matches
+    first_symbol = file_matches[0]["symbol_id"]
+    assert first_symbol is not None
+    assert "a" in first_symbol
+
+
+def test_search_source_caps_at_three_symbols_per_file(nested_repo_config: Path) -> None:
+    root = load_config(nested_repo_config).repositories["test-nested"].root
+    (root / "five_funcs.py").write_text(
+        """def f1():
+    return "unique_marker_kw"
+
+def f2():
+    return "unique_marker_kw"
+
+def f3():
+    return "unique_marker_kw"
+
+def f4():
+    return "unique_marker_kw"
+
+def f5():
+    return "unique_marker_kw"
+""",
+        encoding="utf-8",
+    )
+    repo = RepositoryConfig(repo_id="test-nested", root=root.resolve())
+    build_index(repo, nested_repo_config.parent / "indexes", network_policy="declared-deny-not-enforced")
+
+    service = _service(nested_repo_config)
+    res = service.search_source("test-nested", query="unique_marker_kw", limit=10)
+    file_matches = [m for m in res["data"]["matches"] if m["path"] == "five_funcs.py"]
+
+    # Maximum 3 symbols per file
+    matched_symbol_ids = {m["symbol_id"] for m in file_matches if m["symbol_id"]}
+    assert len(matched_symbol_ids) <= 3
+    assert res["data"]["omitted_count"] > 0
+    assert res["truncated"] is True
+

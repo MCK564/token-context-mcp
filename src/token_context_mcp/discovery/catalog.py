@@ -66,7 +66,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
     "search_source": ToolMeta(
         name="search_source",
         category="code_navigation",
-        summary="Full-text FTS5 search across symbol bodies and source code, returning line spans and IDs.",
+        summary="Full-text FTS5 search across source files, returning best matching lines and enclosing symbols.",
         parameters_summary={
             "repo_id": "string (required)",
             "query": "string (required)",

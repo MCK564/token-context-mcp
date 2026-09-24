@@ -296,6 +296,7 @@ class RetrievalService:
         max_tokens: int | None = None,
         profile: str | None = None,
     ) -> dict[str, Any]:
+        """Full-text search across indexed files with FTS5, returning best matching lines grouped by enclosing symbol."""
         profile_settings = self._profile_settings(profile, "search_source")
         if limit is None:
             limit = _profile_int(profile_settings, "limit", 20)
@@ -321,7 +322,12 @@ class RetrievalService:
             raise RetrievalError(str(error)) from error
         entries: list[dict[str, Any]] = []
         stale_paths: list[str] = []
-        for row in rows:
+        unselected_matches_count = 0
+        sorted_rows = sorted(
+            rows,
+            key=lambda r: (1 if r["path"].startswith(("tests/", "evals/")) else 0),
+        )
+        for row in sorted_rows:
             file_record = store.file(row["path"])
             if file_record is None:
                 continue
@@ -350,10 +356,12 @@ class RetrievalService:
                 )
                 continue
             source = raw.decode("utf-8", errors="replace")
-            matching_lines = _best_matching_lines(source, _fts_terms(query), file_symbols, max_lines=2)
-            for line_number in matching_lines:
+            selected_lines, unselected = _score_and_select_file_matches(
+                source, query, file_symbols, row["path"]
+            )
+            unselected_matches_count += unselected
+            for line_number, symbol in selected_lines:
                 snippet, redacted = redact_text(_source_snippet(source, line_number))
-                symbol = _innermost_symbol(file_symbols, line_number)
                 entries.append(
                     {
                         "symbol_id": symbol.symbol_id if symbol else None,
@@ -380,6 +388,7 @@ class RetrievalService:
             omitted_items: list[dict[str, Any]],
             estimated: int,
         ) -> dict[str, Any]:
+            omitted_count = source_limit_omitted + unselected_matches_count + len(omitted_items)
             return self._envelope(
                 repo_id,
                 metadata,
@@ -387,12 +396,12 @@ class RetrievalService:
                 estimated_tokens=estimated,
                 freshness=freshness,
                 warnings=response_warnings,
-                truncated=source_limit_omitted > 0 or bool(omitted_items),
+                truncated=omitted_count > 0,
                 evidence=[],
                 data={
                     "query": query,
                     "matches": selected_items,
-                    "omitted_count": source_limit_omitted + len(omitted_items),
+                    "omitted_count": omitted_count,
                     "estimator_version": ESTIMATOR_VERSION,
                 },
             )
@@ -1419,6 +1428,115 @@ def _innermost_symbol(symbols: list[SymbolRecord], line_number: int) -> SymbolRe
     if not enclosing:
         return None
     return min(enclosing, key=lambda s: (s.end_line - s.start_line, -s.start_line))
+
+
+def _score_and_select_file_matches(
+    source: str,
+    query: str,
+    file_symbols: list[SymbolRecord],
+    path: str,
+) -> tuple[list[tuple[int, SymbolRecord | None]], int]:
+    """Score matching lines in a file, group by innermost enclosing symbol,
+    and return up to 3 best symbols (up to 2 best lines per symbol) and the count
+    of unselected matching lines.
+    """
+    lines = source.splitlines()
+    if not lines:
+        return ([(1, _innermost_symbol(file_symbols, 1))], 0)
+
+    terms = _fts_terms(query)
+    valid_terms = [t for t in terms if t.strip()]
+    if not valid_terms:
+        return ([(1, _innermost_symbol(file_symbols, 1))], 0)
+
+    patterns = [
+        re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE)
+        for term in valid_terms
+    ]
+
+    line_matches: dict[int, set[int]] = {}
+    for line_num, line in enumerate(lines, start=1):
+        matched = {i for i, p in enumerate(patterns) if p.search(line)}
+        if matched:
+            line_matches[line_num] = matched
+
+    if not line_matches:
+        lowered_terms = [t.lower() for t in valid_terms]
+        for line_num, line in enumerate(lines, start=1):
+            lowered = line.lower()
+            matched = {i for i, t in enumerate(lowered_terms) if t in lowered}
+            if matched:
+                line_matches[line_num] = matched
+
+    if not line_matches:
+        return ([(1, _innermost_symbol(file_symbols, 1))], 0)
+
+    # Group matching lines by innermost enclosing symbol
+    groups: dict[str | None, dict[str, Any]] = {}
+    for line_num, matched_terms in line_matches.items():
+        sym = _innermost_symbol(file_symbols, line_num)
+        sym_key = sym.symbol_id if sym else None
+        if sym_key not in groups:
+            groups[sym_key] = {
+                "symbol": sym,
+                "lines": [],
+            }
+        groups[sym_key]["lines"].append((line_num, len(matched_terms)))
+
+    # Compute symbol scores: number of distinct query terms in symbol span
+    scored_groups: list[dict[str, Any]] = []
+    is_test = 1 if path.startswith(("tests/", "evals/")) else 0
+
+    for group in groups.values():
+        sym = group["symbol"]
+        if sym is not None:
+            distinct_terms: set[int] = set()
+            for ln in range(sym.start_line, sym.end_line + 1):
+                if ln in line_matches:
+                    distinct_terms |= line_matches[ln]
+            sym_score = len(distinct_terms)
+            sym_start = sym.start_line
+        else:
+            distinct_terms = set()
+            for ln, _ in group["lines"]:
+                distinct_terms |= line_matches.get(ln, set())
+            sym_score = len(distinct_terms)
+            sym_start = group["lines"][0][0] if group["lines"] else 1
+
+        # Per symbol: up to 2 best lines (highest line score, then line number)
+        sorted_lines = sorted(group["lines"], key=lambda item: (-item[1], item[0]))
+        best_line_score = sorted_lines[0][1] if sorted_lines else 0
+        selected_lines = sorted_lines[:2]
+
+        has_symbol = 1 if sym is not None else 0
+        scored_groups.append({
+            "symbol": sym,
+            "has_symbol": has_symbol,
+            "sym_score": sym_score,
+            "best_line_score": best_line_score,
+            "sym_start": sym_start,
+            "lines": group["lines"],
+            "selected_lines": selected_lines,
+        })
+
+    # Per file: up to 3 best symbols
+    # Ordered by: symbol score desc, has_symbol desc, best line score desc, is_test asc, sym_start asc
+    scored_groups.sort(
+        key=lambda g: (-g["sym_score"], -g["has_symbol"], -g["best_line_score"], is_test, g["sym_start"])
+    )
+
+    selected_groups = scored_groups[:3]
+    selected_line_count = sum(len(g["selected_lines"]) for g in selected_groups)
+    unselected_count = len(line_matches) - selected_line_count
+
+    # Collect result pairs: (line_num, sym)
+    results: list[tuple[int, SymbolRecord | None]] = []
+    for g in selected_groups:
+        sym = g["symbol"]
+        for ln, _ in g["selected_lines"]:
+            results.append((ln, sym))
+
+    return results, max(0, unselected_count)
 
 
 def _best_matching_lines(

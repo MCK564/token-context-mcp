@@ -157,8 +157,8 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
 
     @server.tool(
-        title="Search source bodies",
-        description="Search indexed symbol bodies with FTS5 and return bounded snippets, symbol IDs and line evidence.",
+        title="Search source",
+        description="Full-text FTS5 search across source files, returning best matching lines grouped and scored by enclosing symbol.",
     )
     def search_source(
         repo_id: str,
