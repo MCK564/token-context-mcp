@@ -350,32 +350,26 @@ class RetrievalService:
                 )
                 continue
             source = raw.decode("utf-8", errors="replace")
-            line_number = _first_matching_line(source, _fts_terms(query), file_symbols)
-            snippet, redacted = redact_text(_source_snippet(source, line_number))
-            symbol = next(
-                (
-                    item
-                    for item in file_symbols
-                    if item.start_line <= line_number <= item.end_line
-                ),
-                None,
-            )
-            entries.append(
-                {
-                    "symbol_id": symbol.symbol_id if symbol else None,
-                    "path": row["path"],
-                    "start_line": line_number,
-                    "end_line": line_number,
-                    "snippet": snippet,
-                    "evidence": (
-                        self._evidence_for_symbol(store, symbol).as_dict()
-                        if symbol
-                        else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
-                    ),
-                    **({"redacted_lines": redacted} if redacted else {}),
-                }
-            )
-        source_limit_omitted = max(0, total_matches - len(entries))
+            matching_lines = _best_matching_lines(source, _fts_terms(query), file_symbols, max_lines=2)
+            for line_number in matching_lines:
+                snippet, redacted = redact_text(_source_snippet(source, line_number))
+                symbol = _innermost_symbol(file_symbols, line_number)
+                entries.append(
+                    {
+                        "symbol_id": symbol.symbol_id if symbol else None,
+                        "path": row["path"],
+                        "start_line": line_number,
+                        "end_line": line_number,
+                        "snippet": snippet,
+                        "evidence": (
+                            self._evidence_for_symbol(store, symbol).as_dict()
+                            if symbol
+                            else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
+                        ),
+                        **({"redacted_lines": redacted} if redacted else {}),
+                    }
+                )
+        source_limit_omitted = max(0, total_matches - len(rows))
         response_warnings: list[str] = []
         if any(item.get("redacted_lines", 0) for item in entries):
             response_warnings.append("potential_secrets_redacted")
@@ -1360,17 +1354,71 @@ def _fts_terms(query: str) -> list[str]:
     return re.findall(r"[\w]+", query, flags=re.UNICODE)
 
 
+def _innermost_symbol(symbols: list[SymbolRecord], line_number: int) -> SymbolRecord | None:
+    enclosing = [
+        sym for sym in symbols
+        if sym.start_line <= line_number <= sym.end_line
+    ]
+    if not enclosing:
+        return None
+    return min(enclosing, key=lambda s: (s.end_line - s.start_line, -s.start_line))
+
+
+def _best_matching_lines(
+    source: str,
+    terms: list[str],
+    symbols: list[SymbolRecord],
+    *,
+    max_lines: int = 2,
+) -> list[int]:
+    lines = source.splitlines()
+    if not lines:
+        return [1]
+
+    valid_terms = [t for t in terms if t.strip()]
+    if not valid_terms:
+        return [1]
+
+    patterns = [
+        re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE)
+        for term in valid_terms
+    ]
+
+    scored_lines: list[tuple[int, int, int, int]] = []
+    for line_number, line in enumerate(lines, start=1):
+        score = sum(1 for p in patterns if p.search(line))
+        if score > 0:
+            sym = _innermost_symbol(symbols, line_number)
+            has_symbol = 1 if sym is not None else 0
+            span = (sym.end_line - sym.start_line) if sym else 99999999
+            scored_lines.append((score, has_symbol, -span, line_number))
+
+    if not scored_lines:
+        lowered_terms = [t.lower() for t in valid_terms]
+        for line_number, line in enumerate(lines, start=1):
+            lowered = line.lower()
+            score = sum(1 for t in lowered_terms if t in lowered)
+            if score > 0:
+                sym = _innermost_symbol(symbols, line_number)
+                has_symbol = 1 if sym is not None else 0
+                span = (sym.end_line - sym.start_line) if sym else 99999999
+                scored_lines.append((score, has_symbol, -span, line_number))
+
+    if not scored_lines:
+        return [1]
+
+    scored_lines.sort(
+        key=lambda item: (item[0], item[1], item[2], -item[3]),
+        reverse=True,
+    )
+
+    max_score = scored_lines[0][0]
+    best_scored = [item for item in scored_lines if item[0] == max_score]
+    return [item[3] for item in best_scored[:max_lines]]
+
+
 def _first_matching_line(source: str, terms: list[str], symbols: list[SymbolRecord]) -> int:
-    lowered_terms = [term.lower() for term in terms]
-    matching_lines: list[int] = []
-    for line_number, line in enumerate(source.splitlines(), start=1):
-        lowered = line.lower()
-        if any(term in lowered for term in lowered_terms):
-            matching_lines.append(line_number)
-    for line_number in matching_lines:
-        if any(symbol.start_line <= line_number <= symbol.end_line for symbol in symbols):
-            return line_number
-    return matching_lines[0] if matching_lines else 1
+    return _best_matching_lines(source, terms, symbols, max_lines=1)[0]
 
 
 def _source_snippet(source: str, line_number: int, radius: int = 0) -> str:
