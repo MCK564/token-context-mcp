@@ -177,6 +177,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "key": "string (required)",
             "value": "any (required, string or JSON object)",
             "scope": "session | project | global",
+            "namespace": "string (optional, default: ''; isolates entries per session or agent)",
             "ttl": "integer (seconds, optional)",
         },
         tags=["memory", "state", "shared", "checkpoint", "cache"],
@@ -189,6 +190,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         parameters_summary={
             "key": "string (required)",
             "scope": "session | project | global",
+            "namespace": "string (optional, default: ''; must match the namespace used in memory_put)",
         },
         tags=["memory", "state", "get", "read", "checkpoint"],
         prerequisites=["memory_put"],
@@ -200,6 +202,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         parameters_summary={
             "query": "string (required)",
             "scope": "session | project | global (optional)",
+            "namespace": "string (optional; filter to a specific namespace)",
             "limit": "integer (default: 5)",
         },
         tags=["memory", "search", "artifacts", "state", "find"],

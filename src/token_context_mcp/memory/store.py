@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import sqlite3
 import time
 from collections.abc import Iterator
@@ -10,18 +11,20 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-MEMORY_SCHEMA = """
+# Schema v2: adds namespace column for session isolation
+MEMORY_SCHEMA_V2 = """
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS key_values (
   scope TEXT NOT NULL,
+  namespace TEXT NOT NULL DEFAULT '',
   key TEXT NOT NULL,
   session_id TEXT,
   value_json TEXT NOT NULL,
   created_at REAL NOT NULL,
   expires_at REAL,
-  PRIMARY KEY (scope, key)
+  PRIMARY KEY (scope, namespace, key)
 );
-CREATE INDEX IF NOT EXISTS kv_scope_idx ON key_values(scope);
+CREATE INDEX IF NOT EXISTS kv_scope_ns_idx ON key_values(scope, namespace);
 CREATE INDEX IF NOT EXISTS kv_expires_idx ON key_values(expires_at);
 
 CREATE TABLE IF NOT EXISTS locks (
@@ -33,25 +36,96 @@ CREATE TABLE IF NOT EXISTS locks (
 
 CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
   scope UNINDEXED,
+  namespace UNINDEXED,
   key UNINDEXED,
   content
 );
 """
 
+_TARGET_USER_VERSION = 2
+_TTL_CLEANUP_INTERVAL = 100  # run cleanup every N put calls
+
+
+def _redact_value(value: Any) -> Any:
+    """Recursively redact secrets from leaf strings using content policy."""
+    from token_context_mcp.security.content_policy import redact_text
+    if isinstance(value, str):
+        redacted, _ = redact_text(value)
+        return redacted
+    if isinstance(value, dict):
+        return {k: _redact_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_value(item) for item in value]
+    return value
+
 
 class MemoryStore:
     def __init__(self, db_path: Path | str = ":memory:") -> None:
         self.db_path = str(db_path)
+        self._put_count = 0
         if self.db_path == ":memory:":
             self._persistent_conn: sqlite3.Connection | None = sqlite3.connect(":memory:", timeout=5.0, check_same_thread=False)
             self._persistent_conn.row_factory = sqlite3.Row
             self._persistent_conn.execute("PRAGMA busy_timeout = 5000;")
-            self._persistent_conn.executescript(MEMORY_SCHEMA)
+            self._persistent_conn.executescript(MEMORY_SCHEMA_V2)
+            self._persistent_conn.execute(f"PRAGMA user_version = {_TARGET_USER_VERSION};")
+            self._persistent_conn.commit()
         else:
             self._persistent_conn = None
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
             with self._connection() as conn:
-                conn.executescript(MEMORY_SCHEMA)
+                self._migrate_schema(conn)
+
+    def _migrate_schema(self, conn: sqlite3.Connection) -> None:
+        """Run schema migration if needed. Backs up the DB before migrating."""
+        cur_ver = conn.execute("PRAGMA user_version;").fetchone()[0]
+        if cur_ver >= _TARGET_USER_VERSION:
+            conn.executescript(MEMORY_SCHEMA_V2)
+            return
+
+        # Backup before migrating
+        db_path = Path(self.db_path)
+        bak_path = db_path.with_suffix(f".sqlite.bak-v{cur_ver}")
+        if db_path.exists() and not bak_path.exists():
+            shutil.copy2(str(db_path), str(bak_path))
+
+        # SQLite cannot ALTER PRIMARY KEY. Rebuild key_values with the new
+        # (scope, namespace, key) PK if the old table exists.
+        existing_tables = {
+            row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        }
+        if "key_values" in existing_tables:
+            conn.executescript("""
+                PRAGMA foreign_keys = OFF;
+                BEGIN;
+                CREATE TABLE IF NOT EXISTS key_values_new (
+                  scope TEXT NOT NULL,
+                  namespace TEXT NOT NULL DEFAULT '',
+                  key TEXT NOT NULL,
+                  session_id TEXT,
+                  value_json TEXT NOT NULL,
+                  created_at REAL NOT NULL,
+                  expires_at REAL,
+                  PRIMARY KEY (scope, namespace, key)
+                );
+                INSERT OR IGNORE INTO key_values_new
+                  (scope, namespace, key, session_id, value_json, created_at, expires_at)
+                SELECT scope, '', key, session_id, value_json, created_at, expires_at
+                FROM key_values;
+                DROP TABLE key_values;
+                ALTER TABLE key_values_new RENAME TO key_values;
+                COMMIT;
+                PRAGMA foreign_keys = ON;
+            """)
+
+        # Now run the full schema (CREATE TABLE IF NOT EXISTS + indexes + other tables)
+        conn.executescript(MEMORY_SCHEMA_V2)
+
+        # Set new version
+        conn.execute(f"PRAGMA user_version = {_TARGET_USER_VERSION};")
+        conn.commit()
+
+
 
     @contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
@@ -74,6 +148,7 @@ class MemoryStore:
         value: Any,
         *,
         scope: str = "session",
+        namespace: str = "",
         ttl: int | None = 86400,
         session_id: str | None = None,
     ) -> dict[str, Any]:
@@ -81,57 +156,66 @@ class MemoryStore:
             raise ValueError("Key must be non-empty and at most 256 bytes")
         now = time.time()
         expires_at = now + ttl if ttl and ttl > 0 else None
-        value_json = json.dumps(value, ensure_ascii=False)
+
+        # Redact values before storage
+        redacted_value = _redact_value(value)
+        value_json = json.dumps(redacted_value, ensure_ascii=False)
         if len(value_json.encode("utf-8")) > 1_048_576:
             raise ValueError("Payload exceeds maximum size limit of 1MB")
 
-        # Redact potential secrets before FTS indexing
-        from token_context_mcp.security.content_policy import redact_text
-        sanitized_json, _ = redact_text(value_json)
-        content_text = f"{key} {sanitized_json}"
+        content_text = f"{key} {value_json}"
 
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO key_values (scope, key, session_id, value_json, created_at, expires_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(scope, key) DO UPDATE SET
-                  session_id=excluded.session_id,
-                  value_json=excluded.value_json,
-                  created_at=excluded.created_at,
-                  expires_at=excluded.expires_at
+                INSERT INTO key_values (scope, namespace, key, session_id, value_json, created_at, expires_at)
+                VALUES (:scope, :ns, :key, :sid, :val, :now, :exp)
+                ON CONFLICT(scope, namespace, key) DO UPDATE SET
+                  session_id = excluded.session_id,
+                  value_json = excluded.value_json,
+                  created_at = excluded.created_at,
+                  expires_at = excluded.expires_at
                 """,
-                (scope, key, session_id, value_json, now, expires_at),
+                {"scope": scope, "ns": namespace, "key": key, "sid": session_id, "val": value_json, "now": now, "exp": expires_at},
             )
             # Update FTS
-            conn.execute("DELETE FROM memory_fts WHERE scope = ? AND key = ?", (scope, key))
             conn.execute(
-                "INSERT INTO memory_fts (scope, key, content) VALUES (?, ?, ?)",
-                (scope, key, content_text),
+                "DELETE FROM memory_fts WHERE scope = :scope AND namespace = :ns AND key = :key",
+                {"scope": scope, "ns": namespace, "key": key},
             )
+            conn.execute(
+                "INSERT INTO memory_fts (scope, namespace, key, content) VALUES (?, ?, ?, ?)",
+                (scope, namespace, key, content_text),
+            )
+
+            # Periodic TTL cleanup every _TTL_CLEANUP_INTERVAL puts
+            self._put_count += 1
+            if self._put_count % _TTL_CLEANUP_INTERVAL == 0:
+                conn.execute("DELETE FROM key_values WHERE expires_at IS NOT NULL AND expires_at < :now", {"now": now})
 
         return {
             "status": "stored",
             "scope": scope,
+            "namespace": namespace,
             "key": key,
             "ttl": ttl,
             "expires_at": expires_at,
         }
 
-    def get(self, key: str, *, scope: str = "session") -> dict[str, Any]:
+    def get(self, key: str, *, scope: str = "session", namespace: str = "") -> dict[str, Any]:
         now = time.time()
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT session_id, value_json, created_at, expires_at FROM key_values WHERE scope = ? AND key = ?",
-                (scope, key),
+                "SELECT session_id, value_json, created_at, expires_at FROM key_values WHERE scope = :scope AND namespace = :ns AND key = :key",
+                {"scope": scope, "ns": namespace, "key": key},
             ).fetchone()
 
         if not row:
-            return {"status": "not_found", "scope": scope, "key": key, "value": None}
+            return {"status": "not_found", "scope": scope, "namespace": namespace, "key": key, "value": None}
 
         if row["expires_at"] and row["expires_at"] < now:
-            self.delete(key, scope=scope)
-            return {"status": "expired", "scope": scope, "key": key, "value": None}
+            self.delete(key, scope=scope, namespace=namespace)
+            return {"status": "expired", "scope": scope, "namespace": namespace, "key": key, "value": None}
 
         try:
             value = json.loads(row["value_json"])
@@ -141,6 +225,7 @@ class MemoryStore:
         return {
             "status": "found",
             "scope": scope,
+            "namespace": namespace,
             "key": key,
             "value": value,
             "session_id": row["session_id"],
@@ -148,13 +233,19 @@ class MemoryStore:
             "expires_at": row["expires_at"],
         }
 
-    def delete(self, key: str, *, scope: str = "session") -> bool:
+    def delete(self, key: str, *, scope: str = "session", namespace: str = "") -> bool:
         with self._connection() as conn:
-            conn.execute("DELETE FROM key_values WHERE scope = ? AND key = ?", (scope, key))
-            conn.execute("DELETE FROM memory_fts WHERE scope = ? AND key = ?", (scope, key))
+            conn.execute(
+                "DELETE FROM key_values WHERE scope = :scope AND namespace = :ns AND key = :key",
+                {"scope": scope, "ns": namespace, "key": key},
+            )
+            conn.execute(
+                "DELETE FROM memory_fts WHERE scope = :scope AND namespace = :ns AND key = :key",
+                {"scope": scope, "ns": namespace, "key": key},
+            )
         return True
 
-    def search(self, query: str, *, scope: str | None = None, limit: int = 5) -> dict[str, Any]:
+    def search(self, query: str, *, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> dict[str, Any]:
         now = time.time()
         terms = re.findall(r"\w+", query)
         if not terms:
@@ -164,15 +255,18 @@ class MemoryStore:
         fts_query = " AND ".join(formatted_terms)
 
         sql = """
-            SELECT m.scope, m.key, kv.value_json, kv.created_at, kv.expires_at
+            SELECT m.scope, m.namespace, m.key, kv.value_json, kv.created_at, kv.expires_at
             FROM memory_fts m
-            JOIN key_values kv ON m.scope = kv.scope AND m.key = kv.key
+            JOIN key_values kv ON m.scope = kv.scope AND m.namespace = kv.namespace AND m.key = kv.key
             WHERE memory_fts MATCH ?
         """
         params: list[Any] = [fts_query]
         if scope:
             sql += " AND m.scope = ?"
             params.append(scope)
+        if namespace is not None:
+            sql += " AND m.namespace = ?"
+            params.append(namespace)
         sql += " LIMIT ?"
         params.append(limit)
 
@@ -189,6 +283,7 @@ class MemoryStore:
                     matches.append(
                         {
                             "scope": row["scope"],
+                            "namespace": row["namespace"],
                             "key": row["key"],
                             "value": val,
                             "created_at": row["created_at"],
@@ -285,14 +380,20 @@ class MemoryStore:
                 })
         return results
 
-    def list_entries(self, *, scope: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+    def list_entries(self, *, scope: str | None = None, namespace: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
         """List active unexpired memory entries for inspection or consolidation."""
         now = time.time()
-        sql = "SELECT scope, key, session_id, value_json, created_at, expires_at FROM key_values"
+        sql = "SELECT scope, namespace, key, session_id, value_json, created_at, expires_at FROM key_values"
+        where_clauses: list[str] = []
         params: list[Any] = []
         if scope:
-            sql += " WHERE scope = ?"
+            where_clauses.append("scope = ?")
             params.append(scope)
+        if namespace is not None:
+            where_clauses.append("namespace = ?")
+            params.append(namespace)
+        if where_clauses:
+            sql += " WHERE " + " AND ".join(where_clauses)
         sql += " ORDER BY created_at ASC LIMIT ?"
         params.append(limit)
 
@@ -308,6 +409,7 @@ class MemoryStore:
                 results.append(
                     {
                         "scope": row["scope"],
+                        "namespace": row["namespace"],
                         "key": row["key"],
                         "session_id": row["session_id"],
                         "value": val,

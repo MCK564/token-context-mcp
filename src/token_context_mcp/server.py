@@ -388,12 +388,13 @@ def build_server(
             key: str,
             value: Any,
             scope: str = "session",
+            namespace: str = "",
             ttl: int | None = 86400,
             session_id: str | None = None,
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
-                    lambda: memory_service.memory_put(key=key, value=value, scope=scope, ttl=ttl, session_id=session_id),
+                    lambda: memory_service.memory_put(key=key, value=value, scope=scope, namespace=namespace, ttl=ttl, session_id=session_id),
                     tool_name="memory_put",
                     agent_id=session_id,
                 )
@@ -403,15 +404,15 @@ def build_server(
             title="Retrieve memory",
             description="Retrieve a stored value or execution checkpoint from shared memory without prompt bloat.",
         )
-        def memory_get(key: str, scope: str = "session") -> CallToolResult:
-            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope), tool_name="memory_get"))
+        def memory_get(key: str, scope: str = "session", namespace: str = "") -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope, namespace=namespace), tool_name="memory_get"))
 
         @server.tool(
             title="Search memory",
             description="Full-text search over shared memory entries and stored artifacts.",
         )
-        def memory_search(query: str, scope: str | None = None, limit: int = 5) -> CallToolResult:
-            return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, limit=limit), tool_name="memory_search"))
+        def memory_search(query: str, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> CallToolResult:
+            return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, namespace=namespace, limit=limit), tool_name="memory_search"))
 
         @server.tool(
             title="Acquire memory lock",

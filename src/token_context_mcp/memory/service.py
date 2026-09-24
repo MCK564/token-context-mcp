@@ -20,22 +20,23 @@ class MemoryService:
         key: str,
         value: Any,
         scope: str = "session",
+        namespace: str = "",
         ttl: int | None = 86400,
         session_id: str | None = None,
     ) -> dict[str, Any]:
         if not key or not isinstance(key, str):
             raise ValueError("key must be a non-empty string")
-        return self.store.put(key=key, value=value, scope=scope, ttl=ttl, session_id=session_id)
+        return self.store.put(key=key, value=value, scope=scope, namespace=namespace, ttl=ttl, session_id=session_id)
 
-    def memory_get(self, key: str, scope: str = "session") -> dict[str, Any]:
+    def memory_get(self, key: str, scope: str = "session", namespace: str = "") -> dict[str, Any]:
         if not key or not isinstance(key, str):
             raise ValueError("key must be a non-empty string")
-        return self.store.get(key=key, scope=scope)
+        return self.store.get(key=key, scope=scope, namespace=namespace)
 
-    def memory_search(self, query: str, scope: str | None = None, limit: int = 5) -> dict[str, Any]:
+    def memory_search(self, query: str, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> dict[str, Any]:
         if not query or not isinstance(query, str):
             raise ValueError("query must be a non-empty string")
-        return self.store.search(query=query, scope=scope, limit=limit)
+        return self.store.search(query=query, scope=scope, namespace=namespace, limit=limit)
 
     def memory_lock(self, resource_key: str, agent_id: str, timeout_sec: int = 60) -> dict[str, Any]:
         if not resource_key or not agent_id:
