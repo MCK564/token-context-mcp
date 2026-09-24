@@ -27,6 +27,7 @@ class ServerConfig:
     output_mode: str = "structured"
     default_view: str = "normal"
     enable_extensions: bool = False
+    enable_admin_tools: bool = False
 
 
 @dataclass(frozen=True)

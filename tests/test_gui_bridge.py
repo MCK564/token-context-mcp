@@ -5,6 +5,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("psutil")
+pytest.importorskip("PySide6")
+
 from token_context_mcp.gui.bridge import (
     CacheManager,
     RepoManager,

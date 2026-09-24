@@ -59,7 +59,7 @@ def test_catalog_matches_registered_tools(indexed_config: Path) -> None:
     import asyncio
     from token_context_mcp.server import build_server
 
-    server = build_server(indexed_config, enable_extensions=True)
+    server = build_server(indexed_config, enable_extensions=True, enable_admin_tools=True)
     server_tools = asyncio.run(server.list_tools())
     server_tool_names = {t.name for t in server_tools}
     catalog_tool_names = set(TOOL_CATALOG.keys())

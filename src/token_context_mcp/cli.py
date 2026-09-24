@@ -54,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--config", type=Path, default=default_config_path())
     serve.add_argument("--transport", choices=["stdio"], default="stdio")
     serve.add_argument("--network-policy", default="declared-deny-not-enforced")
+    serve.add_argument("--enable-admin-tools", action="store_true", default=False, help="Enable admin tools (agent_control, audit_logs)")
     report = subparsers.add_parser("benchmark-report", help="Summarize an instrumented benchmark JSONL")
     report.add_argument("--input", type=Path, required=True)
     report.add_argument("--output", type=Path)
@@ -86,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
             service = RetrievalService(load_config(args.config), args.config)
             _emit(service.status(args.repo_id))
         elif args.command == "serve":
-            run_stdio(args.config)
+            run_stdio(args.config, enable_admin_tools=args.enable_admin_tools)
         elif args.command == "benchmark-report":
             report = summarize(load_runs(args.input), baseline=args.baseline)
             if args.output:

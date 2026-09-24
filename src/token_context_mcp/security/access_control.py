@@ -117,6 +117,8 @@ class AccessControlManager:
 
     def pause_agent(self, agent_id: str, reason: str = "Paused by administrator") -> None:
         """Temporarily suspend an agent's tool execution."""
+        if agent_id == "admin":
+            raise ValueError("Cannot pause admin agent")
         self._states[agent_id] = AgentState.PAUSED
         self._reasons[agent_id] = reason
 
@@ -127,6 +129,8 @@ class AccessControlManager:
 
     def block_agent(self, agent_id: str, reason: str = "Blocked by administrator") -> None:
         """Permanently block an agent from accessing tools."""
+        if agent_id == "admin":
+            raise ValueError("Cannot block admin agent")
         self._states[agent_id] = AgentState.BLOCKED
         self._reasons[agent_id] = reason
 
@@ -152,13 +156,18 @@ class AccessControlManager:
     def get_agent_policy(self, agent_id: str) -> PolicyProfile:
         return self._policies.get(agent_id, self.default_policy)
 
-    def check_access(self, tool_name: str, agent_id: str | None = None) -> tuple[bool, str | None]:
+    def check_access(
+        self,
+        tool_name: str,
+        agent_id: str | None = None,
+        bypass_halt: bool = False,
+    ) -> tuple[bool, str | None]:
         """Fast-Path access check. Completes in < 0.02ms.
 
         Returns (allowed: bool, rejection_reason: str | None).
         """
         # 1. Global emergency kill-switch check
-        if self._emergency_halt:
+        if self._emergency_halt and not bypass_halt:
             return False, f"HALT_BY_USER: Global emergency stop is active. Reason: {self._emergency_reason}"
 
         if not agent_id:

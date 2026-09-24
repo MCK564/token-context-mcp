@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hmac
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Any, Literal
@@ -28,13 +30,20 @@ from token_context_mcp.security.path_policy import PathPolicyError
 logger = logging.getLogger("token_context_mcp")
 
 
-def build_server(config_path: Path, enable_extensions: bool | None = None) -> MCPServer:
+def build_server(
+    config_path: Path,
+    enable_extensions: bool | None = None,
+    enable_admin_tools: bool | None = None,
+) -> MCPServer:
     config = load_config(config_path)
     service = RetrievalService(config, config_path)
     workflow_engine = CompositeWorkflowEngine(service)
     finalizer = ResultFinalizer(output_mode=config.server.output_mode)
     extensions_enabled = (
         enable_extensions if enable_extensions is not None else getattr(config.server, "enable_extensions", False)
+    )
+    admin_tools_enabled = (
+        enable_admin_tools if enable_admin_tools is not None else getattr(config.server, "enable_admin_tools", False)
     )
     if extensions_enabled:
         memory_service = MemoryService(config_path.parent / "memory.sqlite")
@@ -46,16 +55,52 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
     access_control = AccessControlManager()
     audit_logger = AuditLogger(config_path.parent / "audit.sqlite")
 
+    registered_tool_names: set[str] = {
+        "list_repositories",
+        "get_repo_map",
+        "find_symbols",
+        "get_module_dependents",
+        "search_source",
+        "get_file_skeleton",
+        "get_symbol_context",
+        "get_impact_slice",
+        "get_index_status",
+        "inspect_symbol",
+    }
+    if extensions_enabled:
+        registered_tool_names.update({
+            "list_available_tools",
+            "search_tools",
+            "get_tool_schema",
+            "memory_put",
+            "memory_get",
+            "memory_search",
+            "memory_lock",
+            "memory_consolidate",
+            "sample_summarize",
+        })
+    if extensions_enabled and admin_tools_enabled:
+        registered_tool_names.update({
+            "agent_control",
+            "audit_logs",
+        })
+
     def _wrap(payload: dict[str, Any]) -> CallToolResult:
         return finalizer.finalize(payload)
 
-    def _invoke(callback: Any, tool_name: str = "tool_call", agent_id: str | None = None) -> dict[str, Any]:
+    def _invoke(
+        callback: Any,
+        tool_name: str = "tool_call",
+        agent_id: str | None = None,
+        bypass_halt: bool = False,
+    ) -> dict[str, Any]:
         return _dispatch_invoke(
             callback,
             tool_name=tool_name,
             agent_id=agent_id,
             access_control=access_control,
             audit_logger=audit_logger,
+            bypass_halt=bypass_halt,
         )
 
     server = MCPServer(
@@ -298,7 +343,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def list_available_tools(category: str | None = None) -> CallToolResult:
             from token_context_mcp.discovery.tools import list_available_tools as _list_tools
-            return _wrap(_invoke(lambda: _list_tools(category=category), tool_name="list_available_tools"))
+            return _wrap(_invoke(lambda: _list_tools(category=category, enabled=registered_tool_names), tool_name="list_available_tools"))
 
         @server.tool(
             title="Search tools",
@@ -306,7 +351,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def search_tools(query: str, limit: int = 3) -> CallToolResult:
             from token_context_mcp.discovery.tools import search_tools as _search_tools
-            return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit), tool_name="search_tools"))
+            return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit, enabled=registered_tool_names), tool_name="search_tools"))
 
         @server.tool(
             title="Get tool schema",
@@ -314,7 +359,7 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
         )
         def get_tool_schema(tool_name: str) -> CallToolResult:
             from token_context_mcp.discovery.tools import get_tool_schema as _get_schema
-            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name), tool_name="get_tool_schema"))
+            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name, enabled=registered_tool_names), tool_name="get_tool_schema"))
 
         # --- Shared State & Long-term Memory ---
 
@@ -408,86 +453,110 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
                 )
             )
 
-        # --- Security & Agent Governance ---
+        if admin_tools_enabled:
+            # --- Security & Agent Governance ---
 
-        @server.tool(
-            title="Agent access control",
-            description="Manage agent execution state, revoke locks, or trigger emergency stops.",
-        )
-        def agent_control(
-            action: Literal["status", "pause", "resume", "block", "unblock", "revoke_locks", "emergency_halt", "emergency_resume"],
-            agent_id: str | None = None,
-            reason: str = "",
-            policy: Literal["FULL_ACCESS", "READ_ONLY", "CUSTOM"] | None = None,
-        ) -> CallToolResult:
-            def _action() -> dict[str, Any]:
-                if action == "status":
-                    return {
-                        "emergency_halt": access_control.is_emergency_halted,
-                        "emergency_reason": access_control.emergency_reason,
-                        "agents": access_control.list_agents(),
-                        "active_locks": memory_service.list_active_locks(),
-                    }
-                elif action == "pause":
-                    if not agent_id:
-                        raise ValueError("agent_id is required to pause")
-                    access_control.pause_agent(agent_id, reason=reason or "Paused via agent_control tool")
-                    return {"action": "pause", "agent_id": agent_id, "status": "PAUSED"}
-                elif action == "resume":
-                    if not agent_id:
-                        raise ValueError("agent_id is required to resume")
-                    access_control.resume_agent(agent_id)
-                    return {"action": "resume", "agent_id": agent_id, "status": "ACTIVE"}
-                elif action == "block":
-                    if not agent_id:
-                        raise ValueError("agent_id is required to block")
-                    access_control.block_agent(agent_id, reason=reason or "Blocked via agent_control tool")
-                    return {"action": "block", "agent_id": agent_id, "status": "BLOCKED"}
-                elif action == "unblock":
-                    if not agent_id:
-                        raise ValueError("agent_id is required to unblock")
-                    access_control.unblock_agent(agent_id)
-                    return {"action": "unblock", "agent_id": agent_id, "status": "ACTIVE"}
-                elif action == "revoke_locks":
-                    if agent_id:
-                        count = memory_service.revoke_agent_locks(agent_id)
-                        return {"action": "revoke_locks", "agent_id": agent_id, "revoked_count": count}
-                    else:
-                        count = memory_service.revoke_all_locks()
-                        return {"action": "revoke_locks", "agent_id": "*", "revoked_count": count}
-                elif action == "emergency_halt":
-                    access_control.emergency_halt(reason=reason or "Emergency halt invoked via tool")
-                    return {"action": "emergency_halt", "status": "HALTED", "reason": access_control.emergency_reason}
-                elif action == "emergency_resume":
-                    access_control.emergency_resume()
-                    return {"action": "emergency_resume", "status": "RESUMED"}
-                raise ValueError(f"Unknown action: {action}")
-
-            return _wrap(_invoke(_action, tool_name="agent_control", agent_id="admin"))
-
-        @server.tool(
-            title="Audit logs query",
-            description="Query recent tool execution and security audit logs.",
-        )
-        def audit_logs(
-            limit: int = 50,
-            agent_id: str | None = None,
-            status: Literal["SUCCESS", "DENIED", "ERROR"] | None = None,
-        ) -> CallToolResult:
-            return _wrap(
-                _invoke(
-                    lambda: {"logs": audit_logger.query_logs(limit=limit, agent_id=agent_id, status=status)},
-                    tool_name="audit_logs",
-                    agent_id=agent_id,
-                )
+            @server.tool(
+                title="Agent access control",
+                description="Manage agent execution state, revoke locks, or trigger emergency stops.",
             )
+            def agent_control(
+                action: Literal["status", "pause", "resume", "block", "unblock", "revoke_locks", "emergency_halt", "emergency_resume"],
+                admin_token: str = "",
+                agent_id: str | None = None,
+                reason: str = "",
+                policy: Literal["FULL_ACCESS", "READ_ONLY", "CUSTOM"] | None = None,
+            ) -> CallToolResult:
+                if action != "status":
+                    expected_token = os.environ.get("TOKEN_CONTEXT_ADMIN_TOKEN")
+                    if not expected_token:
+                        start_denied = time.perf_counter()
+                        duration_ms = (time.perf_counter() - start_denied) * 1000
+                        audit_logger.log("agent_control", agent_id, "DENIED", duration_ms, {"reason": "admin_token_not_configured"})
+                        return _wrap(_error("permission_revoked", "Admin tools enabled but TOKEN_CONTEXT_ADMIN_TOKEN environment variable is not set", agent_id=agent_id))
+
+                    if not admin_token or not hmac.compare_digest(admin_token.encode("utf-8"), expected_token.encode("utf-8")):
+                        start_denied = time.perf_counter()
+                        duration_ms = (time.perf_counter() - start_denied) * 1000
+                        audit_logger.log("agent_control", agent_id, "DENIED", duration_ms, {"reason": "invalid_admin_token"})
+                        return _wrap(_error("permission_revoked", "Invalid admin token", agent_id=agent_id))
+
+                if action in {"pause", "block"} and agent_id == "admin":
+                    start_denied = time.perf_counter()
+                    duration_ms = (time.perf_counter() - start_denied) * 1000
+                    audit_logger.log("agent_control", agent_id, "DENIED", duration_ms, {"reason": "cannot_pause_admin"})
+                    return _wrap(_error("permission_revoked", "Cannot pause or block admin agent", agent_id=agent_id))
+
+                bypass_halt = action in {"status", "emergency_resume"}
+
+                def _action() -> dict[str, Any]:
+                    if action == "status":
+                        return {
+                            "emergency_halt": access_control.is_emergency_halted,
+                            "emergency_reason": access_control.emergency_reason,
+                            "agents": access_control.list_agents(),
+                            "active_locks": memory_service.list_active_locks(),
+                        }
+                    elif action == "pause":
+                        if not agent_id:
+                            raise ValueError("agent_id is required to pause")
+                        access_control.pause_agent(agent_id, reason=reason or "Paused via agent_control tool")
+                        return {"action": "pause", "agent_id": agent_id, "status": "PAUSED"}
+                    elif action == "resume":
+                        if not agent_id:
+                            raise ValueError("agent_id is required to resume")
+                        access_control.resume_agent(agent_id)
+                        return {"action": "resume", "agent_id": agent_id, "status": "ACTIVE"}
+                    elif action == "block":
+                        if not agent_id:
+                            raise ValueError("agent_id is required to block")
+                        access_control.block_agent(agent_id, reason=reason or "Blocked via agent_control tool")
+                        return {"action": "block", "agent_id": agent_id, "status": "BLOCKED"}
+                    elif action == "unblock":
+                        if not agent_id:
+                            raise ValueError("agent_id is required to unblock")
+                        access_control.unblock_agent(agent_id)
+                        return {"action": "unblock", "agent_id": agent_id, "status": "ACTIVE"}
+                    elif action == "revoke_locks":
+                        if agent_id:
+                            count = memory_service.revoke_agent_locks(agent_id)
+                            return {"action": "revoke_locks", "agent_id": agent_id, "revoked_count": count}
+                        else:
+                            count = memory_service.revoke_all_locks()
+                            return {"action": "revoke_locks", "agent_id": "*", "revoked_count": count}
+                    elif action == "emergency_halt":
+                        access_control.emergency_halt(reason=reason or "Emergency halt invoked via tool")
+                        return {"action": "emergency_halt", "status": "HALTED", "reason": access_control.emergency_reason}
+                    elif action == "emergency_resume":
+                        access_control.emergency_resume()
+                        return {"action": "emergency_resume", "status": "ACTIVE", "emergency_halt": False}
+                    raise ValueError(f"Unknown action: {action}")
+
+                return _wrap(_invoke(_action, tool_name="agent_control", agent_id="admin", bypass_halt=bypass_halt))
+
+            @server.tool(
+                title="Audit logs query",
+                description="Query recent tool execution and security audit logs.",
+            )
+            def audit_logs(
+                limit: int = 50,
+                agent_id: str | None = None,
+                status: Literal["SUCCESS", "DENIED", "ERROR"] | None = None,
+            ) -> CallToolResult:
+                return _wrap(
+                    _invoke(
+                        lambda: {"logs": audit_logger.query_logs(limit=limit, agent_id=agent_id, status=status)},
+                        tool_name="audit_logs",
+                        agent_id=agent_id,
+                    )
+                )
 
     return server
 
 
-def run_stdio(config_path: Path) -> None:
+def run_stdio(config_path: Path, enable_admin_tools: bool | None = None) -> None:
     logging.basicConfig(level=logging.INFO)
-    build_server(config_path).run(transport="stdio")
+    build_server(config_path, enable_admin_tools=enable_admin_tools).run(transport="stdio")
 
 
 def _dispatch_invoke(
@@ -496,10 +565,11 @@ def _dispatch_invoke(
     agent_id: str | None = None,
     access_control: AccessControlManager | None = None,
     audit_logger: AuditLogger | None = None,
+    bypass_halt: bool = False,
 ) -> dict[str, Any]:
     start = time.perf_counter()
     if access_control is not None:
-        allowed, reason = access_control.check_access(tool_name, agent_id)
+        allowed, reason = access_control.check_access(tool_name, agent_id, bypass_halt=bypass_halt)
         if not allowed:
             duration_ms = (time.perf_counter() - start) * 1000
             if audit_logger is not None:

@@ -7,10 +7,15 @@ from typing import Any
 from token_context_mcp.discovery.catalog import TOOL_CATALOG, ToolMeta
 
 
-def list_available_tools(category: str | None = None) -> dict[str, Any]:
+def list_available_tools(
+    category: str | None = None,
+    enabled: set[str] | None = None,
+) -> dict[str, Any]:
     """Return compact catalog of available tools grouped by category."""
     categories: dict[str, list[dict[str, Any]]] = {}
     for name, meta in TOOL_CATALOG.items():
+        if enabled is not None and name not in enabled:
+            continue
         if category and meta.category != category:
             continue
         categories.setdefault(meta.category, []).append(
@@ -31,12 +36,18 @@ def list_available_tools(category: str | None = None) -> dict[str, Any]:
     }
 
 
-def search_tools(query: str, limit: int = 3) -> dict[str, Any]:
+def search_tools(
+    query: str,
+    limit: int = 3,
+    enabled: set[str] | None = None,
+) -> dict[str, Any]:
     """Keyword and token-overlap search over tool metadata (name, summary, tags)."""
     query_tokens = set(re.findall(r"\w+", query.lower()))
     scored: list[tuple[float, ToolMeta]] = []
 
     for meta in TOOL_CATALOG.values():
+        if enabled is not None and meta.name not in enabled:
+            continue
         score = 0.0
         # Check direct name match
         if meta.name.lower() in query.lower():
@@ -75,14 +86,19 @@ def search_tools(query: str, limit: int = 3) -> dict[str, Any]:
     }
 
 
-def get_tool_schema(tool_name: str, schema_dict: dict[str, Any] | None = None) -> dict[str, Any]:
+def get_tool_schema(
+    tool_name: str,
+    schema_dict: dict[str, Any] | None = None,
+    enabled: set[str] | None = None,
+) -> dict[str, Any]:
     """Return detailed tool schema on demand."""
     meta = TOOL_CATALOG.get(tool_name)
-    if meta is None:
+    if meta is None or (enabled is not None and tool_name not in enabled):
+        available = [k for k in TOOL_CATALOG.keys() if enabled is None or k in enabled]
         return {
             "status": "not_found",
             "error": f"Tool '{tool_name}' not found in catalog.",
-            "available_tools": list(TOOL_CATALOG.keys()),
+            "available_tools": available,
         }
 
     schema = (schema_dict or {}).get(tool_name, {})

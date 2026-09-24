@@ -88,6 +88,7 @@ def load_config(path: Path) -> AppConfig:
         output_mode=str(raw_server.get("output_mode", ServerConfig.output_mode)),
         default_view=str(raw_server.get("default_view", ServerConfig.default_view)),
         enable_extensions=bool(raw_server.get("enable_extensions", False)),
+        enable_admin_tools=bool(raw_server.get("enable_admin_tools", False)),
     )
     _validate_server(server)
     repositories: dict[str, RepositoryConfig] = {}
@@ -119,6 +120,7 @@ def save_config(path: Path, config: AppConfig) -> None:
         f'output_mode = "{_toml_string(config.server.output_mode)}"',
         f'default_view = "{_toml_string(config.server.default_view)}"',
         f"enable_extensions = {'true' if config.server.enable_extensions else 'false'}",
+        f"enable_admin_tools = {'true' if config.server.enable_admin_tools else 'false'}",
         "",
     ]
     if config.budget_profiles:

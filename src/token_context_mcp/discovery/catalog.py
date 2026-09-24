@@ -247,6 +247,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Manage agent execution state, revoke locks, or trigger emergency stops.",
         parameters_summary={
             "action": "status | pause | resume | block | unblock | revoke_locks | emergency_halt | emergency_resume",
+            "admin_token": "string (required)",
             "agent_id": "string (optional)",
             "reason": "string (optional)",
             "policy": "FULL_ACCESS | READ_ONLY | CUSTOM (optional)",
