@@ -10,6 +10,7 @@ import pytest
 # Use offscreen platform for headless test execution
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
+pyside6 = pytest.importorskip("PySide6", reason="PySide6 is not installed")
 from PySide6.QtWidgets import QApplication, QWidget
 
 from token_context_mcp.gui.bridge import AgentSecurityController, RepoManager, ServerController
@@ -24,10 +25,13 @@ from token_context_mcp.gui.widgets.tasks_tab import TasksTab
 
 @pytest.fixture(scope="session")
 def qapp():
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-    return app
+    try:
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+        return app
+    except Exception as exc:
+        pytest.skip(f"QApplication failed to initialize: {exc}")
 
 
 @pytest.fixture

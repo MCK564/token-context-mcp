@@ -23,9 +23,64 @@
 - Agent Governance & Permission Revocation Control Plane (`agent_control`): pause, resume, block, and emergency-halt agents (Claude, Antigravity, Cursor, Codex) with sub-0.05ms fast-path in-memory checks;
 - Real-time Security Audit Logging (`audit_logs`) via SQLite WAL mode, capturing forensics, latency, and authorization results with zero response-time penalty;
 - Modern Desktop Controller (PySide6) featuring real-time hardware telemetry, interactive graph viewer, task queueing, and a dedicated **Agents & Security** management tab;
+- Virtual External Stubs Engine (`external_stubs` table): import-driven tree-shaking for standard library and 3rd-party dependencies (`pydantic`, `unittest`, `requests`, `fastapi`, `pytest`, `builtins`), resolving external calls with 0.90 confidence and 0 false positives;
+- Flow-Sensitive Type Narrowing: scoped type stacking up to depth 12 for `if isinstance(...)` and `match/case` blocks, untainting narrowed identifiers inside guarded scopes;
+- Defensive Heuristics & Circuit Breakers: 30ms-per-file circuit breaker and Pseudo-SSA taint analysis preventing hallucinated edges in generated or polymorphic code;
+- Robust Multi-OS CI/CD Pipeline: automated GitHub Actions testing across Ubuntu Linux and Windows with isolated clean-room wheel validation, headless Qt (`PySide6`) test harness, and cross-engine golden test parity;
+- Abbreviation & Terminology Guide: formal compiler and graph theory definitions detailed in [`docs/ABBREVIATIONS.md`](docs/ABBREVIATIONS.md);
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
+
+## Architecture & Indexing Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Ingestion ["1. Source Ingestion & Inventory"]
+        SRC["Source Files"] --> DENY{"Hard Deny & Binary Check"}
+        DENY -->|Pass| TS["Tree-sitter CST Parser"]
+    end
+
+    subgraph Extraction ["2. Syntactic & Semantic Extraction"]
+        TS --> SYM["Symbol Definitions & Spans"]
+        TS --> IMP["Import Dependency Extraction"]
+        TS --> CHA["Class Hierarchy Analysis (CHA)"]
+        TS --> CALL["AST Call Extraction + Pseudo-SSA"]
+        CALL --> NARROW["Flow-Sensitive Type Narrowing (depth <= 12)"]
+    end
+
+    subgraph Resolution ["3. Graph Resolution & Stubs"]
+        IMP --> STUBS["Virtual External Stubs (Tree-Shaking)"]
+        CALL --> RESOLVE["Lexical Edge Resolution Engine"]
+        CHA --> RESOLVE
+        STUBS --> RESOLVE
+        RESOLVE --> CB{"30ms Circuit Breaker"}
+        CB -->|Normal| EDGES["Resolved & Ambiguous Edges"]
+        CB -->|Timeout| AMBIG["Degraded Ambiguous Edge (0.10)"]
+    end
+
+    subgraph Storage ["4. Atomic SQLite Snapshot"]
+        SYM --> SQLITE[("SQLite Store (WAL Mode)")]
+        EDGES --> SQLITE
+        AMBIG --> SQLITE
+        STUBS --> SQLITE
+        CHA --> SQLITE
+        SQLITE --> MANIFEST["Manifest & Source Fingerprint"]
+    end
+```
+
+## CI/CD & Verification Pipeline
+
+```mermaid
+flowchart LR
+    COMMIT["Git Push / PR"] --> CI["GitHub Actions Matrix"]
+    CI --> LINUX["Ubuntu Linux (Headless Qt / libegl1 / libgl1)"]
+    CI --> WIN["Windows Server"]
+    LINUX --> TEST["Source Tests & Golden Parity (uv run pytest)"]
+    WIN --> TEST
+    TEST --> WHEEL["Clean-room Wheel Build (uv build)"]
+    WHEEL --> ISOLATED["Isolated Venv Verification & Stdio Smoke Test"]
+```
 
 ## Benchmark highlights
 

@@ -4,12 +4,20 @@ import ast
 import hashlib
 import importlib
 import re
+from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 
 from tree_sitter import Language, Parser, Query, QueryCursor
 
 from token_context_mcp.models import SymbolRecord
+
+try:
+    import token_context_fast_ast as _fast_ast  # type: ignore[import-not-found]
+    _HAS_FAST_AST = True
+except ImportError:
+    _fast_ast = None
+    _HAS_FAST_AST = False
 
 
 class ParseError(RuntimeError):
@@ -23,6 +31,8 @@ class CallRecord:
     line: int
     start_byte: int
     end_byte: int
+    receiver_type: str | None = None
+    is_tainted: bool = False
 
 
 @dataclass(frozen=True)
@@ -32,6 +42,7 @@ class ParseResult:
     imports: list[str]
     warnings: list[str]
     calls: list[CallRecord] = field(default_factory=list)
+    inheritance: dict[str, list[str]] = field(default_factory=dict)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -106,12 +117,20 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     symbols = _add_module_entry_roles(tree.root_node, raw, symbols)
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
     calls = extract_calls(tree.root_node, raw, language_name)
+    inheritance = _extract_inheritance(tree.root_node, raw, language_name)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
     if not symbols:
         warnings.append("parsed_file_has_zero_symbols")
-    return ParseResult(language=language_name, symbols=symbols, imports=imports, warnings=warnings, calls=calls)
+    return ParseResult(
+        language=language_name,
+        symbols=symbols,
+        imports=imports,
+        warnings=warnings,
+        calls=calls,
+        inheritance=inheritance,
+    )
 
 
 def _load_language(language_name: str) -> Language:
@@ -478,11 +497,397 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     return result if isinstance(result, str) else None
 
 
-def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallRecord]:
-    calls: list[CallRecord] = []
+_GENERIC_WRAPPERS = {
+    "Optional", "Union", "List", "Dict", "Set", "Tuple", "Iterable", "Sequence",
+    "Mapping", "Any", "None", "Callable", "Iterator", "Generator", "AsyncGenerator",
+    "Coroutine", "Awaitable", "Type", "ClassVar", "Final", "Annotated",
+}
+_BRANCH_NODES = {
+    "if_statement", "try_statement", "while_statement", "for_statement",
+    "for_in_statement", "switch_statement", "match_statement", "conditional_expression",
+}
+
+
+def _clean_type_name(text: str) -> str:
+    cleaned = text.lstrip(":").strip()
+    identifiers = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", cleaned)
+    for ident in identifiers:
+        if ident not in _GENERIC_WRAPPERS and (ident[0].isupper() or "_" in ident):
+            return ident
+    return identifiers[0] if identifiers else ""
+
+
+def _analyze_function_scope(
+    fn_node: object,
+    raw: bytes,
+    language_name: str,
+) -> tuple[dict[str, str], set[str]]:
+    param_types: dict[str, str] = {}
+    params = _field(fn_node, "parameters") or (
+        _field(fn_node, "formal_parameters") if language_name == "java" else (
+            _field(fn_node, "parameter_list") if language_name == "c_sharp" else None
+        )
+    )
+    if params is not None:
+        for child in getattr(params, "named_children", []):
+            p_node = child
+            if getattr(p_node, "type", "") == "default_parameter":
+                p_node = p_node.named_children[0] if getattr(p_node, "named_children", None) else p_node
+            c_type = getattr(p_node, "type", "")
+            if language_name == "python" and c_type == "typed_parameter":
+                n = p_node.named_children[0] if getattr(p_node, "named_children", None) else None
+                t = p_node.named_children[1] if len(getattr(p_node, "named_children", [])) > 1 else None
+                if n is not None and t is not None:
+                    p_name = _node_text(n, raw).strip()
+                    p_type = _clean_type_name(_node_text(t, raw))
+                    if p_name and p_type:
+                        param_types[p_name] = p_type
+            elif language_name in {"javascript", "typescript", "tsx"} and c_type in {"required_parameter", "optional_parameter"}:
+                n = p_node.named_children[0] if getattr(p_node, "named_children", None) else None
+                t = _field(p_node, "type")
+                if n is not None and t is not None:
+                    p_name = _node_text(n, raw).strip()
+                    p_type = _clean_type_name(_node_text(t, raw))
+                    if p_name and p_type:
+                        param_types[p_name] = p_type
+            elif language_name in {"java", "c_sharp"} and c_type in {"formal_parameter", "parameter"}:
+                t = _field(p_node, "type")
+                n = _field(p_node, "name")
+                if t is not None and n is not None:
+                    p_name = _node_text(n, raw).strip()
+                    p_type = _clean_type_name(_node_text(t, raw))
+                    if p_name and p_type:
+                        param_types[p_name] = p_type
+
+    assign_counts: dict[str, int] = defaultdict(int)
+    assigned_in_branch: set[str] = set()
+    annotated_types: dict[str, str] = {}
+    ctor_types: dict[str, str] = {}
+
+    body = _field(fn_node, "body")
+    if body is None:
+        return param_types, set()
+
+    nested_fn_types = {
+        "function_definition", "class_definition", "function_declaration",
+        "method_definition", "arrow_function", "function_expression",
+        "method_declaration", "constructor_declaration", "local_function_statement",
+    }
+
+    def walk(node: object, in_branch: bool) -> None:
+        node_type = getattr(node, "type", "")
+        if node != body and node_type in nested_fn_types:
+            return
+        branch = in_branch or (node_type in _BRANCH_NODES)
+        if language_name == "python":
+            if node_type in {"assignment", "augmented_assignment"}:
+                left = _field(node, "left")
+                if left is not None and getattr(left, "type", "") == "identifier":
+                    v = _node_text(left, raw).strip()
+                    assign_counts[v] += 1
+                    if branch:
+                        assigned_in_branch.add(v)
+                    t_node = _field(node, "type")
+                    if t_node is not None:
+                        t = _clean_type_name(_node_text(t_node, raw))
+                        if t:
+                            annotated_types[v] = t
+                    right = _field(node, "right")
+                    if right is not None and getattr(right, "type", "") == "call":
+                        fn = _field(right, "function")
+                        if fn is not None and getattr(fn, "type", "") == "identifier":
+                            fn_name = _node_text(fn, raw).strip()
+                            if fn_name and (fn_name[0].isupper() or "_" in fn_name):
+                                ctor_types[v] = fn_name
+        elif language_name in {"javascript", "typescript", "tsx"}:
+            if node_type == "variable_declarator":
+                n_node = _field(node, "name")
+                if n_node is not None and getattr(n_node, "type", "") == "identifier":
+                    v = _node_text(n_node, raw).strip()
+                    assign_counts[v] += 1
+                    if branch:
+                        assigned_in_branch.add(v)
+                    t_node = _field(node, "type")
+                    if t_node is not None:
+                        t = _clean_type_name(_node_text(t_node, raw))
+                        if t:
+                            annotated_types[v] = t
+                    val_node = _field(node, "value")
+                    if val_node is not None and getattr(val_node, "type", "") == "new_expression":
+                        ctor = _field(val_node, "constructor")
+                        if ctor is not None and getattr(ctor, "type", "") == "identifier":
+                            ctor_types[v] = _node_text(ctor, raw).strip()
+            elif node_type in {"assignment_expression", "augmented_assignment_expression"}:
+                left = _field(node, "left")
+                if left is not None and getattr(left, "type", "") == "identifier":
+                    v = _node_text(left, raw).strip()
+                    assign_counts[v] += 1
+                    if branch:
+                        assigned_in_branch.add(v)
+        elif language_name in {"java", "c_sharp"}:
+            if node_type == "local_variable_declaration":
+                t_node = _field(node, "type")
+                t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                for child in getattr(node, "named_children", []):
+                    if getattr(child, "type", "") == "variable_declarator":
+                        n_node = _field(child, "name")
+                        if n_node is not None and getattr(n_node, "type", "") == "identifier":
+                            v = _node_text(n_node, raw).strip()
+                            assign_counts[v] += 1
+                            if branch:
+                                assigned_in_branch.add(v)
+                            if t_text:
+                                annotated_types[v] = t_text
+            elif node_type == "assignment_expression":
+                left = _field(node, "left")
+                if left is not None and getattr(left, "type", "") == "identifier":
+                    v = _node_text(left, raw).strip()
+                    assign_counts[v] += 1
+                    if branch:
+                        assigned_in_branch.add(v)
+
+        for child in getattr(node, "named_children", []):
+            walk(child, branch)
+
+    walk(body, False)
+
+    resolved_types: dict[str, str] = {}
+    tainted_vars: set[str] = set()
+
+    for p_name, p_type in param_types.items():
+        if assign_counts[p_name] == 0:
+            resolved_types[p_name] = p_type
+        else:
+            tainted_vars.add(p_name)
+
+    for v_name in assign_counts:
+        if v_name in param_types:
+            continue
+        if assign_counts[v_name] >= 2 or v_name in assigned_in_branch:
+            tainted_vars.add(v_name)
+        elif assign_counts[v_name] == 1:
+            if v_name in annotated_types:
+                resolved_types[v_name] = annotated_types[v_name]
+            elif v_name in ctor_types:
+                resolved_types[v_name] = ctor_types[v_name]
+
+    return resolved_types, tainted_vars
+
+
+def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[str, list[str]]:
+    inheritance: dict[str, list[str]] = {}
 
     def visit(current: object) -> None:
         c_type = getattr(current, "type", "")
+        if language_name == "python" and c_type == "class_definition":
+            name_node = _field(current, "name")
+            if name_node is not None:
+                cls_name = _node_text(name_node, raw).strip()
+                bases: list[str] = []
+                superclasses = _field(current, "superclasses")
+                if superclasses is not None:
+                    for child in getattr(superclasses, "named_children", []):
+                        if getattr(child, "type", "") == "keyword_argument":
+                            continue
+                        base_name = _node_text(child, raw).strip()
+                        if base_name:
+                            bases.append(base_name)
+                inheritance[cls_name] = bases
+        elif language_name in {"javascript", "typescript", "tsx"} and c_type in {"class_declaration", "class"}:
+            name_node = _field(current, "name")
+            if name_node is not None:
+                cls_name = _node_text(name_node, raw).strip()
+                bases = []
+                for child in getattr(current, "named_children", []):
+                    if child.type == "class_heritage":
+                        for h_child in getattr(child, "named_children", []):
+                            if h_child.type in {"extends_clause", "implements_clause"}:
+                                for expr in getattr(h_child, "named_children", []):
+                                    if expr.type in {"identifier", "type_identifier"}:
+                                        b = _node_text(expr, raw).strip()
+                                        if b and b not in bases:
+                                            bases.append(b)
+                    elif child.type in {"extends_clause", "implements_clause"}:
+                        for expr in getattr(child, "named_children", []):
+                            if expr.type in {"identifier", "type_identifier"}:
+                                b = _node_text(expr, raw).strip()
+                                if b and b not in bases:
+                                    bases.append(b)
+                inheritance[cls_name] = bases
+        elif language_name == "java" and c_type in {"class_declaration", "record_declaration", "interface_declaration"}:
+            name_node = _field(current, "name")
+            if name_node is not None:
+                cls_name = _node_text(name_node, raw).strip()
+                bases = []
+                sc = _field(current, "superclass")
+                if sc is not None:
+                    for expr in getattr(sc, "named_children", []):
+                        if expr.type == "type_identifier":
+                            b = _node_text(expr, raw).strip()
+                            if b and b not in bases:
+                                bases.append(b)
+                si = _field(current, "super_interfaces") or _field(current, "interfaces")
+                if si is not None:
+                    for expr in _descendants(si):
+                        if getattr(expr, "type", "") == "type_identifier":
+                            b = _node_text(expr, raw).strip()
+                            if b and b not in bases:
+                                bases.append(b)
+                inheritance[cls_name] = bases
+        elif language_name == "c_sharp" and c_type in {"class_declaration", "struct_declaration", "record_declaration", "interface_declaration"}:
+            name_node = _field(current, "name")
+            if name_node is not None:
+                cls_name = _node_text(name_node, raw).strip()
+                bases = []
+                bl = _field(current, "base_list")
+                if bl is not None:
+                    for expr in getattr(bl, "named_children", []):
+                        if expr.type in {"identifier", "type_identifier", "generic_name"}:
+                            b = _node_text(expr, raw).strip()
+                            if b and b not in bases:
+                                bases.append(b)
+                inheritance[cls_name] = bases
+
+        for child in getattr(current, "named_children", []):
+            visit(child)
+
+    visit(root)
+    return inheritance
+
+
+def _detect_type_narrowing(
+    if_node: object,
+    raw: bytes,
+    language_name: str,
+) -> tuple[str, str] | None:
+    cond = _field(if_node, "condition")
+    if cond is None:
+        return None
+    if language_name == "python" and getattr(cond, "type", "") == "call":
+        fn = _field(cond, "function")
+        if fn is not None and getattr(fn, "type", "") == "identifier":
+            if _node_text(fn, raw).strip() == "isinstance":
+                args = _field(cond, "arguments")
+                if args is not None and len(getattr(args, "named_children", [])) >= 2:
+                    first = args.named_children[0]
+                    second = args.named_children[1]
+                    if getattr(first, "type", "") == "identifier":
+                        var_name = _node_text(first, raw).strip()
+                        type_name = _clean_type_name(_node_text(second, raw))
+                        if var_name and type_name:
+                            return var_name, type_name
+    elif language_name in {"javascript", "typescript", "tsx"}:
+        inner = cond
+        if getattr(cond, "type", "") == "parenthesized_expression" and getattr(cond, "named_children", None):
+            inner = cond.named_children[0]
+        if getattr(inner, "type", "") == "binary_expression":
+            op = _field(inner, "operator")
+            if op is not None and _node_text(op, raw).strip() == "instanceof":
+                left = _field(inner, "left")
+                right = _field(inner, "right")
+                if left is not None and right is not None and getattr(left, "type", "") == "identifier":
+                    var_name = _node_text(left, raw).strip()
+                    type_name = _clean_type_name(_node_text(right, raw))
+                    if var_name and type_name:
+                        return var_name, type_name
+    elif language_name == "java" and getattr(cond, "type", "") in {"instanceof_expression", "parenthesized_expression"}:
+        inner = cond.named_children[0] if getattr(cond, "type", "") == "parenthesized_expression" and getattr(cond, "named_children", None) else cond
+        if getattr(inner, "type", "") == "instanceof_expression":
+            left = _field(inner, "left") or (inner.named_children[0] if getattr(inner, "named_children", None) else None)
+            right = _field(inner, "right") or (inner.named_children[-1] if getattr(inner, "named_children", None) else None)
+            if left is not None and right is not None and getattr(left, "type", "") == "identifier":
+                var_name = _node_text(left, raw).strip()
+                type_name = _clean_type_name(_node_text(right, raw))
+                if var_name and type_name:
+                    return var_name, type_name
+    return None
+
+
+def _detect_case_narrowing(
+    case_node: object,
+    raw: bytes,
+    language_name: str,
+) -> tuple[str, str] | None:
+    if language_name != "python":
+        return None
+    pattern = None
+    for ch in getattr(case_node, "named_children", []):
+        if getattr(ch, "type", "") == "case_pattern":
+            pattern = ch.named_children[0] if getattr(ch, "named_children", None) else None
+            break
+    if pattern is None:
+        return None
+    if getattr(pattern, "type", "") == "as_pattern":
+        cls_pat = pattern.named_children[0] if getattr(pattern, "named_children", None) else None
+        alias_node = pattern.named_children[-1] if len(getattr(pattern, "named_children", [])) > 1 else None
+        if cls_pat and alias_node and getattr(cls_pat, "type", "") == "class_pattern":
+            cls_node = _field(cls_pat, "class") or (cls_pat.named_children[0] if getattr(cls_pat, "named_children", None) else None)
+            if cls_node is not None:
+                var_name = _node_text(alias_node, raw).strip()
+                type_name = _clean_type_name(_node_text(cls_node, raw))
+                if var_name and type_name:
+                    return var_name, type_name
+    return None
+
+
+def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallRecord]:
+    calls: list[CallRecord] = []
+    scope_stack: list[tuple[dict[str, str], set[str]]] = []
+
+    fn_node_types = {
+        "python": {"function_definition"},
+        "javascript": {"function_declaration", "method_definition", "arrow_function", "function_expression"},
+        "typescript": {"function_declaration", "method_definition", "arrow_function", "function_expression"},
+        "tsx": {"function_declaration", "method_definition", "arrow_function", "function_expression"},
+        "java": {"method_declaration", "constructor_declaration"},
+        "c_sharp": {"method_declaration", "constructor_declaration", "local_function_statement"},
+    }.get(language_name, set())
+
+    def resolve_receiver_meta(receiver: str | None) -> tuple[str | None, bool]:
+        if not receiver or receiver in {"self", "cls", "this"}:
+            return None, False
+        for types, tainted in reversed(scope_stack):
+            if receiver in types:
+                return types[receiver], False
+            if receiver in tainted:
+                return None, True
+        return None, False
+
+    def visit(current: object) -> None:
+        c_type = getattr(current, "type", "")
+        is_fn = c_type in fn_node_types
+        if is_fn:
+            scope_stack.append(_analyze_function_scope(current, raw, language_name))
+
+        # Type Narrowing on if_statement (isinstance / instanceof)
+        if c_type == "if_statement" and len(scope_stack) < 12:
+            narrowing = _detect_type_narrowing(current, raw, language_name)
+            if narrowing:
+                var_name, type_name = narrowing
+                cond = _field(current, "condition")
+                consequence = _field(current, "consequence")
+                alternative = _field(current, "alternative")
+                if cond is not None:
+                    visit(cond)
+                if consequence is not None:
+                    scope_stack.append(({var_name: type_name}, set()))
+                    visit(consequence)
+                    scope_stack.pop()
+                if alternative is not None:
+                    visit(alternative)
+                return
+
+        # Type Narrowing on match case_clause (case ClassName() as var:)
+        if c_type == "case_clause" and len(scope_stack) < 12:
+            case_narrowing = _detect_case_narrowing(current, raw, language_name)
+            if case_narrowing:
+                var_name, type_name = case_narrowing
+                scope_stack.append(({var_name: type_name}, set()))
+                for child in getattr(current, "named_children", []):
+                    visit(child)
+                scope_stack.pop()
+                return
+
         if language_name == "python" and c_type == "call":
             func = _field(current, "function")
             if func is not None:
@@ -490,13 +895,17 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     obj = _field(func, "object")
                     attr = _field(func, "attribute")
                     if attr is not None:
+                        rec = _node_text(obj, raw) if obj is not None else None
+                        r_type, is_t = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(attr, raw),
-                                receiver=_node_text(obj, raw) if obj is not None else None,
+                                receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
                                 end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
                             )
                         )
                 elif func.type == "identifier":
@@ -516,13 +925,17 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     obj = _field(func, "object")
                     prop = _field(func, "property")
                     if prop is not None:
+                        rec = _node_text(obj, raw) if obj is not None else None
+                        r_type, is_t = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(prop, raw),
-                                receiver=_node_text(obj, raw) if obj is not None else None,
+                                receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
                                 end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
                             )
                         )
                 elif func.type == "identifier":
@@ -539,13 +952,17 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
             obj = _field(current, "object")
             name = _field(current, "name")
             if name is not None:
+                rec = _node_text(obj, raw) if obj is not None else None
+                r_type, is_t = resolve_receiver_meta(rec)
                 calls.append(
                     CallRecord(
                         name=_node_text(name, raw),
-                        receiver=_node_text(obj, raw) if obj is not None else None,
+                        receiver=rec,
                         line=int(current.start_point[0]) + 1,
                         start_byte=int(current.start_byte),
                         end_byte=int(current.end_byte),
+                        receiver_type=r_type,
+                        is_tainted=is_t,
                     )
                 )
         elif language_name == "c_sharp" and c_type == "invocation_expression":
@@ -557,13 +974,17 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     expr_obj = _field(expr, "expression")
                     expr_name = _field(expr, "name")
                     if expr_name is not None:
+                        rec = _node_text(expr_obj, raw) if expr_obj is not None else None
+                        r_type, is_t = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(expr_name, raw),
-                                receiver=_node_text(expr_obj, raw) if expr_obj is not None else None,
+                                receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
                                 end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
                             )
                         )
                 elif expr.type == "identifier":
@@ -578,6 +999,9 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     )
         for child in getattr(current, "named_children", []):
             visit(child)
+
+        if is_fn:
+            scope_stack.pop()
 
     visit(root)
     return calls

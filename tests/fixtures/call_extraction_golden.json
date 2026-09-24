@@ -1,0 +1,116 @@
+[
+  {
+    "id": "direct_call",
+    "language": "python",
+    "source": "def run():\n    do_something()\n",
+    "expected_calls": [
+      {
+        "name": "do_something",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      }
+    ]
+  },
+  {
+    "id": "method_call_self",
+    "language": "python",
+    "source": "class Worker:\n    def execute(self):\n        self.step()\n",
+    "expected_calls": [
+      {
+        "name": "step",
+        "receiver": "self",
+        "receiver_type": null,
+        "is_tainted": false
+      }
+    ]
+  },
+  {
+    "id": "single_assignment_type_inference",
+    "language": "python",
+    "source": "def process():\n    worker = Worker()\n    worker.start()\n",
+    "expected_calls": [
+      {
+        "name": "Worker",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      },
+      {
+        "name": "start",
+        "receiver": "worker",
+        "receiver_type": "Worker",
+        "is_tainted": false
+      }
+    ]
+  },
+  {
+    "id": "tainted_poly_reassignment",
+    "language": "python",
+    "source": "def run():\n    x = ServiceA()\n    x = ServiceB()\n    x.perform()\n",
+    "expected_calls": [
+      {
+        "name": "ServiceA",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      },
+      {
+        "name": "ServiceB",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      },
+      {
+        "name": "perform",
+        "receiver": "x",
+        "receiver_type": null,
+        "is_tainted": true
+      }
+    ]
+  },
+  {
+    "id": "type_narrowing_isinstance",
+    "language": "python",
+    "source": "def dispatch(item):\n    item = get_item()\n    item = parse_item()\n    if isinstance(item, Invoice):\n        item.calculate_tax()\n    else:\n        item.fallback()\n",
+    "expected_calls": [
+      {
+        "name": "get_item",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      },
+      {
+        "name": "parse_item",
+        "receiver": null,
+        "receiver_type": null,
+        "is_tainted": false
+      },
+      {
+        "name": "calculate_tax",
+        "receiver": "item",
+        "receiver_type": "Invoice",
+        "is_tainted": false
+      },
+      {
+        "name": "fallback",
+        "receiver": "item",
+        "receiver_type": null,
+        "is_tainted": true
+      }
+    ]
+  },
+  {
+    "id": "external_call_testcase",
+    "language": "python",
+    "source": "import unittest\nclass MyTest(unittest.TestCase):\n    def test_sample(self):\n        self.assertEqual(1, 1)\n",
+    "expected_calls": [
+      {
+        "name": "assertEqual",
+        "receiver": "self",
+        "receiver_type": null,
+        "is_tainted": false
+      }
+    ]
+  }
+]

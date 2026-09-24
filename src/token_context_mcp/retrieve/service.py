@@ -714,6 +714,60 @@ class RetrievalService:
         canonical_symbol_id = self._resolve_symbol_id(store, symbol_id)
         root_symbol = store.symbol(canonical_symbol_id) if canonical_symbol_id else None
         if root_symbol is None:
+            stub = None
+            if symbol_id.startswith("ext:"):
+                stub_id_str = symbol_id[4:]
+                if stub_id_str.isdigit():
+                    stub = store.external_stub(int(stub_id_str))
+                else:
+                    for s in store.external_stubs():
+                        if f"{s.package}.{s.export_path}.{s.member_name}".endswith(stub_id_str) or s.export_path == stub_id_str:
+                            stub = s
+                            break
+            elif symbol_id.isdigit():
+                stub = store.external_stub(int(symbol_id))
+
+            if stub is not None:
+                return self._envelope(
+                    repo_id,
+                    metadata,
+                    requested_tokens=max_tokens,
+                    estimated_tokens=150,
+                    freshness=freshness,
+                    warnings=[],
+                    truncated=False,
+                    evidence=[],
+                    data={
+                        "root_symbol_id": f"ext:{stub.stub_id}",
+                        "symbols": [{
+                            "symbol": {
+                                "symbol_id": f"ext:{stub.stub_id}",
+                                "path": f"<external:{stub.package}>",
+                                "name": stub.member_name,
+                                "qualified_name": f"{stub.package}.{stub.export_path}.{stub.member_name}",
+                                "kind": "external_stub",
+                                "signature": stub.signature,
+                                "start_line": 1,
+                                "end_line": 1,
+                                "is_private": False,
+                                "roles": ["external_stub"],
+                            },
+                            "content": stub.doc_summary or "",
+                            "body_included": False,
+                            "redacted_lines": 0,
+                            "evidence": {"path": f"<external:{stub.package}>", "start_line": 1, "end_line": 1, "sha256": "external"},
+                        }],
+                        "edges": [],
+                        "external_stub": {
+                            "stub_id": stub.stub_id,
+                            "package": stub.package,
+                            "export_path": stub.export_path,
+                            "member_name": stub.member_name,
+                            "signature": stub.signature,
+                            "doc_summary": stub.doc_summary,
+                        },
+                    },
+                )
             raise RetrievalError("unknown symbol_id")
         context_ids, traversal_edges, _ = self._traverse(
             store,
@@ -722,6 +776,19 @@ class RetrievalService:
             depth=depth,
             max_nodes=self.config.server.max_graph_nodes,
         )
+        stub_map = {}
+        for edge in traversal_edges:
+            if edge.target_stub_id and edge.target_stub_id not in stub_map:
+                s_rec = store.external_stub(edge.target_stub_id)
+                if s_rec:
+                    stub_map[str(edge.target_stub_id)] = {
+                        "stub_id": s_rec.stub_id,
+                        "package": s_rec.package,
+                        "export_path": s_rec.export_path,
+                        "member_name": s_rec.member_name,
+                        "signature": s_rec.signature,
+                        "doc_summary": s_rec.doc_summary,
+                    }
         symbols = [store.symbol(item) for item in context_ids]
         symbols = [item for item in symbols if item is not None]
         packets = [
@@ -765,6 +832,7 @@ class RetrievalService:
                     "root_symbol_id": canonical_symbol_id,
                     "symbols": selected_symbols,
                     "edges": selected_edges,
+                    **({"external_stubs": stub_map} if stub_map else {}),
                     **(
                         {"omitted_symbol_ids": [item["symbol"]["symbol_id"] for item in omitted_symbols[:10]]}
                         if include_omitted_ids

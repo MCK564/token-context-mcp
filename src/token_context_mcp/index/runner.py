@@ -32,6 +32,7 @@ from token_context_mcp.models import (
 )
 from token_context_mcp.parse.lexical_edges import build_lexical_edges
 from token_context_mcp.parse.treesitter import CallRecord, ParseError, parse_source
+from token_context_mcp.stubs import get_relevant_stubs
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
 from token_context_mcp.security.local_privacy import (
     secure_directory,
@@ -77,6 +78,7 @@ def build_index(
     symbols: list[SymbolRecord] = []
     imports: dict[str, list[str]] = {}
     calls_by_path: dict[str, list[CallRecord]] = {}
+    inheritance_by_path: dict[str, dict[str, list[str]]] = {}
     source_by_path: dict[str, str] = {}
     warnings: list[str] = []
     files_seen = 0
@@ -140,8 +142,10 @@ def build_index(
             try:
                 parsed_reused = parse_source(relative, raw, language)
                 calls_by_path[relative] = parsed_reused.calls
+                inheritance_by_path[relative] = parsed_reused.inheritance
             except Exception:
                 calls_by_path[relative] = []
+                inheritance_by_path[relative] = {}
             continue
         files_reparsed += 1
         try:
@@ -170,6 +174,7 @@ def build_index(
         symbols.extend(parsed.symbols)
         imports[relative] = parsed.imports
         calls_by_path[relative] = parsed.calls
+        inheritance_by_path[relative] = parsed.inheritance
     if progress_callback:
         progress_callback("Assigning structural roles...", files_seen, len(symbols))
     declared_entry_points = _declared_entry_points(repository.root)
@@ -201,14 +206,36 @@ def build_index(
             "formula": "ceil(3 * sqrt(symbol_count)), floor=30, cap=500",
         },
     }
+    class_hierarchy_map: dict[str, list[str]] = {}
+    for inh in inheritance_by_path.values():
+        for cls_name, parents in inh.items():
+            class_hierarchy_map[cls_name] = parents
+
+    class_hierarchy_rows: list[tuple[str, str, str | None]] = []
+    class_symbol_map = {
+        s.name: s.symbol_id
+        for s in symbols
+        if s.kind in {"class", "interface", "struct", "record"}
+    }
+    for symbol in symbols:
+        if symbol.kind in {"class", "interface", "struct", "record"}:
+            parents = class_hierarchy_map.get(symbol.name, [])
+            for p_name in parents:
+                short_p = p_name.rsplit(".", 1)[-1]
+                p_sym_id = class_symbol_map.get(p_name) or class_symbol_map.get(short_p)
+                class_hierarchy_rows.append((symbol.symbol_id, p_name, p_sym_id))
+
     if progress_callback:
         progress_callback("Resolving lexical graph edges...", files_seen, len(symbols))
+    active_stubs = get_relevant_stubs(imports)
     edges: list[EdgeRecord] = build_lexical_edges(
         symbols,
         source_by_path,
         max_edges_per_symbol=max_edges_per_symbol,
         calls_by_path=calls_by_path,
         imports_by_path=imports,
+        class_hierarchy=class_hierarchy_map,
+        external_stubs=active_stubs,
     )
     symbol_bodies = {
         symbol.symbol_id: _search_text(_slice_source(source_by_path[symbol.path], symbol.start_byte, symbol.end_byte))
@@ -234,6 +261,7 @@ def build_index(
         "files_reparsed": files_reparsed,
         "symbols_indexed": len(symbols),
         "edges_indexed": len(edges),
+        "stubs_indexed": len(active_stubs),
         "entry_points": entry_points,
         "role_counts": _role_counts(symbols),
         "derived_defaults": derived_defaults,
@@ -253,6 +281,8 @@ def build_index(
             imports=imports,
             symbol_bodies=symbol_bodies,
             source_bodies=searchable_sources,
+            class_hierarchy=class_hierarchy_rows,
+            external_stubs=active_stubs,
         )
         _atomic_replace(temporary, destination)
         secure_sqlite_artifacts(destination)

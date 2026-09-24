@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-from token_context_mcp.models import EdgeRecord, FileRecord, SymbolRecord
+from token_context_mcp.models import EdgeRecord, ExternalStubRecord, FileRecord, SymbolRecord
 from token_context_mcp.security.local_privacy import secure_directory, secure_sqlite_artifacts
 
 SCHEMA = """
@@ -54,10 +54,22 @@ CREATE VIRTUAL TABLE IF NOT EXISTS source_bodies USING fts5(
   path UNINDEXED,
   body
 );
+CREATE TABLE IF NOT EXISTS external_stubs (
+  stub_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package TEXT NOT NULL,
+  export_path TEXT NOT NULL,
+  member_name TEXT NOT NULL,
+  signature TEXT,
+  doc_summary TEXT,
+  UNIQUE(export_path, member_name)
+);
+CREATE INDEX IF NOT EXISTS external_stubs_pkg_idx ON external_stubs(package);
+CREATE INDEX IF NOT EXISTS external_stubs_lookup_idx ON external_stubs(export_path, member_name);
 CREATE TABLE IF NOT EXISTS edges (
   edge_id INTEGER PRIMARY KEY,
   source_symbol_id TEXT NOT NULL REFERENCES symbols(symbol_id),
   target_symbol_id TEXT REFERENCES symbols(symbol_id),
+  target_stub_id INTEGER REFERENCES external_stubs(stub_id),
   target_name TEXT NOT NULL,
   edge_kind TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -69,11 +81,19 @@ CREATE TABLE IF NOT EXISTS edges (
 );
 CREATE INDEX IF NOT EXISTS edges_source_idx ON edges(source_symbol_id);
 CREATE INDEX IF NOT EXISTS edges_target_idx ON edges(target_symbol_id);
+CREATE INDEX IF NOT EXISTS edges_stub_idx ON edges(target_stub_id);
 CREATE TABLE IF NOT EXISTS imports (
   path TEXT NOT NULL REFERENCES files(path),
   module TEXT NOT NULL,
   PRIMARY KEY(path, module)
 );
+CREATE TABLE IF NOT EXISTS class_hierarchy (
+  class_symbol_id TEXT NOT NULL REFERENCES symbols(symbol_id),
+  parent_name TEXT NOT NULL,
+  parent_symbol_id TEXT REFERENCES symbols(symbol_id),
+  PRIMARY KEY (class_symbol_id, parent_name)
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS class_hierarchy_parent_idx ON class_hierarchy(parent_name);
 """
 
 
@@ -137,12 +157,14 @@ class SQLiteStore:
         imports: dict[str, list[str]],
         symbol_bodies: dict[str, str],
         source_bodies: dict[str, str],
+        class_hierarchy: list[tuple[str, str, str | None]] | None = None,
+        external_stubs: list[ExternalStubRecord] | None = None,
     ) -> None:
         if self.read_only:
             raise StoreError("cannot write a read-only snapshot")
         self.initialize()
         with self.connection() as connection:
-            for table in ("edges", "imports", "symbol_bodies", "source_bodies", "symbols", "files", "metadata"):
+            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbols", "files", "metadata"):
                 connection.execute(f"DELETE FROM {table}")
             connection.executemany(
                 "INSERT INTO metadata(key, value) VALUES (?, ?)",
@@ -191,15 +213,37 @@ class SQLiteStore:
                     for item in symbols
                 ],
             )
+            if class_hierarchy:
+                connection.executemany(
+                    "INSERT INTO class_hierarchy(class_symbol_id, parent_name, parent_symbol_id) VALUES (?, ?, ?)",
+                    class_hierarchy,
+                )
+            if external_stubs:
+                connection.executemany(
+                    """INSERT INTO external_stubs(stub_id, package, export_path, member_name, signature, doc_summary)
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    [
+                        (
+                            s.stub_id,
+                            s.package,
+                            s.export_path,
+                            s.member_name,
+                            s.signature,
+                            s.doc_summary,
+                        )
+                        for s in external_stubs
+                    ],
+                )
             connection.executemany(
                 """INSERT INTO edges(
-                    source_symbol_id, target_symbol_id, target_name, edge_kind, status, backend,
+                    source_symbol_id, target_symbol_id, target_stub_id, target_name, edge_kind, status, backend,
                     confidence, source_path, source_line, evidence_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 [
                     (
                         item.source_symbol_id,
                         item.target_symbol_id,
+                        item.target_stub_id,
                         item.target_name,
                         item.edge_kind,
                         item.status,
@@ -229,6 +273,38 @@ class SQLiteStore:
             )
         with self.connection() as connection:
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            connection.commit()
+            connection.execute("PRAGMA page_size = 4096")
+            connection.execute("VACUUM")
+            connection.execute("PRAGMA optimize")
+
+    def class_ancestors(self, class_symbol_id: str) -> list[tuple[str, str | None]]:
+        with self.connection() as connection:
+            rows = connection.execute(
+                "SELECT parent_name, parent_symbol_id FROM class_hierarchy WHERE class_symbol_id = ?",
+                (class_symbol_id,),
+            ).fetchall()
+        return [(row["parent_name"], row["parent_symbol_id"]) for row in rows]
+
+    def all_class_hierarchies(self) -> dict[str, list[str]]:
+        with self.connection() as connection:
+            rows = connection.execute(
+                "SELECT class_symbol_id, parent_name FROM class_hierarchy ORDER BY class_symbol_id"
+            ).fetchall()
+        res: dict[str, list[str]] = {}
+        for row in rows:
+            res.setdefault(row["class_symbol_id"], []).append(row["parent_name"])
+        return res
+
+    def external_stub(self, stub_id: int) -> ExternalStubRecord | None:
+        with self.connection() as connection:
+            row = connection.execute("SELECT * FROM external_stubs WHERE stub_id = ?", (stub_id,)).fetchone()
+        return _external_stub_from_row(row) if row else None
+
+    def external_stubs(self) -> list[ExternalStubRecord]:
+        with self.connection() as connection:
+            rows = connection.execute("SELECT * FROM external_stubs ORDER BY stub_id").fetchall()
+        return [_external_stub_from_row(row) for row in rows]
 
     def metadata(self) -> dict[str, Any]:
         with self.connection() as connection:
@@ -442,6 +518,7 @@ def _symbol_from_row(row: sqlite3.Row) -> SymbolRecord:
 
 
 def _edge_from_row(row: sqlite3.Row) -> EdgeRecord:
+    columns = row.keys()
     return EdgeRecord(
         source_symbol_id=row["source_symbol_id"],
         target_symbol_id=row["target_symbol_id"],
@@ -453,4 +530,17 @@ def _edge_from_row(row: sqlite3.Row) -> EdgeRecord:
         source_path=row["source_path"],
         source_line=row["source_line"],
         evidence=json.loads(row["evidence_json"]),
+        target_stub_id=row["target_stub_id"] if "target_stub_id" in columns else None,
     )
+
+
+def _external_stub_from_row(row: sqlite3.Row) -> ExternalStubRecord:
+    return ExternalStubRecord(
+        stub_id=row["stub_id"],
+        package=row["package"],
+        export_path=row["export_path"],
+        member_name=row["member_name"],
+        signature=row["signature"],
+        doc_summary=row["doc_summary"],
+    )
+

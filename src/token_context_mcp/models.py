@@ -67,6 +67,16 @@ class SymbolRecord:
 
 
 @dataclass(frozen=True)
+class ExternalStubRecord:
+    stub_id: int | None
+    package: str
+    export_path: str
+    member_name: str
+    signature: str | None = None
+    doc_summary: str | None = None
+
+
+@dataclass(frozen=True)
 class EdgeRecord:
     source_symbol_id: str
     target_symbol_id: str | None
@@ -78,6 +88,7 @@ class EdgeRecord:
     source_path: str
     source_line: int
     evidence: list[str]
+    target_stub_id: int | None = None
 
 
 @dataclass(frozen=True)
