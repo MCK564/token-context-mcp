@@ -184,3 +184,6 @@ class GovernanceStore:
                 except Exception:
                     continue
         return active
+
+    def close(self) -> None:
+        """No-op: each operation opens its own connection. Provided for API symmetry."""

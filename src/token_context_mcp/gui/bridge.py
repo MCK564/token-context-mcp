@@ -543,6 +543,59 @@ class CacheManager:
         return count
 
 
+class GovernanceRefreshWorker(QThread):
+    """Read-only background worker that polls governance.sqlite for live server/agent state.
+
+    This thread NEVER writes to the GovernanceStore — it only reads, so the GUI
+    acts as a passive observer of the running MCP server processes.
+    """
+
+    servers_updated = Signal(list)   # list of server heartbeat dicts
+    agents_refreshed = Signal(list)  # list of merged agent dicts
+    halt_state_changed = Signal(bool, str)  # is_halted, reason
+
+    def __init__(
+        self,
+        governance_db_path: Path,
+        interval_sec: float = 5.0,
+        parent: QObject | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self.governance_db_path = governance_db_path
+        self.interval_sec = interval_sec
+        self._running = True
+
+    def run(self) -> None:
+        while self._running:
+            self._poll_once()
+            for _ in range(int(self.interval_sec * 10)):
+                if not self._running:
+                    break
+                time.sleep(0.1)
+
+    def _poll_once(self) -> None:
+        if not self.governance_db_path.exists():
+            return
+        try:
+            from token_context_mcp.security.governance_store import GovernanceStore
+            store = GovernanceStore(self.governance_db_path)
+            # Read-only queries only
+            servers = store.get_active_servers(stale_threshold_sec=60)
+            agents = store.list_agents()
+            is_halted, halt_reason = store.is_emergency_halted()
+            store.close()
+
+            self.servers_updated.emit(servers)
+            self.agents_refreshed.emit(agents)
+            self.halt_state_changed.emit(is_halted, halt_reason)
+        except Exception as exc:
+            logger.debug("GovernanceRefreshWorker poll error: %s", exc)
+
+    def stop(self) -> None:
+        self._running = False
+        self.wait(2000)
+
+
 class AgentSecurityController(QObject):
     """Bridge for Agent Access Control, Mutex Lock Management, and Audit Log Telemetry."""
 
@@ -550,6 +603,7 @@ class AgentSecurityController(QObject):
     locks_updated = Signal(list)      # list of lock dicts
     audit_logs_updated = Signal(list) # list of audit log dicts
     emergency_state_changed = Signal(bool, str) # is_halted, reason
+    active_servers_updated = Signal(list)  # list of server heartbeat dicts (M2.5)
 
     def __init__(self, config_path: Path | None = None, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -561,6 +615,38 @@ class AgentSecurityController(QObject):
         self._access_control = AccessControlManager()
         self._audit_logger = AuditLogger(self.config_path.parent / "audit.sqlite")
         self._memory_store = MemoryStore(self.config_path.parent / "memory.sqlite")
+
+        # M2.5: connect to GovernanceStore for read-only cross-server refresh
+        governance_db = self.config_path.parent / "governance.sqlite"
+        self._governance_refresh_worker: GovernanceRefreshWorker | None = None
+        if governance_db.exists():
+            self._start_governance_refresh(governance_db)
+
+    def _start_governance_refresh(self, governance_db: Path) -> None:
+        """Start background read-only governance polling (M2.5)."""
+        if self._governance_refresh_worker and self._governance_refresh_worker.isRunning():
+            return
+        worker = GovernanceRefreshWorker(governance_db, interval_sec=5.0, parent=self)
+        worker.servers_updated.connect(self.active_servers_updated.emit)
+        worker.agents_refreshed.connect(self._on_governance_agents)
+        worker.halt_state_changed.connect(self._on_governance_halt)
+        worker.start()
+        self._governance_refresh_worker = worker
+
+    def _on_governance_agents(self, governance_agents: list[dict[str, Any]]) -> None:
+        """Merge governance agents into local view (read-only merge, no mutation)."""
+        local_agents = self._access_control.list_agents()
+        local_ids = {a["agent_id"] for a in local_agents}
+        # Add agents seen by the live server but not yet in local view
+        for ga in governance_agents:
+            if ga["agent_id"] not in local_ids:
+                local_agents.append(ga)
+                local_ids.add(ga["agent_id"])
+        self.agents_updated.emit(local_agents)
+
+    def _on_governance_halt(self, is_halted: bool, reason: str) -> None:
+        """Reflect server-side halt state in the GUI (read-only)."""
+        self.emergency_state_changed.emit(is_halted, reason or self._access_control.emergency_reason)
 
     @property
     def access_control(self) -> Any:
@@ -643,7 +729,10 @@ class AgentSecurityController(QObject):
         self.refresh_data()
 
     def close(self) -> None:
+        if self._governance_refresh_worker and self._governance_refresh_worker.isRunning():
+            self._governance_refresh_worker.stop()
         try:
             self._audit_logger.close()
         except Exception:
             pass
+

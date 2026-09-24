@@ -91,3 +91,54 @@ def test_server_controller_configs(temp_config_env):
 
     antigravity_cfg = ctrl.get_client_config("antigravity")
     assert "mcpServers" in antigravity_cfg
+
+
+def test_governance_refresh_worker_no_db(temp_config_env):
+    """GovernanceRefreshWorker must not crash when governance.sqlite does not exist."""
+    from token_context_mcp.gui.bridge import GovernanceRefreshWorker
+    config_path, _ = temp_config_env
+    non_existent = config_path.parent / "governance.sqlite"
+    assert not non_existent.exists()
+
+    worker = GovernanceRefreshWorker(non_existent, interval_sec=1.0)
+    received_servers: list = []
+    worker.servers_updated.connect(received_servers.append)
+
+    # _poll_once with no DB should be a silent no-op
+    worker._poll_once()
+    assert received_servers == []
+
+
+def test_governance_refresh_worker_with_db(tmp_path):
+    """GovernanceRefreshWorker reads active servers from a real governance.sqlite."""
+    import time
+    from token_context_mcp.gui.bridge import GovernanceRefreshWorker
+    from token_context_mcp.security.governance_store import GovernanceStore
+
+    gov_db = tmp_path / "governance.sqlite"
+    store = GovernanceStore(gov_db)
+    store.record_heartbeat("server-test-1", pid=9999)
+    store.close()
+
+    worker = GovernanceRefreshWorker(gov_db, interval_sec=60.0)
+    received_servers: list = []
+    received_agents: list = []
+    worker.servers_updated.connect(received_servers.append)
+    worker.agents_refreshed.connect(received_agents.append)
+
+    worker._poll_once()
+
+    assert len(received_servers) == 1
+    assert received_servers[0][0]["server_id"] == "server-test-1"
+    assert received_servers[0][0]["pid"] == 9999
+
+
+def test_agent_security_controller_active_servers_signal_exists(temp_config_env):
+    """AgentSecurityController must expose active_servers_updated signal (M2.5)."""
+    from token_context_mcp.gui.bridge import AgentSecurityController
+    config_path, _ = temp_config_env
+    ctrl = AgentSecurityController(config_path)
+    # Signal must exist (even if no governance.sqlite yet)
+    assert hasattr(ctrl, "active_servers_updated")
+    ctrl.close()
+
