@@ -90,7 +90,7 @@ def baseline_tokens(root: Path) -> dict[str, Any]:
 def edge_precision(config_path: Path, repo_id: str) -> dict[str, Any]:
     store = SQLiteStore(database_path(index_directory(config_path), repo_id), read_only=True)
     symbols = store.symbols()
-    edges = [edge for symbol in symbols for edge in store.edges_from(symbol.symbol_id)]
+    edges = store.edges()
     ambiguous = sum(1 for edge in edges if edge.status == "ambiguous")
     resolved = sum(1 for edge in edges if edge.status == "resolved")
     return {

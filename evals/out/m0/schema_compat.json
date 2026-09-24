@@ -1,0 +1,356 @@
+{
+  "tools_scanned": 21,
+  "static_schemas_scanned": 2,
+  "total_issues": 45,
+  "issues_by_type": {
+    "anyof_null": 34,
+    "property_missing_type": 4,
+    "array_type": 5,
+    "defs_declared": 1,
+    "ref_used": 1
+  },
+  "tool_issue_counts": {
+    "list_repositories": 0,
+    "get_repo_map": 4,
+    "find_symbols": 4,
+    "get_module_dependents": 4,
+    "search_source": 3,
+    "get_file_skeleton": 2,
+    "get_symbol_context": 3,
+    "get_impact_slice": 5,
+    "get_index_status": 0,
+    "inspect_symbol": 0,
+    "list_available_tools": 1,
+    "search_tools": 0,
+    "get_tool_schema": 0,
+    "memory_put": 3,
+    "memory_get": 0,
+    "memory_search": 1,
+    "memory_lock": 0,
+    "memory_consolidate": 0,
+    "sample_summarize": 1,
+    "agent_control": 2,
+    "audit_logs": 2
+  },
+  "static_schema_counts": {
+    "index-manifest.schema.json": 2,
+    "mcp-result.schema.json": 8
+  },
+  "issues": [
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_repo_map",
+      "json_path": "properties.query.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_repo_map",
+      "json_path": "properties.budget_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_repo_map",
+      "json_path": "properties.format.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_repo_map",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "find_symbols",
+      "json_path": "properties.kind.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "find_symbols",
+      "json_path": "properties.limit.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "find_symbols",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "find_symbols",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_module_dependents",
+      "json_path": "properties.path.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_module_dependents",
+      "json_path": "properties.module.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_module_dependents",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_module_dependents",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "search_source",
+      "json_path": "properties.limit.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "search_source",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "search_source",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_file_skeleton",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_file_skeleton",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_symbol_context",
+      "json_path": "properties.include_body.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_symbol_context",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_symbol_context",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_impact_slice",
+      "json_path": "properties.depth.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_impact_slice",
+      "json_path": "properties.max_nodes.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_impact_slice",
+      "json_path": "properties.max_tokens.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_impact_slice",
+      "json_path": "properties.profile.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "get_impact_slice",
+      "json_path": "properties.min_confidence.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "list_available_tools",
+      "json_path": "properties.category.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "memory_put",
+      "json_path": "properties.value",
+      "issue_type": "property_missing_type",
+      "detail": "Property 'value' has no 'type', '$ref', or anyOf/oneOf"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "memory_put",
+      "json_path": "properties.ttl.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "memory_put",
+      "json_path": "properties.session_id.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "memory_search",
+      "json_path": "properties.scope.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "sample_summarize",
+      "json_path": "properties.target_symbols.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "agent_control",
+      "json_path": "properties.agent_id.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "agent_control",
+      "json_path": "properties.policy.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "audit_logs",
+      "json_path": "properties.agent_id.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "mcp_tool",
+      "tool_or_file": "audit_logs",
+      "json_path": "properties.status.anyOf",
+      "issue_type": "anyof_null",
+      "detail": "anyOf includes {'type': 'null'} (nullable union)"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "index-manifest.schema.json",
+      "json_path": "properties.schema_version",
+      "issue_type": "property_missing_type",
+      "detail": "Property 'schema_version' has no 'type', '$ref', or anyOf/oneOf"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "index-manifest.schema.json",
+      "json_path": "properties.commit_sha.type",
+      "issue_type": "array_type",
+      "detail": "type declared as list: ['string', 'null']"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "$defs",
+      "issue_type": "defs_declared",
+      "detail": "Declared $defs with 1 definitions"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.schema_version",
+      "issue_type": "property_missing_type",
+      "detail": "Property 'schema_version' has no 'type', '$ref', or anyOf/oneOf"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.freshness",
+      "issue_type": "property_missing_type",
+      "detail": "Property 'freshness' has no 'type', '$ref', or anyOf/oneOf"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.index_run_id.type",
+      "issue_type": "array_type",
+      "detail": "type declared as list: ['string', 'null']"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.edge_precision.properties.ambiguous_rate.type",
+      "issue_type": "array_type",
+      "detail": "type declared as list: ['number', 'null']"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.edge_precision.properties.resolved_rate.type",
+      "issue_type": "array_type",
+      "detail": "type declared as list: ['number', 'null']"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.completeness.properties.value.type",
+      "issue_type": "array_type",
+      "detail": "type declared as list: ['number', 'null']"
+    },
+    {
+      "schema_source": "schema_file",
+      "tool_or_file": "mcp-result.schema.json",
+      "json_path": "properties.evidence.items",
+      "issue_type": "ref_used",
+      "detail": "Found $ref to: #/$defs/evidence"
+    }
+  ]
+}

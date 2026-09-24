@@ -1,0 +1,52 @@
+{
+  "artifact_sha256": "3cd1183b84e9e4731e03dc40e104d081a34238612073bbfd7b7786ed3fb28576",
+  "commit_sha": null,
+  "derived_defaults": {
+    "impact_max_nodes": {
+      "formula": "ceil(3 * sqrt(symbol_count)), floor=30, cap=500",
+      "symbol_count": 40000,
+      "value": 500
+    },
+    "limit_ceiling": {
+      "formula": "ceil(symbol_count / 10), floor=30, cap=100",
+      "symbol_count": 40000,
+      "value": 100
+    },
+    "max_edges_per_symbol": {
+      "formula": "ceil(median_symbol_body_bytes / 10), floor=25, cap=200",
+      "median_symbol_body_bytes": 68,
+      "value": 25
+    }
+  },
+  "edges_indexed": 25216,
+  "entry_points": [
+    {
+      "declared": "synthetic-cli = pkg_00.mod_00:main",
+      "resolved": false
+    }
+  ],
+  "files_indexed": 5051,
+  "files_reparsed": 5050,
+  "files_reused": 0,
+  "files_seen": 5051,
+  "files_skipped": 0,
+  "generated_at": "2026-09-24T13:29:55.847422+00:00",
+  "index_run_id": "run_20260924T132955Z_cc01e6fa",
+  "index_schema_version": "2.1",
+  "indexer_version": "0.1.0",
+  "network_policy": "deny_all",
+  "network_policy_status": "declared_only; enforce at OS/container boundary",
+  "parser_versions": {
+    "backend": "tree-sitter",
+    "languages": [
+      "python"
+    ]
+  },
+  "repo_id": "synthetic-5k",
+  "repo_root_id": "015115b41a7c0f2115b6efbffc0b5055c6519146972c6594185faf99bd2bc437",
+  "role_counts": {},
+  "schema_version": "1.0",
+  "stubs_indexed": 12,
+  "symbols_indexed": 40000,
+  "warnings": []
+}

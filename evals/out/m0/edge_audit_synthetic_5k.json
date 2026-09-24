@@ -1,0 +1,309 @@
+{
+  "repo_id": "synthetic-5k",
+  "total_symbols": 40000,
+  "total_edges": 25216,
+  "unresolved_edges": 8310,
+  "total_suspicious_edges": 12565,
+  "top_destinations": [
+    {
+      "target_symbol_id": "python:pkg_00/mod_00.py:Service_00_00.get:6228530f6bf7074c",
+      "name": "get",
+      "qualified_name": "Service_00_00.get",
+      "path": "pkg_00/mod_00.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_00": 1,
+        "receiver_mismatch:self.service_vs_service_00_00": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_01.py:Service_00_01.get:acd4aaf65a3b8dd6",
+      "name": "get",
+      "qualified_name": "Service_00_01.get",
+      "path": "pkg_00/mod_01.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_01": 1,
+        "receiver_mismatch:self.service_vs_service_00_01": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_02.py:Service_00_02.get:b62874dfd3c3d408",
+      "name": "get",
+      "qualified_name": "Service_00_02.get",
+      "path": "pkg_00/mod_02.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_02": 1,
+        "receiver_mismatch:self.service_vs_service_00_02": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_03.py:Service_00_03.get:1c28001b15853663",
+      "name": "get",
+      "qualified_name": "Service_00_03.get",
+      "path": "pkg_00/mod_03.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_03": 1,
+        "receiver_mismatch:self.service_vs_service_00_03": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_04.py:Service_00_04.get:86ad172281e2ed05",
+      "name": "get",
+      "qualified_name": "Service_00_04.get",
+      "path": "pkg_00/mod_04.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_04": 1,
+        "receiver_mismatch:self.service_vs_service_00_04": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_05.py:Service_00_05.get:f16850ec71ea8691",
+      "name": "get",
+      "qualified_name": "Service_00_05.get",
+      "path": "pkg_00/mod_05.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_05": 1,
+        "receiver_mismatch:self.service_vs_service_00_05": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_06.py:Service_00_06.get:3bb425c03c939418",
+      "name": "get",
+      "qualified_name": "Service_00_06.get",
+      "path": "pkg_00/mod_06.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_06": 1,
+        "receiver_mismatch:self.service_vs_service_00_06": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_07.py:Service_00_07.get:45adc6366611d917",
+      "name": "get",
+      "qualified_name": "Service_00_07.get",
+      "path": "pkg_00/mod_07.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_07": 1,
+        "receiver_mismatch:self.service_vs_service_00_07": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_08.py:Service_00_08.get:3f48f7d6e646731f",
+      "name": "get",
+      "qualified_name": "Service_00_08.get",
+      "path": "pkg_00/mod_08.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_08": 1,
+        "receiver_mismatch:self.service_vs_service_00_08": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_09.py:Service_00_09.get:28941c430b72d8c7",
+      "name": "get",
+      "qualified_name": "Service_00_09.get",
+      "path": "pkg_00/mod_09.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_09": 1,
+        "receiver_mismatch:self.service_vs_service_00_09": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_10.py:Service_00_10.get:9f47e84475622025",
+      "name": "get",
+      "qualified_name": "Service_00_10.get",
+      "path": "pkg_00/mod_10.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_10": 1,
+        "receiver_mismatch:self.service_vs_service_00_10": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_11.py:Service_00_11.get:bfa3863d0c1382a1",
+      "name": "get",
+      "qualified_name": "Service_00_11.get",
+      "path": "pkg_00/mod_11.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_11": 1,
+        "receiver_mismatch:self.service_vs_service_00_11": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_13.py:Service_00_13.get:dba05d09e6992e49",
+      "name": "get",
+      "qualified_name": "Service_00_13.get",
+      "path": "pkg_00/mod_13.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_13": 1,
+        "receiver_mismatch:self.service_vs_service_00_13": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_15.py:Service_00_15.get:93cf43924be42a19",
+      "name": "get",
+      "qualified_name": "Service_00_15.get",
+      "path": "pkg_00/mod_15.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_15": 1,
+        "receiver_mismatch:self.service_vs_service_00_15": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_16.py:Service_00_16.get:a50575fa6d870977",
+      "name": "get",
+      "qualified_name": "Service_00_16.get",
+      "path": "pkg_00/mod_16.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_16": 1,
+        "receiver_mismatch:self.service_vs_service_00_16": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_17.py:Service_00_17.get:ce31c4e0a2878696",
+      "name": "get",
+      "qualified_name": "Service_00_17.get",
+      "path": "pkg_00/mod_17.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_17": 1,
+        "receiver_mismatch:self.service_vs_service_00_17": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_18.py:Service_00_18.get:5ebcbfeb8c4fd1e4",
+      "name": "get",
+      "qualified_name": "Service_00_18.get",
+      "path": "pkg_00/mod_18.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_18": 1,
+        "receiver_mismatch:self.service_vs_service_00_18": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_19.py:Service_00_19.get:dce973feae2fe164",
+      "name": "get",
+      "qualified_name": "Service_00_19.get",
+      "path": "pkg_00/mod_19.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_19": 1,
+        "receiver_mismatch:self.service_vs_service_00_19": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_20.py:Service_00_20.get:878cf0ee694995a9",
+      "name": "get",
+      "qualified_name": "Service_00_20.get",
+      "path": "pkg_00/mod_20.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_20": 1,
+        "receiver_mismatch:self.service_vs_service_00_20": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:pkg_00/mod_21.py:Service_00_21.get:62cd0344a2cedadb",
+      "name": "get",
+      "qualified_name": "Service_00_21.get",
+      "path": "pkg_00/mod_21.py",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "reasons": {
+        "receiver_mismatch:self.config_data_vs_service_00_21": 1,
+        "receiver_mismatch:self.service_vs_service_00_21": 1
+      }
+    }
+  ]
+}

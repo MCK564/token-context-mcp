@@ -1,0 +1,379 @@
+{
+  "budget_tokens": 4096,
+  "rank_mode": "global",
+  "repo_id": "invoice-scanner",
+  "result": {
+    "distinct_top_k_count": 1,
+    "mean_essential_recall": 0.317,
+    "topic_count": 5,
+    "topics": [
+      {
+        "query": "ocr text recognition",
+        "result": {
+          "essential_found": 0,
+          "essential_missing": [
+            "RapidOcrEngine",
+            "TextBox",
+            "run"
+          ],
+          "essential_recall": 0.0,
+          "essential_total": 3,
+          "k": 10,
+          "labelled_in_top_k": 2,
+          "ndcg_at_k": 0.0,
+          "noise_in_top_k": 2,
+          "noise_names": [
+            "get_frontend",
+            "extract_with_trace"
+          ],
+          "returned": 186,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": 0,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": 0,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "run_frontend_safe",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "probe",
+              "path": "src/invoice_frontend_dl/degradation.py"
+            },
+            {
+              "grade": null,
+              "name": "load_cfg",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            }
+          ]
+        },
+        "topic_id": "ocr"
+      },
+      {
+        "query": "field extraction amount date",
+        "result": {
+          "essential_found": 1,
+          "essential_missing": [
+            "OcrResult",
+            "TextBox",
+            "run"
+          ],
+          "essential_recall": 0.25,
+          "essential_total": 4,
+          "k": 10,
+          "labelled_in_top_k": 2,
+          "ndcg_at_k": 0.151,
+          "noise_in_top_k": 1,
+          "noise_names": [
+            "get_frontend"
+          ],
+          "returned": 186,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": 0,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": 3,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "run_frontend_safe",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "probe",
+              "path": "src/invoice_frontend_dl/degradation.py"
+            },
+            {
+              "grade": null,
+              "name": "load_cfg",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            }
+          ]
+        },
+        "topic_id": "field-extraction"
+      },
+      {
+        "query": "frontend registry selection",
+        "result": {
+          "essential_found": 1,
+          "essential_missing": [
+            "register"
+          ],
+          "essential_recall": 0.5,
+          "essential_total": 2,
+          "k": 10,
+          "labelled_in_top_k": 3,
+          "ndcg_at_k": 0.4169,
+          "noise_in_top_k": 0,
+          "noise_names": [],
+          "returned": 186,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": 2,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": 2,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": 3,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": null,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "run_frontend_safe",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "probe",
+              "path": "src/invoice_frontend_dl/degradation.py"
+            },
+            {
+              "grade": null,
+              "name": "load_cfg",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            }
+          ]
+        },
+        "topic_id": "registry"
+      },
+      {
+        "query": "render display ocr input",
+        "result": {
+          "essential_found": 1,
+          "essential_missing": [
+            "run"
+          ],
+          "essential_recall": 0.5,
+          "essential_total": 2,
+          "k": 10,
+          "labelled_in_top_k": 2,
+          "ndcg_at_k": 0.1642,
+          "noise_in_top_k": 1,
+          "noise_names": [
+            "get_frontend"
+          ],
+          "returned": 186,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": 0,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": null,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "run_frontend_safe",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": 3,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "probe",
+              "path": "src/invoice_frontend_dl/degradation.py"
+            },
+            {
+              "grade": null,
+              "name": "load_cfg",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            }
+          ]
+        },
+        "topic_id": "render"
+      },
+      {
+        "query": "page detection corners geometry",
+        "result": {
+          "essential_found": 1,
+          "essential_missing": [
+            "PageDetection",
+            "run"
+          ],
+          "essential_recall": 0.333,
+          "essential_total": 3,
+          "k": 10,
+          "labelled_in_top_k": 3,
+          "ndcg_at_k": 0.3406,
+          "noise_in_top_k": 1,
+          "noise_names": [
+            "extract_with_trace"
+          ],
+          "returned": 186,
+          "top_k_listing": [
+            {
+              "grade": null,
+              "name": "PassthroughFrontend",
+              "path": "src/invoice_backend/passthrough_frontend.py"
+            },
+            {
+              "grade": 3,
+              "name": "DlFrontend",
+              "path": "src/invoice_frontend_dl/frontend.py"
+            },
+            {
+              "grade": 2,
+              "name": "GeomFrontend",
+              "path": "src/invoice_frontend_geom/frontend.py"
+            },
+            {
+              "grade": null,
+              "name": "get_frontend",
+              "path": "src/invoice_core/registry.py"
+            },
+            {
+              "grade": 0,
+              "name": "extract_with_trace",
+              "path": "src/invoice_backend/s9_fields.py"
+            },
+            {
+              "grade": null,
+              "name": "run_frontend_safe",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_with_diagnostics",
+              "path": "src/invoice_backend/s7_render.py"
+            },
+            {
+              "grade": null,
+              "name": "probe",
+              "path": "src/invoice_frontend_dl/degradation.py"
+            },
+            {
+              "grade": null,
+              "name": "load_cfg",
+              "path": "ui/common.py"
+            },
+            {
+              "grade": null,
+              "name": "run_array",
+              "path": "src/invoice_backend/processor.py"
+            }
+          ]
+        },
+        "topic_id": "geometry"
+      }
+    ],
+    "topics_with_zero_noise": 1
+  },
+  "server_max_result_tokens": 4096,
+  "set_id": "query-invoice-scanner-v1"
+}

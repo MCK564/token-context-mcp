@@ -1,0 +1,15 @@
+[server]
+max_request_bytes = 1048576
+max_result_tokens = 8192
+max_graph_nodes = 500
+max_symbol_results = 100
+network_policy = "deny_all"
+output_mode = "structured"
+default_view = "normal"
+enable_extensions = true
+
+[repos.synthetic-5k]
+root = "D:/AI/token-context-mcp/tmp/synthetic_5k"
+allow_symlinks = false
+max_file_bytes = 2000000
+max_files = 25000
