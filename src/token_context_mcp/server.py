@@ -332,8 +332,22 @@ def build_server(config_path: Path, enable_extensions: bool | None = None) -> MC
             title="Sample and summarize",
             description="Hardware-aware context compressor/summarizer: compresses large outputs into concise JSON.",
         )
-        def sample_summarize(text: str, intent: str = "general_code_summary", max_tokens: int = 250) -> CallToolResult:
-            return _wrap(_invoke(lambda: sampling_router.summarize(text=text, intent=intent, max_tokens=max_tokens)))
+        def sample_summarize(
+            text: str,
+            intent: str = "general_code_summary",
+            max_tokens: int = 512,
+            target_symbols: list[str] | None = None,
+        ) -> CallToolResult:
+            return _wrap(
+                _invoke(
+                    lambda: sampling_router.summarize(
+                        text=text,
+                        intent=intent,
+                        max_tokens=max_tokens,
+                        target_symbols=target_symbols,
+                    )
+                )
+            )
 
     return server
 

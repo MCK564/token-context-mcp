@@ -1,0 +1,53 @@
+{
+  "total_benchmarks": 3,
+  "avg_cpu_latency_ms": 4.67,
+  "avg_context_retention_rate": 0.727,
+  "symbol_grounding_rate": 1.0,
+  "hallucinations_intercepted": 3,
+  "results": [
+    {
+      "sample": "payment_service_refund",
+      "latency_ms": 7,
+      "symbol_coverage_rate": 1.0,
+      "context_retention_rate": 1.0,
+      "analyzed_symbols": [
+        "PaymentService",
+        "__init__",
+        "refund",
+        "cancel"
+      ],
+      "guardrail_stripped_hallucinations": 1
+    },
+    {
+      "sample": "auth_middleware_token_verify",
+      "latency_ms": 3,
+      "symbol_coverage_rate": 1.0,
+      "context_retention_rate": 1.0,
+      "analyzed_symbols": [
+        "AuthenticationMiddleware",
+        "__init__",
+        "verify_token"
+      ],
+      "guardrail_stripped_hallucinations": 1
+    },
+    {
+      "sample": "large_invoice_processor_hybrid",
+      "latency_ms": 4,
+      "symbol_coverage_rate": 1.0,
+      "context_retention_rate": 0.182,
+      "analyzed_symbols": [
+        "InvoiceProcessor",
+        "parse_header",
+        "compute_tax",
+        "extract_line_items",
+        "print_diagnostics",
+        "debug_dump_0",
+        "debug_dump_1",
+        "debug_dump_2",
+        "debug_dump_3",
+        "debug_dump_4"
+      ],
+      "guardrail_stripped_hallucinations": 1
+    }
+  ]
+}

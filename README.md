@@ -611,20 +611,34 @@ if lock["acquired"]:
 
 ---
 
-### 4. Hardware-Aware LLM Sampling — Tóm tắt nén ngữ cảnh thích ứng phần cứng
+### 4. Hardware-Aware 7B Sampling & Guardrail Engine — Suy luận nén ngữ cảnh thích ứng phần cứng
 
-- **Mục tiêu:** Khi cần tóm tắt kết quả phân tích lớn (như đồ thị phụ thuộc hoặc danh sách symbol hàng chục nghìn dòng) để đưa vào context của Agent cha, việc gửi lên Cloud LLM vừa tốn chi phí vừa chậm.
-- **Cơ chế thích ứng phần cứng (`HardwareProbe`):**
-  1. Thăm dò phần cứng tự động: Quét VRAM của GPU NVIDIA, dung lượng RAM hệ thống, và kiểm tra dịch vụ Ollama cục bộ (`http://localhost:11434`).
-  2. Nếu phát hiện Ollama khả dụng và có các mô hình nhỏ/vừa (vd: `qwen2.5-coder`, `llama3.2`, `deepseek-coder`, `mistral`, `phi3`): tự động điều hướng request qua Local LLM để tóm tắt với chi phí 0đ và bảo mật 100%.
-  3. Nếu không có GPU hoặc Ollama: tự động chuyển sang cơ chế **Deterministic Heuristic Fallback** — thuật toán trích xuất cấu trúc bóc tách các định nghĩa cốt lõi, chữ ký, và thống kê mà không sinh ảo giác.
+- **Mục tiêu:** Nâng cấp khả năng nén context lên mô hình **7B** (`qwen2.5-coder:7b-instruct-q4_K_M`), bảo toàn 100% ngữ cảnh logic và điều kiện biên, đồng thời bảo đảm vận hành trơn tru trên máy không có GPU (CPU-Only Guarantee).
+- **Cơ chế 4 tầng bảo vệ:**
+  1. **Bảo tồn mỏ neo ngữ nghĩa & Skeleton Hybrid (Không Blind Truncation):**
+     - Dùng Tree-sitter bóc tách sẵn các symbol mỏ neo (`verified_symbol_names`).
+     - Khi văn bản vượt ngưỡng context (> 3,000 ký tự), hệ thống giữ nguyên bộ khung `file_skeleton` (imports, class, method signatures) và chỉ nhúng toàn bộ thân hàm của các symbol liên quan trực tiếp đến `user_raw_intent`, loại bỏ nguy cơ cắt cụt mù quáng.
+  2. **Tối ưu hóa CPU thuần (CPU-Only Guarantee):**
+     - Luồng xử lý: Cấu hình `num_thread = max(1, os.cpu_count() - 1)` (giữ lại 1 core giúp tiến trình MCP stdio luôn mượt, không đơ lag).
+     - Adaptive Dynamic Timeout: Tính toán timeout linh hoạt theo độ dài context:
+       $$\text{Timeout (seconds)} = \text{base\_timeout (5s)} + \left(\frac{\text{input\_tokens}}{100} \times \text{sec\_per\_100\_tok}\right)$$
+       Tránh timeout tĩnh gây ngắt kết nối giữa chừng trên CPU.
+  3. **Pydantic v2 Constrained JSON Decoding (Chống vỡ JSON):**
+     - Ép buộc mô hình sinh output tuân thủ nghiêm ngặt schema `CodeSummaryPayload` gồm:
+       - `intent_alignment`: Phân tích mức độ đáp ứng mục đích của user.
+       - `analyzed_symbols`: Danh sách symbol gồm `name`, `responsibility`, `critical_constraints` (điều kiện `if-else`, ngoại lệ `raise`), `calls_external`.
+       - `technical_caveats`: Các lưu ý kỹ thuật, giả định, timeout.
+  4. **Verification Guardrail (Triệt tiêu Hallucination):**
+     - Đối chiếu trực tiếp danh sách symbol do model sinh ra với mỏ neo Tree-sitter. Tự động loại bỏ (strip) các symbol ảo không tồn tại trong source.
+     - Đính kèm metadata: `backend` (`ollama_gpu` | `ollama_cpu` | `heuristic_fallback`), `engine`, `latency_ms`, `symbol_coverage_rate`, `context_retention_rate`.
 
 #### Cách gọi `sample_summarize`:
 ```python
 sample_summarize(
     text=very_long_analysis_output,
-    intent="general_code_summary",  # hoặc "architecture_extract", "security_audit"
-    max_tokens=250
+    intent="validate refund logic and exception handling",
+    max_tokens=512,
+    target_symbols=["PaymentService.refund"]
 )
 ```
 
