@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shutil
 import sqlite3
@@ -11,8 +12,10 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-# Schema v2: adds namespace column for session isolation
-MEMORY_SCHEMA_V2 = """
+logger = logging.getLogger("token_context_mcp.memory.store")
+
+# Schema v3: namespace column for session isolation in key_values and memory_fts
+MEMORY_SCHEMA_V3 = """
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS key_values (
   scope TEXT NOT NULL,
@@ -41,9 +44,28 @@ CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
   content
 );
 """
+# Retain alias for any external references
+MEMORY_SCHEMA_V2 = MEMORY_SCHEMA_V3
 
-_TARGET_USER_VERSION = 2
+_TARGET_USER_VERSION = 3
 _TTL_CLEANUP_INTERVAL = 100  # run cleanup every N put calls
+
+
+def _needs_repair(conn: sqlite3.Connection) -> bool:
+    """Return True if the database schema is outdated or missing required columns."""
+    cur_ver = conn.execute("PRAGMA user_version;").fetchone()[0]
+    if cur_ver < _TARGET_USER_VERSION:
+        return True
+    try:
+        kv_cols = [r[1] for r in conn.execute("PRAGMA table_info(key_values);")]
+        if kv_cols and "namespace" not in kv_cols:
+            return True
+        fts_cols = [r[1] for r in conn.execute("PRAGMA table_info(memory_fts);")]
+        if fts_cols and "namespace" not in fts_cols:
+            return True
+    except sqlite3.OperationalError:
+        return True
+    return False
 
 
 def _redact_value(value: Any) -> Any:
@@ -63,11 +85,12 @@ class MemoryStore:
     def __init__(self, db_path: Path | str = ":memory:") -> None:
         self.db_path = str(db_path)
         self._put_count = 0
+        self._migration_error: str | None = None
         if self.db_path == ":memory:":
             self._persistent_conn: sqlite3.Connection | None = sqlite3.connect(":memory:", timeout=5.0, check_same_thread=False)
             self._persistent_conn.row_factory = sqlite3.Row
             self._persistent_conn.execute("PRAGMA busy_timeout = 5000;")
-            self._persistent_conn.executescript(MEMORY_SCHEMA_V2)
+            self._persistent_conn.executescript(MEMORY_SCHEMA_V3)
             self._persistent_conn.execute(f"PRAGMA user_version = {_TARGET_USER_VERSION};")
             self._persistent_conn.commit()
         else:
@@ -78,52 +101,101 @@ class MemoryStore:
 
     def _migrate_schema(self, conn: sqlite3.Connection) -> None:
         """Run schema migration if needed. Backs up the DB before migrating."""
-        cur_ver = conn.execute("PRAGMA user_version;").fetchone()[0]
-        if cur_ver >= _TARGET_USER_VERSION:
-            conn.executescript(MEMORY_SCHEMA_V2)
+        if not _needs_repair(conn):
+            conn.executescript(MEMORY_SCHEMA_V3)
             return
 
-        # Backup before migrating
-        db_path = Path(self.db_path)
-        bak_path = db_path.with_suffix(f".sqlite.bak-v{cur_ver}")
-        if db_path.exists() and not bak_path.exists():
-            shutil.copy2(str(db_path), str(bak_path))
+        # Backup before migrating (file-based DB only)
+        if self.db_path != ":memory:":
+            db_path = Path(self.db_path)
+            if db_path.exists():
+                cur_ver = conn.execute("PRAGMA user_version;").fetchone()[0]
+                bak_path = db_path.with_suffix(f".sqlite.bak-v{cur_ver}")
+                if bak_path.exists():
+                    ts = int(time.time())
+                    bak_path = db_path.with_suffix(f".sqlite.bak-v{cur_ver}-{ts}")
+                try:
+                    shutil.copy2(str(db_path), str(bak_path))
+                except Exception as exc:
+                    logger.warning("Failed to create backup at %s: %s", bak_path, exc)
 
-        # SQLite cannot ALTER PRIMARY KEY. Rebuild key_values with the new
-        # (scope, namespace, key) PK if the old table exists.
-        existing_tables = {
-            row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        }
-        if "key_values" in existing_tables:
-            conn.executescript("""
-                PRAGMA foreign_keys = OFF;
-                BEGIN;
-                CREATE TABLE IF NOT EXISTS key_values_new (
-                  scope TEXT NOT NULL,
-                  namespace TEXT NOT NULL DEFAULT '',
-                  key TEXT NOT NULL,
-                  session_id TEXT,
-                  value_json TEXT NOT NULL,
-                  created_at REAL NOT NULL,
-                  expires_at REAL,
-                  PRIMARY KEY (scope, namespace, key)
-                );
-                INSERT OR IGNORE INTO key_values_new
-                  (scope, namespace, key, session_id, value_json, created_at, expires_at)
-                SELECT scope, '', key, session_id, value_json, created_at, expires_at
-                FROM key_values;
-                DROP TABLE key_values;
-                ALTER TABLE key_values_new RENAME TO key_values;
-                COMMIT;
-                PRAGMA foreign_keys = ON;
-            """)
+        # Migrate all tables within a single transaction
+        try:
+            conn.execute("PRAGMA foreign_keys = OFF;")
+            existing_tables = {
+                row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            }
 
-        # Now run the full schema (CREATE TABLE IF NOT EXISTS + indexes + other tables)
-        conn.executescript(MEMORY_SCHEMA_V2)
+            rows_to_insert: list[tuple[str, str, str, str | None, str, float, float | None]] = []
+            if "key_values" in existing_tables:
+                kv_cols = [r[1] for r in conn.execute("PRAGMA table_info(key_values);")]
+                has_ns = "namespace" in kv_cols
 
-        # Set new version
-        conn.execute(f"PRAGMA user_version = {_TARGET_USER_VERSION};")
-        conn.commit()
+                if has_ns:
+                    sql = "SELECT scope, namespace, key, session_id, value_json, created_at, expires_at FROM key_values"
+                    for r in conn.execute(sql):
+                        scope, ns, key, sid, val_raw, cat, exp = r[0], r[1], r[2], r[3], r[4], r[5], r[6]
+                        if scope == "session" and (not ns or ns == ""):
+                            effective_ns = sid or "default"
+                        elif scope != "session":
+                            effective_ns = ""
+                        else:
+                            effective_ns = ns or ""
+                        try:
+                            val_obj = json.loads(val_raw)
+                            val_redacted = _redact_value(val_obj)
+                            val_json = json.dumps(val_redacted, ensure_ascii=False)
+                        except Exception:
+                            val_json = val_raw
+                        rows_to_insert.append((scope, effective_ns, key, sid, val_json, cat, exp))
+                else:
+                    sql = "SELECT scope, key, session_id, value_json, created_at, expires_at FROM key_values"
+                    for r in conn.execute(sql):
+                        scope, key, sid, val_raw, cat, exp = r[0], r[1], r[2], r[3], r[4], r[5]
+                        if scope == "session":
+                            effective_ns = sid or "default"
+                        else:
+                            effective_ns = ""
+                        try:
+                            val_obj = json.loads(val_raw)
+                            val_redacted = _redact_value(val_obj)
+                            val_json = json.dumps(val_redacted, ensure_ascii=False)
+                        except Exception:
+                            val_json = val_raw
+                        rows_to_insert.append((scope, effective_ns, key, sid, val_json, cat, exp))
+
+            # Drop old key_values and old memory_fts, then re-create with schema v3
+            conn.execute("BEGIN TRANSACTION;")
+            conn.execute("DROP TABLE IF EXISTS key_values;")
+            conn.execute("DROP TABLE IF EXISTS memory_fts;")
+            conn.executescript(MEMORY_SCHEMA_V3)
+
+            for row in rows_to_insert:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO key_values
+                      (scope, namespace, key, session_id, value_json, created_at, expires_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    row,
+                )
+                content_text = f"{row[2]} {row[4]}"
+                conn.execute(
+                    "INSERT INTO memory_fts (scope, namespace, key, content) VALUES (?, ?, ?, ?)",
+                    (row[0], row[1], row[2], content_text),
+                )
+
+            conn.execute(f"PRAGMA user_version = {_TARGET_USER_VERSION};")
+            conn.commit()
+            conn.execute("PRAGMA foreign_keys = ON;")
+        except Exception as exc:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+            logger.exception("Failed to migrate memory schema: %s", exc)
+            self._migration_error = str(exc)
+
 
 
 
@@ -152,10 +224,18 @@ class MemoryStore:
         ttl: int | None = 86400,
         session_id: str | None = None,
     ) -> dict[str, Any]:
+        if self._migration_error:
+            return {
+                "status": "error",
+                "error": "memory_store_migration_failed",
+                "details": self._migration_error,
+            }
         if not key or len(key.encode("utf-8")) > 256:
             raise ValueError("Key must be non-empty and at most 256 bytes")
         now = time.time()
         expires_at = now + ttl if ttl and ttl > 0 else None
+
+        effective_ns = namespace if namespace != "" else ((session_id or "default") if scope == "session" and session_id else "")
 
         # Redact values before storage
         redacted_value = _redact_value(value)
@@ -176,16 +256,16 @@ class MemoryStore:
                   created_at = excluded.created_at,
                   expires_at = excluded.expires_at
                 """,
-                {"scope": scope, "ns": namespace, "key": key, "sid": session_id, "val": value_json, "now": now, "exp": expires_at},
+                {"scope": scope, "ns": effective_ns, "key": key, "sid": session_id, "val": value_json, "now": now, "exp": expires_at},
             )
             # Update FTS
             conn.execute(
                 "DELETE FROM memory_fts WHERE scope = :scope AND namespace = :ns AND key = :key",
-                {"scope": scope, "ns": namespace, "key": key},
+                {"scope": scope, "ns": effective_ns, "key": key},
             )
             conn.execute(
                 "INSERT INTO memory_fts (scope, namespace, key, content) VALUES (?, ?, ?, ?)",
-                (scope, namespace, key, content_text),
+                (scope, effective_ns, key, content_text),
             )
 
             # Periodic TTL cleanup every _TTL_CLEANUP_INTERVAL puts
@@ -196,26 +276,44 @@ class MemoryStore:
         return {
             "status": "stored",
             "scope": scope,
-            "namespace": namespace,
+            "namespace": effective_ns,
             "key": key,
             "ttl": ttl,
             "expires_at": expires_at,
         }
 
-    def get(self, key: str, *, scope: str = "session", namespace: str = "") -> dict[str, Any]:
+    def get(
+        self,
+        key: str,
+        *,
+        scope: str = "session",
+        namespace: str = "",
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        if self._migration_error:
+            return {
+                "status": "error",
+                "error": "memory_store_migration_failed",
+                "details": self._migration_error,
+                "scope": scope,
+                "namespace": namespace,
+                "key": key,
+                "value": None,
+            }
+        effective_ns = namespace if namespace != "" else ((session_id or "default") if scope == "session" and session_id else "")
         now = time.time()
         with self._connection() as conn:
             row = conn.execute(
                 "SELECT session_id, value_json, created_at, expires_at FROM key_values WHERE scope = :scope AND namespace = :ns AND key = :key",
-                {"scope": scope, "ns": namespace, "key": key},
+                {"scope": scope, "ns": effective_ns, "key": key},
             ).fetchone()
 
         if not row:
-            return {"status": "not_found", "scope": scope, "namespace": namespace, "key": key, "value": None}
+            return {"status": "not_found", "scope": scope, "namespace": effective_ns, "key": key, "value": None}
 
         if row["expires_at"] and row["expires_at"] < now:
-            self.delete(key, scope=scope, namespace=namespace)
-            return {"status": "expired", "scope": scope, "namespace": namespace, "key": key, "value": None}
+            self.delete(key, scope=scope, namespace=effective_ns)
+            return {"status": "expired", "scope": scope, "namespace": effective_ns, "key": key, "value": None}
 
         try:
             value = json.loads(row["value_json"])
@@ -225,7 +323,7 @@ class MemoryStore:
         return {
             "status": "found",
             "scope": scope,
-            "namespace": namespace,
+            "namespace": effective_ns,
             "key": key,
             "value": value,
             "session_id": row["session_id"],
@@ -233,19 +331,37 @@ class MemoryStore:
             "expires_at": row["expires_at"],
         }
 
-    def delete(self, key: str, *, scope: str = "session", namespace: str = "") -> bool:
+    def delete(
+        self,
+        key: str,
+        *,
+        scope: str = "session",
+        namespace: str = "",
+        session_id: str | None = None,
+    ) -> bool:
+        if self._migration_error:
+            return False
+        effective_ns = namespace if namespace != "" else ((session_id or "default") if scope == "session" and session_id else "")
         with self._connection() as conn:
             conn.execute(
                 "DELETE FROM key_values WHERE scope = :scope AND namespace = :ns AND key = :key",
-                {"scope": scope, "ns": namespace, "key": key},
+                {"scope": scope, "ns": effective_ns, "key": key},
             )
             conn.execute(
                 "DELETE FROM memory_fts WHERE scope = :scope AND namespace = :ns AND key = :key",
-                {"scope": scope, "ns": namespace, "key": key},
+                {"scope": scope, "ns": effective_ns, "key": key},
             )
         return True
 
     def search(self, query: str, *, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> dict[str, Any]:
+        if self._migration_error:
+            return {
+                "query": query,
+                "matches_count": 0,
+                "matches": [],
+                "error": "memory_store_migration_failed",
+                "warnings": ["memory_store_migration_failed"],
+            }
         now = time.time()
         terms = re.findall(r"\w+", query)
         if not terms:
@@ -289,13 +405,17 @@ class MemoryStore:
                             "created_at": row["created_at"],
                         }
                     )
-        except sqlite3.OperationalError:
-            return {
-                "query": query,
-                "matches_count": 0,
-                "matches": [],
-                "warnings": ["invalid_query"],
-            }
+        except sqlite3.OperationalError as exc:
+            msg = str(exc).lower()
+            if "fts5: syntax error" in msg or "malformed match" in msg or "syntax error" in msg:
+                return {
+                    "query": query,
+                    "matches_count": 0,
+                    "matches": [],
+                    "warnings": ["invalid_query"],
+                }
+            # Re-raise structural errors (e.g. 'no such column', 'no such table')
+            raise
 
         return {"query": query, "matches_count": len(matches), "matches": matches}
 
