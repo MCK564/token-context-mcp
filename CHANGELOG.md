@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — M2 Governance & Memory Safety (2026-09-24, branch `feat/m2-governance`)
+
+- **Admin tools gate** (`enable_admin_tools: bool = False`): `agent_control` and `audit_logs` only registered when opt-in flag is set; `action=status` always public, all other actions require `TOKEN_CONTEXT_ADMIN_TOKEN`.
+- **Token protection**: admin token verified with `hmac.compare_digest`; never reflected in audit log; invalid token returns `permission_revoked` with opaque reason.
+- **Shared governance store** (`security/governance_store.py`): WAL-mode SQLite (`governance.sqlite`) with tables `agents`, `emergency`, `server_heartbeats`; 5 s busy-timeout; server records heartbeat every ≥15 s per call.
+- **Agent identity resolution** (`resolve_effective_agent_id`): reads `TOKEN_CONTEXT_AGENT_ID` env, validates `^[a-zA-Z0-9_-]{1,64}$`, falls back to `"anonymous"`; anonymous agent exempt from rate limiting but subject to all other controls.
+- **Atomic memory lock**: single `INSERT … ON CONFLICT DO UPDATE WHERE …` — one winner across any number of concurrent processes; `memory_unlock` tool added.
+- **Memory namespace isolation**: `key_values` schema v2 — `PRIMARY KEY (scope, namespace, key)`; existing DBs backed up before migration; `namespace=""` default preserves backward compatibility.
+- **Value redaction** (`_redact_value`): recursively applies `content_policy.redact_text` to all leaf strings before storage.
+- **Periodic TTL cleanup**: expired entries purged every 100 `put` calls.
+- **GUI read-only governance refresh** (`GovernanceRefreshWorker`): polls `governance.sqlite` every 5 s; never writes; `AgentSecurityController` starts it automatically; `active_servers_updated` signal added.
+- **Test coverage**: 161 passed, 6 skipped (GUI tests); new files `test_server_governance.py`, `test_governance_store.py`, `test_memory_lock_atomic.py`, `test_memory_namespace.py`; 3 new tests in `test_gui_bridge.py`.
+
 ## Unreleased — POSIX hosts and snapshot privacy (2026-08-30)
 
 - Created the registry, snapshots, manifests and WAL sidecars owner-only (`0700`/`0600`) instead of inheriting the process umask, which left indexed source bodies world-readable under a default `0022`.
