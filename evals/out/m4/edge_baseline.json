@@ -1,0 +1,1697 @@
+{
+  "repo_id": "token-context",
+  "total_symbols": 912,
+  "total_edges": 2140,
+  "unresolved_edges": 274,
+  "total_suspicious_edges": 250,
+  "suspicious_edges_ratio": 0.1168,
+  "status_counts": {
+    "resolved": 1996,
+    "ambiguous": 144
+  },
+  "scope_counts": {
+    "scope:import_match": 799,
+    "scope:tainted_poly_receiver": 62,
+    "scope:exact_receiver_type": 230,
+    "scope:none": 130,
+    "scope:same_file": 423,
+    "scope:global": 156,
+    "scope:global_ambiguous": 12,
+    "scope:import_ambiguous": 24,
+    "scope:same_file_ambiguous": 46,
+    "scope:same_class": 185,
+    "scope:receiver_match": 4,
+    "scope:same_package": 21,
+    "scope:import_module_match": 48
+  },
+  "memory_store_get": {
+    "target_symbol_id": "python:src/token_context_mcp/memory/store.py:MemoryStore.get:95b62c3a640a9561",
+    "in_degree": 96,
+    "resolved_count": 96,
+    "ambiguous_count": 0,
+    "suspicious_count": 96,
+    "suspicious_ratio": 1.0,
+    "scopes": {
+      "scope:global": 47,
+      "scope:import_match": 41,
+      "scope:exact_receiver_type": 8
+    },
+    "reasons": {
+      "low_confidence_0.40": 47,
+      "scope_global_fallback": 47,
+      "receiver_mismatch:symbols_vs_memorystore": 1,
+      "receiver_mismatch:report_vs_memorystore": 1,
+      "receiver_mismatch:sample_vs_memorystore": 1,
+      "receiver_mismatch:response.get(\"budget\", {})_vs_memorystore": 1,
+      "receiver_mismatch:response.get(\"data\", {})_vs_memorystore": 1,
+      "receiver_mismatch:found.get(\"data\", {})_vs_memorystore": 1,
+      "generic_name_builtin_receiver:response": 1,
+      "generic_name_builtin_receiver:i": 1,
+      "generic_name_builtin_receiver:topic": 1,
+      "generic_name_builtin_receiver:result": 2,
+      "generic_name_builtin_receiver:usage": 1,
+      "generic_name_builtin_receiver:manifest": 1,
+      "receiver_mismatch:sub_vs_memorystore": 1,
+      "generic_name_builtin_receiver:os.environ": 4,
+      "generic_name_builtin_receiver:raw": 1,
+      "receiver_mismatch:TOOL_CATALOG_vs_memorystore": 1,
+      "receiver_mismatch:json.loads(ptr.read_text(encoding=\"utf-8\"))_vs_memorystore": 1,
+      "receiver_mismatch:l_vs_memorystore": 2,
+      "generic_name_builtin_receiver:agent": 1,
+      "receiver_mismatch:lock_vs_memorystore": 1,
+      "receiver_mismatch:cfg_vs_memorystore": 1,
+      "receiver_mismatch:ep_vs_memorystore": 1,
+      "receiver_mismatch:SUPPORTED_EXTENSIONS_vs_memorystore": 1,
+      "receiver_mismatch:tomllib.load(handle)_vs_memorystore": 1,
+      "receiver_mismatch:self._connections_vs_memorystore": 1,
+      "receiver_mismatch:self.store_vs_memorystore": 1,
+      "receiver_mismatch:summary_res_vs_memorystore": 1,
+      "receiver_mismatch:symbols_by_path_vs_memorystore": 1,
+      "receiver_mismatch:{\n        \"python\": (\"tree_sitter_python\", \"language\"),\n        \"javascript\": (\"tree_sitter_javascript\", \"language\"),\n        \"typescript\": (\"tree_sitter_typescript\", \"language_typescript\"),\n        \"tsx\": (\"tree_sitter_typescript\", \"language_tsx\"),\n        \"java\": (\"tree_sitter_java\", \"language\"),\n        \"c_sharp\": (\"tree_sitter_c_sharp\", \"language\"),\n        \"html\": (\"tree_sitter_html\", \"language\"),\n        \"css\": (\"tree_sitter_css\", \"language\"),\n    }_vs_memorystore": 1,
+      "receiver_mismatch:role_targets_vs_memorystore": 1,
+      "receiver_mismatch:captures_vs_memorystore": 1,
+      "receiver_mismatch:{\n        \"python\": {\"function_definition\"},\n        \"javascript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"typescript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"tsx\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"java\": {\"method_declaration\", \"constructor_declaration\"},\n        \"c_sharp\": {\"method_declaration\", \"constructor_declaration\", \"local_function_statement\"},\n    }_vs_memorystore": 1,
+      "receiver_mismatch:locked_vs_memorystore": 1,
+      "receiver_mismatch:self._snapshots_vs_memorystore": 1,
+      "receiver_mismatch:meta_vs_memorystore": 1,
+      "receiver_mismatch:self.id_to_index_vs_memorystore": 1,
+      "receiver_mismatch:self.symbol_map_vs_memorystore": 1,
+      "receiver_mismatch:self._entry_memo_vs_memorystore": 1,
+      "receiver_mismatch:self.out_edges_vs_memorystore": 1,
+      "receiver_mismatch:payload_vs_memorystore": 1,
+      "receiver_mismatch:ROLE_BONUSES_vs_memorystore": 1,
+      "receiver_mismatch:ppr_vs_memorystore": 1,
+      "receiver_mismatch:expansions_vs_memorystore": 1,
+      "receiver_mismatch:metadata_vs_memorystore": 5,
+      "receiver_mismatch:row_vs_memorystore": 1,
+      "receiver_mismatch:profile_settings_vs_memorystore": 1,
+      "receiver_mismatch:_available_profiles(self.config)_vs_memorystore": 1,
+      "receiver_mismatch:self._pointer_cache_vs_memorystore": 1,
+      "receiver_mismatch:file_records_vs_memorystore": 2,
+      "receiver_mismatch:profiles_vs_memorystore": 1,
+      "receiver_mismatch:defaults_vs_memorystore": 1,
+      "receiver_mismatch:{\"class\": \"c\", \"function\": \"f\", \"method\": \"m\"}_vs_memorystore": 1,
+      "receiver_mismatch:find_res.get(\"data\", {})_vs_memorystore": 1,
+      "receiver_mismatch:m_vs_memorystore": 1,
+      "receiver_mismatch:c_vs_memorystore": 1,
+      "receiver_mismatch:ag_vs_memorystore": 1,
+      "receiver_mismatch:self._states_vs_memorystore": 3,
+      "receiver_mismatch:self._policies_vs_memorystore": 1,
+      "receiver_mismatch:_active_loggers_vs_memorystore": 3,
+      "receiver_mismatch:r_vs_memorystore": 1,
+      "receiver_mismatch:base_by_key_vs_memorystore": 1,
+      "receiver_mismatch:parsed.inheritance_vs_memorystore": 2,
+      "receiver_mismatch:all_h_vs_memorystore": 1,
+      "receiver_mismatch:res.structured_content_vs_memorystore": 1,
+      "receiver_mismatch:part_vs_memorystore": 1,
+      "receiver_mismatch:cand_vs_memorystore": 1,
+      "receiver_mismatch:res_tight[\"data\"]_vs_memorystore": 1,
+      "receiver_mismatch:item_vs_memorystore": 1,
+      "receiver_mismatch:store_vs_memorystore": 8,
+      "receiver_mismatch:res_vs_memorystore": 2,
+      "receiver_mismatch:scan_symbol_vs_memorystore": 1,
+      "receiver_mismatch:tool.input_schema_vs_memorystore": 1,
+      "receiver_mismatch:st.metadata()_vs_memorystore": 1
+    },
+    "callers": [
+      {
+        "source_symbol_id": "python:evals/edge_audit.py:audit_edges:98c4ec19400f7c1f",
+        "source_path": "evals/edge_audit.py",
+        "source_line": 107,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:symbols"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/edge_audit.py:main:383d02c553ba4e25",
+        "source_path": "evals/edge_audit.py",
+        "source_line": 210,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:report",
+          "type:audit_edges"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/edge_eval.py:run_evaluation:57d5332d25739657",
+        "source_path": "evals/edge_eval.py",
+        "source_line": 74,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:sample"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/measure_context_cost.py:declared_tokens:524a665e8c97ebb5",
+        "source_path": "evals/measure_context_cost.py",
+        "source_line": 69,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:response.get(\"budget\", {})"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/measure_context_cost.py:record:502f18e6bf6b2a0a",
+        "source_path": "evals/measure_context_cost.py",
+        "source_line": 140,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:response.get(\"data\", {})"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/measure_context_cost.py:measure:0d7f1d1fb7d15471",
+        "source_path": "evals/measure_context_cost.py",
+        "source_line": 174,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:found.get(\"data\", {})"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/rank_eval.py:ranked_symbols:3875c04ab6591488",
+        "source_path": "evals/rank_eval.py",
+        "source_line": 50,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:response"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/rank_eval.py:evaluate:77402f30d9e9dde2",
+        "source_path": "evals/rank_eval.py",
+        "source_line": 95,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:i"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/rank_eval.py:main:d92cd534c7604c2a",
+        "source_path": "evals/rank_eval.py",
+        "source_line": 159,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:topic"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/run_c3.py:mcp_error_from_item:d7a985968dcb1e6f",
+        "source_path": "evals/run_c3.py",
+        "source_line": 49,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:result"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/run_c3.py:_mcp_warnings_from_item:11be70c247a99086",
+        "source_path": "evals/run_c3.py",
+        "source_line": 208,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:result"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/run_c3.py:main:16836bf96f6a8f7b",
+        "source_path": "evals/run_c3.py",
+        "source_line": 272,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:usage"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/run_c3_matrix.py:main:0de640771b875ed5",
+        "source_path": "evals/run_c3_matrix.py",
+        "source_line": 38,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:manifest"
+        ]
+      },
+      {
+        "source_symbol_id": "python:evals/schema_compat.py:check_schema_node:783852ade0043183",
+        "source_path": "evals/schema_compat.py",
+        "source_line": 62,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:sub"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/config.py:default_config_path:718a83afe9a8c6d7",
+        "source_path": "src/token_context_mcp/config.py",
+        "source_line": 57,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:os.environ"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/config.py:load_config:a502039899d2f9bd",
+        "source_path": "src/token_context_mcp/config.py",
+        "source_line": 81,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:raw"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/discovery/tools.py:get_tool_schema:d70bb8c688c4ee83",
+        "source_path": "src/token_context_mcp/discovery/tools.py",
+        "source_line": 95,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:TOOL_CATALOG"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/bridge.py:CacheManager.clean_stale_snapshots:bc58579df4688d9a",
+        "source_path": "src/token_context_mcp/gui/bridge.py",
+        "source_line": 547,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:json.loads(ptr.read_text(encoding=\"utf-8\"))"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/bridge.py:AgentSecurityController.refresh_data:ae62575a8176d21d",
+        "source_path": "src/token_context_mcp/gui/bridge.py",
+        "source_line": 694,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:l"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/widgets/agents_tab.py:AgentsTab._render_agents:a8bc541fa9a34161",
+        "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+        "source_line": 199,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:agent"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/widgets/agents_tab.py:AgentsTab._render_locks:49611478f32c0528",
+        "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+        "source_line": 267,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:lock"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/widgets/agents_tab.py:AgentsTab._render_audit_logs:aac26219fa2a6f31",
+        "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+        "source_line": 283,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:l"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/widgets/settings_tab.py:SettingsTab.load_settings:5d8d48834ab72be2",
+        "source_path": "src/token_context_mcp/gui/widgets/settings_tab.py",
+        "source_line": 114,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:cfg"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/gui/widgets/tasks_tab.py:TasksTab._on_repo_selected:4de902be8931fc2d",
+        "source_path": "src/token_context_mcp/gui/widgets/tasks_tab.py",
+        "source_line": 180,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:ep"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/index/runner.py:build_index:db6d843f0c64a38c",
+        "source_path": "src/token_context_mcp/index/runner.py",
+        "source_line": 149,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:SUPPORTED_EXTENSIONS"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/index/runner.py:_declared_entry_points:74c83be59cb9000b",
+        "source_path": "src/token_context_mcp/index/runner.py",
+        "source_line": 398,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:tomllib.load(handle)"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:ReadConnectionPool.get_connection:17d3022cb58b2234",
+        "source_path": "src/token_context_mcp/index/sqlite_store.py",
+        "source_line": 129,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self._connections"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.connection:6fccee8c31b0200c",
+        "source_path": "src/token_context_mcp/index/sqlite_store.py",
+        "source_line": 208,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:os.environ"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/memory/service.py:MemoryService.memory_get:fc81f70f4dcf17c4",
+        "source_path": "src/token_context_mcp/memory/service.py",
+        "source_line": 35,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self.store"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/memory/service.py:MemoryService.memory_consolidate:84c7dc87b75a5818",
+        "source_path": "src/token_context_mcp/memory/service.py",
+        "source_line": 112,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:summary_res"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/parse/lexical_edges.py:build_lexical_edges:42c759f0163aaa8f",
+        "source_path": "src/token_context_mcp/parse/lexical_edges.py",
+        "source_line": 63,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:symbols_by_path",
+          "type:SymbolRecord"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_load_language:06e57a8f270f8056",
+        "source_path": "src/token_context_mcp/parse/treesitter.py",
+        "source_line": 137,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:{\n        \"python\": (\"tree_sitter_python\", \"language\"),\n        \"javascript\": (\"tree_sitter_javascript\", \"language\"),\n        \"typescript\": (\"tree_sitter_typescript\", \"language_typescript\"),\n        \"tsx\": (\"tree_sitter_typescript\", \"language_tsx\"),\n        \"java\": (\"tree_sitter_java\", \"language\"),\n        \"c_sharp\": (\"tree_sitter_c_sharp\", \"language\"),\n        \"html\": (\"tree_sitter_html\", \"language\"),\n        \"css\": (\"tree_sitter_css\", \"language\"),\n    }"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_add_module_entry_roles:95e00d4df7f1f853",
+        "source_path": "src/token_context_mcp/parse/treesitter.py",
+        "source_line": 332,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:role_targets",
+          "type:_module_entry_targets"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_extract_imports:a9128e541ed11458",
+        "source_path": "src/token_context_mcp/parse/treesitter.py",
+        "source_line": 411,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:captures"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:extract_calls:eeca5ddaf4053c9c",
+        "source_path": "src/token_context_mcp/parse/treesitter.py",
+        "source_line": 837,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:{\n        \"python\": {\"function_definition\"},\n        \"javascript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"typescript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"tsx\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"java\": {\"method_declaration\", \"constructor_declaration\"},\n        \"c_sharp\": {\"method_declaration\", \"constructor_declaration\", \"local_function_statement\"},\n    }"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/release.py:write_release_materials:9bab52a6c709abb2",
+        "source_path": "src/token_context_mcp/release.py",
+        "source_line": 23,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:locked"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache.get_snapshot:4f767716cae3ca26",
+        "source_path": "src/token_context_mcp/retrieve/freshness.py",
+        "source_line": 100,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self._snapshots"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache._compute_snapshot:9202cb4a7c714368",
+        "source_path": "src/token_context_mcp/retrieve/freshness.py",
+        "source_line": 130,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:meta"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.__init__:e3478e02533faa62",
+        "source_path": "src/token_context_mcp/retrieve/graph_cache.py",
+        "source_line": 65,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self.id_to_index"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.get_symbol:4466a9b8d354a19e",
+        "source_path": "src/token_context_mcp/retrieve/graph_cache.py",
+        "source_line": 112,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self.symbol_map"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.get_memo_entry:7d6534ec72923946",
+        "source_path": "src/token_context_mcp/retrieve/graph_cache.py",
+        "source_line": 115,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self._entry_memo"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.traverse:ef3152c5394d8f0f",
+        "source_path": "src/token_context_mcp/retrieve/graph_cache.py",
+        "source_line": 140,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:self.out_edges"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/projection.py:OutputProjector.project:61347867f859a7e5",
+        "source_path": "src/token_context_mcp/retrieve/projection.py",
+        "source_line": 33,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:payload",
+          "type:Dict"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:compute_global_ranks:d1b133e743f6f7c0",
+        "source_path": "src/token_context_mcp/retrieve/ranking.py",
+        "source_line": 104,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:ROLE_BONUSES"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:rank_symbols:f6d82500e94150de",
+        "source_path": "src/token_context_mcp/retrieve/ranking.py",
+        "source_line": 328,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:ppr"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:_expanded_query_terms:63c07c4c97fccacb",
+        "source_path": "src/token_context_mcp/retrieve/ranking.py",
+        "source_line": 356,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:expansions"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.request_scope:b76a5b8a3efb0b08",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 126,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:metadata"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status:b86bfaecc17538f8",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 184,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:metadata"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map:41b5a039f5878762",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 266,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:metadata"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.search_source:9f4465eb165e4b9b",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 429,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:row"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.symbol_context:defb0cd74d3668f9",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 837,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:profile_settings"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.impact_slice:4b29467908100e1d",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1090,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:metadata"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._profile_settings:0c744b5f4651e800",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1192,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:_available_profiles(self.config)"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._store:2f68025ef3955e11",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1227,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self._pointer_cache"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._freshness:e5ae509fff7a7bea",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1274,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:metadata"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._evidence_for_symbol:b2ec7e09889efbd7",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1368,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:file_records"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._symbol_packet:1c006a947b67b5a5",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1384,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:file_records"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_available_profiles:93ecddbcee23e0a3",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1506,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:profiles"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_metadata_default:6fb6555aa12d40ba",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1514,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:defaults"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_compact_declaration:c6234d17d1e4004b",
+        "source_path": "src/token_context_mcp/retrieve/service.py",
+        "source_line": 1566,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:{\"class\": \"c\", \"function\": \"f\", \"method\": \"m\"}"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/retrieve/workflows.py:CompositeWorkflowEngine._inspect_symbol_scoped:ed1932ebaafc52b3",
+        "source_path": "src/token_context_mcp/retrieve/workflows.py",
+        "source_line": 49,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:find_res.get(\"data\", {})"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/sampling/hardware_probe.py:probe_hardware:38c0fb0e24787193",
+        "source_path": "src/token_context_mcp/sampling/hardware_probe.py",
+        "source_line": 147,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:m"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/sampling/schema.py:CodeSummaryPayload.to_compat_dict:c5b46ba18aaad22f",
+        "source_path": "src/token_context_mcp/sampling/schema.py",
+        "source_line": 68,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:c"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:resolve_effective_agent_id:36770cf54b7aa5ae",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 25,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:os.environ"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager._refresh_cache_if_needed:22c8bdcf82791da9",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 129,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:ag"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.get_agent_state:b2f4a16b3846d1b0",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 256,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self._states"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.get_agent_policy:c30db4ed80d0581c",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 260,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self._policies"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.check_access:a426dc431c6761dd",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 282,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self._states"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.list_agents:fd92dbf573ec546b",
+        "source_path": "src/token_context_mcp/security/access_control.py",
+        "source_line": 332,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:self._states"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/audit.py:AuditLogger.close:41048672f58bc8e4",
+        "source_path": "src/token_context_mcp/security/audit.py",
+        "source_line": 139,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:_active_loggers"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/audit.py:AuditLogger.query_logs:e3a1683bea6396e2",
+        "source_path": "src/token_context_mcp/security/audit.py",
+        "source_line": 189,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:_active_loggers"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/audit.py:AuditLogger.clear_old_logs:40b3cb80f45eb5bd",
+        "source_path": "src/token_context_mcp/security/audit.py",
+        "source_line": 234,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:_active_loggers"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/security/governance_store.py:merge_seen_agents:17ac7cc9c37c4a1b",
+        "source_path": "src/token_context_mcp/security/governance_store.py",
+        "source_line": 23,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:r"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/server.py:agent_control:41407b1f30bae9b3",
+        "source_path": "src/token_context_mcp/server.py",
+        "source_line": 504,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:os.environ"
+        ]
+      },
+      {
+        "source_symbol_id": "python:src/token_context_mcp/telemetry/benchmark.py:summarize:34d1121d17ee0286",
+        "source_path": "src/token_context_mcp/telemetry/benchmark.py",
+        "source_line": 47,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:base_by_key"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_alsp_v2.py:test_treesitter_inheritance_extraction_python:bd49731ec9b36ce5",
+        "source_path": "tests/test_alsp_v2.py",
+        "source_line": 42,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:parsed.inheritance"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_alsp_v2.py:test_treesitter_inheritance_extraction_typescript:1f2d81e8e66e5774",
+        "source_path": "tests/test_alsp_v2.py",
+        "source_line": 56,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:parsed.inheritance"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_alsp_v2.py:test_sqlite_store_class_hierarchy_and_compaction:dca0b7e2b7719b80",
+        "source_path": "tests/test_alsp_v2.py",
+        "source_line": 227,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:all_h"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_governance_e2e.py:test_gui_controls_server_e2e:808e36779acab4c3",
+        "source_path": "tests/test_governance_e2e.py",
+        "source_line": 36,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:res.structured_content"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_index_retrieval.py:test_skeleton_elides_body_and_context_redacts_canary:7eef2b63de11fa94",
+        "source_path": "tests/test_index_retrieval.py",
+        "source_line": 158,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:part"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_inspect_symbol_budget.py:test_inspect_symbol_ambiguous_candidates_have_integer_start_line:a764dcd5dac5dd50",
+        "source_path": "tests/test_inspect_symbol_budget.py",
+        "source_line": 96,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:cand"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_inspect_symbol_budget.py:test_inspect_symbol_relationships_normal_and_truncated:5a603cacaee57fc5",
+        "source_path": "tests/test_inspect_symbol_budget.py",
+        "source_line": 161,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:res_tight[\"data\"]"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_line_ending_normalization.py:test_retrieval_normalizes_crlf_to_lf:9e02ee82f9b363f9",
+        "source_path": "tests/test_line_ending_normalization.py",
+        "source_line": 52,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:item"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_migration.py:test_migration_from_v1_database:6759c2bf3f44d43a",
+        "source_path": "tests/test_memory_migration.py",
+        "source_line": 87,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_migration.py:test_migration_from_broken_v2_database:eae7fa3cf1e58fe7",
+        "source_path": "tests/test_memory_migration.py",
+        "source_line": 163,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:res"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_migration.py:test_fts_syntax_error_returns_invalid_query:45f72e5e4c7e40a1",
+        "source_path": "tests/test_memory_migration.py",
+        "source_line": 202,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:res"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestNamespaceIsolation.test_same_key_different_namespace_isolated:f6838d322e89f9a2",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 67,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestNamespaceIsolation.test_get_missing_namespace_returns_not_found:973d8e07c2890a99",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 80,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestNamespaceIsolation.test_delete_scoped_to_namespace:d2d36484b2675988",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 90,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestNamespaceIsolation.test_default_namespace_empty_string:5bf2746d8a1ac99e",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 96,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestNamespaceIsolation.test_get_response_includes_namespace:d281c2d85753cbe1",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 130,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestSchemaMigration.test_migrated_db_can_store_and_retrieve_with_namespace:0987e8dfa0c0819e",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 197,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_memory_namespace.py:TestTTLCleanup.test_live_entries_not_deleted_by_cleanup:730e81544ce67f26",
+        "source_path": "tests/test_memory_namespace.py",
+        "source_line": 241,
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:MemoryStore"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_sampling.py:test_sampling_router_heuristic_fallback:f654533a0d44a64f",
+        "source_path": "tests/test_sampling.py",
+        "source_line": 185,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:scan_symbol"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_server.py:test_server_exports_only_read_tools:e83067b155b8ec2a",
+        "source_path": "tests/test_server.py",
+        "source_line": 62,
+        "status": "resolved",
+        "confidence": 0.85,
+        "evidence": [
+          "ast_call",
+          "scope:import_match",
+          "receiver:tool.input_schema"
+        ]
+      },
+      {
+        "source_symbol_id": "python:tests/test_versioned_snapshots.py:test_concurrent_read_during_reindex:78bf6470ab74ed5b",
+        "source_path": "tests/test_versioned_snapshots.py",
+        "source_line": 77,
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global",
+          "receiver:st.metadata()"
+        ]
+      }
+    ]
+  },
+  "top_destinations": [
+    {
+      "target_symbol_id": "python:src/token_context_mcp/memory/store.py:MemoryStore.get:95b62c3a640a9561",
+      "name": "get",
+      "qualified_name": "MemoryStore.get",
+      "path": "src/token_context_mcp/memory/store.py",
+      "in_degree": 96,
+      "resolved_count": 96,
+      "ambiguous_count": 0,
+      "suspicious_count": 96,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 47,
+        "scope:import_match": 41,
+        "scope:exact_receiver_type": 8
+      },
+      "reasons": {
+        "low_confidence_0.40": 47,
+        "scope_global_fallback": 47,
+        "receiver_mismatch:symbols_vs_memorystore": 1,
+        "receiver_mismatch:report_vs_memorystore": 1,
+        "receiver_mismatch:sample_vs_memorystore": 1,
+        "receiver_mismatch:response.get(\"budget\", {})_vs_memorystore": 1,
+        "receiver_mismatch:response.get(\"data\", {})_vs_memorystore": 1,
+        "receiver_mismatch:found.get(\"data\", {})_vs_memorystore": 1,
+        "generic_name_builtin_receiver:response": 1,
+        "generic_name_builtin_receiver:i": 1,
+        "generic_name_builtin_receiver:topic": 1,
+        "generic_name_builtin_receiver:result": 2,
+        "generic_name_builtin_receiver:usage": 1,
+        "generic_name_builtin_receiver:manifest": 1,
+        "receiver_mismatch:sub_vs_memorystore": 1,
+        "generic_name_builtin_receiver:os.environ": 4,
+        "generic_name_builtin_receiver:raw": 1,
+        "receiver_mismatch:TOOL_CATALOG_vs_memorystore": 1,
+        "receiver_mismatch:json.loads(ptr.read_text(encoding=\"utf-8\"))_vs_memorystore": 1,
+        "receiver_mismatch:l_vs_memorystore": 2,
+        "generic_name_builtin_receiver:agent": 1,
+        "receiver_mismatch:lock_vs_memorystore": 1,
+        "receiver_mismatch:cfg_vs_memorystore": 1,
+        "receiver_mismatch:ep_vs_memorystore": 1,
+        "receiver_mismatch:SUPPORTED_EXTENSIONS_vs_memorystore": 1,
+        "receiver_mismatch:tomllib.load(handle)_vs_memorystore": 1,
+        "receiver_mismatch:self._connections_vs_memorystore": 1,
+        "receiver_mismatch:self.store_vs_memorystore": 1,
+        "receiver_mismatch:summary_res_vs_memorystore": 1,
+        "receiver_mismatch:symbols_by_path_vs_memorystore": 1,
+        "receiver_mismatch:{\n        \"python\": (\"tree_sitter_python\", \"language\"),\n        \"javascript\": (\"tree_sitter_javascript\", \"language\"),\n        \"typescript\": (\"tree_sitter_typescript\", \"language_typescript\"),\n        \"tsx\": (\"tree_sitter_typescript\", \"language_tsx\"),\n        \"java\": (\"tree_sitter_java\", \"language\"),\n        \"c_sharp\": (\"tree_sitter_c_sharp\", \"language\"),\n        \"html\": (\"tree_sitter_html\", \"language\"),\n        \"css\": (\"tree_sitter_css\", \"language\"),\n    }_vs_memorystore": 1,
+        "receiver_mismatch:role_targets_vs_memorystore": 1,
+        "receiver_mismatch:captures_vs_memorystore": 1,
+        "receiver_mismatch:{\n        \"python\": {\"function_definition\"},\n        \"javascript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"typescript\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"tsx\": {\"function_declaration\", \"method_definition\", \"arrow_function\", \"function_expression\"},\n        \"java\": {\"method_declaration\", \"constructor_declaration\"},\n        \"c_sharp\": {\"method_declaration\", \"constructor_declaration\", \"local_function_statement\"},\n    }_vs_memorystore": 1,
+        "receiver_mismatch:locked_vs_memorystore": 1,
+        "receiver_mismatch:self._snapshots_vs_memorystore": 1,
+        "receiver_mismatch:meta_vs_memorystore": 1,
+        "receiver_mismatch:self.id_to_index_vs_memorystore": 1,
+        "receiver_mismatch:self.symbol_map_vs_memorystore": 1,
+        "receiver_mismatch:self._entry_memo_vs_memorystore": 1,
+        "receiver_mismatch:self.out_edges_vs_memorystore": 1,
+        "receiver_mismatch:payload_vs_memorystore": 1,
+        "receiver_mismatch:ROLE_BONUSES_vs_memorystore": 1,
+        "receiver_mismatch:ppr_vs_memorystore": 1,
+        "receiver_mismatch:expansions_vs_memorystore": 1,
+        "receiver_mismatch:metadata_vs_memorystore": 5,
+        "receiver_mismatch:row_vs_memorystore": 1,
+        "receiver_mismatch:profile_settings_vs_memorystore": 1,
+        "receiver_mismatch:_available_profiles(self.config)_vs_memorystore": 1,
+        "receiver_mismatch:self._pointer_cache_vs_memorystore": 1,
+        "receiver_mismatch:file_records_vs_memorystore": 2,
+        "receiver_mismatch:profiles_vs_memorystore": 1,
+        "receiver_mismatch:defaults_vs_memorystore": 1,
+        "receiver_mismatch:{\"class\": \"c\", \"function\": \"f\", \"method\": \"m\"}_vs_memorystore": 1,
+        "receiver_mismatch:find_res.get(\"data\", {})_vs_memorystore": 1,
+        "receiver_mismatch:m_vs_memorystore": 1,
+        "receiver_mismatch:c_vs_memorystore": 1,
+        "receiver_mismatch:ag_vs_memorystore": 1,
+        "receiver_mismatch:self._states_vs_memorystore": 3,
+        "receiver_mismatch:self._policies_vs_memorystore": 1,
+        "receiver_mismatch:_active_loggers_vs_memorystore": 3,
+        "receiver_mismatch:r_vs_memorystore": 1,
+        "receiver_mismatch:base_by_key_vs_memorystore": 1,
+        "receiver_mismatch:parsed.inheritance_vs_memorystore": 2,
+        "receiver_mismatch:all_h_vs_memorystore": 1,
+        "receiver_mismatch:res.structured_content_vs_memorystore": 1,
+        "receiver_mismatch:part_vs_memorystore": 1,
+        "receiver_mismatch:cand_vs_memorystore": 1,
+        "receiver_mismatch:res_tight[\"data\"]_vs_memorystore": 1,
+        "receiver_mismatch:item_vs_memorystore": 1,
+        "receiver_mismatch:store_vs_memorystore": 8,
+        "receiver_mismatch:res_vs_memorystore": 2,
+        "receiver_mismatch:scan_symbol_vs_memorystore": 1,
+        "receiver_mismatch:tool.input_schema_vs_memorystore": 1,
+        "receiver_mismatch:st.metadata()_vs_memorystore": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:tests/test_memory_migration.py:ProxyConn.execute:dd56dcdead4beee0",
+      "name": "execute",
+      "qualified_name": "ProxyConn.execute",
+      "path": "tests/test_memory_migration.py",
+      "in_degree": 64,
+      "resolved_count": 64,
+      "ambiguous_count": 0,
+      "suspicious_count": 64,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 50,
+        "scope:same_package": 11,
+        "scope:same_file": 3
+      },
+      "reasons": {
+        "low_confidence_0.40": 50,
+        "scope_global_fallback": 50,
+        "receiver_mismatch:connection_vs_proxyconn": 25,
+        "receiver_mismatch:conn_vs_proxyconn": 34,
+        "receiver_mismatch:self._persistent_conn_vs_proxyconn": 1,
+        "receiver_mismatch:self._conn_vs_proxyconn": 2,
+        "receiver_mismatch:logger._conn_vs_proxyconn": 1,
+        "receiver_mismatch:old_conn_vs_proxyconn": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/config.py:load_config:a502039899d2f9bd",
+      "name": "load_config",
+      "qualified_name": "load_config",
+      "path": "src/token_context_mcp/config.py",
+      "in_degree": 61,
+      "resolved_count": 61,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 58,
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService:66558228fd2cadd7",
+      "name": "RetrievalService",
+      "qualified_name": "RetrievalService",
+      "path": "src/token_context_mcp/retrieve/service.py",
+      "in_degree": 35,
+      "resolved_count": 35,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 35
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/models.py:AppConfig:79ef8f3e92c22729",
+      "name": "AppConfig",
+      "qualified_name": "AppConfig",
+      "path": "src/token_context_mcp/models.py",
+      "in_degree": 32,
+      "resolved_count": 32,
+      "ambiguous_count": 0,
+      "suspicious_count": 14,
+      "suspicious_ratio": 0.438,
+      "scopes": {
+        "scope:import_match": 18,
+        "scope:global": 14
+      },
+      "reasons": {
+        "low_confidence_0.40": 14,
+        "scope_global_fallback": 14
+      }
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/config.py:save_config:0dfe6c97b1b90c38",
+      "name": "save_config",
+      "qualified_name": "save_config",
+      "path": "src/token_context_mcp/config.py",
+      "in_degree": 31,
+      "resolved_count": 31,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3,
+        "scope:import_match": 28
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:a3ce7579cddf6bde",
+      "name": "find_symbols",
+      "qualified_name": "RetrievalService.find_symbols",
+      "path": "src/token_context_mcp/retrieve/service.py",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 12,
+        "scope:import_match": 4,
+        "scope:import_module_match": 14
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/index/runner.py:build_index:db6d843f0c64a38c",
+      "name": "build_index",
+      "qualified_name": "build_index",
+      "path": "src/token_context_mcp/index/runner.py",
+      "in_degree": 29,
+      "resolved_count": 29,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 29
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.connection:6fccee8c31b0200c",
+      "name": "connection",
+      "qualified_name": "SQLiteStore.connection",
+      "path": "src/token_context_mcp/index/sqlite_store.py",
+      "in_degree": 28,
+      "resolved_count": 28,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_class": 26,
+        "scope:exact_receiver_type": 1,
+        "scope:import_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/models.py:ServerConfig:751e59b0010ab311",
+      "name": "ServerConfig",
+      "qualified_name": "ServerConfig",
+      "path": "src/token_context_mcp/models.py",
+      "in_degree": 27,
+      "resolved_count": 27,
+      "ambiguous_count": 0,
+      "suspicious_count": 14,
+      "suspicious_ratio": 0.519,
+      "scopes": {
+        "scope:import_match": 13,
+        "scope:global": 14
+      },
+      "reasons": {
+        "low_confidence_0.40": 14,
+        "scope_global_fallback": 14
+      }
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:parse_source:ae416fa5b97bad82",
+      "name": "parse_source",
+      "qualified_name": "parse_source",
+      "path": "src/token_context_mcp/parse/treesitter.py",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 26
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/models.py:RepositoryConfig:fafda01b914273b2",
+      "name": "RepositoryConfig",
+      "qualified_name": "RepositoryConfig",
+      "path": "src/token_context_mcp/models.py",
+      "in_degree": 25,
+      "resolved_count": 25,
+      "ambiguous_count": 0,
+      "suspicious_count": 16,
+      "suspicious_ratio": 0.64,
+      "scopes": {
+        "scope:import_match": 9,
+        "scope:global": 16
+      },
+      "reasons": {
+        "low_confidence_0.40": 16,
+        "scope_global_fallback": 16
+      }
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/server.py:_wrap:5678a1a4fe77041b",
+      "name": "_wrap",
+      "qualified_name": "_wrap",
+      "path": "src/token_context_mcp/server.py",
+      "in_degree": 22,
+      "resolved_count": 22,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 22
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:tests/test_index_retrieval.py:_service:e512199a1869cb27",
+      "name": "_service",
+      "qualified_name": "_service",
+      "path": "tests/test_index_retrieval.py",
+      "in_degree": 22,
+      "resolved_count": 22,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 22
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/memory/store.py:MemoryStore:8f57d61cd3e68e54",
+      "name": "MemoryStore",
+      "qualified_name": "MemoryStore",
+      "path": "src/token_context_mcp/memory/store.py",
+      "in_degree": 21,
+      "resolved_count": 21,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 21
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/config.py:index_directory:6109949966c47e03",
+      "name": "index_directory",
+      "qualified_name": "index_directory",
+      "path": "src/token_context_mcp/config.py",
+      "in_degree": 18,
+      "resolved_count": 18,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 18
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/server.py:build_server:4bee837f2bfed5df",
+      "name": "build_server",
+      "qualified_name": "build_server",
+      "path": "src/token_context_mcp/server.py",
+      "in_degree": 18,
+      "resolved_count": 18,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 17,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map:41b5a039f5878762",
+      "name": "repo_map",
+      "qualified_name": "RetrievalService.repo_map",
+      "path": "src/token_context_mcp/retrieve/service.py",
+      "in_degree": 17,
+      "resolved_count": 17,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 10,
+        "scope:import_match": 2,
+        "scope:import_module_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status:b86bfaecc17538f8",
+      "name": "status",
+      "qualified_name": "RetrievalService.status",
+      "path": "src/token_context_mcp/retrieve/service.py",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 10,
+        "scope:import_module_match": 4,
+        "scope:import_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalError:f4afb2072bc1dc01",
+      "name": "RetrievalError",
+      "qualified_name": "RetrievalError",
+      "path": "src/token_context_mcp/retrieve/service.py",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 16
+      },
+      "reasons": {}
+    }
+  ]
+}

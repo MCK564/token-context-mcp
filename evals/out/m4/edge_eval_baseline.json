@@ -1,0 +1,96 @@
+{
+  "tag": "baseline",
+  "repo_id": "token-context",
+  "index_run_id": "run_20260925T100434Z_bcdc0bbc",
+  "reviewed_gold": false,
+  "part_a": {
+    "total_samples": 150,
+    "correct_predictions": 105,
+    "accuracy": 0.7,
+    "active_false_positives": 44,
+    "active_true_positives": 104,
+    "scope_breakdown": {
+      "scope:exact_receiver_type": {
+        "total": 30,
+        "correct": 22,
+        "fp": 8,
+        "tp": 22
+      },
+      "scope:import_match": {
+        "total": 40,
+        "correct": 24,
+        "fp": 15,
+        "tp": 24
+      },
+      "scope:same_class": {
+        "total": 22,
+        "correct": 22,
+        "fp": 0,
+        "tp": 22
+      },
+      "scope:same_file": {
+        "total": 23,
+        "correct": 23,
+        "fp": 0,
+        "tp": 23
+      },
+      "scope:global": {
+        "total": 25,
+        "correct": 6,
+        "fp": 19,
+        "tp": 5
+      },
+      "scope:import_module_match": {
+        "total": 5,
+        "correct": 5,
+        "fp": 0,
+        "tp": 5
+      },
+      "scope:same_package": {
+        "total": 5,
+        "correct": 3,
+        "fp": 2,
+        "tp": 3
+      }
+    }
+  },
+  "part_b": {
+    "total_call_sites": 60,
+    "resolved_call_sites": 11,
+    "overall_recall": 0.1833,
+    "pattern_recalls": {
+      "pattern_1_same_class": 0.0,
+      "pattern_2_same_file": 0.8,
+      "pattern_3_imported_func": 0.2,
+      "pattern_4_instantiation": 0.1,
+      "pattern_5_receiver_typed": 0.0,
+      "pattern_6_module_qualified": 0.0
+    },
+    "pattern_breakdown": {
+      "pattern_1_same_class": {
+        "total": 10,
+        "found": 0
+      },
+      "pattern_2_same_file": {
+        "total": 10,
+        "found": 8
+      },
+      "pattern_3_imported_func": {
+        "total": 10,
+        "found": 2
+      },
+      "pattern_4_instantiation": {
+        "total": 10,
+        "found": 1
+      },
+      "pattern_5_receiver_typed": {
+        "total": 10,
+        "found": 0
+      },
+      "pattern_6_module_qualified": {
+        "total": 10,
+        "found": 0
+      }
+    }
+  }
+}

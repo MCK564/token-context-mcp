@@ -78,8 +78,20 @@ def audit_edges(
     # Aggregate by target_symbol_id
     target_edges: dict[str, list[EdgeRecord]] = defaultdict(list)
     unresolved_edges: list[EdgeRecord] = []
+    status_counts: dict[str, int] = defaultdict(int)
+    scope_counts: dict[str, int] = defaultdict(int)
 
     for edge in edges:
+        status_counts[edge.status] += 1
+        # Extract scope
+        scope = "scope:none"
+        if edge.evidence:
+            for ev in edge.evidence:
+                if ev.startswith("scope:"):
+                    scope = ev
+                    break
+        scope_counts[scope] += 1
+
         if edge.target_symbol_id:
             target_edges[edge.target_symbol_id].append(edge)
         else:
@@ -89,6 +101,8 @@ def audit_edges(
     target_stats: list[dict[str, Any]] = []
     total_suspicious = 0
 
+    memory_store_get_info: dict[str, Any] | None = None
+
     for target_id, in_edges in target_edges.items():
         sym = symbols.get(target_id)
         sym_name = sym.name if sym else target_id.split(":")[-2] if ":" in target_id else target_id
@@ -97,8 +111,18 @@ def audit_edges(
 
         suspicious_count = 0
         reasons_tally: dict[str, int] = defaultdict(int)
+        target_scope_tally: dict[str, int] = defaultdict(int)
 
         for e in in_edges:
+            # scope for this edge
+            e_scope = "scope:none"
+            if e.evidence:
+                for ev in e.evidence:
+                    if ev.startswith("scope:"):
+                        e_scope = ev
+                        break
+            target_scope_tally[e_scope] += 1
+
             susp, reasons = is_suspicious_edge(e, sym)
             if susp:
                 suspicious_count += 1
@@ -109,7 +133,7 @@ def audit_edges(
         resolved_count = sum(1 for e in in_edges if e.status == "resolved")
         ambiguous_count = sum(1 for e in in_edges if e.status == "ambiguous")
 
-        target_stats.append({
+        stat_item = {
             "target_symbol_id": target_id,
             "name": sym_name,
             "qualified_name": sym_qname,
@@ -119,12 +143,39 @@ def audit_edges(
             "ambiguous_count": ambiguous_count,
             "suspicious_count": suspicious_count,
             "suspicious_ratio": round(suspicious_count / len(in_edges), 3) if in_edges else 0.0,
+            "scopes": dict(target_scope_tally),
             "reasons": dict(reasons_tally),
-        })
+        }
+        target_stats.append(stat_item)
+
+        if "MemoryStore.get" in target_id or (sym_qname == "MemoryStore.get"):
+            caller_samples = []
+            for e in in_edges:
+                caller_samples.append({
+                    "source_symbol_id": e.source_symbol_id,
+                    "source_path": e.source_path,
+                    "source_line": e.source_line,
+                    "status": e.status,
+                    "confidence": e.confidence,
+                    "evidence": e.evidence,
+                })
+            memory_store_get_info = {
+                "target_symbol_id": target_id,
+                "in_degree": len(in_edges),
+                "resolved_count": resolved_count,
+                "ambiguous_count": ambiguous_count,
+                "suspicious_count": suspicious_count,
+                "suspicious_ratio": round(suspicious_count / len(in_edges), 3) if in_edges else 0.0,
+                "scopes": dict(target_scope_tally),
+                "reasons": dict(reasons_tally),
+                "callers": caller_samples,
+            }
 
     # Sort by in_degree descending
     target_stats.sort(key=lambda x: (x["in_degree"], x["suspicious_count"]), reverse=True)
     top_targets = target_stats[:top_k]
+
+    suspicious_ratio = round(total_suspicious / len(edges), 4) if edges else 0.0
 
     return {
         "repo_id": repo_id,
@@ -132,6 +183,10 @@ def audit_edges(
         "total_edges": len(edges),
         "unresolved_edges": len(unresolved_edges),
         "total_suspicious_edges": total_suspicious,
+        "suspicious_edges_ratio": suspicious_ratio,
+        "status_counts": dict(status_counts),
+        "scope_counts": dict(scope_counts),
+        "memory_store_get": memory_store_get_info,
         "top_destinations": top_targets,
     }
 
@@ -149,7 +204,12 @@ def main() -> None:
     report = audit_edges(args.repo_id, config_path=cfg_p, top_k=args.top)
 
     print(f"=== Edge Audit for repo '{args.repo_id}' ===")
-    print(f"Total symbols: {report['total_symbols']}, Total edges: {report['total_edges']}, Suspicious edges: {report['total_suspicious_edges']}")
+    print(f"Total symbols: {report['total_symbols']}, Total edges: {report['total_edges']}, Suspicious edges: {report['total_suspicious_edges']} ({report['suspicious_edges_ratio']*100:.2f}%)")
+    print(f"Status distribution: {report['status_counts']}")
+    print(f"Scope distribution: {report['scope_counts']}")
+    if report.get("memory_store_get"):
+        mg = report["memory_store_get"]
+        print(f"\n[MemoryStore.get] In-degree: {mg['in_degree']} (Suspicious: {mg['suspicious_count']}), Scopes: {mg['scopes']}")
     print()
     print(f"{'#':<3} {'Target Symbol':<35} {'Path':<35} {'In-Deg':>7} {'Susp':>6} {'Amb':>5} {'Susp %':>7}")
     print("-" * 102)
