@@ -1,5 +1,5 @@
 {
-  "artifact_sha256": "05fe0738359eec71a51cc569eb8cce8d6fb1fa39df95afdd1f3b58c1bbcb5f59",
+  "artifact_sha256": "c8b3eee9c675cf1713643cff3275a71730d94d4d85f209359ff0989c673ec116",
   "commit_sha": null,
   "derived_defaults": {
     "impact_max_nodes": {
@@ -71,7 +71,7 @@
     "pkg_48": 1790256130718097500,
     "pkg_49": 1790256130772858800
   },
-  "edges_indexed": 25129,
+  "edges_indexed": 25323,
   "entry_points": [
     {
       "declared": "synthetic-cli = pkg_00.mod_00:main",
@@ -83,8 +83,8 @@
   "files_reused": 5050,
   "files_seen": 5051,
   "files_skipped": 0,
-  "generated_at": "2026-09-25T05:20:15.485118+00:00",
-  "index_run_id": "run_20260925T052015Z_42a91536",
+  "generated_at": "2026-09-25T09:21:14.379873+00:00",
+  "index_run_id": "run_20260925T092114Z_dd00fa82",
   "index_schema_version": "2.2",
   "indexer_version": "0.1.0",
   "network_policy": "declared-deny-not-enforced",

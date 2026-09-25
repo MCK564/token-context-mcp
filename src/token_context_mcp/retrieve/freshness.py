@@ -36,7 +36,7 @@ class FreshnessCache:
     Maintains a hash cache keyed by (path, size, mtime_ns) to eliminate duplicate hashing.
     """
 
-    def __init__(self, ttl: float = 2.0) -> None:
+    def __init__(self, ttl: float = 30.0) -> None:
         self.ttl = ttl
         self._snapshots: dict[tuple[str, str], FreshnessSnapshot] = {}
         # (path, size, mtime_ns) -> sha256

@@ -1,0 +1,76 @@
+{
+  "budget_tokens": 4096,
+  "rank_mode": "global",
+  "repo_id": "invoice-scanner",
+  "result": {
+    "essential_found": 2,
+    "essential_missing": [
+      "FrontendPipeline",
+      "InvoiceProcessor",
+      "ScanResult",
+      "get_frontend"
+    ],
+    "essential_recall": 0.333,
+    "essential_total": 6,
+    "k": 10,
+    "labelled_in_top_k": 5,
+    "ndcg_at_k": 0.4224,
+    "noise_in_top_k": 0,
+    "noise_names": [],
+    "returned": 194,
+    "top_k_listing": [
+      {
+        "grade": 2,
+        "name": "extract_with_trace",
+        "path": "src/invoice_backend/s9_fields.py"
+      },
+      {
+        "grade": 3,
+        "name": "DlFrontend",
+        "path": "src/invoice_frontend_dl/frontend.py"
+      },
+      {
+        "grade": null,
+        "name": "mask_to_quad",
+        "path": "src/invoice_frontend_dl/s2_page_detect.py"
+      },
+      {
+        "grade": 1,
+        "name": "PassthroughFrontend",
+        "path": "src/invoice_backend/passthrough_frontend.py"
+      },
+      {
+        "grade": null,
+        "name": "probe",
+        "path": "src/invoice_frontend_dl/degradation.py"
+      },
+      {
+        "grade": 3,
+        "name": "GeomFrontend",
+        "path": "src/invoice_frontend_geom/frontend.py"
+      },
+      {
+        "grade": 2,
+        "name": "run_with_diagnostics",
+        "path": "src/invoice_backend/s7_render.py"
+      },
+      {
+        "grade": null,
+        "name": "quality_gate",
+        "path": "src/invoice_core/stages/reference.py"
+      },
+      {
+        "grade": null,
+        "name": "generate_anchor_candidates",
+        "path": "src/invoice_backend/s9_fields.py"
+      },
+      {
+        "grade": null,
+        "name": "run_ensemble",
+        "path": "src/invoice_frontend_dl/models/adapters.py"
+      }
+    ]
+  },
+  "server_max_result_tokens": 4096,
+  "set_id": "orientation-invoice-scanner-v1"
+}
