@@ -32,6 +32,10 @@ CREATE INDEX IF NOT EXISTS idx_audit_agent ON audit_logs(agent_id);
 """
 
 
+_active_loggers: dict[str, list[AuditLogger]] = {}
+_active_loggers_lock = threading.Lock()
+
+
 class AuditLogger:
     """Non-blocking, batched WAL-mode SQLite audit logger for security observability."""
 
@@ -52,6 +56,10 @@ class AuditLogger:
         self._queue: queue.Queue[tuple[float, str | None, str, str, float, str] | None] = queue.Queue()
         self._closed = False
         self._wake_event = threading.Event()
+
+        self._norm_path = ":memory:" if self.db_path == ":memory:" else str(Path(self.db_path).resolve())
+        with _active_loggers_lock:
+            _active_loggers.setdefault(self._norm_path, []).append(self)
 
         self._worker = threading.Thread(target=self._worker_loop, daemon=True, name="AuditLoggerWorker")
         self._worker.start()
@@ -127,6 +135,12 @@ class AuditLogger:
         if self._closed:
             return
         self._closed = True
+        with _active_loggers_lock:
+            instances = _active_loggers.get(self._norm_path)
+            if instances and self in instances:
+                instances.remove(self)
+                if not instances:
+                    _active_loggers.pop(self._norm_path, None)
         try:
             atexit.unregister(self.close)
         except Exception:
@@ -171,7 +185,10 @@ class AuditLogger:
         status: str | None = None,
     ) -> list[dict[str, Any]]:
         """Retrieve recent audit logs with optional filtering. Flushes pending queue first."""
-        self.flush()
+        with _active_loggers_lock:
+            loggers = list(_active_loggers.get(self._norm_path, []))
+        for lg in loggers:
+            lg.flush()
         try:
             query = "SELECT id, timestamp, agent_id, tool_name, status, duration_ms, details_json FROM audit_logs"
             params: list[Any] = []
@@ -213,7 +230,10 @@ class AuditLogger:
 
     def clear_old_logs(self, days_to_keep: int = 7) -> int:
         """Purge logs older than retention period."""
-        self.flush()
+        with _active_loggers_lock:
+            loggers = list(_active_loggers.get(self._norm_path, []))
+        for lg in loggers:
+            lg.flush()
         try:
             cutoff = time.time() - (days_to_keep * 86400)
             with self._conn:

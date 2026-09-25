@@ -1612,10 +1612,10 @@ def _compact_map_order(
 ) -> list[tuple[SymbolRecord, float, list[str]]]:
     """Preserve the orientation head while amortising compact-map digests."""
 
-    anchor = ranked[:10]
+    anchor = ranked[:20]
     anchor_paths = {item[0].path for item in anchor}
-    same_file = [item for item in ranked[10:] if item[0].path in anchor_paths]
-    new_file = [item for item in ranked[10:] if item[0].path not in anchor_paths]
+    same_file = [item for item in ranked[20:] if item[0].path in anchor_paths]
+    new_file = [item for item in ranked[20:] if item[0].path not in anchor_paths]
     return anchor + same_file + new_file
 
 
