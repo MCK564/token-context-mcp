@@ -1,6 +1,8 @@
 """Shared governance store using SQLite WAL for cross-process state synchronization."""
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
@@ -55,6 +57,19 @@ class GovernanceStore:
         self.db_path = db_path
         self._init_db()
 
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(self.db_path), timeout=5.0)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA busy_timeout = 5000;")
+        try:
+            yield conn
+            conn.commit()
+        finally:
+            conn.close()
+
     def _get_connection(self) -> sqlite3.Connection:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(self.db_path), timeout=5.0)
@@ -64,7 +79,7 @@ class GovernanceStore:
         return conn
 
     def _init_db(self) -> None:
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS agents (
@@ -96,7 +111,7 @@ class GovernanceStore:
             conn.commit()
 
     def get_agent(self, agent_id: str) -> dict[str, Any] | None:
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             cur = conn.execute(
                 "SELECT agent_id, status, reason, registered_at, updated_at FROM agents WHERE agent_id = ?",
                 (agent_id,),
@@ -108,7 +123,7 @@ class GovernanceStore:
 
     def upsert_agent(self, agent_id: str, status: str, reason: str = "") -> None:
         now = _utc_now_iso()
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             conn.execute(
                 """
                 INSERT INTO agents (agent_id, status, reason, registered_at, updated_at)
@@ -123,14 +138,14 @@ class GovernanceStore:
             conn.commit()
 
     def list_agents(self) -> list[dict[str, Any]]:
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             cur = conn.execute(
                 "SELECT agent_id, status, reason, registered_at, updated_at FROM agents ORDER BY agent_id"
             )
             return [dict(row) for row in cur.fetchall()]
 
     def is_emergency_halted(self) -> tuple[bool, str]:
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             cur = conn.execute("SELECT halted, reason FROM emergency WHERE id = 1")
             row = cur.fetchone()
             if row is None:
@@ -139,7 +154,7 @@ class GovernanceStore:
 
     def set_emergency_halt(self, halted: bool, reason: str = "") -> None:
         now = _utc_now_iso()
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             conn.execute(
                 """
                 INSERT INTO emergency (id, halted, reason, updated_at)
@@ -155,7 +170,7 @@ class GovernanceStore:
 
     def record_heartbeat(self, server_id: str, pid: int) -> None:
         now = _utc_now_iso()
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             conn.execute(
                 """
                 INSERT INTO server_heartbeats (server_id, pid, last_seen, status)
@@ -172,7 +187,7 @@ class GovernanceStore:
     def get_active_servers(self, stale_threshold_sec: float = 30.0) -> list[dict[str, Any]]:
         now_dt = datetime.now(timezone.utc)
         active: list[dict[str, Any]] = []
-        with self._get_connection() as conn:
+        with self._connection() as conn:
             cur = conn.execute("SELECT server_id, pid, last_seen, status FROM server_heartbeats")
             for row in cur.fetchall():
                 data = dict(row)

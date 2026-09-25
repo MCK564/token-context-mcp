@@ -610,17 +610,18 @@ class AgentSecurityController(QObject):
         self.config_path = config_path or default_config_path()
         from token_context_mcp.security.access_control import AccessControlManager, PolicyProfile
         from token_context_mcp.security.audit import AuditLogger
+        from token_context_mcp.security.governance_store import GovernanceStore
         from token_context_mcp.memory.store import MemoryStore
 
-        self._access_control = AccessControlManager()
+        governance_db = self.config_path.parent / "governance.sqlite"
+        self._governance = GovernanceStore(governance_db)
+        self._access_control = AccessControlManager(store=self._governance)
         self._audit_logger = AuditLogger(self.config_path.parent / "audit.sqlite")
         self._memory_store = MemoryStore(self.config_path.parent / "memory.sqlite")
 
-        # M2.5: connect to GovernanceStore for read-only cross-server refresh
-        governance_db = self.config_path.parent / "governance.sqlite"
+        # M2.5: connect GovernanceRefreshWorker to poll live server heartbeats
         self._governance_refresh_worker: GovernanceRefreshWorker | None = None
-        if governance_db.exists():
-            self._start_governance_refresh(governance_db)
+        self._start_governance_refresh(governance_db)
 
     def _start_governance_refresh(self, governance_db: Path) -> None:
         """Start background read-only governance polling (M2.5)."""
@@ -661,27 +662,33 @@ class AgentSecurityController(QObject):
         return self._access_control.emergency_reason
 
     def refresh_data(self) -> None:
+        from token_context_mcp.security.governance_store import merge_seen_agents
+
         agents = self._access_control.list_agents()
         locks = self._memory_store.list_active_locks()
         logs = self._audit_logger.query_logs(limit=50)
+        active_servers = self._governance.get_active_servers()
 
-        known_agent_ids = {a["agent_id"] for a in agents}
+        traces: list[dict[str, Any]] = []
         for l in locks:
-            ag_id = l["agent_id"]
-            if ag_id not in known_agent_ids:
-                self._access_control.register_agent(ag_id, role="external_agent")
-                known_agent_ids.add(ag_id)
+            ag_id = l.get("agent_id")
+            if ag_id:
+                traces.append({"agent_id": ag_id, "role": "external_agent"})
         for log_entry in logs:
-            ag_id = log_entry["agent_id"]
-            if ag_id and ag_id not in ("anonymous", "admin") and ag_id not in known_agent_ids:
-                self._access_control.register_agent(ag_id, role="external_client")
-                known_agent_ids.add(ag_id)
+            ag_id = log_entry.get("agent_id")
+            if ag_id and ag_id not in ("anonymous", "admin"):
+                traces.append({"agent_id": ag_id, "role": "external_client"})
+        for srv in active_servers:
+            srv_id = srv.get("server_id")
+            if srv_id:
+                traces.append({"agent_id": srv_id, "role": "server_node"})
 
-        agents = self._access_control.list_agents()
-        self.agents_updated.emit(agents)
+        merged = merge_seen_agents(agents, traces)
+        self.agents_updated.emit(merged)
         self.locks_updated.emit(locks)
         self.audit_logs_updated.emit(logs)
         self.emergency_state_changed.emit(self._access_control.is_emergency_halted, self._access_control.emergency_reason)
+
 
     def pause_agent(self, agent_id: str, reason: str = "Paused by user via Desktop GUI") -> None:
         self._access_control.pause_agent(agent_id, reason)
