@@ -21,6 +21,21 @@ class CompositeWorkflowEngine:
         budget_tokens: int = 2048,
     ) -> Dict[str, Any]:
         """Resolve a symbol candidate, fetch its definition context and immediate impact in one turn."""
+        with self.service.request_scope(repo_id):
+            return self._inspect_symbol_scoped(
+                repo_id=repo_id,
+                query=query,
+                view=view,
+                budget_tokens=budget_tokens,
+            )
+
+    def _inspect_symbol_scoped(
+        self,
+        repo_id: str,
+        query: str,
+        view: str = "normal",
+        budget_tokens: int = 2048,
+    ) -> Dict[str, Any]:
         budget_tokens = max(256, min(budget_tokens, 8192))
         edge_budget = min(1024, max(256, budget_tokens // 4))
         ctx_budget = min(4096, max(256, budget_tokens - edge_budget))

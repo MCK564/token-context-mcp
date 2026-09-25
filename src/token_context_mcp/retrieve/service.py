@@ -5,8 +5,10 @@ import json
 import re
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
+import threading
 from typing import Any, Literal, TypeVar
 
 from token_context_mcp.config import (
@@ -75,6 +77,22 @@ class ArgumentOutOfRangeError(RetrievalError):
         self.maximum = maximum
 
 
+class _RequestScope:
+    def __init__(
+        self,
+        repo_id: str,
+        repository: Any,
+        store: SQLiteStore,
+        metadata: dict[str, Any],
+        freshness: str,
+    ) -> None:
+        self.repo_id = repo_id
+        self.repository = repository
+        self.store = store
+        self.metadata = metadata
+        self.freshness = freshness
+
+
 class RetrievalService:
     def __init__(self, config: AppConfig, config_path: Path) -> None:
         self._cached_config = config
@@ -87,6 +105,35 @@ class RetrievalService:
         self._freshness_cache = FreshnessCache()
         self._pointer_cache: dict[str, tuple[float, Path, str | None]] = {}
         self._pool = ReadConnectionPool()
+        self._thread_local = threading.local()
+
+    @property
+    def _active_scope(self) -> _RequestScope | None:
+        return getattr(self._thread_local, "scope", None)
+
+    @_active_scope.setter
+    def _active_scope(self, val: _RequestScope | None) -> None:
+        self._thread_local.scope = val
+
+    @contextmanager
+    def request_scope(self, repo_id: str) -> Iterator[_RequestScope]:
+        repository, store, metadata = self._repository_store_uncached(repo_id)
+        files = store.files()
+        freshness = self._freshness_cache.get_snapshot(
+            repo_id,
+            str(metadata.get("index_run_id", "")),
+            repository.root,
+            files,
+            metadata=metadata,
+            allow_symlinks=repository.allow_symlinks,
+        ).status
+        scope = _RequestScope(repo_id, repository, store, metadata, freshness)
+        prev = self._active_scope
+        self._active_scope = scope
+        try:
+            yield scope
+        finally:
+            self._active_scope = prev
 
     @property
     def config(self) -> AppConfig:
@@ -1128,6 +1175,12 @@ class RetrievalService:
         return requested_tokens - reserve
 
     def _repository_store(self, repo_id: str) -> tuple[Any, SQLiteStore, dict[str, Any]]:
+        scope = self._active_scope
+        if scope is not None and scope.repo_id == repo_id:
+            return scope.repository, scope.store, scope.metadata
+        return self._repository_store_uncached(repo_id)
+
+    def _repository_store_uncached(self, repo_id: str) -> tuple[Any, SQLiteStore, dict[str, Any]]:
         repository = get_repository(self.config, repo_id)
         store = self._store(repo_id)
         try:
@@ -1181,6 +1234,9 @@ class RetrievalService:
         metadata: dict[str, Any] | None = None,
         repo_id: str | None = None,
     ) -> str:
+        scope = self._active_scope
+        if scope is not None and (repo_id is None or scope.repo_id == repo_id):
+            return scope.freshness
         if repo_id and metadata:
             return self._freshness_cache.get_snapshot(
                 repo_id,
