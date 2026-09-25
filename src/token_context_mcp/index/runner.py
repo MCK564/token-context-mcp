@@ -243,6 +243,22 @@ def build_index(
         if symbol.path in source_by_path
     }
     searchable_sources = {path: _search_text(source) for path, source in source_by_path.items()}
+    dir_mtimes: dict[str, int] = {}
+    try:
+        dir_mtimes["."] = repository.root.stat().st_mtime_ns
+    except OSError:
+        pass
+    for item in files:
+        rel_p = Path(item.path)
+        parent_rel = str(rel_p.parent).replace("\\", "/")
+        dir_key = "." if parent_rel in (".", "") else parent_rel
+        if dir_key not in dir_mtimes:
+            try:
+                full_d = repository.root if dir_key == "." else (repository.root / dir_key)
+                dir_mtimes[dir_key] = full_d.stat().st_mtime_ns
+            except OSError:
+                pass
+
     index_run_id = _new_run_id()
     manifest: dict[str, object] = {
         "schema_version": "1.0",
@@ -265,6 +281,7 @@ def build_index(
         "entry_points": entry_points,
         "role_counts": _role_counts(symbols),
         "derived_defaults": derived_defaults,
+        "dir_mtimes": dir_mtimes,
         "warnings": warnings,
         "network_policy": network_policy,
         "network_policy_status": "declared_only; enforce at OS/container boundary",

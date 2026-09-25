@@ -30,6 +30,7 @@ from token_context_mcp.models import (
     edge_as_dict,
     symbol_as_dict,
 )
+from token_context_mcp.retrieve.freshness import FreshnessCache
 from token_context_mcp.retrieve.ranking import rank_symbols
 from token_context_mcp.retrieve.token_budget import (
     ESTIMATOR_VERSION,
@@ -81,6 +82,7 @@ class RetrievalService:
         except OSError:
             self._config_mtime = 0
         self.last_query_count = 0
+        self._freshness_cache = FreshnessCache()
 
     @property
     def config(self) -> AppConfig:
@@ -124,19 +126,30 @@ class RetrievalService:
         for symbol in symbols:
             for role in symbol.roles:
                 role_counts[role] = role_counts.get(role, 0) + 1
-        pending = [
-            item.path
-            for item in files
-            if self._current_hash(repository.root, item, allow_symlinks=repository.allow_symlinks) != item.sha256
-        ]
+        snapshot = self._freshness_cache.get_snapshot(
+            repository.repo_id,
+            str(metadata.get("index_run_id", "")),
+            repository.root,
+            files,
+            metadata=metadata,
+            allow_symlinks=repository.allow_symlinks,
+        )
+        pending = snapshot.stale_paths
         edge_precision = _edge_precision(store.edges())
+        warnings: list[str] = []
+        if metadata.get("network_policy"):
+            warnings.append("network_policy_not_enforced_by_process")
+        for w in snapshot.warnings:
+            if w not in warnings:
+                warnings.append(w)
+
         response = self._envelope(
             repo_id,
             metadata,
             requested_tokens=0,
             estimated_tokens=0,
-            freshness="stale" if pending else "fresh",
-            warnings=["network_policy_not_enforced_by_process"] if metadata.get("network_policy") else [],
+            freshness=snapshot.status,
+            warnings=warnings,
             truncated=len(pending) > 100,
             edge_precision=edge_precision,
             data={
@@ -158,6 +171,8 @@ class RetrievalService:
                 "imported_by": store.importer_count(),
                 "pending_paths": pending[:100],
                 "pending_path_count": len(pending),
+                "added_paths": snapshot.added_paths[:100],
+                "changed_non_indexed": snapshot.changed_non_indexed[:100],
                 "index_warnings": metadata.get("warnings", []),
                 "network_policy_status": metadata.get("network_policy_status"),
             },
@@ -197,7 +212,11 @@ class RetrievalService:
         store.reset_query_count()
         file_records = {item.path: item for item in store.files()}
         freshness = self._freshness(
-            repository.root, list(file_records.values()), allow_symlinks=repository.allow_symlinks
+            repository.root,
+            list(file_records.values()),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
         )
         symbols = store.symbols()
         if not include_tests:
@@ -313,7 +332,13 @@ class RetrievalService:
         if not 1 <= limit <= 100:
             raise ArgumentOutOfRangeError("limit", limit, 1, 100)
         repository, store, metadata = self._repository_store(repo_id)
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
         match_query = _fts_query(query)
         try:
             total_matches = store.count_source_matches(match_query)
@@ -331,11 +356,11 @@ class RetrievalService:
             file_record = store.file(row["path"])
             if file_record is None:
                 continue
-            file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
-            raw = file_path.read_bytes()
-            current_hash = hashlib.sha256(raw).hexdigest()
+            state, current_hash = self._freshness_cache.path_state(
+                repository.root, file_record, allow_symlinks=repository.allow_symlinks
+            )
             file_symbols = store.symbols(path=row["path"])
-            if current_hash != file_record.sha256:
+            if state != "fresh" or current_hash != file_record.sha256:
                 stale_paths.append(row["path"])
                 symbol = None
                 line_number = 1
@@ -355,6 +380,8 @@ class RetrievalService:
                     }
                 )
                 continue
+            file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
+            raw = file_path.read_bytes()
             source = raw.decode("utf-8", errors="replace")
             selected_lines, unselected = _score_and_select_file_matches(
                 source, query, file_symbols, row["path"]
@@ -452,7 +479,13 @@ class RetrievalService:
             else effective_max_tokens
         )
         repository, store, metadata = self._repository_store(repo_id)
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
         derived_limit = _metadata_default(metadata, "limit_ceiling", 100)
         effective_limit = min(limit, self.config.server.max_symbol_results, derived_limit)
         available_count = store.count_symbols(pattern, kind=kind)
@@ -532,15 +565,26 @@ class RetrievalService:
         record = store.file(relative)
         if record is None:
             raise RetrievalError("path was not part of the active index")
-        raw = file_path.read_bytes()
-        source = raw.decode("utf-8", errors="replace")
+        state, current_hash = self._freshness_cache.path_state(
+            repository.root, record, allow_symlinks=repository.allow_symlinks
+        )
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
+        stale = (state != "fresh") or (current_hash != record.sha256)
+        if not stale:
+            raw = file_path.read_bytes()
+            source = raw.decode("utf-8", errors="replace")
+        else:
+            source = ""
+        imports = [] if stale else _source_import_lines(source)
         symbols = store.symbols(path=relative)
         if not include_private:
             symbols = [symbol for symbol in symbols if not symbol.is_private]
-        current_hash = hashlib.sha256(raw).hexdigest()
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
-        stale = current_hash != record.sha256
-        imports = [] if stale else _source_import_lines(source)
         parts: list[dict[str, Any]] = []
         for line_number, line in imports:
             content, count = redact_text(line)
@@ -645,7 +689,13 @@ class RetrievalService:
             }
         )
         importers = store.importers_for_modules(lookup_modules)
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
         entries: list[tuple[str, str]] = [
             ("import", item) for item in imported_modules
         ] + [("imported_by", item) for item in importers]
@@ -722,7 +772,13 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
         canonical_symbol_id = self._resolve_symbol_id(store, symbol_id)
         root_symbol = store.symbol(canonical_symbol_id) if canonical_symbol_id else None
         if root_symbol is None:
@@ -947,7 +1003,13 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
-        freshness = self._freshness(repository.root, store.files(), allow_symlinks=repository.allow_symlinks)
+        freshness = self._freshness(
+            repository.root,
+            store.files(),
+            allow_symlinks=repository.allow_symlinks,
+            metadata=metadata,
+            repo_id=repository.repo_id,
+        )
         if max_nodes is None:
             max_nodes = _metadata_default(metadata, "impact_max_nodes", 100)
         if not 1 <= max_nodes <= DEFAULT_MAX_GRAPH_NODES:
@@ -1068,19 +1130,27 @@ class RetrievalService:
         return SQLiteStore(database_path(index_directory(self.config_path), repo_id), read_only=True)
 
     def _current_hash(self, root: Path, record: FileRecord, *, allow_symlinks: bool = False) -> str | None:
-        try:
-            current = safe_relative_path(root, record.path, allow_symlinks=allow_symlinks)
-        except PathPolicyError:
-            return None
-        try:
-            stat = current.stat()
-            if stat.st_size == record.size and stat.st_mtime_ns == record.mtime_ns:
-                return record.sha256
-            return sha256_file(current)
-        except OSError:
-            return None
+        state, sha = self._freshness_cache.path_state(root, record, allow_symlinks=allow_symlinks)
+        return sha
 
-    def _freshness(self, root: Path, files: list[FileRecord], *, allow_symlinks: bool = False) -> str:
+    def _freshness(
+        self,
+        root: Path,
+        files: list[FileRecord],
+        *,
+        allow_symlinks: bool = False,
+        metadata: dict[str, Any] | None = None,
+        repo_id: str | None = None,
+    ) -> str:
+        if repo_id and metadata:
+            return self._freshness_cache.get_snapshot(
+                repo_id,
+                str(metadata.get("index_run_id", "")),
+                root,
+                files,
+                metadata=metadata,
+                allow_symlinks=allow_symlinks,
+            ).status
         return "fresh" if all(self._current_hash(root, item, allow_symlinks=allow_symlinks) == item.sha256 for item in files) else "stale"
 
     def _repo_map_entry(
@@ -1169,20 +1239,20 @@ class RetrievalService:
         record = store.file(symbol.path)
         assert record is not None
         warnings: list[str] = []
-        try:
-            file_path = safe_relative_path(root, symbol.path, allow_symlinks=allow_symlinks)
-            raw = file_path.read_bytes()
-            current_hash = hashlib.sha256(raw).hexdigest()
-        except (PathPolicyError, OSError):
-            current_hash = None
-            raw = b""
-        if current_hash != record.sha256:
+        state, current_hash = self._freshness_cache.path_state(root, record, allow_symlinks=allow_symlinks)
+        if state != "fresh" or current_hash != record.sha256:
             content, redacted = None, 0
             warnings.append("stale_content_unavailable")
         else:
-            source = raw.decode("utf-8", errors="replace")
-            end = symbol.end_byte if include_body else (symbol.body_start_byte or symbol.end_byte)
-            content, redacted = redact_text(_source_bytes(source, symbol.start_byte, end))
+            try:
+                file_path = safe_relative_path(root, symbol.path, allow_symlinks=allow_symlinks)
+                raw = file_path.read_bytes()
+                source = raw.decode("utf-8", errors="replace")
+                end = symbol.end_byte if include_body else (symbol.body_start_byte or symbol.end_byte)
+                content, redacted = redact_text(_source_bytes(source, symbol.start_byte, end))
+            except (PathPolicyError, OSError):
+                content, redacted = None, 0
+                warnings.append("stale_content_unavailable")
         return {
             "symbol": symbol_as_dict(symbol),
             "content": content.strip().replace("\r\n", "\n") if content is not None else None,
