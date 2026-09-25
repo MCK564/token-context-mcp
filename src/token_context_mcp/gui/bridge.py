@@ -27,7 +27,13 @@ from token_context_mcp.config import (
     unregister_repository,
     validate_repo_id,
 )
-from token_context_mcp.index.runner import build_index, database_path, manifest_path
+from token_context_mcp.index.runner import (
+    build_index,
+    current_pointer_path,
+    database_path,
+    gc_snapshots,
+    manifest_path,
+)
 from token_context_mcp.retrieve.service import RetrievalService
 from token_context_mcp.security.path_policy import canonical_repository_root
 
@@ -455,7 +461,7 @@ class CacheManager:
             for sqlite_file in idx_dir.glob("*.sqlite"):
                 sz = sqlite_file.stat().st_size
                 total_bytes += sz
-                repo_id = sqlite_file.stem
+                repo_id = sqlite_file.name.split(".", 1)[0]
                 repo_dbs.append(
                     {
                         "repo_id": repo_id,
@@ -523,12 +529,26 @@ class CacheManager:
 
         active_repos = set(config.repositories.keys())
         for sqlite_file in idx_dir.glob("*.sqlite"):
-            repo_id = sqlite_file.stem
+            repo_id = sqlite_file.name.split(".", 1)[0]
             if repo_id not in active_repos:
                 mf_file = manifest_path(idx_dir, repo_id)
                 sqlite_file.unlink(missing_ok=True)
                 mf_file.unlink(missing_ok=True)
+                ptr_file = current_pointer_path(idx_dir, repo_id)
+                ptr_file.unlink(missing_ok=True)
                 removed.append(repo_id)
+
+        # Also garbage collect old snapshots for active repos
+        for repo_id in active_repos:
+            ptr = current_pointer_path(idx_dir, repo_id)
+            current_db = ""
+            if ptr.is_file():
+                try:
+                    current_db = json.loads(ptr.read_text(encoding="utf-8")).get("db", "")
+                except Exception:
+                    pass
+            removed_gc = gc_snapshots(idx_dir, repo_id, current_db_name=current_db)
+            removed.extend(removed_gc)
 
         return removed
 

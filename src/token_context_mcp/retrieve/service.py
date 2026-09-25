@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 from collections import deque
 from collections.abc import Callable
 from pathlib import Path
@@ -20,7 +21,7 @@ from token_context_mcp.constants import (
     SCHEMA_VERSION,
 )
 from token_context_mcp.index.hashing import sha256_file
-from token_context_mcp.index.runner import database_path
+from token_context_mcp.index.runner import current_pointer_path, database_path
 from token_context_mcp.index.sqlite_store import SQLiteStore, StoreError
 from token_context_mcp.models import (
     EdgeRecord,
@@ -83,6 +84,7 @@ class RetrievalService:
             self._config_mtime = 0
         self.last_query_count = 0
         self._freshness_cache = FreshnessCache()
+        self._pointer_cache: dict[str, tuple[float, Path, str | None]] = {}
 
     @property
     def config(self) -> AppConfig:
@@ -1127,7 +1129,30 @@ class RetrievalService:
         return repository, store, metadata
 
     def _store(self, repo_id: str) -> SQLiteStore:
-        return SQLiteStore(database_path(index_directory(self.config_path), repo_id), read_only=True)
+        idx_dir = index_directory(self.config_path)
+        ptr_file = current_pointer_path(idx_dir, repo_id)
+        now = time.monotonic()
+        cached = self._pointer_cache.get(repo_id)
+        if cached is not None and (now - cached[0]) <= 1.0:
+            db_path = cached[1]
+        else:
+            db_path = None
+            if ptr_file.is_file():
+                try:
+                    data = json.loads(ptr_file.read_text(encoding="utf-8"))
+                    db_name = data.get("db")
+                    if db_name:
+                        cand = idx_dir / db_name
+                        if cand.exists():
+                            db_path = cand
+                            self._pointer_cache[repo_id] = (now, cand, data.get("index_run_id"))
+                except Exception:
+                    pass
+            if db_path is None:
+                db_path = database_path(idx_dir, repo_id)
+                self._pointer_cache[repo_id] = (now, db_path, None)
+
+        return SQLiteStore(db_path, read_only=True)
 
     def _current_hash(self, root: Path, record: FileRecord, *, allow_symlinks: bool = False) -> str | None:
         state, sha = self._freshness_cache.path_state(root, record, allow_symlinks=allow_symlinks)

@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import sqlite3
+import time
 import tomllib
 import uuid
 from dataclasses import replace
@@ -42,7 +43,49 @@ from token_context_mcp.security.local_privacy import (
 from token_context_mcp.security.path_policy import is_reparse_point, relative_posix
 
 
+def current_pointer_path(index_directory: Path, repo_id: str) -> Path:
+    return index_directory / f"{repo_id}.current.json"
+
+
+def gc_snapshots(
+    index_directory: Path,
+    repo_id: str,
+    current_db_name: str,
+    max_age_seconds: float = 600.0,
+) -> list[str]:
+    """Garbage collect older snapshot files older than max_age_seconds."""
+    removed: list[str] = []
+    now = time.time()
+    for item in index_directory.glob(f"{repo_id}.*.sqlite"):
+        if item.name == current_db_name or item.name == f"{repo_id}.sqlite":
+            continue
+        try:
+            mtime = item.stat().st_mtime
+            if (now - mtime) >= max_age_seconds:
+                for suffix in ("", "-wal", "-shm"):
+                    p = item.parent / f"{item.name}{suffix}"
+                    try:
+                        p.unlink(missing_ok=True)
+                    except (PermissionError, OSError):
+                        pass
+                removed.append(item.name)
+        except (PermissionError, OSError):
+            pass
+    return removed
+
+
 def database_path(index_directory: Path, repo_id: str) -> Path:
+    pointer = current_pointer_path(index_directory, repo_id)
+    if pointer.is_file():
+        try:
+            data = json.loads(pointer.read_text(encoding="utf-8"))
+            db_name = data.get("db")
+            if db_name:
+                cand = index_directory / db_name
+                if cand.exists():
+                    return cand
+        except Exception:
+            pass
     return index_directory / f"{repo_id}.sqlite"
 
 
@@ -286,7 +329,9 @@ def build_index(
         "network_policy": network_policy,
         "network_policy_status": "declared_only; enforce at OS/container boundary",
     }
-    temporary = destination.with_suffix(f".tmp-{uuid.uuid4().hex}.sqlite")
+    run_db_name = f"{repository.repo_id}.{index_run_id}.sqlite"
+    run_destination = index_directory / run_db_name
+    temporary = index_directory / f"{run_db_name}.tmp-{uuid.uuid4().hex}.sqlite"
     try:
         if progress_callback:
             progress_callback("Writing atomic SQLite snapshot...", files_seen, len(symbols))
@@ -301,15 +346,38 @@ def build_index(
             class_hierarchy=class_hierarchy_rows,
             external_stubs=active_stubs,
         )
-        _atomic_replace(temporary, destination)
-        secure_sqlite_artifacts(destination)
-        manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-        manifest["artifact_sha256"] = sha256_bytes(destination.read_bytes())
+        _atomic_replace(temporary, run_destination)
+        secure_sqlite_artifacts(run_destination)
+        manifest["artifact_sha256"] = sha256_bytes(run_destination.read_bytes())
         manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
         temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
         temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
         secure_file(temporary_manifest)
         temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
+
+        # Write pointer file <repo>.current.json atomically
+        pointer_dest = current_pointer_path(index_directory, repository.repo_id)
+        pointer_tmp = pointer_dest.with_suffix(f".tmp-{uuid.uuid4().hex}.json")
+        pointer_data = {
+            "db": run_db_name,
+            "index_run_id": index_run_id,
+            "repo_id": repository.repo_id,
+            "updated_at": datetime.now(UTC).isoformat(),
+        }
+        pointer_tmp.write_text(json.dumps(pointer_data, indent=2) + "\n", encoding="utf-8")
+        secure_file(pointer_tmp)
+        os.replace(str(pointer_tmp), str(pointer_dest))
+
+        # Backward compatibility: copy to <repo>.sqlite if not locked
+        legacy_dest = index_directory / f"{repository.repo_id}.sqlite"
+        try:
+            shutil.copy2(str(run_destination), str(legacy_dest))
+        except (PermissionError, OSError):
+            pass
+
+        # GC older snapshots
+        gc_snapshots(index_directory, repository.repo_id, current_db_name=run_db_name)
+
         if progress_callback:
             progress_callback("Index snapshot complete!", files_seen, len(symbols))
     finally:
