@@ -22,6 +22,7 @@ def fresh_repo_config(tmp_path: Path) -> tuple[Path, Path]:
     repo_root.mkdir()
     (repo_root / "main.py").write_text("def hello(): pass\n", encoding="utf-8")
     (repo_root / "README.md").write_text("# Test Repo\n", encoding="utf-8")
+    (repo_root / "config.json").write_text('{"v": 1}\n', encoding="utf-8")
     sub = repo_root / "pkg"
     sub.mkdir()
     (sub / "submod.py").write_text("def sub(): pass\n", encoding="utf-8")
@@ -173,3 +174,42 @@ def test_search_source_repeated_calls_zero_hash(fresh_repo_config: tuple[Path, P
     assert len(res2["data"]["matches"]) > 0
     # Zero hash operations when repo files have not changed
     assert hash_calls == 0
+
+
+def test_indexed_json_change_reported_in_changed_non_indexed_and_repo_stays_fresh(fresh_repo_config: tuple[Path, Path]) -> None:
+    config_path, repo_root = fresh_repo_config
+    from token_context_mcp.config import load_config
+    cfg = load_config(config_path)
+    service = RetrievalService(cfg, config_path)
+
+    # Edit config.json (indexed file with parse_status="not_parsed")
+    cfg_json = repo_root / "config.json"
+    cfg_json.write_text('{"v": 2, "updated": true}\n', encoding="utf-8")
+
+    service._freshness_cache.invalidate()
+    res = service.status("test-fresh")
+    assert res["freshness"] == "fresh"
+    assert "config.json" in res["data"]["changed_non_indexed"]
+    assert "config.json" not in res["data"]["pending_paths"]
+    assert res["data"]["pending_path_count"] == 0
+
+
+def test_unindexed_json_or_md_file_ignored_by_fast_freshness_scan(fresh_repo_config: tuple[Path, Path]) -> None:
+    config_path, repo_root = fresh_repo_config
+    from token_context_mcp.config import load_config
+    cfg = load_config(config_path)
+    service = RetrievalService(cfg, config_path)
+
+    # Create new .json and .md files that were not in index
+    (repo_root / "eval_out.json").write_text('{"eval": true}\n', encoding="utf-8")
+    (repo_root / "NOTES.md").write_text("# My notes\n", encoding="utf-8")
+
+    service._freshness_cache.invalidate()
+    res = service.status("test-fresh")
+    assert res["freshness"] == "fresh"
+    assert "eval_out.json" not in res["data"]["added_paths"]
+    assert "NOTES.md" not in res["data"]["added_paths"]
+    assert "eval_out.json" not in res["data"]["pending_paths"]
+    assert "NOTES.md" not in res["data"]["pending_paths"]
+    assert res["data"]["pending_path_count"] == 0
+
