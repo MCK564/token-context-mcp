@@ -111,3 +111,52 @@ def test_symbol_context_fallback_omits_body_not_root_symbol(large_func_repo_conf
     assert root["body_included"] is False
     assert "root_body_omitted_budget" in ctx["warnings"]
     assert "root_body_tokens_needed" in ctx["data"]
+
+
+@pytest.fixture()
+def callee_repo_config(tmp_path: Path) -> Path:
+    root = tmp_path / "callee-repo"
+    root.mkdir()
+
+    lines = [
+        "def callee_one(): pass",
+        "def callee_two(): pass",
+        "def callee_three(): pass",
+        "def callee_four(): pass",
+        "def callee_five(): pass",
+        "",
+        "def caller_func():",
+        "    callee_one()",
+        "    callee_two()",
+        "    callee_three()",
+        "    callee_four()",
+        "    callee_five()",
+    ]
+    (root / "caller.py").write_text("\n".join(lines), encoding="utf-8")
+
+    config_path = tmp_path / "config_callee" / "repos.toml"
+    repo = RepositoryConfig(repo_id="test-callee", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"test-callee": repo}, server=ServerConfig()))
+    build_index(repo, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+    return config_path
+
+
+def test_inspect_symbol_relationships_normal_and_truncated(callee_repo_config: Path) -> None:
+    svc, wf = _service_and_wf(callee_repo_config)
+
+    # 1. View normal, budget 2048 -> returns all 5 relationships, estimated_tokens <= 2048
+    res = wf.inspect_symbol("test-callee", query="caller_func", view="normal", budget_tokens=2048)
+    assert res["data"]["status"] == "resolved"
+    assert res["data"]["relationship_count"] == 5
+    assert len(res["data"]["relationships"]) == 5
+    # Compact format check: {source, target, kind, confidence}
+    rel0 = res["data"]["relationships"][0]
+    assert set(rel0.keys()) == {"source", "target", "kind", "confidence"}
+    assert res["budget"]["estimated_tokens"] <= 2048
+    assert "relationships_truncated" not in res["warnings"]
+
+    # 2. Budget 256 -> tight budget causes relationships_truncated warning
+    res_tight = wf.inspect_symbol("test-callee", query="caller_func", view="normal", budget_tokens=256)
+    assert "relationships_truncated" in res_tight["warnings"]
+    assert res_tight["data"].get("relationships_omitted", 0) > 0 or res_tight["data"]["relationship_count"] < 5
+

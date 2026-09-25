@@ -22,8 +22,9 @@ class CompositeWorkflowEngine:
     ) -> Dict[str, Any]:
         """Resolve a symbol candidate, fetch its definition context and immediate impact in one turn."""
         budget_tokens = max(256, min(budget_tokens, 8192))
-        edge_budget = min(768, budget_tokens // 4)
-        ctx_budget = min(4096, budget_tokens - edge_budget)
+        edge_budget = min(1024, max(256, budget_tokens // 4))
+        ctx_budget = min(4096, max(256, budget_tokens - edge_budget))
+
 
         # 1. Resolve candidates
         find_res = self.service.find_symbols(repo_id, pattern=query, limit=5)
@@ -102,12 +103,13 @@ class CompositeWorkflowEngine:
 
         # 3. Get immediate impact slice
         try:
+            slice_tokens = max(edge_budget, 1536) if budget_tokens >= 2048 else edge_budget
             impact_res = self.service.impact_slice(
                 repo_id=repo_id,
                 symbol_id=symbol_id,
                 depth=1,
                 max_nodes=20,
-                max_tokens=edge_budget,
+                max_tokens=slice_tokens,
             )
         except RetrievalError as err:
             impact_res = {"error": {"code": "budget_exhausted", "message": str(err)}}
@@ -117,6 +119,7 @@ class CompositeWorkflowEngine:
             if w not in warnings:
                 warnings.append(w)
 
+        omitted_edge_count = 0
         if "error" in impact_res:
             err_code = impact_res["error"].get("code", "unknown")
             impact_warn = f"impact_unavailable:{err_code}"
@@ -125,6 +128,12 @@ class CompositeWorkflowEngine:
             edges = []
             impact_est = 0
             impact_truncated = False
+            try:
+                st = self.service._store(repo_id)
+                raw_edges = st.edges_from(symbol_id) + st.edges_to(symbol_id)
+                omitted_edge_count = len(raw_edges)
+            except Exception:
+                omitted_edge_count = 0
         else:
             edges = impact_res.get("data", {}).get("edges", [])
             for w in impact_res.get("warnings", []):
@@ -132,6 +141,20 @@ class CompositeWorkflowEngine:
                     warnings.append(w)
             impact_est = impact_res.get("budget", {}).get("estimated_tokens", 0)
             impact_truncated = bool(impact_res.get("truncated"))
+            omitted_edge_count = impact_res.get("data", {}).get("omitted_edge_count", 0)
+            if not edges and omitted_edge_count == 0:
+                try:
+                    st = self.service._store(repo_id)
+                    raw_edges = st.edges_from(symbol_id) + st.edges_to(symbol_id)
+                    if raw_edges:
+                        omitted_edge_count = len(raw_edges)
+                except Exception:
+                    pass
+
+
+        if omitted_edge_count > 0:
+            if "relationships_truncated" not in warnings:
+                warnings.append("relationships_truncated")
 
         # Extract matching symbol entry from ctx_res["data"]["symbols"]
         matched_entry = None
@@ -158,6 +181,16 @@ class CompositeWorkflowEngine:
                 "max_tokens": 4096,
             }
 
+        rel_compact = [
+            {
+                "source": e.get("source_symbol_id"),
+                "target": e.get("target_symbol_id") or e.get("target_name"),
+                "kind": e.get("edge_kind"),
+                "confidence": e.get("confidence"),
+            }
+            for e in edges
+        ]
+
         if view == "minimal":
             symbol_payload = {
                 "symbol_id": matched_sym.get("symbol_id"),
@@ -167,22 +200,13 @@ class CompositeWorkflowEngine:
                 "start_line": matched_sym.get("start_line"),
                 "signature": matched_sym.get("signature"),
             }
-            rel_payload = [
-                {
-                    "source": e.get("source_symbol_id"),
-                    "target": e.get("target_symbol_id") or e.get("target_name"),
-                    "kind": e.get("edge_kind"),
-                    "confidence": e.get("confidence"),
-                }
-                for e in edges
-            ]
             composite_data = {
                 "status": "resolved",
                 "query": query,
                 "target_symbol_id": symbol_id,
                 "symbol": symbol_payload,
-                "relationships": rel_payload,
-                "relationship_count": len(edges),
+                "relationships": rel_compact,
+                "relationship_count": len(rel_compact),
             }
             evidence = [matched_entry.get("evidence")] if matched_entry and matched_entry.get("evidence") else []
         elif view == "full":
@@ -214,17 +238,25 @@ class CompositeWorkflowEngine:
                 "target_symbol_id": symbol_id,
                 "symbol": normal_sym,
                 "content": matched_content,
-                "relationships": edges,
-                "relationship_count": len(edges),
+                "relationships": rel_compact,
+                "relationship_count": len(rel_compact),
             }
             evidence = ctx_res.get("evidence", [])
+
+        if omitted_edge_count > 0:
+            composite_data["relationships_omitted"] = omitted_edge_count
 
         if retry_hint:
             composite_data["retry_hint"] = retry_hint
 
         ctx_est = ctx_res.get("budget", {}).get("estimated_tokens", 0)
-        total_estimated = min(budget_tokens, ctx_est + impact_est)
-        is_truncated = bool(ctx_res.get("truncated")) or impact_truncated or ("content_omitted_budget" in warnings)
+        import json
+        from token_context_mcp.retrieve.token_budget import estimate_tokens
+        rel_est = estimate_tokens(json.dumps(rel_compact if view != "full" else edges))
+        total_estimated = min(budget_tokens, ctx_est + rel_est)
+        is_truncated = bool(ctx_res.get("truncated")) or impact_truncated or ("content_omitted_budget" in warnings) or (omitted_edge_count > 0)
+
+
 
         composite_envelope = {
             "schema_version": "1.0",
