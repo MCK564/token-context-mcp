@@ -183,6 +183,25 @@ enable_extensions  = true    # BẬT 9 EXTENDED AGENTIC TOOLS (TỔNG 19 TOOLS)
 
 `list_repositories` công bố bốn profile ngân sách dựng sẵn là `locate`, `orient`, `impact` và `read`. Truyền `profile` cho tool phù hợp; các tham số tường minh như `budget_tokens`, `limit`, `depth` hoặc `include_body` sẽ ghi đè profile. `get_impact_slice` nhận `max_tokens`; nếu bỏ qua thì mặc định là giá trị nhỏ hơn giữa 2.048 và trần kết quả của server.
 
+### 4.1 Mở rộng xếp hạng theo từng repository
+
+Bạn có thể tùy biến mở rộng từ khóa tìm kiếm (`query_expansions`) và mẫu tiền tố tên file pipeline (`stage_prefix_pattern`) theo từng repository trong `repos.toml`. Mặc định các trường này để trống:
+
+```toml
+[repos.invoice-scanner.ranking]
+stage_prefix_pattern = "^\\d+_"
+
+[repos.invoice-scanner.ranking.query_expansions]
+registry = ["register", "registry"]
+registration = ["register", "registry"]
+selection = ["select", "get", "lookup"]
+recognition = ["recognize", "recognise", "ocr"]
+extraction = ["extract"]
+detection = ["detect"]
+geometry = ["geom", "geometry"]
+rendering = ["render", "renderer"]
+```
+
 ---
 
 ## 5. Cấu hình từng agent

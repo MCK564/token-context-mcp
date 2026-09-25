@@ -7,7 +7,7 @@ import tomllib
 from pathlib import Path
 
 from token_context_mcp.constants import DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILES
-from token_context_mcp.models import AppConfig, RepositoryConfig, ServerConfig
+from token_context_mcp.models import AppConfig, RankingConfig, RepositoryConfig, ServerConfig
 from token_context_mcp.security.local_privacy import secure_directory, secure_file
 from token_context_mcp.security.path_policy import canonical_repository_root
 
@@ -97,12 +97,25 @@ def load_config(path: Path) -> AppConfig:
         if not isinstance(settings, dict) or "root" not in settings:
             raise ConfigError(f"repos.{repo_id} must have a root")
         root = canonical_repository_root(Path(str(settings["root"])))
+        raw_ranking = settings.get("ranking", {})
+        query_expansions: dict[str, list[str]] = {}
+        for k, v in raw_ranking.get("query_expansions", {}).items():
+            if isinstance(v, list):
+                query_expansions[k] = [str(x) for x in v]
+            elif isinstance(v, str):
+                query_expansions[k] = [v]
+        stage_prefix = raw_ranking.get("stage_prefix_pattern")
+        ranking = RankingConfig(
+            query_expansions=query_expansions,
+            stage_prefix_pattern=str(stage_prefix) if stage_prefix else None,
+        )
         repositories[repo_id] = RepositoryConfig(
             repo_id=repo_id,
             root=root,
             allow_symlinks=bool(settings.get("allow_symlinks", False)),
             max_file_bytes=int(settings.get("max_file_bytes", DEFAULT_MAX_FILE_BYTES)),
             max_files=int(settings.get("max_files", DEFAULT_MAX_FILES)),
+            ranking=ranking,
         )
     budget_profiles = _load_budget_profiles(raw.get("budget_profiles", {}))
     return AppConfig(repositories=repositories, server=server, budget_profiles=budget_profiles)
@@ -142,6 +155,16 @@ def save_config(path: Path, config: AppConfig) -> None:
                 "",
             ]
         )
+        if repo.ranking.query_expansions or repo.ranking.stage_prefix_pattern:
+            lines.append(f"[repos.{repo_id}.ranking]")
+            if repo.ranking.stage_prefix_pattern:
+                lines.append(f'stage_prefix_pattern = "{_toml_string(repo.ranking.stage_prefix_pattern)}"')
+            if repo.ranking.query_expansions:
+                lines.append(f"[repos.{repo_id}.ranking.query_expansions]")
+                for k, v in sorted(repo.ranking.query_expansions.items()):
+                    items_str = ", ".join(f'"{_toml_string(x)}"' for x in v)
+                    lines.append(f"{k} = [{items_str}]")
+            lines.append("")
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     # Restrict the temporary file so the registry is never briefly world-readable

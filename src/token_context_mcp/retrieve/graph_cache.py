@@ -31,6 +31,7 @@ class RepoGraph:
         symbols: list[SymbolRecord],
         edges: list[EdgeRecord],
         files: list[FileRecord] | None = None,
+        global_ranks: dict[str, tuple[float, list[str]]] | None = None,
     ) -> None:
         self.repo_id = repo_id
         self.index_run_id = index_run_id
@@ -38,6 +39,8 @@ class RepoGraph:
         self.edges = edges
         self.files = files or []
         self.file_records: dict[str, FileRecord] = {f.path: f for f in self.files}
+        self.global_ranks: dict[str, tuple[float, list[str]]] = global_ranks or {}
+        self.has_global_ranks: bool = bool(global_ranks)
 
         # Symbol mappings
         self.symbol_map: dict[str, SymbolRecord] = {s.symbol_id: s for s in symbols}
@@ -174,7 +177,8 @@ class GraphCache:
         symbols = store.symbols()
         edges = store.edges()
         files = store.files()
-        graph = RepoGraph(repo_id, index_run_id, symbols, edges, files)
+        global_ranks = store.symbol_ranks() if hasattr(store, "symbol_ranks") else {}
+        graph = RepoGraph(repo_id, index_run_id, symbols, edges, files, global_ranks=global_ranks)
 
         with self._lock:
             if key in self._cache:

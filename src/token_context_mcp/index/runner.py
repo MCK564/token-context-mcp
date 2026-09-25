@@ -34,6 +34,7 @@ from token_context_mcp.models import (
 from token_context_mcp.parse.lexical_edges import build_lexical_edges
 from token_context_mcp.parse.treesitter import CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
+from token_context_mcp.retrieve.ranking import compute_global_ranks
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
 from token_context_mcp.security.local_privacy import (
     secure_directory,
@@ -334,6 +335,10 @@ def build_index(
     temporary = index_directory / f"{run_db_name}.tmp-{uuid.uuid4().hex}.sqlite"
     try:
         if progress_callback:
+            progress_callback("Computing global symbol PageRank...", files_seen, len(symbols))
+        global_ranks = compute_global_ranks(symbols, edges)
+
+        if progress_callback:
             progress_callback("Writing atomic SQLite snapshot...", files_seen, len(symbols))
         SQLiteStore(temporary).write_snapshot(
             metadata=manifest,
@@ -345,6 +350,7 @@ def build_index(
             source_bodies=searchable_sources,
             class_hierarchy=class_hierarchy_rows,
             external_stubs=active_stubs,
+            symbol_ranks=global_ranks,
         )
         _atomic_replace(temporary, run_destination)
         secure_sqlite_artifacts(run_destination)

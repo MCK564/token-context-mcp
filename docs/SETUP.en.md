@@ -187,6 +187,25 @@ enable_extensions  = true    # ENABLES ALL 9 EXTENDED AGENTIC TOOLS (19 TOOLS TO
 
 `list_repositories` advertises the built-in `locate`, `orient`, `impact`, and `read` budget profiles. Pass a profile to a compatible retrieval tool; explicit arguments such as `budget_tokens`, `limit`, `depth`, or `include_body` override the profile. `get_impact_slice` accepts `max_tokens`; when omitted, it defaults to the smaller of 2,048 and the server result cap.
 
+### 4.1 Repository-Specific Ranking Extensions
+
+You can customize query term expansions and pipeline stage filename pattern matching per repository in `repos.toml`. By default, these mappings are empty:
+
+```toml
+[repos.invoice-scanner.ranking]
+stage_prefix_pattern = "^\\d+_"
+
+[repos.invoice-scanner.ranking.query_expansions]
+registry = ["register", "registry"]
+registration = ["register", "registry"]
+selection = ["select", "get", "lookup"]
+recognition = ["recognize", "recognise", "ocr"]
+extraction = ["extract"]
+detection = ["detect"]
+geometry = ["geom", "geometry"]
+rendering = ["render", "renderer"]
+```
+
 ---
 
 ## 5. Per-agent configuration

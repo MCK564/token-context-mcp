@@ -9,12 +9,19 @@ EdgeStatus = Literal["resolved", "ambiguous", "unresolved"]
 
 
 @dataclass(frozen=True)
+class RankingConfig:
+    query_expansions: dict[str, list[str]] = field(default_factory=dict)
+    stage_prefix_pattern: str | None = None
+
+
+@dataclass(frozen=True)
 class RepositoryConfig:
     repo_id: str
     root: Path
     allow_symlinks: bool = False
     max_file_bytes: int = 2_000_000
     max_files: int = 25_000
+    ranking: RankingConfig = field(default_factory=RankingConfig)
 
 
 @dataclass(frozen=True)

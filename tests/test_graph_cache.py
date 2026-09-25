@@ -216,6 +216,9 @@ def test_graph_cache_lru_eviction() -> None:
         def files(self) -> list[FileRecord]:
             return []
 
+        def symbol_ranks(self) -> dict:
+            return {}
+
     store = DummyStore()  # type: ignore
 
     g1 = cache.get_graph("r1", "run1", store)

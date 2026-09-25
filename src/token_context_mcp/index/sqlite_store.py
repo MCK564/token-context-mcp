@@ -100,6 +100,12 @@ CREATE TABLE IF NOT EXISTS class_hierarchy (
   PRIMARY KEY (class_symbol_id, parent_name)
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS class_hierarchy_parent_idx ON class_hierarchy(parent_name);
+CREATE TABLE IF NOT EXISTS symbol_rank (
+  symbol_id TEXT PRIMARY KEY REFERENCES symbols(symbol_id),
+  score REAL NOT NULL,
+  basis_json TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS symbol_rank_score_idx ON symbol_rank(score DESC);
 """
 
 
@@ -241,12 +247,13 @@ class SQLiteStore:
         source_bodies: dict[str, str],
         class_hierarchy: list[tuple[str, str, str | None]] | None = None,
         external_stubs: list[ExternalStubRecord] | None = None,
+        symbol_ranks: list[tuple[str, float, list[str]]] | None = None,
     ) -> None:
         if self.read_only:
             raise StoreError("cannot write a read-only snapshot")
         self.initialize()
         with self.connection() as connection:
-            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbols", "files", "metadata"):
+            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbol_rank", "symbols", "files", "metadata"):
                 connection.execute(f"DELETE FROM {table}")
             connection.executemany(
                 "INSERT INTO metadata(key, value) VALUES (?, ?)",
@@ -353,12 +360,35 @@ class SQLiteStore:
                 "INSERT INTO source_bodies(path, body) VALUES (?, ?)",
                 [(path, body) for path, body in source_bodies.items()],
             )
+            if symbol_ranks:
+                connection.executemany(
+                    "INSERT INTO symbol_rank(symbol_id, score, basis_json) VALUES (?, ?, ?)",
+                    [(item[0], item[1], json.dumps(item[2])) for item in symbol_ranks],
+                )
         with self.connection() as connection:
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             connection.commit()
             connection.execute("PRAGMA page_size = 4096")
             connection.execute("VACUUM")
             connection.execute("PRAGMA optimize")
+
+    def has_symbol_rank(self) -> bool:
+        with self.connection() as connection:
+            row = connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='symbol_rank'"
+            ).fetchone()
+            return row is not None
+
+    def symbol_ranks(self) -> dict[str, tuple[float, list[str]]]:
+        if not self.has_symbol_rank():
+            return {}
+        with self.connection() as connection:
+            rows = connection.execute("SELECT symbol_id, score, basis_json FROM symbol_rank").fetchall()
+        result: dict[str, tuple[float, list[str]]] = {}
+        for row in rows:
+            basis = json.loads(row["basis_json"]) if row["basis_json"] else []
+            result[row["symbol_id"]] = (float(row["score"]), basis)
+        return result
 
     def class_ancestors(self, class_symbol_id: str) -> list[tuple[str, str | None]]:
         with self.connection() as connection:

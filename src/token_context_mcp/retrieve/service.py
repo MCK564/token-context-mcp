@@ -284,7 +284,23 @@ class RetrievalService:
                 # other tools; only their body-based ranking is unavailable
                 # until an administrative reindex.
                 body_matches = set()
-        ranked = rank_symbols(symbols, edges, query, body_matches=body_matches)
+        warnings: list[str] = []
+        if not query and not graph.has_global_ranks:
+            warnings.append("global_rank_table_missing")
+
+        ranking_cfg = getattr(repository, "ranking", None)
+        query_expansions = ranking_cfg.query_expansions if ranking_cfg else None
+        stage_prefix_pattern = ranking_cfg.stage_prefix_pattern if ranking_cfg else None
+
+        ranked = rank_symbols(
+            symbols,
+            edges,
+            query,
+            body_matches=body_matches,
+            global_ranks=graph.global_ranks if graph.has_global_ranks else None,
+            query_expansions=query_expansions,
+            stage_prefix_pattern=stage_prefix_pattern,
+        )
         if format == "compact":
             # A compact map also carries one digest per selected file. Keep
             # the highest-ranked orientation slice first, then fill the
@@ -335,7 +351,7 @@ class RetrievalService:
                 requested_tokens=budget_tokens,
                 estimated_tokens=estimated,
                 freshness=freshness,
-                warnings=[],
+                warnings=warnings,
                 truncated=bool(omitted_items),
                 data=data,
             )

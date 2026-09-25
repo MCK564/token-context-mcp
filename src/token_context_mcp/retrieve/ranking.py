@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 import re
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from token_context_mcp.models import EdgeRecord, SymbolRecord
 
@@ -21,38 +21,283 @@ ROLE_BONUSES = {
 }
 
 
+def compute_global_ranks(
+    symbols: list[SymbolRecord],
+    edges: list[EdgeRecord],
+) -> list[tuple[str, float, list[str]]]:
+    """Compute weighted PageRank at index time and return (symbol_id, score, basis) tuples.
+
+    Rules:
+    - Only edges with confidence >= 0.6 and resolved target_symbol_id.
+    - Forward weight (towards callee) is 1.0; reverse is 0.3.
+    - Utility trap dampening: symbol with in-degree z-score > 3.0 and out-degree <= 2 score * 0.5.
+    - Role bonuses and path class demotions applied.
+    """
+    if not symbols:
+        return []
+
+    symbol_ids = {s.symbol_id for s in symbols}
+    valid_edges = [
+        e for e in edges
+        if e.target_symbol_id in symbol_ids
+        and e.source_symbol_id in symbol_ids
+        and e.confidence is not None
+        and e.confidence >= 0.6
+    ]
+
+    in_degree: dict[str, int] = defaultdict(int)
+    out_degree: dict[str, int] = defaultdict(int)
+    out_adj: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    in_adj: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+
+    for e in valid_edges:
+        src = e.source_symbol_id
+        tgt = e.target_symbol_id
+        assert tgt is not None
+        conf = float(e.confidence)
+        in_degree[tgt] += 1
+        out_degree[src] += 1
+        # Forward weight 1.0 (towards callee), reverse 0.3
+        out_adj[src][tgt] += 1.0 * conf
+        out_adj[tgt][src] += 0.3 * conf
+        in_adj[tgt][src] += 1.0 * conf
+        in_adj[src][tgt] += 0.3 * conf
+
+    N = len(symbols)
+    d = 0.85
+    p = {s.symbol_id: 1.0 / N for s in symbols}
+    out_sum = {s.symbol_id: sum(out_adj[s.symbol_id].values()) for s in symbols}
+
+    for _ in range(30):
+        dangling_mass = sum(p[s.symbol_id] for s in symbols if out_sum[s.symbol_id] == 0)
+        p_next = {}
+        for s in symbols:
+            sid = s.symbol_id
+            val = (1.0 - d) / N + d * dangling_mass / N
+            for src, weight in in_adj[sid].items():
+                if out_sum[src] > 0:
+                    val += d * p[src] * (weight / out_sum[src])
+            p_next[sid] = val
+        p = p_next
+
+    mean_p = sum(p.values()) / N
+    pr = {sid: val / mean_p if mean_p > 0 else 1.0 for sid, val in p.items()}
+
+    mean_in = sum(in_degree.values()) / N
+    var_in = sum((in_degree[s.symbol_id] - mean_in) ** 2 for s in symbols) / N
+    std_in = math.sqrt(var_in)
+
+    scored: list[tuple[str, float, list[str]]] = []
+    for s in symbols:
+        sid = s.symbol_id
+        score = pr[sid]
+        basis = [f"pagerank:{score:.3f}"]
+
+        # Utility trap dampening: in-degree z-score > 3 and out-degree <= 2
+        z_in = (in_degree[sid] - mean_in) / std_in if std_in > 0 else 0.0
+        if z_in > 3.0 and out_degree[sid] <= 2:
+            score *= 0.5
+            basis.append("utility_trap_dampened")
+
+        # Role bonuses
+        for r in s.roles:
+            bonus = ROLE_BONUSES.get(r, 0.0)
+            if bonus:
+                score += bonus
+                basis.append(f"role:{r}")
+
+        # Path class demotions
+        p_class = s.path.replace("\\", "/").split("/", 1)[0]
+        if p_class in DEFAULT_PATH_CLASS_DEMOTIONS:
+            score -= DEFAULT_PATH_CLASS_DEMOTIONS[p_class]
+            basis.append(f"path_class:-{p_class}")
+
+        if s.kind in {"class", "interface"}:
+            score += 0.25
+            basis.append("kind:class_or_interface")
+
+        basis.append(f"in_degree:{in_degree[sid]}")
+        scored.append((sid, round(score, 6), basis))
+
+    return scored
+
+
+def local_push_ppr(
+    symbols: list[SymbolRecord],
+    edges: list[EdgeRecord],
+    *,
+    query: str | None,
+    body_matches: set[str] | None,
+    eps: float = 1e-4,
+    alpha: float = 0.15,
+    query_expansions: dict[str, list[str]] | None = None,
+) -> dict[str, float]:
+    """Andersen-Chung-Lang local push Personalized PageRank algorithm."""
+    symbol_ids = {s.symbol_id for s in symbols}
+    if not symbol_ids:
+        return {}
+
+    # Build weighted undirected graph, pruning edges with confidence < 0.5
+    adjacency: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for edge in edges:
+        if (
+            edge.target_symbol_id in symbol_ids
+            and edge.source_symbol_id in symbol_ids
+            and edge.confidence is not None
+            and edge.confidence >= 0.5
+        ):
+            conf = float(edge.confidence)
+            src = edge.source_symbol_id
+            tgt = edge.target_symbol_id
+            assert tgt is not None
+            adjacency[src][tgt] += conf
+            adjacency[tgt][src] += conf
+
+    deg: dict[str, float] = {sid: sum(adjacency[sid].values()) for sid in symbol_ids}
+
+    terms = _expanded_query_terms(query, query_expansions)
+    teleport: dict[str, float] = {}
+    for symbol in symbols:
+        name_haystack = f"{symbol.name} {symbol.qualified_name} {symbol.signature}"
+        name_matches = _term_match_count(name_haystack, terms)
+        path_matches = _term_match_count(symbol.path, terms)
+        body_match = symbol.symbol_id in (body_matches or set())
+        if name_matches or path_matches or body_match:
+            teleport[symbol.symbol_id] = (
+                1.0
+                + 1.25 * name_matches
+                + 0.75 * path_matches
+                + (1.5 if body_match else 0.0)
+            )
+    if not teleport:
+        return {symbol_id: 1.0 for symbol_id in symbol_ids}
+
+    total_teleport = sum(teleport.values())
+    teleport = {sid: val / total_teleport for sid, val in teleport.items()}
+
+    # Initialize PageRank vector p and residual vector r
+    p: dict[str, float] = defaultdict(float)
+    r: dict[str, float] = defaultdict(float)
+    for sid, val in teleport.items():
+        r[sid] = val
+
+    queue: deque[str] = deque()
+    in_queue: set[str] = set()
+
+    for sid in symbol_ids:
+        d_val = deg[sid]
+        if d_val == 0.0 and r[sid] > 0:
+            queue.append(sid)
+            in_queue.add(sid)
+        elif d_val > 0 and r[sid] >= eps * d_val:
+            queue.append(sid)
+            in_queue.add(sid)
+
+    max_pushes = 100_000
+    pushes = 0
+
+    while queue and pushes < max_pushes:
+        u = queue.popleft()
+        in_queue.discard(u)
+        d_u = deg[u]
+
+        if d_u == 0.0:
+            p[u] += r[u]
+            r[u] = 0.0
+            continue
+
+        if r[u] < eps * d_u:
+            continue
+
+        push_val = r[u]
+        r[u] = 0.0
+        p[u] += alpha * push_val
+        mass_to_distribute = (1.0 - alpha) * push_val
+
+        pushes += 1
+
+        for v, weight in adjacency[u].items():
+            r[v] += mass_to_distribute * (weight / d_u)
+            d_v = deg[v]
+            if d_v > 0 and r[v] >= eps * d_v and v not in in_queue:
+                queue.append(v)
+                in_queue.add(v)
+
+    # Any remaining residual mass on isolated nodes
+    for sid in symbol_ids:
+        if deg[sid] == 0.0 and r[sid] > 0:
+            p[sid] += r[sid]
+            r[sid] = 0.0
+
+    scores = {sid: p.get(sid, 0.0) for sid in symbol_ids}
+    mean = sum(scores.values()) / max(1, len(scores))
+    if math.isclose(mean, 0.0):
+        return {symbol_id: 0.0 for symbol_id in symbol_ids}
+    return {symbol_id: val / mean for symbol_id, val in scores.items()}
+
+
+_personalized_random_walk = local_push_ppr
+
+
 def rank_symbols(
     symbols: list[SymbolRecord],
     edges: list[EdgeRecord],
     query: str | None,
     *,
     body_matches: set[str] | None = None,
+    global_ranks: dict[str, tuple[float, list[str]]] | None = None,
+    query_expansions: dict[str, list[str]] | None = None,
+    stage_prefix_pattern: str | None = None,
 ) -> list[tuple[SymbolRecord, float, list[str]]]:
+    seed_biased = bool(query or body_matches)
+
     incoming: dict[str, int] = defaultdict(int)
     outgoing: dict[str, int] = defaultdict(int)
     for edge in edges:
         outgoing[edge.source_symbol_id] += 1
         if edge.target_symbol_id:
             incoming[edge.target_symbol_id] += 1
-    terms = _expanded_query_terms(query)
-    seed_biased = bool(query or body_matches)
-    ppr = _personalized_random_walk(symbols, edges, query=query, body_matches=body_matches) if seed_biased else {}
+
+    # Global mode: query is None and no body_matches
+    if not seed_biased and global_ranks:
+        ranked_global: list[tuple[SymbolRecord, float, list[str], int]] = []
+        for symbol in symbols:
+            sid = symbol.symbol_id
+            if sid in global_ranks:
+                score, basis = global_ranks[sid]
+            else:
+                score = 1.0
+                basis = ["fallback_no_global_rank"]
+            indeg = incoming[sid]
+            ranked_global.append((symbol, score, basis, indeg))
+        ranked_global.sort(key=lambda item: (-item[1], -item[3], item[0].path, item[0].start_line))
+        return [(s, score, basis) for s, score, basis, _ in ranked_global]
+
+    # Seed-biased mode or global fallback when no global_ranks
+    terms = _expanded_query_terms(query, query_expansions)
+    ppr = (
+        local_push_ppr(
+            symbols,
+            edges,
+            query=query,
+            body_matches=body_matches,
+            query_expansions=query_expansions,
+        )
+        if seed_biased
+        else {}
+    )
+
     ranked: list[tuple[SymbolRecord, float, list[str]]] = []
     for symbol in symbols:
-        # These weights are intentionally fixed until a labelled relevance
-        # evaluation exists; exposing unevaluated guesses as config would not
-        # improve ranking quality.
         incoming_count = incoming[symbol.symbol_id]
         outgoing_count = outgoing[symbol.symbol_id]
         if outgoing_count == 0:
-            degree_shape = 0.0  # pure sink: utility/data leaf
+            degree_shape = 0.0
             basis = ["degree_shape:pure_sink"]
         elif incoming_count <= 1:
-            degree_shape = 0.5  # near-source: script root or weakly connected code
+            degree_shape = 0.5
             basis = ["degree_shape:near_source"]
         else:
-            # Preserve a small connector tie-break without letting raw degree
-            # turn high-use helpers into architecture by themselves.
             degree_shape = 1.0 + min(incoming_count, 5) * 0.2 + min(outgoing_count, 5) * 0.2
             basis = ["degree_shape:connector"]
         score = 1.0 + degree_shape
@@ -72,7 +317,7 @@ def rank_symbols(
         if path_matches:
             score += 5.0 * path_matches
             basis.append(f"path_match:{path_matches}")
-        stage_match = _stage_path_match(symbol.path, terms)
+        stage_match = _stage_path_match(symbol.path, terms, stage_prefix_pattern)
         if stage_match:
             score += 12.0
             basis.append(f"stage_path:{stage_match}")
@@ -100,102 +345,36 @@ def rank_symbols(
     return sorted(ranked, key=lambda item: (-item[1], item[0].path, item[0].start_line))
 
 
-def _personalized_random_walk(
-    symbols: list[SymbolRecord],
-    edges: list[EdgeRecord],
-    *,
+def _expanded_query_terms(
     query: str | None,
-    body_matches: set[str] | None,
-) -> dict[str, float]:
-    """Return a deterministic query-personalized walk over observed edges.
-
-    This is deliberately a small, local PPR-style scorer rather than a claim
-    of semantic call-graph completeness. Resolved lexical edges form an
-    undirected neighborhood so a query can reach callers and callees; edges
-    without a target symbol are excluded because they are ambiguous. The
-    final scores are normalized around one, making the walk a bounded ranking
-    signal instead of a repository-size-dependent raw probability.
-    """
-
-    symbol_ids = {symbol.symbol_id for symbol in symbols}
-    adjacency: dict[str, set[str]] = {symbol_id: set() for symbol_id in symbol_ids}
-    for edge in edges:
-        if edge.target_symbol_id in symbol_ids and edge.source_symbol_id in symbol_ids:
-            adjacency[edge.source_symbol_id].add(edge.target_symbol_id)
-            adjacency[edge.target_symbol_id].add(edge.source_symbol_id)
-
-    terms = _expanded_query_terms(query)
-    teleport: dict[str, float] = {}
-    for symbol in symbols:
-        name_haystack = f"{symbol.name} {symbol.qualified_name} {symbol.signature}"
-        name_matches = _term_match_count(name_haystack, terms)
-        path_matches = _term_match_count(symbol.path, terms)
-        body_match = symbol.symbol_id in (body_matches or set())
-        if name_matches or path_matches or body_match:
-            teleport[symbol.symbol_id] = (
-                1.0
-                + 1.25 * name_matches
-                + 0.75 * path_matches
-                + (1.5 if body_match else 0.0)
-            )
-    if not teleport:
-        return {symbol_id: 1.0 for symbol_id in symbol_ids}
-    total = sum(teleport.values())
-    teleport = {symbol_id: value / total for symbol_id, value in teleport.items()}
-
-    scores = {symbol_id: teleport.get(symbol_id, 0.0) for symbol_id in symbol_ids}
-    damping = 0.85
-    for _ in range(20):
-        next_scores = {symbol_id: (1.0 - damping) * teleport.get(symbol_id, 0.0) for symbol_id in symbol_ids}
-        dangling = sum(scores[symbol_id] for symbol_id, neighbors in adjacency.items() if not neighbors)
-        for symbol_id in symbol_ids:
-            neighbors = adjacency[symbol_id]
-            if neighbors:
-                share = damping * scores[symbol_id] / len(neighbors)
-                for neighbor in neighbors:
-                    next_scores[neighbor] += share
-        if dangling:
-            for symbol_id, probability in teleport.items():
-                next_scores[symbol_id] += damping * dangling * probability
-        scores = next_scores
-
-    mean = sum(scores.values()) / max(1, len(scores))
-    if math.isclose(mean, 0.0):
-        return {symbol_id: 0.0 for symbol_id in symbol_ids}
-    return {symbol_id: probability / mean for symbol_id, probability in scores.items()}
-
-
-def _expanded_query_terms(query: str | None) -> set[str]:
-    """Expand a few ordinary English/code morphology variants for seeding.
-
-    This is intentionally a small deterministic vocabulary, not an embedding
-    model. It lets ``registry`` reach ``register`` and ``recognition`` reach
-    ``recognise`` while keeping the ranking explainable in ``rank_basis``.
-    """
-
+    query_expansions: dict[str, list[str]] | None = None,
+) -> set[str]:
+    """Expand morphology variants for seeding, using configured expansions."""
     terms = {part.lower() for part in (query or "").replace("/", " ").replace("_", " ").split() if part}
-    expansions = {
-        "registry": {"register", "registry"},
-        "registration": {"register", "registry"},
-        "selection": {"select", "get", "lookup"},
-        "recognition": {"recognize", "recognise", "ocr"},
-        "extraction": {"extract"},
-        "detection": {"detect"},
-        "geometry": {"geom", "geometry"},
-        "rendering": {"render", "renderer"},
-    }
+    expansions = query_expansions or {}
     for term in tuple(terms):
-        terms.update(expansions.get(term, set()))
+        for exp in expansions.get(term, []):
+            terms.add(exp.lower())
     return terms
 
 
-def _stage_path_match(path: str, terms: set[str]) -> str | None:
-    """Recognize a query term in a conventional numbered pipeline filename."""
-
+def _stage_path_match(
+    path: str,
+    terms: set[str],
+    stage_prefix_pattern: str | None = None,
+) -> str | None:
+    """Recognize a query term in a pipeline filename matching stage_prefix_pattern."""
+    if not stage_prefix_pattern:
+        return None
     filename = path.replace("\\", "/").rsplit("/", 1)[-1].lower()
     stem = filename.rsplit(".", 1)[0]
+    try:
+        if not re.search(stage_prefix_pattern, stem):
+            return None
+    except re.error:
+        return None
     for term in sorted(terms):
-        if f"_{term}" in stem and any(char.isdigit() for char in stem.split("_", 1)[0]):
+        if term in stem:
             return term
     return None
 
