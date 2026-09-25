@@ -35,6 +35,7 @@ from token_context_mcp.models import (
     symbol_as_dict,
 )
 from token_context_mcp.retrieve.freshness import FreshnessCache
+from token_context_mcp.retrieve.graph_cache import GraphCache, RepoGraph
 from token_context_mcp.retrieve.ranking import rank_symbols
 from token_context_mcp.retrieve.token_budget import (
     ESTIMATOR_VERSION,
@@ -105,6 +106,7 @@ class RetrievalService:
         self._freshness_cache = FreshnessCache()
         self._pointer_cache: dict[str, tuple[float, Path, str | None]] = {}
         self._pool = ReadConnectionPool()
+        self._graph_cache = GraphCache(capacity=3)
         self._thread_local = threading.local()
 
     @property
@@ -261,7 +263,9 @@ class RetrievalService:
             raise RetrievalError("format must be compact or full")
         repository, store, metadata = self._repository_store(repo_id)
         store.reset_query_count()
-        file_records = {item.path: item for item in store.files()}
+        index_run_id = str(metadata.get("index_run_id", ""))
+        graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
+        file_records = graph.file_records
         freshness = self._freshness(
             repository.root,
             list(file_records.values()),
@@ -269,11 +273,8 @@ class RetrievalService:
             metadata=metadata,
             repo_id=repository.repo_id,
         )
-        symbols = store.symbols()
-        if not include_tests:
-            symbols = [symbol for symbol in symbols if not _looks_like_test_path(symbol.path)]
-        symbol_ids = {symbol.symbol_id for symbol in symbols}
-        edges = [edge for edge in store.edges() if edge.source_symbol_id in symbol_ids]
+        symbols = graph.symbols_filtered(include_tests=include_tests)
+        edges = graph.edges_filtered(include_tests=include_tests)
         body_matches: set[str] = set()
         if query:
             try:
@@ -302,6 +303,7 @@ class RetrievalService:
                     file_records=file_records,
                     output_format=format,
                     rank_basis=item[2],
+                    graph=graph,
                 )
                 for item in selected_items
             ]
@@ -347,6 +349,7 @@ class RetrievalService:
                     file_records=file_records,
                     output_format=format,
                     rank_basis=item[2],
+                    graph=graph,
                 )
             ),
             packing_budget,
@@ -829,15 +832,18 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
+        index_run_id = str(metadata.get("index_run_id", ""))
+        graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
+        file_records = graph.file_records
         freshness = self._freshness(
             repository.root,
-            store.files(),
+            list(file_records.values()),
             allow_symlinks=repository.allow_symlinks,
             metadata=metadata,
             repo_id=repository.repo_id,
         )
-        canonical_symbol_id = self._resolve_symbol_id(store, symbol_id)
-        root_symbol = store.symbol(canonical_symbol_id) if canonical_symbol_id else None
+        canonical_symbol_id = self._resolve_symbol_id(store, symbol_id, graph=graph)
+        root_symbol = graph.get_symbol(canonical_symbol_id) if canonical_symbol_id else None
         if root_symbol is None:
             stub = None
             if symbol_id.startswith("ext:"):
@@ -900,6 +906,7 @@ class RetrievalService:
             direction="both",
             depth=depth,
             max_nodes=self.config.server.max_graph_nodes,
+            graph=graph,
         )
         stub_map = {}
         for edge in traversal_edges:
@@ -914,7 +921,7 @@ class RetrievalService:
                         "signature": s_rec.signature,
                         "doc_summary": s_rec.doc_summary,
                     }
-        symbols = [store.symbol(item) for item in context_ids]
+        symbols = [graph.get_symbol(item) for item in context_ids]
         symbols = [item for item in symbols if item is not None]
         assert symbols, "root symbol must exist"
         root_symbol = symbols[0]
@@ -964,6 +971,7 @@ class RetrievalService:
             root_symbol,
             include_body,
             allow_symlinks=repository.allow_symlinks,
+            file_records=file_records,
         )
 
         root_packet_fits = True
@@ -982,6 +990,7 @@ class RetrievalService:
                     root_symbol,
                     False,
                     allow_symlinks=repository.allow_symlinks,
+                    file_records=file_records,
                 )
 
         preview_no_body = build_response([("symbol", root_packet)], [], 0)
@@ -1003,6 +1012,7 @@ class RetrievalService:
                     symbol,
                     False,
                     allow_symlinks=repository.allow_symlinks,
+                    file_records=file_records,
                 )
             )
 
@@ -1060,9 +1070,13 @@ class RetrievalService:
         if not 0 <= depth <= 3:
             raise ArgumentOutOfRangeError("depth", depth, 0, 3)
         repository, store, metadata = self._repository_store(repo_id)
+        store.reset_query_count()
+        index_run_id = str(metadata.get("index_run_id", ""))
+        graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
+        file_records = graph.file_records
         freshness = self._freshness(
             repository.root,
-            store.files(),
+            list(file_records.values()),
             allow_symlinks=repository.allow_symlinks,
             metadata=metadata,
             repo_id=repository.repo_id,
@@ -1071,7 +1085,7 @@ class RetrievalService:
             max_nodes = _metadata_default(metadata, "impact_max_nodes", 100)
         if not 1 <= max_nodes <= DEFAULT_MAX_GRAPH_NODES:
             raise ArgumentOutOfRangeError("max_nodes", max_nodes, 1, DEFAULT_MAX_GRAPH_NODES)
-        canonical_symbol_id = self._resolve_symbol_id(store, symbol_id)
+        canonical_symbol_id = self._resolve_symbol_id(store, symbol_id, graph=graph)
         if canonical_symbol_id is None:
             raise RetrievalError("unknown symbol_id")
         effective_max_nodes = min(max_nodes, self.config.server.max_graph_nodes)
@@ -1081,12 +1095,13 @@ class RetrievalService:
             direction=direction,
             depth=depth,
             max_nodes=effective_max_nodes,
+            graph=graph,
         )
         if filter_ambiguous:
             edges = [e for e in edges if e.status != "ambiguous"]
         if min_confidence is not None:
             edges = [e for e in edges if e.confidence is not None and e.confidence >= min_confidence]
-        symbols = [store.symbol(item) for item in ids]
+        symbols = [graph.get_symbol(item) for item in ids]
         symbols = [item for item in symbols if item]
         completeness = _completeness(edges)
         entries: list[tuple[str, dict[str, Any]]] = []
@@ -1097,7 +1112,7 @@ class RetrievalService:
                     "symbol",
                     {
                         "symbol": symbol_as_dict(root),
-                        "evidence": self._evidence_for_symbol(store, root).as_dict(),
+                        "evidence": self._evidence_for_symbol(store, root, file_records=file_records).as_dict(),
                     },
                 )
             )
@@ -1107,7 +1122,7 @@ class RetrievalService:
                 "symbol",
                 {
                     "symbol": symbol_as_dict(symbol),
-                    "evidence": self._evidence_for_symbol(store, symbol).as_dict(),
+                    "evidence": self._evidence_for_symbol(store, symbol, file_records=file_records).as_dict(),
                 },
             )
             for symbol in symbols[1:]
@@ -1256,9 +1271,14 @@ class RetrievalService:
         file_records: dict[str, FileRecord] | None = None,
         output_format: Literal["compact", "full"] = "full",
         rank_basis: list[str] | None = None,
+        graph: RepoGraph | None = None,
     ) -> dict[str, Any] | list[str]:
         symbol, score = item
         if output_format == "compact":
+            if graph is not None:
+                cached = graph.get_memo_entry(symbol.symbol_id, "compact")
+                if cached is not None:
+                    return cached
             # Positional fields keep the high-cardinality map cheap while the
             # server instruction documents the stable order: [id, location,
             # signature]. The short id is accepted by follow-up tools.
@@ -1270,6 +1290,8 @@ class RetrievalService:
             compact_basis = _compact_rank_basis(symbol, rank_basis)
             if compact_basis:
                 entry.append(compact_basis)
+            if graph is not None:
+                graph.set_memo_entry(symbol.symbol_id, "compact", entry)
             return entry
         return {
             "rank": round(score, 3),
@@ -1303,7 +1325,18 @@ class RetrievalService:
         if _payload_tokens(response) > self.config.server.max_result_tokens:
             raise RetrievalError("response exceeds configured max_result_tokens")
 
-    def _resolve_symbol_id(self, store: SQLiteStore, symbol_id: str) -> str | None:
+    def _resolve_symbol_id(
+        self,
+        store: SQLiteStore,
+        symbol_id: str,
+        *,
+        graph: RepoGraph | None = None,
+    ) -> str | None:
+        if graph is not None:
+            if symbol_id in graph.symbol_map:
+                return symbol_id
+            matches = [s_id for s_id in graph.symbol_map if _compact_symbol_ref(s_id) == symbol_id]
+            return matches[0] if len(matches) == 1 else None
         if store.symbol(symbol_id) is not None:
             return symbol_id
         matches = [item.symbol_id for item in store.symbols() if _compact_symbol_ref(item.symbol_id) == symbol_id]
@@ -1330,8 +1363,11 @@ class RetrievalService:
         include_body: bool,
         *,
         allow_symlinks: bool = False,
+        file_records: dict[str, FileRecord] | None = None,
     ) -> dict[str, Any]:
-        record = store.file(symbol.path)
+        record = file_records.get(symbol.path) if file_records is not None else store.file(symbol.path)
+        if record is None:
+            record = store.file(symbol.path)
         assert record is not None
         warnings: list[str] = []
         state, current_hash = self._freshness_cache.path_state(root, record, allow_symlinks=allow_symlinks)
@@ -1365,7 +1401,10 @@ class RetrievalService:
         direction: str,
         depth: int,
         max_nodes: int,
+        graph: RepoGraph | None = None,
     ) -> tuple[list[str], list[EdgeRecord], bool]:
+        if graph is not None:
+            return graph.traverse(root_symbol_id, direction=direction, depth=depth, max_nodes=max_nodes)
         visited = {root_symbol_id}
         queue: deque[tuple[str, int]] = deque([(root_symbol_id, 0)])
         edges: list[EdgeRecord] = []
