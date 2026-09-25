@@ -9,7 +9,9 @@ from typing import Any
 
 from token_context_mcp.constants import SUPPORTED_EXTENSIONS
 from token_context_mcp.index.hashing import sha256_bytes
+from token_context_mcp.index.runner import _gitignore_spec
 from token_context_mcp.models import FileRecord
+from token_context_mcp.security.content_policy import is_hard_denied
 from token_context_mcp.security.path_policy import PathPolicyError, safe_relative_path
 
 
@@ -130,31 +132,27 @@ class FreshnessCache:
         if dir_mtimes is None or not isinstance(dir_mtimes, dict):
             warnings.append("added_file_detection_unavailable")
         else:
-            def scan_dir(dir_full: Path) -> None:
-                try:
-                    for entry in os.scandir(dir_full):
-                        if entry.is_file():
-                            p = Path(entry.path)
-                            if p.suffix.lower() in SUPPORTED_EXTENSIONS:
-                                try:
-                                    rel_file = str(p.relative_to(root)).replace("\\", "/")
-                                except ValueError:
-                                    continue
-                                if rel_file not in indexed_paths_set and rel_file not in added_paths:
-                                    added_paths.append(rel_file)
-                        elif entry.is_dir() and not entry.name.startswith((".", "__")):
-                            rel_d = str(Path(entry.path).relative_to(root)).replace("\\", "/")
-                            if rel_d not in dir_mtimes:
-                                scan_dir(Path(entry.path))
-                except OSError:
-                    pass
-
+            gitignore = _gitignore_spec(root)
             for rel_dir, expected_mtime in dir_mtimes.items():
                 dir_full = root if rel_dir == "." else (root / rel_dir)
                 try:
                     st = dir_full.stat()
                     if st.st_mtime_ns != expected_mtime:
-                        scan_dir(dir_full)
+                        for entry in os.scandir(dir_full):
+                            if entry.is_file():
+                                p = Path(entry.path)
+                                if p.suffix.lower() in SUPPORTED_EXTENSIONS:
+                                    try:
+                                        rel_file = str(p.relative_to(root)).replace("\\", "/")
+                                    except ValueError:
+                                        continue
+                                    if (
+                                        rel_file not in indexed_paths_set
+                                        and rel_file not in added_paths
+                                        and not is_hard_denied(rel_file)
+                                        and not gitignore.match_file(rel_file)
+                                    ):
+                                        added_paths.append(rel_file)
                 except OSError:
                     pass
 
