@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS symbols (
 );
 CREATE INDEX IF NOT EXISTS symbols_path_idx ON symbols(path);
 CREATE INDEX IF NOT EXISTS symbols_name_idx ON symbols(name);
+CREATE INDEX IF NOT EXISTS symbols_qualified_name_idx ON symbols(qualified_name);
 CREATE VIRTUAL TABLE IF NOT EXISTS symbol_bodies USING fts5(
   symbol_id UNINDEXED,
   path UNINDEXED,
@@ -82,11 +85,14 @@ CREATE TABLE IF NOT EXISTS edges (
 CREATE INDEX IF NOT EXISTS edges_source_idx ON edges(source_symbol_id);
 CREATE INDEX IF NOT EXISTS edges_target_idx ON edges(target_symbol_id);
 CREATE INDEX IF NOT EXISTS edges_stub_idx ON edges(target_stub_id);
+CREATE INDEX IF NOT EXISTS edges_target_name_idx ON edges(target_name);
 CREATE TABLE IF NOT EXISTS imports (
   path TEXT NOT NULL REFERENCES files(path),
   module TEXT NOT NULL,
   PRIMARY KEY(path, module)
 );
+CREATE INDEX IF NOT EXISTS imports_path_idx ON imports(path);
+CREATE INDEX IF NOT EXISTS imports_module_idx ON imports(module);
 CREATE TABLE IF NOT EXISTS class_hierarchy (
   class_symbol_id TEXT NOT NULL REFERENCES symbols(symbol_id),
   parent_name TEXT NOT NULL,
@@ -101,10 +107,71 @@ class StoreError(RuntimeError):
     pass
 
 
+class ReadConnectionPool:
+    """Thread-safe connection pool for read-only SQLite database access."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        # (thread_id, resolved_path_str) -> sqlite3.Connection
+        self._connections: dict[tuple[int, str], sqlite3.Connection] = {}
+
+    def get_connection(self, path: Path) -> sqlite3.Connection:
+        tid = threading.get_ident()
+        resolved = str(path.resolve())
+        key = (tid, resolved)
+        with self._lock:
+            conn = self._connections.get(key)
+            if conn is not None:
+                return conn
+
+        uri = f"file:{path.as_posix()}?mode=ro"
+        conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA query_only = ON;")
+        conn.execute("PRAGMA mmap_size = 268435456;")
+        conn.execute("PRAGMA cache_size = -65536;")
+        conn.execute("PRAGMA temp_store = MEMORY;")
+
+        with self._lock:
+            if key in self._connections:
+                conn.close()
+                return self._connections[key]
+            self._connections[key] = conn
+            return conn
+
+    def close_db(self, path: Path) -> None:
+        resolved = str(path.resolve())
+        with self._lock:
+            to_close = [k for k in self._connections if k[1] == resolved]
+            for k in to_close:
+                conn = self._connections.pop(k, None)
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+
+    def close_all(self) -> None:
+        with self._lock:
+            for conn in self._connections.values():
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            self._connections.clear()
+
+
 class SQLiteStore:
-    def __init__(self, path: Path, *, read_only: bool = False) -> None:
+    def __init__(
+        self,
+        path: Path,
+        *,
+        read_only: bool = False,
+        pool: ReadConnectionPool | None = None,
+    ) -> None:
         self.path = path
         self.read_only = read_only
+        self.pool = pool
         self._query_count = 0
 
     @property
@@ -116,29 +183,41 @@ class SQLiteStore:
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
-        if self.read_only:
+        from_pool = False
+        if self.read_only and self.pool is not None:
+            connection = self.pool.get_connection(self.path)
+            from_pool = True
+        elif self.read_only:
             uri = f"file:{self.path.as_posix()}?mode=ro"
             connection = sqlite3.connect(uri, uri=True)
+            connection.row_factory = sqlite3.Row
         else:
             secure_directory(self.path.parent)
             connection = sqlite3.connect(self.path)
             # SQLite creates the database with the process umask, which on a
             # default POSIX host leaves indexed source bodies world-readable.
             secure_sqlite_artifacts(self.path)
-        connection.row_factory = sqlite3.Row
-        connection.set_trace_callback(self._count_query)
+            connection.row_factory = sqlite3.Row
+
+        if os.environ.get("TOKEN_CONTEXT_TRACE_SQL") == "1":
+            connection.set_trace_callback(self._count_query)
+        else:
+            connection.set_trace_callback(None)
+
         try:
             yield connection
             if not self.read_only:
                 connection.commit()
         except Exception:
-            connection.rollback()
+            if not self.read_only:
+                connection.rollback()
             raise
         finally:
-            connection.close()
-            if not self.read_only:
-                # The WAL sidecars only appear once the session writes.
-                secure_sqlite_artifacts(self.path)
+            if not from_pool:
+                connection.close()
+                if not self.read_only:
+                    # The WAL sidecars only appear once the session writes.
+                    secure_sqlite_artifacts(self.path)
 
     def _count_query(self, _statement: str) -> None:
         self._query_count += 1

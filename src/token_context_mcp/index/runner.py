@@ -108,7 +108,7 @@ def build_index(
         try:
             previous_store = SQLiteStore(destination, read_only=True)
             previous_metadata = previous_store.metadata()
-            if previous_metadata.get("index_schema_version") == INDEX_SCHEMA_VERSION:
+            if previous_metadata.get("index_schema_version") in ("2.1", "2.2"):
                 previous_files = {item.path: item for item in previous_store.files()}
             else:
                 # The old snapshot may not have role columns. Reparse it

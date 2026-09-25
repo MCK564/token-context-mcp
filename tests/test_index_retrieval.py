@@ -266,7 +266,10 @@ def test_wire_symbols_omit_byte_offsets_and_evidence_is_compact(indexed_config: 
     assert len(response["data"]["symbols"][0]["evidence"][0]["sha256"]) == 12
 
 
-def test_repo_map_compact_entries_are_dense_and_follow_up_resolvable(indexed_config: Path) -> None:
+def test_repo_map_compact_entries_are_dense_and_follow_up_resolvable(
+    indexed_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TOKEN_CONTEXT_TRACE_SQL", "1")
     service = _service(indexed_config)
     response = service.repo_map("demo", budget_tokens=512)
     entries = response["data"]["symbols"]

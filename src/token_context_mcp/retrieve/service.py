@@ -18,11 +18,12 @@ from token_context_mcp.config import (
 from token_context_mcp.constants import (
     DEFAULT_MAX_GRAPH_NODES,
     ENVELOPE_RESERVE_TOKENS,
+    INDEX_SCHEMA_VERSION,
     SCHEMA_VERSION,
 )
 from token_context_mcp.index.hashing import sha256_file
 from token_context_mcp.index.runner import current_pointer_path, database_path
-from token_context_mcp.index.sqlite_store import SQLiteStore, StoreError
+from token_context_mcp.index.sqlite_store import ReadConnectionPool, SQLiteStore, StoreError
 from token_context_mcp.models import (
     EdgeRecord,
     Evidence,
@@ -85,6 +86,7 @@ class RetrievalService:
         self.last_query_count = 0
         self._freshness_cache = FreshnessCache()
         self._pointer_cache: dict[str, tuple[float, Path, str | None]] = {}
+        self._pool = ReadConnectionPool()
 
     @property
     def config(self) -> AppConfig:
@@ -1141,18 +1143,24 @@ class RetrievalService:
                 try:
                     data = json.loads(ptr_file.read_text(encoding="utf-8"))
                     db_name = data.get("db")
+                    index_run_id = data.get("index_run_id")
                     if db_name:
                         cand = idx_dir / db_name
                         if cand.exists():
+                            if cached is not None and (cached[1] != cand or cached[2] != index_run_id):
+                                self._pool.close_db(cached[1])
                             db_path = cand
-                            self._pointer_cache[repo_id] = (now, cand, data.get("index_run_id"))
+                            self._pointer_cache[repo_id] = (now, cand, index_run_id)
                 except Exception:
                     pass
             if db_path is None:
-                db_path = database_path(idx_dir, repo_id)
+                cand = database_path(idx_dir, repo_id)
+                if cached is not None and cached[1] != cand:
+                    self._pool.close_db(cached[1])
+                db_path = cand
                 self._pointer_cache[repo_id] = (now, db_path, None)
 
-        return SQLiteStore(db_path, read_only=True)
+        return SQLiteStore(db_path, read_only=True, pool=self._pool)
 
     def _current_hash(self, root: Path, record: FileRecord, *, allow_symlinks: bool = False) -> str | None:
         state, sha = self._freshness_cache.path_state(root, record, allow_symlinks=allow_symlinks)
@@ -1335,6 +1343,12 @@ class RetrievalService:
         truncated: bool | None = None,
         edge_precision: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        effective_warnings = list(warnings)
+        idx_ver = metadata.get("index_schema_version")
+        if idx_ver is not None and str(idx_ver) < INDEX_SCHEMA_VERSION:
+            if "index_schema_outdated_reindex_recommended" not in effective_warnings:
+                effective_warnings.append("index_schema_outdated_reindex_recommended")
+
         envelope: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "repo_id": repo_id,
@@ -1351,7 +1365,7 @@ class RetrievalService:
             },
             "truncated": (estimated_tokens > requested_tokens) if truncated is None else truncated,
             "completeness": completeness or {"value": None, "basis": "not_applicable"},
-            "warnings": sorted(set(warnings)),
+            "warnings": sorted(set(effective_warnings)),
             "evidence": evidence or [],
             "data": data,
         }
