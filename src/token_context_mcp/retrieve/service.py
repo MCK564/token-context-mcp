@@ -336,13 +336,7 @@ class RetrievalService:
         if not 1 <= limit <= 100:
             raise ArgumentOutOfRangeError("limit", limit, 1, 100)
         repository, store, metadata = self._repository_store(repo_id)
-        freshness = self._freshness(
-            repository.root,
-            store.files(),
-            allow_symlinks=repository.allow_symlinks,
-            metadata=metadata,
-            repo_id=repository.repo_id,
-        )
+        store.reset_query_count()
         match_query = _fts_query(query)
         try:
             total_matches = store.count_source_matches(match_query)
@@ -356,14 +350,23 @@ class RetrievalService:
             rows,
             key=lambda r: (1 if r["path"].startswith(("tests/", "evals/")) else 0),
         )
+
+        paths = [r["path"] for r in sorted_rows]
+        all_symbols = store.symbols_for_paths(paths)
+        symbols_by_path: dict[str, list[SymbolRecord]] = {}
+        for s in all_symbols:
+            symbols_by_path.setdefault(s.path, []).append(s)
+
+        file_records_map = {r["path"]: r["file_record"] for r in sorted_rows if "file_record" in r}
+
         for row in sorted_rows:
-            file_record = store.file(row["path"])
+            file_record = row.get("file_record") or store.file(row["path"])
             if file_record is None:
                 continue
             state, current_hash = self._freshness_cache.path_state(
                 repository.root, file_record, allow_symlinks=repository.allow_symlinks
             )
-            file_symbols = store.symbols(path=row["path"])
+            file_symbols = symbols_by_path.get(row["path"], [])
             if state != "fresh" or current_hash != file_record.sha256:
                 stale_paths.append(row["path"])
                 symbol = None
@@ -375,11 +378,7 @@ class RetrievalService:
                         "start_line": line_number,
                         "end_line": line_number,
                         "snippet": None,
-                        "evidence": (
-                            self._evidence_for_symbol(store, symbol).as_dict()
-                            if symbol
-                            else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
-                        ),
+                        "evidence": Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict(),
                         "warnings": ["stale_content_unavailable"],
                     }
                 )
@@ -401,13 +400,19 @@ class RetrievalService:
                         "end_line": line_number,
                         "snippet": snippet,
                         "evidence": (
-                            self._evidence_for_symbol(store, symbol).as_dict()
+                            self._evidence_for_symbol(store, symbol, file_records=file_records_map).as_dict()
                             if symbol
                             else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
                         ),
                         **({"redacted_lines": redacted} if redacted else {}),
                     }
                 )
+        cached_snap = self._freshness_cache._snapshots.get((repository.repo_id, str(metadata.get("index_run_id", ""))))
+        if cached_snap is not None and (time.monotonic() - cached_snap.timestamp) <= self._freshness_cache.ttl:
+            freshness = cached_snap.status
+        else:
+            freshness = "stale" if stale_paths else "fresh"
+
         source_limit_omitted = max(0, total_matches - len(rows))
         response_warnings: list[str] = []
         if any(item.get("redacted_lines", 0) for item in entries):
@@ -444,6 +449,7 @@ class RetrievalService:
             build_response,
         )
         response = build_response(chosen, omitted, used)
+        self.last_query_count = store.query_count
         self._assert_under_server_cap(response)
         return response
 

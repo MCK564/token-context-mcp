@@ -138,3 +138,27 @@ def f5():
     assert res["data"]["omitted_count"] > 0
     assert res["truncated"] is True
 
+
+def test_search_source_batch_query(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root = tmp_path / "batch-repo"
+    root.mkdir()
+    # Create 10 files matching the keyword
+    for i in range(10):
+        (root / f"mod_{i}.py").write_text(
+            f"def func_{i}():\n    return 'batch_test_keyword {i}'\n",
+            encoding="utf-8",
+        )
+    config_path = tmp_path / "config" / "repos.toml"
+    repo = RepositoryConfig(repo_id="test-batch", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"test-batch": repo}, server=ServerConfig()))
+    build_index(repo, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+
+    monkeypatch.setenv("TOKEN_CONTEXT_TRACE_SQL", "1")
+    service = _service(config_path)
+    res = service.search_source("test-batch", query="batch_test_keyword", limit=20)
+    matches = res["data"]["matches"]
+    matched_paths = {m["path"] for m in matches}
+    assert len(matched_paths) == 10
+    # SQL query count must be <= 3 (count + search_matches + symbols_for_paths)
+    assert service.last_query_count <= 3
+

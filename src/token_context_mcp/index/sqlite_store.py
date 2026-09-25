@@ -219,7 +219,10 @@ class SQLiteStore:
                     # The WAL sidecars only appear once the session writes.
                     secure_sqlite_artifacts(self.path)
 
-    def _count_query(self, _statement: str) -> None:
+    def _count_query(self, statement: str) -> None:
+        raw = statement.strip()
+        if raw.startswith(("--", "PRAGMA")) or "_config" in raw:
+            return
         self._query_count += 1
 
     def initialize(self) -> None:
@@ -608,23 +611,42 @@ class SQLiteStore:
         assert row is not None
         return int(row["count"])
 
-    def search_source_matches(self, query: str, *, limit: int) -> list[dict[str, str]]:
+    def search_source_matches(self, query: str, *, limit: int) -> list[dict[str, Any]]:
         try:
             with self.connection() as connection:
                 rows = connection.execute(
                     """
-                    SELECT path,
+                    SELECT f.path, f.sha256, f.size, f.mtime_ns, f.language, f.parse_status, f.warnings_json,
                            snippet(source_bodies, 1, '', '', '…', 24) AS snippet
                     FROM source_bodies
-                    WHERE body MATCH ?
-                    ORDER BY bm25(source_bodies), path
+                    JOIN files f ON source_bodies.path = f.path
+                    WHERE source_bodies.body MATCH ?
+                    ORDER BY bm25(source_bodies), f.path
                     LIMIT ?
                     """,
                     (query, limit),
                 ).fetchall()
         except sqlite3.OperationalError as error:
             raise StoreError("body search index is unavailable; rebuild the repository index") from error
-        return [{"path": str(row["path"]), "snippet": str(row["snippet"])} for row in rows]
+        return [
+            {
+                "path": str(row["path"]),
+                "snippet": str(row["snippet"]),
+                "file_record": _file_from_row(row),
+            }
+            for row in rows
+        ]
+
+    def symbols_for_paths(self, paths: list[str]) -> list[SymbolRecord]:
+        if not paths:
+            return []
+        placeholders = ",".join("?" for _ in paths)
+        with self.connection() as connection:
+            rows = connection.execute(
+                f"SELECT * FROM symbols WHERE path IN ({placeholders}) ORDER BY path, start_line",
+                tuple(paths),
+            ).fetchall()
+        return [_symbol_from_row(row) for row in rows]
 
     def edges_from(self, symbol_id: str) -> list[EdgeRecord]:
         return self._edges("source_symbol_id = ?", (symbol_id,))
