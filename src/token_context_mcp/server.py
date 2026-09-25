@@ -51,8 +51,8 @@ def build_server(
         enable_admin_tools if enable_admin_tools is not None else getattr(config.server, "enable_admin_tools", False)
     )
     if extensions_enabled:
-        memory_service = MemoryService(config_path.parent / "memory.sqlite")
         sampling_router = SamplingRouter()
+        memory_service = MemoryService(config_path.parent / "memory.sqlite", router=sampling_router)
     else:
         memory_service = None
         sampling_router = None
@@ -136,6 +136,7 @@ def build_server(
     server.access_control = access_control  # type: ignore[attr-defined]
     server.audit_logger = audit_logger      # type: ignore[attr-defined]
     server.memory_service = memory_service  # type: ignore[attr-defined]
+    server.sampling_router = sampling_router  # type: ignore[attr-defined]
 
     @server.tool(
         title="Registered repositories",

@@ -24,7 +24,17 @@ from token_context_mcp.sampling.skeleton_hybrid import build_hybrid_context
 
 class SamplingRouter:
     def __init__(self, hardware: HardwareProfile | None = None) -> None:
-        self.hardware = hardware or probe_hardware()
+        self._hardware: HardwareProfile | None = hardware
+
+    @property
+    def hardware(self) -> HardwareProfile:
+        if self._hardware is None:
+            self._hardware = probe_hardware()
+        return self._hardware
+
+    @hardware.setter
+    def hardware(self, value: HardwareProfile | None) -> None:
+        self._hardware = value
 
     def summarize(
         self,

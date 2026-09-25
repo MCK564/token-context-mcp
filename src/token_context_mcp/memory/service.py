@@ -8,12 +8,13 @@ from token_context_mcp.memory.store import MemoryStore
 
 
 class MemoryService:
-    def __init__(self, storage_path: Path | str | None = None) -> None:
+    def __init__(self, storage_path: Path | str | None = None, router: Any | None = None) -> None:
         if storage_path is None:
             # Default to in-memory store if not specified
             self.store = MemoryStore(":memory:")
         else:
             self.store = MemoryStore(storage_path)
+        self.router = router
 
     def memory_put(
         self,
@@ -96,8 +97,11 @@ class MemoryService:
             lines.append(f"- Key: `{e['key']}` | Value: {val_str}")
         compiled_context = "\n".join(lines)
 
-        from token_context_mcp.sampling.router import SamplingRouter
-        router = SamplingRouter()
+        if self.router is not None:
+            router = self.router
+        else:
+            from token_context_mcp.sampling.router import SamplingRouter
+            router = SamplingRouter()
         intent = "Consolidate fragmented memory checkpoints, extract architectural insights, and deduplicate redundant entities"
         summary_res = router.summarize(text=compiled_context, intent=intent, max_tokens=512)
 

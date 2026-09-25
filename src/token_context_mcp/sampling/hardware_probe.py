@@ -6,8 +6,20 @@ import os
 import platform
 import shutil
 import subprocess
+import time
 from dataclasses import dataclass, field
 from urllib import error as urllib_error, request as urllib_request
+
+_cached_profile: HardwareProfile | None = None
+_cached_profile_time: float = 0.0
+_CACHE_TTL_SEC: float = 600.0  # 10 minutes
+
+
+def reset_hardware_cache() -> None:
+    """Reset cached hardware profile (mainly for testing)."""
+    global _cached_profile, _cached_profile_time
+    _cached_profile = None
+    _cached_profile_time = 0.0
 
 
 @dataclass(frozen=True)
@@ -51,8 +63,16 @@ def calculate_adaptive_timeout(input_tokens: int, backend_mode: str) -> float:
     return round(min(max_timeout, max(base_timeout, calculated)), 2)
 
 
-def probe_hardware() -> HardwareProfile:
-    """Probe system resources to select optimal inference backend."""
+def probe_hardware(force_refresh: bool = False) -> HardwareProfile:
+    """Probe system resources to select optimal inference backend.
+    
+    Caches HardwareProfile per process with a 10-minute TTL unless force_refresh is True.
+    """
+    global _cached_profile, _cached_profile_time
+    now = time.monotonic()
+    if not force_refresh and _cached_profile is not None and (now - _cached_profile_time) < _CACHE_TTL_SEC:
+        return _cached_profile
+
     has_cuda = False
     vram_gb = 0.0
     ram_gb = 16.0  # safe default
@@ -88,17 +108,26 @@ def probe_hardware() -> HardwareProfile:
     # 3. Check system RAM on Windows / Linux
     try:
         if platform.system() == "Windows":
-            out = subprocess.check_output(
-                [
-                    "powershell",
-                    "-NoProfile",
-                    "-Command",
-                    "(Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB",
-                ],
-                timeout=3,
-                text=True,
-            )
-            ram_gb = round(float(out.strip()), 1)
+            import ctypes
+            from ctypes import wintypes
+
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [
+                    ("dwLength", wintypes.DWORD),
+                    ("dwMemoryLoad", wintypes.DWORD),
+                    ("ullTotalPhys", ctypes.c_ulonglong),
+                    ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ]
+
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+                ram_gb = round(stat.ullTotalPhys / (1024**3), 1)
         elif hasattr(os, "sysconf"):
             pages = os.sysconf("SC_PHYS_PAGES")
             page_size = os.sysconf("SC_PAGE_SIZE")
@@ -145,7 +174,7 @@ def probe_hardware() -> HardwareProfile:
         backend_mode = "heuristic_fallback"
         recommended_backend = "heuristic_fallback"
 
-    return HardwareProfile(
+    profile = HardwareProfile(
         has_cuda=has_cuda,
         vram_gb=vram_gb,
         ram_gb=ram_gb,
@@ -157,3 +186,7 @@ def probe_hardware() -> HardwareProfile:
         available_models=available_models,
         recommended_model=recommended_model,
     )
+    _cached_profile = profile
+    _cached_profile_time = now
+    return profile
+
