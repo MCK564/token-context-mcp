@@ -48,6 +48,7 @@ EXTENDED_TOOLS = CORE_TOOLS | {
     "memory_get",
     "memory_search",
     "memory_lock",
+    "memory_unlock",
     "memory_consolidate",
     "sample_summarize",
 }
@@ -66,7 +67,7 @@ async def _run() -> None:
             names = {tool.name for tool in tools.tools}
             if names not in (CORE_TOOLS, EXTENDED_TOOLS):
                 raise AssertionError(
-                    f"expected 10 core tools or 19 extended tools, got {len(names)}: {sorted(names)}"
+                    f"expected 10 core tools or 20 extended tools, got {len(names)}: {sorted(names)}"
                 )
 
 
