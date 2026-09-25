@@ -40,6 +40,7 @@ def test_gui_controls_server_e2e(indexed_config: Path) -> None:
             time.sleep(0.02)
 
         elapsed_halt = time.perf_counter() - t0
+        print(f"\n[MEASUREMENT] E2E halt latency: {elapsed_halt:.4f}s")
         assert halt_recognized is True, f"Server failed to recognize GUI halt within 1.1s (took {elapsed_halt:.3f}s)"
         assert elapsed_halt <= 1.1, f"Halt propagation exceeded 1.1s SLA: {elapsed_halt:.3f}s"
 
@@ -56,6 +57,7 @@ def test_gui_controls_server_e2e(indexed_config: Path) -> None:
             time.sleep(0.02)
 
         elapsed_resume = time.perf_counter() - t1
+        print(f"\n[MEASUREMENT] E2E resume latency: {elapsed_resume:.4f}s")
         assert resume_recognized is True, f"Server failed to recognize GUI resume within 1.1s (took {elapsed_resume:.3f}s)"
         assert elapsed_resume <= 1.1, f"Resume propagation exceeded 1.1s SLA: {elapsed_resume:.3f}s"
 
