@@ -1,9 +1,12 @@
 """High-throughput SQLite-first audit logging for multi-agent tool execution."""
 from __future__ import annotations
 
+import atexit
 import json
 import logging
+import queue
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -30,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_agent ON audit_logs(agent_id);
 
 
 class AuditLogger:
-    """Non-blocking, WAL-mode SQLite audit logger for security observability."""
+    """Non-blocking, batched WAL-mode SQLite audit logger for security observability."""
 
     def __init__(self, db_path: Path | str = ":memory:") -> None:
         self.db_path = str(db_path)
@@ -44,8 +47,98 @@ class AuditLogger:
         with self._conn:
             self._conn.executescript(AUDIT_SCHEMA)
 
+        self._commit_count = 0
+        self._write_lock = threading.Lock()
+        self._queue: queue.Queue[tuple[float, str | None, str, str, float, str] | None] = queue.Queue()
+        self._closed = False
+        self._wake_event = threading.Event()
+
+        self._worker = threading.Thread(target=self._worker_loop, daemon=True, name="AuditLoggerWorker")
+        self._worker.start()
+        atexit.register(self.close)
+
+    @property
+    def commit_count(self) -> int:
+        return self._commit_count
+
+    def _worker_loop(self) -> None:
+        while not self._closed:
+            self._wake_event.wait(timeout=0.250)
+            self._wake_event.clear()
+            self._flush_batch()
+
+    def _flush_batch(self) -> None:
+        batch: list[tuple[float, str | None, str, str, float, str]] = []
+        with self._write_lock:
+            while len(batch) < 100:
+                try:
+                    item = self._queue.get_nowait()
+                except queue.Empty:
+                    break
+                if item is None:
+                    self._closed = True
+                    break
+                batch.append(item)
+
+            if batch:
+                try:
+                    with self._conn:
+                        self._conn.executemany(
+                            """
+                            INSERT INTO audit_logs (timestamp, agent_id, tool_name, status, duration_ms, details_json)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            """,
+                            batch,
+                        )
+                    self._commit_count += 1
+                except Exception:
+                    logger.exception("Failed to write audit log batch")
+
+    def flush(self) -> None:
+        """Immediately flush all queued logs into the database."""
+        with self._write_lock:
+            batch: list[tuple[float, str | None, str, str, float, str]] = []
+            while True:
+                try:
+                    item = self._queue.get_nowait()
+                except queue.Empty:
+                    break
+                if item is None:
+                    self._closed = True
+                    break
+                batch.append(item)
+
+            if batch:
+                try:
+                    with self._conn:
+                        self._conn.executemany(
+                            """
+                            INSERT INTO audit_logs (timestamp, agent_id, tool_name, status, duration_ms, details_json)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                            """,
+                            batch,
+                        )
+                    self._commit_count += 1
+                except Exception:
+                    logger.exception("Failed to flush audit log batch")
+
     def close(self) -> None:
-        """Close database connection."""
+        """Close database connection and flush pending logs."""
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            atexit.unregister(self.close)
+        except Exception:
+            pass
+        self._wake_event.set()
+        try:
+            self._queue.put_nowait(None)
+        except Exception:
+            pass
+        self.flush()
+        if self._worker.is_alive() and threading.current_thread() != self._worker:
+            self._worker.join(timeout=1.0)
         try:
             self._conn.close()
         except Exception:
@@ -60,19 +153,16 @@ class AuditLogger:
         details: dict[str, Any] | None = None,
     ) -> None:
         """Record a tool execution event. Never raises exceptions to caller."""
+        if self._closed:
+            return
         try:
             now = time.time()
             details_str = json.dumps(details or {}, ensure_ascii=False)
-            with self._conn:
-                self._conn.execute(
-                    """
-                    INSERT INTO audit_logs (timestamp, agent_id, tool_name, status, duration_ms, details_json)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                    (now, agent_id, tool_name, status, round(duration_ms, 3), details_str),
-                )
+            self._queue.put((now, agent_id, tool_name, status, round(duration_ms, 3), details_str))
+            if self._queue.qsize() >= 100:
+                self._wake_event.set()
         except Exception:
-            logger.exception("Failed to write audit log entry")
+            logger.exception("Failed to enqueue audit log entry")
 
     def query_logs(
         self,
@@ -80,7 +170,8 @@ class AuditLogger:
         agent_id: str | None = None,
         status: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Retrieve recent audit logs with optional filtering."""
+        """Retrieve recent audit logs with optional filtering. Flushes pending queue first."""
+        self.flush()
         try:
             query = "SELECT id, timestamp, agent_id, tool_name, status, duration_ms, details_json FROM audit_logs"
             params: list[Any] = []
@@ -122,6 +213,7 @@ class AuditLogger:
 
     def clear_old_logs(self, days_to_keep: int = 7) -> int:
         """Purge logs older than retention period."""
+        self.flush()
         try:
             cutoff = time.time() - (days_to_keep * 86400)
             with self._conn:
