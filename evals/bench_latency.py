@@ -84,11 +84,46 @@ def run_benchmark(
     tools.append(("inspect_symbol", lambda: workflow.inspect_symbol(repo_id, query=sample_name)))
 
     # Setup monkeypatch counters
+    sha256_calls = 0
+    sha256_total_bytes = 0
+    os_stat_calls = 0
+    sqlite3_connect_calls = 0
     sha256_file_calls = 0
     sha256_bytes_calls = 0
 
+    import hashlib
+    import os
+    import sqlite3
+
+    orig_sha256 = hashlib.sha256
+    orig_os_stat = os.stat
+    orig_sqlite3_connect = sqlite3.connect
     orig_sha256_file = hashing_mod.sha256_file
     orig_sha256_bytes = hashing_mod.sha256_bytes
+
+    def counting_sha256(data: bytes = b"", *args: Any, **kwargs: Any) -> Any:
+        nonlocal sha256_calls, sha256_total_bytes
+        sha256_calls += 1
+        if data:
+            sha256_total_bytes += len(data)
+        h = orig_sha256(data, *args, **kwargs)
+        orig_update = h.update
+        def counting_update(raw: bytes) -> None:
+            nonlocal sha256_total_bytes
+            sha256_total_bytes += len(raw)
+            return orig_update(raw)
+        h.update = counting_update
+        return h
+
+    def counting_os_stat(*args: Any, **kwargs: Any) -> os.stat_result:
+        nonlocal os_stat_calls
+        os_stat_calls += 1
+        return orig_os_stat(*args, **kwargs)
+
+    def counting_sqlite3_connect(*args: Any, **kwargs: Any) -> sqlite3.Connection:
+        nonlocal sqlite3_connect_calls
+        sqlite3_connect_calls += 1
+        return orig_sqlite3_connect(*args, **kwargs)
 
     def counting_sha256_file(path: Path) -> str:
         nonlocal sha256_file_calls
@@ -100,6 +135,9 @@ def run_benchmark(
         sha256_bytes_calls += 1
         return orig_sha256_bytes(raw)
 
+    hashlib.sha256 = counting_sha256
+    os.stat = counting_os_stat
+    sqlite3.connect = counting_sqlite3_connect
     hashing_mod.sha256_file = counting_sha256_file
     hashing_mod.sha256_bytes = counting_sha256_bytes
     service_mod.sha256_file = counting_sha256_file
@@ -115,6 +153,10 @@ def run_benchmark(
                 pass
 
             durations_ms: list[float] = []
+            sha256_calls = 0
+            sha256_total_bytes = 0
+            os_stat_calls = 0
+            sqlite3_connect_calls = 0
             sha256_file_calls = 0
             sha256_bytes_calls = 0
 
@@ -132,22 +174,29 @@ def run_benchmark(
             p95 = percentile(durations_sorted, 95.0)
             max_latency = max(durations_sorted) if durations_sorted else 0.0
 
-            file_hashes_per_call = round(sha256_file_calls / iterations, 2)
-            byte_hashes_per_call = round(sha256_bytes_calls / iterations, 2)
-
             results.append({
                 "tool": tool_name,
                 "iterations": iterations,
                 "p50_ms": round(p50, 2),
                 "p95_ms": round(p95, 2),
                 "max_ms": round(max_latency, 2),
-                "sha256_file_per_call": file_hashes_per_call,
-                "sha256_bytes_per_call": byte_hashes_per_call,
+                "sha256_calls_per_call": round(sha256_calls / iterations, 2),
+                "sha256_bytes_per_call": round(sha256_total_bytes / iterations, 2),
+                "os_stat_per_call": round(os_stat_calls / iterations, 2),
+                "sqlite3_connect_per_call": round(sqlite3_connect_calls / iterations, 2),
+                "total_sha256_calls": sha256_calls,
+                "total_sha256_bytes": sha256_total_bytes,
+                "total_os_stat_calls": os_stat_calls,
+                "total_sqlite3_connect_calls": sqlite3_connect_calls,
+                "sha256_file_per_call": round(sha256_file_calls / iterations, 2),
                 "total_sha256_file_calls": sha256_file_calls,
                 "total_sha256_bytes_calls": sha256_bytes_calls,
             })
     finally:
         # Restore original functions
+        hashlib.sha256 = orig_sha256
+        os.stat = orig_os_stat
+        sqlite3.connect = orig_sqlite3_connect
         hashing_mod.sha256_file = orig_sha256_file
         hashing_mod.sha256_bytes = orig_sha256_bytes
         service_mod.sha256_file = orig_sha256_file
@@ -172,10 +221,10 @@ def main() -> None:
     report = run_benchmark(args.repo_id, config_path=cfg_p, iterations=args.iterations)
 
     print(f"=== Latency Benchmark for repo '{args.repo_id}' (n={args.iterations}) ===")
-    print(f"{'Tool':<25} {'p50 (ms)':>10} {'p95 (ms)':>10} {'max (ms)':>10} {'sha256_file':>12} {'sha256_bytes':>12}")
-    print("-" * 85)
+    print(f"{'Tool':<25} {'p50 (ms)':>10} {'p95 (ms)':>10} {'max (ms)':>10} {'sha256':>10} {'bytes':>12} {'stat':>10} {'sqlite':>10}")
+    print("-" * 105)
     for t in report["tools"]:
-        print(f"{t['tool']:<25} {t['p50_ms']:>10.2f} {t['p95_ms']:>10.2f} {t['max_ms']:>10.2f} {t['sha256_file_per_call']:>12.1f} {t['sha256_bytes_per_call']:>12.1f}")
+        print(f"{t['tool']:<25} {t['p50_ms']:>10.2f} {t['p95_ms']:>10.2f} {t['max_ms']:>10.2f} {t['sha256_calls_per_call']:>10.1f} {t['sha256_bytes_per_call']:>12.1f} {t['os_stat_per_call']:>10.1f} {t['sqlite3_connect_per_call']:>10.1f}")
 
     if args.output:
         out_p = Path(args.output).expanduser().resolve()
@@ -187,3 +236,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
