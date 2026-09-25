@@ -86,6 +86,8 @@ class GovernanceStore:
                     agent_id TEXT PRIMARY KEY,
                     status TEXT NOT NULL DEFAULT 'ACTIVE',
                     reason TEXT NOT NULL DEFAULT '',
+                    policy TEXT NOT NULL DEFAULT '',
+                    custom_tools_json TEXT NOT NULL DEFAULT '[]',
                     registered_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
@@ -103,6 +105,17 @@ class GovernanceStore:
                 );
                 """
             )
+            # Ensure policy and custom_tools_json columns exist if migrating existing DB
+            try:
+                cols = [r[1] for r in conn.execute("PRAGMA table_info(agents);")]
+                if "policy" not in cols:
+                    conn.execute("ALTER TABLE agents ADD COLUMN policy TEXT NOT NULL DEFAULT '';")
+                if "custom_tools_json" not in cols:
+                    conn.execute("ALTER TABLE agents ADD COLUMN custom_tools_json TEXT NOT NULL DEFAULT '[]';")
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass
+
             now = _utc_now_iso()
             conn.execute(
                 "INSERT OR IGNORE INTO emergency (id, halted, reason, updated_at) VALUES (1, 0, '', ?)",
@@ -113,7 +126,7 @@ class GovernanceStore:
     def get_agent(self, agent_id: str) -> dict[str, Any] | None:
         with self._connection() as conn:
             cur = conn.execute(
-                "SELECT agent_id, status, reason, registered_at, updated_at FROM agents WHERE agent_id = ?",
+                "SELECT agent_id, status, reason, policy, custom_tools_json, registered_at, updated_at FROM agents WHERE agent_id = ?",
                 (agent_id,),
             )
             row = cur.fetchone()
@@ -121,28 +134,45 @@ class GovernanceStore:
                 return None
             return dict(row)
 
-    def upsert_agent(self, agent_id: str, status: str, reason: str = "") -> None:
+    def upsert_agent(
+        self,
+        agent_id: str,
+        status: str | None = None,
+        reason: str = "",
+        policy: str | None = None,
+        custom_tools_json: str | None = None,
+    ) -> None:
         now = _utc_now_iso()
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO agents (agent_id, status, reason, registered_at, updated_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO agents (agent_id, status, reason, policy, custom_tools_json, registered_at, updated_at)
+                VALUES (:id, COALESCE(:status, 'ACTIVE'), :reason, COALESCE(:policy, ''), COALESCE(:tools, '[]'), :now, :now)
                 ON CONFLICT(agent_id) DO UPDATE SET
-                    status = excluded.status,
-                    reason = excluded.reason,
-                    updated_at = excluded.updated_at
+                    status = COALESCE(:status, agents.status),
+                    reason = CASE WHEN :status IS NOT NULL THEN :reason ELSE agents.reason END,
+                    policy = COALESCE(:policy, agents.policy),
+                    custom_tools_json = COALESCE(:tools, agents.custom_tools_json),
+                    updated_at = :now
                 """,
-                (agent_id, status, reason, now, now),
+                {
+                    "id": agent_id,
+                    "status": status,
+                    "reason": reason,
+                    "policy": policy,
+                    "tools": custom_tools_json,
+                    "now": now,
+                },
             )
             conn.commit()
 
     def list_agents(self) -> list[dict[str, Any]]:
         with self._connection() as conn:
             cur = conn.execute(
-                "SELECT agent_id, status, reason, registered_at, updated_at FROM agents ORDER BY agent_id"
+                "SELECT agent_id, status, reason, policy, custom_tools_json, registered_at, updated_at FROM agents ORDER BY agent_id"
             )
             return [dict(row) for row in cur.fetchall()]
+
 
     def is_emergency_halted(self) -> tuple[bool, str]:
         with self._connection() as conn:

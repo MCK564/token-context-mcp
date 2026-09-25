@@ -219,3 +219,35 @@ def test_server_heartbeat_recording(indexed_config: Path) -> None:
     active = gov_store.get_active_servers(stale_threshold_sec=10.0)
     assert len(active) >= 1
     assert any(s["pid"] == os.getpid() for s in active)
+
+
+def test_policy_cross_process_propagation(tmp_path: Path) -> None:
+    db_path = tmp_path / "gov_policy.sqlite"
+    store_a = GovernanceStore(db_path)
+    store_b = GovernanceStore(db_path)
+
+    mgr_a = AccessControlManager(store=store_a)
+    mgr_b = AccessControlManager(store=store_b)
+
+    # Initial check: agent w1 has standard policy in B
+    allowed, _ = mgr_b.check_access("memory_put", agent_id="w1")
+    assert allowed is True
+
+    # Manager A sets READ_ONLY policy for w1
+    t0 = time.perf_counter()
+    mgr_a.set_agent_policy("w1", PolicyProfile.READ_ONLY)
+
+    # Manager B should reject mutating tool (memory_put) within <= 0.6s
+    rejected = False
+    while time.perf_counter() - t0 <= 0.7:
+        allowed, reason = mgr_b.check_access("memory_put", agent_id="w1")
+        if not allowed:
+            assert "POLICY_VIOLATION" in (reason or "")
+            rejected = True
+            break
+        time.sleep(0.02)
+
+    elapsed = time.perf_counter() - t0
+    assert rejected is True, f"Policy not propagated to manager B within 0.6s (took {elapsed:.3f}s)"
+    assert elapsed <= 0.6, f"Policy propagation took {elapsed:.3f}s, exceeding 0.6s SLA"
+

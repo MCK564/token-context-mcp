@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import collections
 import enum
+import json
 import os
 import re
 import time
 from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from token_context_mcp.security.governance_store import GovernanceStore
@@ -105,9 +107,9 @@ class AccessControlManager:
         self._emergency_halt: bool = False
         self._emergency_reason: str = ""
 
-        # TTL cache for SQLite reads
+        # TTL cache for SQLite reads (G3: reduced to 0.5s to meet <= 1.1s propagation SLA)
         self._cache_last_refresh: float = 0.0
-        self._cache_ttl_sec: float = 1.0
+        self._cache_ttl_sec: float = 0.5
 
         if self.store is not None:
             self._refresh_cache_if_needed(force=True)
@@ -130,7 +132,25 @@ class AccessControlManager:
             except ValueError:
                 self._states[aid] = AgentState.ACTIVE
             self._reasons[aid] = ag.get("reason", "")
+
+            # G3: reload policy and custom tools
+            pol_str = ag.get("policy")
+            if pol_str:
+                try:
+                    self._policies[aid] = PolicyProfile(pol_str)
+                except ValueError:
+                    pass
+            tools_json = ag.get("custom_tools_json")
+            if tools_json:
+                try:
+                    tools_list = json.loads(tools_json)
+                    if isinstance(tools_list, list):
+                        self._custom_allowed_tools[aid] = set(tools_list)
+                except Exception:
+                    pass
+
         self._cache_last_refresh = now
+
 
     @property
     def is_emergency_halted(self) -> bool:
@@ -226,13 +246,19 @@ class AccessControlManager:
         self._policies[agent_id] = policy
         if custom_tools is not None:
             self._custom_allowed_tools[agent_id] = set(custom_tools)
+        if self.store is not None:
+            tools_json = json.dumps(list(custom_tools)) if custom_tools is not None else None
+            self.store.upsert_agent(agent_id, policy=policy.value, custom_tools_json=tools_json)
+            self._cache_last_refresh = time.monotonic()
 
     def get_agent_state(self, agent_id: str) -> AgentState:
         self._refresh_cache_if_needed()
         return self._states.get(agent_id, AgentState.ACTIVE)
 
     def get_agent_policy(self, agent_id: str) -> PolicyProfile:
+        self._refresh_cache_if_needed()
         return self._policies.get(agent_id, self.default_policy)
+
 
     def check_access(
         self,
