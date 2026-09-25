@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — M2-F Remediation & Bug Fixes (2026-09-25, branch `feat/m2-governance`)
+
+- **G1 (P0 Memory Migration & Auto-repair)**: `MemoryStore` v3 migration, automated detection and rebuild of broken legacy FTS tables lacking `namespace` column, backup to `.bak-v<ver>`, leaf string value re-redaction, refined SQLite error handling distinguishing syntax errors from structural errors.
+- **G2 (GUI Bridge Read/Write Separation)**: `AgentSecurityController` wired to `GovernanceStore`, `refresh_data()` made pure query via `merge_seen_agents()`, eliminating unexpected write mutations on GUI refresh.
+- **G3 (Agent Policy Synchronization)**: Added `policy` and `custom_tools_json` columns to `governance.sqlite` `agents` table, reduced access control cache TTL to 0.5s, cross-process policy sync verified within 0.6s.
+- **G4 (inspect_symbol Compact Relationships)**: Used compact edge dicts in `normal` view, increased edge retrieval ceiling (`slice_tokens`), added explicit `relationships_truncated` warning and `relationships_omitted` field when truncated.
+
 ## Unreleased — M2 Governance & Memory Safety (2026-09-24, branch `feat/m2-governance`)
 
 - **Admin tools gate** (`enable_admin_tools: bool = False`): `agent_control` and `audit_logs` only registered when opt-in flag is set; `action=status` always public, all other actions require `TOKEN_CONTEXT_ADMIN_TOKEN`.
