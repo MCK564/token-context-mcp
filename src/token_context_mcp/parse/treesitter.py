@@ -497,11 +497,17 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     return result if isinstance(result, str) else None
 
 
-_GENERIC_WRAPPERS = {
-    "Optional", "Union", "List", "Dict", "Set", "Tuple", "Iterable", "Sequence",
-    "Mapping", "Any", "None", "Callable", "Iterator", "Generator", "AsyncGenerator",
-    "Coroutine", "Awaitable", "Type", "ClassVar", "Final", "Annotated",
+_CONTAINER_TYPES = {
+    "dict", "Dict", "defaultdict", "Mapping", "MutableMapping",
+    "list", "List", "Sequence", "MutableSequence", "Iterable", "Iterator",
+    "set", "Set", "MutableSet", "frozenset", "FrozenSet",
+    "tuple", "Tuple",
 }
+
+_UNWRAP_WRAPPERS = {
+    "Optional", "Union", "Final", "ClassVar", "Annotated", "Type",
+}
+
 _BRANCH_NODES = {
     "if_statement", "try_statement", "while_statement", "for_statement",
     "for_in_statement", "switch_statement", "match_statement", "conditional_expression",
@@ -510,11 +516,45 @@ _BRANCH_NODES = {
 
 def _clean_type_name(text: str) -> str:
     cleaned = text.lstrip(":").strip()
+    if not cleaned:
+        return ""
+
+    # Handle X | None or None | X
+    if "|" in cleaned:
+        parts = [p.strip() for p in cleaned.split("|") if p.strip() and p.strip() != "None"]
+        if len(parts) == 1:
+            cleaned = parts[0]
+        else:
+            return ""
+
+    # Check container types before brackets
+    bracket_idx = cleaned.find("[")
+    if bracket_idx != -1:
+        outer = cleaned[:bracket_idx].strip()
+        outer_short = outer.rsplit(".", 1)[-1]
+        if outer_short in _CONTAINER_TYPES:
+            # The variable itself is a container!
+            if outer_short in {"dict", "Dict", "defaultdict", "Mapping", "MutableMapping"}:
+                return "dict"
+            if outer_short in {"list", "List", "Sequence", "MutableSequence", "Iterable", "Iterator"}:
+                return "list"
+            if outer_short in {"set", "Set", "MutableSet", "frozenset", "FrozenSet"}:
+                return "set"
+            if outer_short in {"tuple", "Tuple"}:
+                return "tuple"
+        if outer_short in _UNWRAP_WRAPPERS:
+            # Unwrap first type argument: Optional[T] -> T
+            inner = cleaned[bracket_idx + 1 :].rstrip("]").strip()
+            first_arg = inner.split(",")[0].strip()
+            return _clean_type_name(first_arg)
+
+    # Standard identifier extraction
     identifiers = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", cleaned)
     for ident in identifiers:
-        if ident not in _GENERIC_WRAPPERS and (ident[0].isupper() or "_" in ident):
+        if ident not in _UNWRAP_WRAPPERS and ident not in {"Any", "None"} and (ident[0].isupper() or "_" in ident):
             return ident
     return identifiers[0] if identifiers else ""
+
 
 
 def _analyze_function_scope(

@@ -214,6 +214,68 @@ def build_lexical_edges(
     return _deduplicate(edges)
 
 
+_BUILTIN_RECEIVERS = {
+    "os", "sys", "re", "json", "time", "math", "uuid", "shutil", "pathlib", "logging",
+    "logger", "log", "tomllib", "hashlib", "sqlite3", "pathspec", "pytest", "io",
+    "dict", "list", "set", "tuple", "str", "bytes", "bytearray",
+    "raw", "os.environ", "payload", "manifest", "usage", "agent", "topic",
+    "i", "d", "data", "resp", "response", "params", "args", "kwargs", "settings",
+}
+
+_GENERIC_METHOD_NAMES = {
+    "get", "set", "run", "close", "save", "load", "update", "read", "write",
+    "execute", "process", "format", "render", "parse", "connect", "handle",
+    "start", "stop", "reset", "clear", "build", "create", "delete", "send",
+    "items", "keys", "values", "pop", "append", "extend", "strip", "split", "join",
+    "search", "match", "sub", "findall", "finditer",
+}
+
+
+def _path_segments(path_str: str) -> list[str]:
+    p = path_str.replace("\\", "/")
+    filename = p.rsplit("/", 1)[-1]
+    if "." in filename:
+        p = p[: -(len(filename) - filename.rfind("."))]
+    return [s for s in p.split("/") if s]
+
+
+def _import_matches_candidate(imp: str, candidate: SymbolRecord) -> bool:
+    """Check if an import string accurately matches a candidate symbol's module or path."""
+    if not imp:
+        return False
+
+    cand_segs = _path_segments(candidate.path)
+    if not cand_segs:
+        return False
+
+    # 1. from a.b import CandidateName -> imp is "a.b.CandidateName"
+    if "." in imp:
+        mod_part, member_part = imp.rsplit(".", 1)
+        if member_part == candidate.name:
+            mod_segs = [s for s in mod_part.replace(".", "/").split("/") if s]
+            if len(cand_segs) >= len(mod_segs) and cand_segs[-len(mod_segs) :] == mod_segs:
+                return True
+    elif imp == candidate.name:
+        return True
+
+    # 2. Module import matches candidate file path exactly (as segment suffix)
+    imp_segs = [s for s in imp.replace(".", "/").split("/") if s]
+    if not imp_segs:
+        return False
+
+    # Check exact segment suffix match
+    if len(cand_segs) >= len(imp_segs) and cand_segs[-len(imp_segs) :] == imp_segs:
+        return True
+
+    # Check package __init__
+    if cand_segs[-1] == "__init__":
+        pkg_segs = cand_segs[:-1]
+        if len(pkg_segs) >= len(imp_segs) and pkg_segs[-len(imp_segs) :] == imp_segs:
+            return True
+
+    return False
+
+
 def _resolve_candidate(
     source: SymbolRecord,
     candidates: list[SymbolRecord],
@@ -226,9 +288,17 @@ def _resolve_candidate(
     imports_list = imports or []
 
     # Defensive Heuristic: Tainted variable (reassigned >= 2 times or assigned in branch)
-    # Immediately downgrade to ambiguous 0.10 to prevent false positive edges
     if is_tainted:
         return None, "tainted_poly_receiver", 0.10
+
+    # Fast skip for known built-in / standard library receivers when calling generic methods
+    if receiver:
+        rec_clean = receiver.strip()
+        if rec_clean in _BUILTIN_RECEIVERS or (receiver_type and receiver_type in _BUILTIN_RECEIVERS):
+            # Check if this receiver is an explicitly imported internal module
+            has_internal_import = any(_import_matches_candidate(imp, c) for imp in imports_list for c in candidates if c.path != source.path)
+            if not has_internal_import:
+                return None, "builtin_receiver_skipped", 0.10
 
     # 1. Receiver is self / this / cls -> resolve within class if possible
     if receiver in {"self", "this", "cls"}:
@@ -262,7 +332,7 @@ def _resolve_candidate(
             return None, "same_file_ambiguous", 0.10
 
     # 2. Inferred receiver type from parameter type hint or single-assignment
-    if receiver_type:
+    if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
         type_matches = [
             c for c in candidates
             if c.qualified_name.startswith(f"{receiver_type}.") or c.qualified_name.endswith(f"{receiver_type}.{c.name}")
@@ -270,7 +340,6 @@ def _resolve_candidate(
         if len(type_matches) == 1:
             return type_matches[0], "exact_receiver_type", 0.90
         if len(type_matches) > 1:
-            # Narrow with same file or imports if multiple matches
             same_file_type = [c for c in type_matches if c.path == source.path]
             if len(same_file_type) == 1:
                 return same_file_type[0], "exact_receiver_type", 0.90
@@ -300,11 +369,10 @@ def _resolve_candidate(
             same_file_rec = [c for c in receiver_matches if c.path == source.path]
             if len(same_file_rec) == 1:
                 return same_file_rec[0], "same_file", 0.90
-            # Narrow with imports
             if imports_list:
                 import_rec = [
                     c for c in receiver_matches
-                    if any(imp.replace(".", "/") in c.path.replace("\\", "/") for imp in imports_list)
+                    if any(_import_matches_candidate(imp, c) for imp in imports_list)
                 ]
                 if len(import_rec) == 1:
                     return import_rec[0], "import_match", 0.90
@@ -315,14 +383,43 @@ def _resolve_candidate(
         if matched_imports:
             imp_cands = [
                 c for c in candidates
-                if any(imp.replace(".", "/") in c.path.replace("\\", "/") for imp in matched_imports)
+                if any(_import_matches_candidate(imp, c) for imp in matched_imports)
             ]
             if len(imp_cands) == 1:
                 return imp_cands[0], "import_module_match", 0.75
             if len(imp_cands) > 1:
                 return None, "import_module_ambiguous", 0.10
 
+        # Check if candidate is a method of an imported/same-file class and receiver name matches class name:
+        # e.g., receiver="store" matches class="SQLiteStore" or "MemoryStore" (when imported)
+        if imports_list or any(c.path == source.path for c in candidates):
+            imported_class_matches = []
+            for c in candidates:
+                if "." in c.qualified_name:
+                    cls_name = c.qualified_name.rsplit(".", 1)[0].rsplit(".", 1)[-1]
+                    is_available = any(
+                        imp == cls_name or imp.endswith(f".{cls_name}") or _import_matches_candidate(imp, c)
+                        for imp in imports_list
+                    ) or (c.path == source.path)
+                    if is_available:
+                        rec_clean = receiver.lower().replace("self.", "")
+                        cls_clean = cls_name.lower()
+                        # Match when variable name is a meaningful substring of class name
+                        if rec_clean and (rec_clean in cls_clean or cls_clean in rec_clean):
+                            if len(rec_clean) >= 3 and rec_clean not in _BUILTIN_RECEIVERS:
+                                imported_class_matches.append(c)
+
+            if len(imported_class_matches) == 1:
+                return imported_class_matches[0], "exact_receiver_type", 0.85
+            if len(imported_class_matches) > 1:
+                return None, "receiver_type_ambiguous", 0.10
+
+        # Receiver was explicit but could not be matched:
+        # DO NOT fall back to global search for a method on an unknown receiver!
+        return None, "unresolved_receiver", 0.10
+
     # 4. Direct candidate resolution: same_file -> imported -> same_package -> global
+    # (Only for free function calls, direct identifier invocations without receiver)
     same_file = [candidate for candidate in candidates if candidate.path == source.path]
     if len(same_file) == 1:
         return same_file[0], "same_file", 0.85
@@ -332,7 +429,7 @@ def _resolve_candidate(
     if imports_list:
         imported_cands = [
             c for c in candidates
-            if any(imp.replace(".", "/") in c.path.replace("\\", "/") or imp.endswith(f".{c.name}") for imp in imports_list)
+            if any(_import_matches_candidate(imp, c) for imp in imports_list)
         ]
         if len(imported_cands) == 1:
             return imported_cands[0], "import_match", 0.85
@@ -346,12 +443,21 @@ def _resolve_candidate(
         if candidate.path.rsplit("/", 1)[0] == source_package
     ]
     if len(same_package) == 1:
-        return same_package[0], "same_package", 0.75
+        if same_package[0].name not in _GENERIC_METHOD_NAMES:
+            return same_package[0], "same_package", 0.75
     if len(same_package) > 1:
         return None, "same_package_ambiguous", 0.10
 
+    # Restrict global fallback:
+    # 1. Never fallback for generic method names (get, set, run, etc.)
+    # 2. Never fallback for class methods (must be top-level function or class)
     if len(candidates) == 1:
-        return candidates[0], "global", 0.40
+        cand = candidates[0]
+        if cand.name not in _GENERIC_METHOD_NAMES:
+            is_class_method = ("." in cand.qualified_name) and (cand.kind in {"method", "function"})
+            if not is_class_method:
+                return cand, "global", 0.40
+
     return None, "global_ambiguous", 0.10
 
 

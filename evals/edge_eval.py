@@ -147,13 +147,18 @@ def run_evaluation(
         found = False
         resolved_tgt = None
         for e in site_edges:
-            if exp_tgt_id and e.target_symbol_id == exp_tgt_id:
+            if e.status != "resolved":
+                continue
+            is_match = False
+            if exp_tgt_id:
+                if e.target_symbol_id == exp_tgt_id or (e.target_symbol_id and e.target_symbol_id.startswith(f"{exp_tgt_id}:")):
+                    is_match = True
+            if not is_match and exp_tgt_name:
+                if e.target_name == exp_tgt_name or (e.target_name and exp_tgt_name.endswith(f".{e.target_name}")):
+                    is_match = True
+            if is_match:
                 found = True
-                resolved_tgt = e.target_symbol_id
-                break
-            elif exp_tgt_name and e.target_name == exp_tgt_name:
-                found = True
-                resolved_tgt = e.target_name
+                resolved_tgt = e.target_symbol_id or e.target_name
                 break
 
         pattern_stats[pat]["total"] += 1
