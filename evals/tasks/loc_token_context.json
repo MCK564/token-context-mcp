@@ -7,7 +7,8 @@
       "id": "t01",
       "group": "a_keyword",
       "split": "dev",
-      "query": "tính freshness bằng stat và mtime",
+      "query": "freshness check stat mtime cache",
+      "query_vi": "tính freshness bằng stat và mtime",
       "gold_files": [
         "src/token_context_mcp/retrieve/freshness.py"
       ],
@@ -23,7 +24,8 @@
       "id": "t02",
       "group": "a_keyword",
       "split": "dev",
-      "query": "ghi audit theo lô vào hàng đợi",
+      "query": "batch audit log writer flush",
+      "query_vi": "ghi audit theo lô vào hàng đợi",
       "gold_files": [
         "src/token_context_mcp/security/audit.py"
       ],
@@ -39,7 +41,8 @@
       "id": "t03",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "thuật toán local push ppr lan truyền điểm",
+      "query": "local push ppr personalized pagerank",
+      "query_vi": "thuật toán local push ppr lan truyền điểm",
       "gold_files": [
         "src/token_context_mcp/retrieve/ranking.py"
       ],
@@ -55,7 +58,8 @@
       "id": "t04",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "kết nối read pool quản lý connpool sqlite",
+      "query": "read connection pool get connection",
+      "query_vi": "kết nối read pool quản lý connpool sqlite",
       "gold_files": [
         "src/token_context_mcp/index/sqlite_store.py"
       ],
@@ -71,7 +75,8 @@
       "id": "t05",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "thu hồi snapshot cũ bằng cơ chế gc",
+      "query": "gc snapshots clean old index database",
+      "query_vi": "thu hồi snapshot cũ bằng cơ chế gc",
       "gold_files": [
         "src/token_context_mcp/index/runner.py"
       ],
@@ -87,7 +92,8 @@
       "id": "t06",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "đo phần cứng AI qua ctypes memory probe",
+      "query": "probe hardware detect ram ctypes",
+      "query_vi": "đo phần cứng AI qua ctypes memory probe",
       "gold_files": [
         "src/token_context_mcp/sampling/hardware_probe.py"
       ],
@@ -103,7 +109,8 @@
       "id": "t07",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "tính toán điểm PageRank toàn cục lúc index",
+      "query": "compute global ranks pagerank index time",
+      "query_vi": "tính toán điểm PageRank toàn cục lúc index",
       "gold_files": [
         "src/token_context_mcp/retrieve/ranking.py"
       ],
@@ -119,7 +126,8 @@
       "id": "t08",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "lưu vết và quản lý trạng thái khẩn cấp emergency halt",
+      "query": "governance store set emergency halt",
+      "query_vi": "lưu vết và quản lý trạng thái khẩn cấp emergency halt",
       "gold_files": [
         "src/token_context_mcp/security/governance_store.py"
       ],
@@ -135,7 +143,8 @@
       "id": "t09",
       "group": "a_keyword",
       "split": "dev",
-      "query": "tìm kiếm biểu tượng với ký tự đại diện wildcard find_symbols",
+      "query": "sqlite store find symbols wildcard query",
+      "query_vi": "tìm kiếm biểu tượng với ký tự đại diện wildcard find_symbols",
       "gold_files": [
         "src/token_context_mcp/index/sqlite_store.py"
       ],
@@ -151,7 +160,8 @@
       "id": "t10",
       "group": "a_keyword",
       "split": "heldout",
-      "query": "xử lý câu lệnh khớp FTS query terms match",
+      "query": "fts query builder match terms",
+      "query_vi": "xử lý câu lệnh khớp FTS query terms match",
       "gold_files": [
         "src/token_context_mcp/retrieve/service.py"
       ],
@@ -167,7 +177,8 @@
       "id": "t11",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "khi agent gọi memory_get thì dữ liệu thật sự được đọc ở đâu",
+      "query": "sqlite read behind key value lookup tool",
+      "query_vi": "khi agent gọi memory_get thì dữ liệu thật sự được đọc ở đâu",
       "gold_files": [
         "src/token_context_mcp/memory/store.py"
       ],
@@ -183,7 +194,8 @@
       "id": "t12",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "hàm nào kiểm tra một câu lệnh nạp thư viện có trỏ tới đúng thành phần khai báo theo từng đoạn",
+      "query": "verify path segments resolve correctly for module declaration",
+      "query_vi": "hàm nào kiểm tra một câu lệnh nạp thư viện có trỏ tới đúng thành phần khai báo theo từng đoạn",
       "gold_files": [
         "src/token_context_mcp/parse/lexical_edges.py"
       ],
@@ -199,7 +211,8 @@
       "id": "t13",
       "group": "b_hidden_dep",
       "split": "dev",
-      "query": "tiến trình nào phụ trách ghi dồn dữ liệu giám sát ra đĩa theo chu kỳ",
+      "query": "background thread queue drain flush to database",
+      "query_vi": "tiến trình nào phụ trách ghi dồn dữ liệu giám sát ra đĩa theo chu kỳ",
       "gold_files": [
         "src/token_context_mcp/security/audit.py"
       ],
@@ -215,7 +228,8 @@
       "id": "t14",
       "group": "b_hidden_dep",
       "split": "dev",
-      "query": "thành phần nào chịu trách nhiệm lưu bản đồ quan hệ giữa các nút sau khi dựng chỉ mục",
+      "query": "csr adjacency matrix in memory representation",
+      "query_vi": "thành phần nào chịu trách nhiệm lưu bản đồ quan hệ giữa các nút sau khi dựng chỉ mục",
       "gold_files": [
         "src/token_context_mcp/retrieve/graph_cache.py"
       ],
@@ -231,7 +245,8 @@
       "id": "t15",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "khi yêu cầu sơ đồ tổng quan rút gọn thì thứ tự ưu tiên các tệp được điều chỉnh ở đâu",
+      "query": "file orientation reordering to conserve breadth budget",
+      "query_vi": "khi yêu cầu sơ đồ tổng quan rút gọn thì thứ tự ưu tiên các tệp được điều chỉnh ở đâu",
       "gold_files": [
         "src/token_context_mcp/retrieve/service.py"
       ],
@@ -247,7 +262,8 @@
       "id": "t16",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "thuật toán nào tìm dòng chứa nội dung liên quan nhất bên trong phạm vi mã",
+      "query": "scored line selector within innermost boundary",
+      "query_vi": "thuật toán nào tìm dòng chứa nội dung liên quan nhất bên trong phạm vi mã",
       "gold_files": [
         "src/token_context_mcp/retrieve/service.py"
       ],
@@ -263,7 +279,8 @@
       "id": "t17",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "nơi nào thực hiện trích xuất và che giấu các thông tin nhạy cảm trước khi cất giữ",
+      "query": "mask sensitive tokens secrets before saving",
+      "query_vi": "nơi nào thực hiện trích xuất và che giấu các thông tin nhạy cảm trước khi cất giữ",
       "gold_files": [
         "src/token_context_mcp/memory/store.py"
       ],
@@ -279,7 +296,8 @@
       "id": "t18",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "phương thức nào duy trì thông tin nhịp tim định kỳ của các máy chủ đang hoạt động",
+      "query": "active server periodic alive timestamp update",
+      "query_vi": "phương thức nào duy trì thông tin nhịp tim định kỳ của các máy chủ đang hoạt động",
       "gold_files": [
         "src/token_context_mcp/security/governance_store.py"
       ],
@@ -295,7 +313,8 @@
       "id": "t19",
       "group": "b_hidden_dep",
       "split": "heldout",
-      "query": "thành phần nào phụ trách xác định nút nằm sâu nhất bao bọc vị trí dòng cụ thể",
+      "query": "narrowest enclosing span covering line number",
+      "query_vi": "thành phần nào phụ trách xác định nút nằm sâu nhất bao bọc vị trí dòng cụ thể",
       "gold_files": [
         "src/token_context_mcp/retrieve/service.py"
       ],
@@ -311,7 +330,8 @@
       "id": "t20",
       "group": "b_hidden_dep",
       "split": "dev",
-      "query": "hàm nào kiểm tra và phân giải con trỏ phiên bản hiện tại trước khi truy cập chỉ mục",
+      "query": "active index run pointer descriptor inspect",
+      "query_vi": "hàm nào kiểm tra và phân giải con trỏ phiên bản hiện tại trước khi truy cập chỉ mục",
       "gold_files": [
         "src/token_context_mcp/index/sqlite_store.py"
       ],
@@ -327,7 +347,8 @@
       "id": "t21",
       "group": "c_multi_file",
       "split": "dev",
-      "query": "luồng từ lúc gọi tool tới lúc ghi audit",
+      "query": "tool call to audit record path",
+      "query_vi": "luồng từ lúc gọi tool tới lúc ghi audit",
       "gold_files": [
         "src/token_context_mcp/server.py",
         "src/token_context_mcp/security/audit.py"
@@ -348,7 +369,8 @@
       "id": "t22",
       "group": "c_multi_file",
       "split": "dev",
-      "query": "cạnh được tạo lúc index rồi được dùng để rank thế nào",
+      "query": "edges built at index time used for ranking",
+      "query_vi": "cạnh được tạo lúc index rồi được dùng để rank thế nào",
       "gold_files": [
         "src/token_context_mcp/parse/lexical_edges.py",
         "src/token_context_mcp/retrieve/ranking.py"
@@ -369,7 +391,8 @@
       "id": "t23",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "quy trình phân giải ngữ cảnh biểu tượng kèm bằng chứng mã hóa",
+      "query": "symbol context extraction with evidence digest",
+      "query_vi": "quy trình phân giải ngữ cảnh biểu tượng kèm bằng chứng mã hóa",
       "gold_files": [
         "src/token_context_mcp/retrieve/service.py",
         "src/token_context_mcp/models.py"
@@ -390,7 +413,8 @@
       "id": "t24",
       "group": "c_multi_file",
       "split": "dev",
-      "query": "luồng kiểm tra quyền truy cập trước khi chạy lệnh công cụ",
+      "query": "access control check before tool invoke",
+      "query_vi": "luồng kiểm tra quyền truy cập trước khi chạy lệnh công cụ",
       "gold_files": [
         "src/token_context_mcp/server.py",
         "src/token_context_mcp/security/access_control.py"
@@ -411,7 +435,8 @@
       "id": "t25",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "cơ chế đồng bộ trạng thái server giữa tiến trình giao diện và bộ lưu trữ quản trị",
+      "query": "gui refresh worker sync active servers",
+      "query_vi": "cơ chế đồng bộ trạng thái server giữa tiến trình giao diện và bộ lưu trữ quản trị",
       "gold_files": [
         "src/token_context_mcp/gui/bridge.py",
         "src/token_context_mcp/security/governance_store.py"
@@ -432,7 +457,8 @@
       "id": "t26",
       "group": "c_multi_file",
       "split": "dev",
-      "query": "cách xây dựng đồ thị ký hiệu từ cơ sở dữ liệu để phục vụ truy vấn sơ đồ",
+      "query": "graph cache load csr for repo map",
+      "query_vi": "cách xây dựng đồ thị ký hiệu từ cơ sở dữ liệu để phục vụ truy vấn sơ đồ",
       "gold_files": [
         "src/token_context_mcp/retrieve/graph_cache.py",
         "src/token_context_mcp/retrieve/service.py"
@@ -453,7 +479,8 @@
       "id": "t27",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "luồng phân lập không gian tên và xử lý khóa bộ nhớ dùng chung",
+      "query": "memory service lock with namespace store",
+      "query_vi": "luồng phân lập không gian tên và xử lý khóa bộ nhớ dùng chung",
       "gold_files": [
         "src/token_context_mcp/memory/service.py",
         "src/token_context_mcp/memory/store.py"
@@ -468,13 +495,14 @@
           "qualified_name": "MemoryStore.lock"
         }
       ],
-      "note": "Tầng dịch vụ chuẩn hóa tham số không gian tên và gọi tầng kho lưu trữ để chiếm giữ khóa nguyên tử"
+      "note": "Tầng dịch vụ chuẩn hóa tham số không gian tên và gọi tầng kho lưu trữ để thực thi khóa nguyên tử có thời hạn"
     },
     {
       "id": "t28",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "chu trình khởi chạy lệnh quét chỉ mục từ giao diện dòng lệnh đến lưu trữ đĩa",
+      "query": "cli command index runner build",
+      "query_vi": "chu trình khởi chạy lệnh quét chỉ mục từ giao diện dòng lệnh đến lưu trữ đĩa",
       "gold_files": [
         "src/token_context_mcp/cli.py",
         "src/token_context_mcp/index/runner.py"
@@ -495,7 +523,8 @@
       "id": "t29",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "cơ chế quét và phát hiện các tệp mới thêm vào hoặc bị thay đổi trong kho mã nguồn",
+      "query": "freshness cache directory scan mtime check",
+      "query_vi": "cơ chế quét và phát hiện các tệp mới thêm vào hoặc bị thay đổi trong kho mã nguồn",
       "gold_files": [
         "src/token_context_mcp/retrieve/freshness.py",
         "src/token_context_mcp/retrieve/service.py"
@@ -516,7 +545,8 @@
       "id": "t30",
       "group": "c_multi_file",
       "split": "heldout",
-      "query": "luồng xử lý từ chối quyền truy cập công cụ và tạo phản hồi lỗi",
+      "query": "permission revoked error wrap in server response",
+      "query_vi": "luồng xử lý từ chối quyền truy cập công cụ và tạo phản hồi lỗi",
       "gold_files": [
         "src/token_context_mcp/security/access_control.py",
         "src/token_context_mcp/server.py"

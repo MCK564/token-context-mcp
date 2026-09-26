@@ -60,9 +60,11 @@ def extract_ranked_files(response_data: dict[str, Any]) -> list[str]:
 
     for m in matches:
         p = m.get("path")
-        if p and p not in seen:
-            seen.add(p)
-            files.append(p)
+        if p:
+            norm_p = str(p).replace("\\", "/")
+            if norm_p not in seen:
+                seen.add(norm_p)
+                files.append(norm_p)
 
     for n in neighbors:
         # neighbor format: [id, "path:line", "<kind> <name>", "<relation>", score, "<anchor_id>"]
@@ -73,9 +75,11 @@ def extract_ranked_files(response_data: dict[str, Any]) -> list[str]:
             p = loc.split(":", 1)[0] if ":" in loc else loc
         elif isinstance(n, dict):
             p = n.get("path")
-        if p and p not in seen:
-            seen.add(p)
-            files.append(p)
+        if p:
+            norm_p = str(p).replace("\\", "/")
+            if norm_p not in seen:
+                seen.add(norm_p)
+                files.append(norm_p)
 
     return files
 
@@ -95,9 +99,12 @@ def extract_ranked_symbols(
         pair: tuple[str, str] | None = None
         sym_id = m.get("symbol_id")
         if sym_id and sym_id in symbol_id_map:
-            pair = symbol_id_map[sym_id]
+            raw_p, raw_name = symbol_id_map[sym_id]
+            pair = (raw_p.replace("\\", "/"), raw_name)
         elif m.get("path") and (m.get("qualified_name") or m.get("name")):
-            pair = (m["path"], m.get("qualified_name") or m["name"])
+            raw_p = str(m["path"]).replace("\\", "/")
+            raw_name = m.get("qualified_name") or m["name"]
+            pair = (raw_p, raw_name)
         if pair and pair not in seen:
             seen.add(pair)
             symbols.append(pair)
@@ -107,19 +114,21 @@ def extract_ranked_symbols(
         if isinstance(n, (list, tuple)) and len(n) >= 1:
             sym_id = str(n[0])
             if sym_id in symbol_id_map:
-                pair = symbol_id_map[sym_id]
+                raw_p, raw_name = symbol_id_map[sym_id]
+                pair = (raw_p.replace("\\", "/"), raw_name)
             elif len(n) >= 3:
                 loc = str(n[1])
                 p = loc.split(":", 1)[0] if ":" in loc else loc
                 kind_name = str(n[2]).split(" ", 1)
                 name = kind_name[-1].strip()
-                pair = (p, name)
+                pair = (p.replace("\\", "/"), name)
         elif isinstance(n, dict):
             sym_id = n.get("symbol_id")
             if sym_id and sym_id in symbol_id_map:
-                pair = symbol_id_map[sym_id]
+                raw_p, raw_name = symbol_id_map[sym_id]
+                pair = (raw_p.replace("\\", "/"), raw_name)
             elif n.get("path") and (n.get("qualified_name") or n.get("name")):
-                pair = (n["path"], n.get("qualified_name") or n["name"])
+                pair = (str(n["path"]).replace("\\", "/"), n.get("qualified_name") or n["name"])
         if pair and pair not in seen:
             seen.add(pair)
             symbols.append(pair)
@@ -292,7 +301,13 @@ def run_evaluation(
     task_results: list[dict[str, Any]] = []
 
     for task in tasks:
-        query = task["query"]
+        if arm.upper() == "ORACLE":
+            query = task["gold_symbols"][0]["qualified_name"]
+        elif arm == "A0_vi":
+            query = task.get("query_vi") or task["query"]
+        else:
+            query = task["query"]
+
         latencies_ms: list[float] = []
         last_response: dict[str, Any] = {}
 
@@ -306,6 +321,7 @@ def run_evaluation(
             last_response = resp
 
         task_res = evaluate_single_task(task, last_response, symbol_id_map, latencies_ms)
+        task_res["eval_query"] = query
         task_results.append(task_res)
 
     # Compute aggregates overall and by group
@@ -323,6 +339,15 @@ def run_evaluation(
         "split": split,
         "reviewed": reviewed,
         "split_seed": raw_data.get("split_seed", 20260926),
+        "search_parameters": {
+            "limit": limit,
+            "max_tokens": max_tokens or 2048,
+            "profile": profile,
+            "expand": expand,
+            "expand_k": expand_k,
+            "expand_hops": expand_hops,
+            "min_confidence": min_confidence,
+        },
         "task_count": len(task_results),
         "overall": overall,
         "by_group": by_group,
@@ -348,8 +373,8 @@ def main() -> int:
     parser.add_argument("--expand-hops", type=int, help="max BFS depth")
     parser.add_argument("--min-confidence", type=float, help="min edge confidence threshold")
     parser.add_argument("--limit", type=int, default=20)
-    parser.add_argument("--max-tokens", type=int)
-    parser.add_argument("--profile", type=str)
+    parser.add_argument("--max-tokens", type=int, default=2048)
+    parser.add_argument("--profile", type=str, default=None)
 
     args = parser.parse_args()
 

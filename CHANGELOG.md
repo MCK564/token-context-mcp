@@ -23,7 +23,10 @@
   - Ceiling rule: empirical precision is conservatively capped at 0.95 rather than 1.00 to account for statistical generalization.
 - **Top-20 In-Degree Normalization**:
   - `MemoryStore.get` in-degree reduced from 96 (dominated by false generic calls like `dict.get`, `os.environ.get`) to 10 legitimate callers.
-  - Overall accuracy improved to 89.33% (134/150); recall achieved 85.00% (1.159x baseline).
+  - Overall accuracy achieved 85.33% (128/150 raw eval); recall achieved 85.00% (1.159x baseline).
+- **Known Ranking Regression (dynamic_mode)**:
+  - Pruning of false positive edges shifted relative node degrees, causing `extract_with_trace` (rank 5 -> 8) and `run_with_diagnostics` (rank 7 -> 11) to drop in dynamic on-the-fly ranking, reducing dynamic nDCG@10 from 0.5248 to 0.4908 (-0.034).
+  - In contrast, production index-time `cached_mode` nDCG@10 improved significantly from 0.4224 to 0.5410 (+0.1186). M5 commits to no further regression.
 
 ## Unreleased — M3 Query IO, Latency & Freshness Caching (2026-09-25, branch `feat/m3b-rank-cache`)
 
