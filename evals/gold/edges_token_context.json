@@ -14,8 +14,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "get_res = store.get(\"k_sess\", scope=\"session\", session_id=\"s1\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1892,
@@ -28,8 +28,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "res_a = store.get(\"key1\", scope=\"session\", namespace=\"ns-a\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1895,
@@ -42,8 +42,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "res = store.get(\"key1\", scope=\"session\", namespace=\"ns-other\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1899,
@@ -56,8 +56,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "assert store.get(\"key1\", scope=\"session\", namespace=\"ns-a\")[\"status\"] == \"not_found\"",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1902,
@@ -70,8 +70,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "res = store.get(\"key1\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1913,
@@ -84,8 +84,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "res = store.get(\"key1\", namespace=\"myns\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1921,
@@ -98,8 +98,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "res = store.get(\"k1\", scope=\"session\", namespace=\"ns1\")",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 1927,
@@ -112,8 +112,8 @@
       "scope": "scope:exact_receiver_type",
       "confidence": 0.9,
       "code_snippet": "assert store.get(\"permanent\")[\"status\"] == \"found\"",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call to MemoryStore.get on typed MemoryStore instance in memory tests."
     },
     {
       "edge_id": 9,
@@ -532,8 +532,8 @@
       "scope": "scope:import_match",
       "confidence": 0.85,
       "code_snippet": "return self.store.get(key=key, scope=scope, namespace=namespace)",
-      "label": "false_positive",
-      "reason": "Misattributed .get() call to MemoryStore.get."
+      "label": "true_positive",
+      "reason": "Legitimate call from MemoryService.memory_get to self.store.get (scope:attr_type)."
     },
     {
       "edge_id": 584,

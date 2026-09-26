@@ -12,6 +12,42 @@ if TYPE_CHECKING:
 
 _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 
+# Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
+# Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
+SCOPE_CONFIDENCE: dict[str, float] = {
+    "same_class": 0.95,
+    "cha_inherited": 0.90,
+    "attr_type": 0.95,
+    "attr_type_inherited": 0.90,
+    "exact_receiver_type": 0.95,
+    "same_file": 0.90,
+    "receiver_match": 0.90,
+    "import_match": 0.90,
+    "import_module_match": 0.75,
+    "same_package": 0.75,
+    "global": 0.40,
+    "virtual_stub": 0.90,
+}
+
+
+
+def _extract_repo_return_types(symbols: list[SymbolRecord]) -> dict[str, str]:
+    repo_return_types: dict[str, str] = {}
+    for s in symbols:
+        if s.kind in {"function", "method"} and s.signature:
+            m = re.search(r"->\s*([A-Za-z_][A-Za-z0-9_]*)", s.signature)
+            if m:
+                ret = m.group(1)
+                if ret not in _BUILTIN_RECEIVERS and ret not in {
+                    "None", "Any", "void", "bool", "int", "str", "float",
+                    "dict", "list", "set", "tuple", "bytes",
+                }:
+                    if s.name not in repo_return_types:
+                        repo_return_types[s.name] = ret
+                    elif repo_return_types[s.name] != ret:
+                        repo_return_types[s.name] = ""
+    return repo_return_types
+
 
 def _get_ancestors(cls_name: str, inheritance_map: dict[str, list[str]] | None) -> list[str]:
     if not inheritance_map or not cls_name:
@@ -56,6 +92,7 @@ def build_lexical_edges(
 
     edges: list[EdgeRecord] = []
     imports_map = imports_by_path or {}
+    repo_return_types = _extract_repo_return_types(symbols)
 
     if calls_by_path is not None:
         # Use AST-extracted calls for precise edge resolution
@@ -100,6 +137,12 @@ def build_lexical_edges(
 
                 candidates = [c for c in by_name.get(call.name, []) if c.symbol_id != source.symbol_id]
 
+                effective_receiver_type = getattr(call, "receiver_type", None)
+                if effective_receiver_type is None and getattr(call, "assigned_from_fn", None):
+                    fn_src = call.assigned_from_fn
+                    if fn_src and repo_return_types.get(fn_src):
+                        effective_receiver_type = repo_return_types[fn_src]
+
                 # Virtual External Stub Resolution
                 matched_stub = None
                 if external_stubs and call.name in stubs_by_member:
@@ -107,7 +150,7 @@ def build_lexical_edges(
                         source=source,
                         name=call.name,
                         receiver=call.receiver,
-                        receiver_type=getattr(call, "receiver_type", None),
+                        receiver_type=effective_receiver_type,
                         imports=imports_map.get(path, []),
                         stubs=stubs_by_member[call.name],
                         class_hierarchy=class_hierarchy,
@@ -117,8 +160,8 @@ def build_lexical_edges(
                     evidence = ["ast_call", "virtual_stub", f"stub:{matched_stub.package}.{matched_stub.export_path}.{matched_stub.member_name}"]
                     if call.receiver:
                         evidence.append(f"receiver:{call.receiver}")
-                    if getattr(call, "receiver_type", None):
-                        evidence.append(f"type:{call.receiver_type}")
+                    if effective_receiver_type:
+                        evidence.append(f"type:{effective_receiver_type}")
                     edges.append(
                         EdgeRecord(
                             source_symbol_id=source.symbol_id,
@@ -128,7 +171,7 @@ def build_lexical_edges(
                             edge_kind="call",
                             status="resolved",
                             backend="virtual_stub",
-                            confidence=0.90,
+                            confidence=SCOPE_CONFIDENCE.get("virtual_stub", 0.90),
                             source_path=source.path,
                             source_line=call.line,
                             evidence=evidence,
@@ -143,7 +186,7 @@ def build_lexical_edges(
                     source,
                     candidates,
                     receiver=call.receiver,
-                    receiver_type=getattr(call, "receiver_type", None),
+                    receiver_type=effective_receiver_type,
                     is_tainted=getattr(call, "is_tainted", False),
                     imports=imports_map.get(path, []),
                     class_hierarchy=class_hierarchy,
@@ -152,10 +195,11 @@ def build_lexical_edges(
                 evidence = ["ast_call", f"scope:{scope}"]
                 if call.receiver:
                     evidence.append(f"receiver:{call.receiver}")
-                if getattr(call, "receiver_type", None):
-                    evidence.append(f"type:{call.receiver_type}")
+                if effective_receiver_type:
+                    evidence.append(f"type:{effective_receiver_type}")
                 if getattr(call, "is_tainted", False):
                     evidence.append("tainted_poly_receiver")
+
 
                 edges.append(
                     EdgeRecord(
@@ -309,7 +353,7 @@ def _resolve_candidate(
                 if c.path == source.path and c.qualified_name.startswith(f"{class_prefix}.")
             ]
             if len(same_class) == 1:
-                return same_class[0], "same_class", 0.95
+                return same_class[0], "same_class", SCOPE_CONFIDENCE.get("same_class", 0.95)
 
             # Class Hierarchy Analysis (CHA) lookup for inherited method
             if class_hierarchy:
@@ -317,32 +361,71 @@ def _resolve_candidate(
                 for ancestor in ancestors:
                     ancestor_matches = [
                         c for c in candidates
-                        if c.qualified_name.startswith(f"{ancestor}.") or c.qualified_name.endswith(f"{ancestor}.{c.name}")
+                        if c.qualified_name == f"{ancestor}.{c.name}"
+                        or c.qualified_name.startswith(f"{ancestor}.")
+                        or c.qualified_name.endswith(f".{ancestor}.{c.name}")
                     ]
                     if len(ancestor_matches) == 1:
-                        return ancestor_matches[0], "cha_inherited", 0.90
+                        return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
                     if len(ancestor_matches) > 1:
                         return None, "cha_ambiguous", 0.10
 
         # Fallback to same file
         same_file = [c for c in candidates if c.path == source.path]
         if len(same_file) == 1:
-            return same_file[0], "same_file", 0.85
+            return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
         if len(same_file) > 1:
             return None, "same_file_ambiguous", 0.10
+
+    # 1b. Receiver is an instance attribute (self.x, this.x, cls.x)
+    if receiver and any(receiver.startswith(prefix) for prefix in ("self.", "this.", "cls.")):
+        if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
+            type_matches = [
+                c for c in candidates
+                if c.qualified_name == f"{receiver_type}.{c.name}"
+                or c.qualified_name.startswith(f"{receiver_type}.")
+                or c.qualified_name.endswith(f".{receiver_type}.{c.name}")
+            ]
+            if len(type_matches) == 1:
+                return type_matches[0], "attr_type", SCOPE_CONFIDENCE.get("attr_type", 0.90)
+            if len(type_matches) > 1:
+                same_file_type = [c for c in type_matches if c.path == source.path]
+                if len(same_file_type) == 1:
+                    return same_file_type[0], "attr_type", SCOPE_CONFIDENCE.get("attr_type", 0.90)
+                return None, "attr_type_ambiguous", 0.10
+
+            # Try CHA on receiver_type
+            if class_hierarchy:
+                ancestors = _get_ancestors(receiver_type, class_hierarchy)
+                for ancestor in ancestors:
+                    ancestor_matches = [
+                        c for c in candidates
+                        if c.qualified_name == f"{ancestor}.{c.name}"
+                        or c.qualified_name.startswith(f"{ancestor}.")
+                        or c.qualified_name.endswith(f".{ancestor}.{c.name}")
+                    ]
+                    if len(ancestor_matches) == 1:
+                        return ancestor_matches[0], "attr_type_inherited", SCOPE_CONFIDENCE.get("attr_type_inherited", 0.90)
+            return None, "attr_type_unmatched", 0.10
+
+        # Receiver was an instance attribute but receiver_type could not be resolved:
+        # DO NOT fall back to global or generic methods!
+        return None, "unresolved_receiver", 0.10
 
     # 2. Inferred receiver type from parameter type hint or single-assignment
     if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
         type_matches = [
             c for c in candidates
-            if c.qualified_name.startswith(f"{receiver_type}.") or c.qualified_name.endswith(f"{receiver_type}.{c.name}")
+            if c.qualified_name == f"{receiver_type}.{c.name}"
+            or c.qualified_name.startswith(f"{receiver_type}.")
+            or c.qualified_name.endswith(f".{receiver_type}.{c.name}")
         ]
         if len(type_matches) == 1:
-            return type_matches[0], "exact_receiver_type", 0.90
+            return type_matches[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
         if len(type_matches) > 1:
             same_file_type = [c for c in type_matches if c.path == source.path]
             if len(same_file_type) == 1:
-                return same_file_type[0], "exact_receiver_type", 0.90
+                return same_file_type[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
             return None, "receiver_type_ambiguous", 0.10
 
         # Try CHA on receiver_type
@@ -351,31 +434,35 @@ def _resolve_candidate(
             for ancestor in ancestors:
                 ancestor_matches = [
                     c for c in candidates
-                    if c.qualified_name.startswith(f"{ancestor}.") or c.qualified_name.endswith(f"{ancestor}.{c.name}")
+                    if c.qualified_name == f"{ancestor}.{c.name}"
+                    or c.qualified_name.startswith(f"{ancestor}.")
+                    or c.qualified_name.endswith(f".{ancestor}.{c.name}")
                 ]
                 if len(ancestor_matches) == 1:
-                    return ancestor_matches[0], "cha_inherited", 0.90
+                    return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
 
     # 3. Receiver is an explicit identifier (not self/cls/this)
     if receiver and receiver not in {"self", "this", "cls"}:
         # Match static class or module calls (e.g., Worker.build)
         receiver_matches = [
             c for c in candidates
-            if c.qualified_name.endswith(f"{receiver}.{c.name}")
+            if c.qualified_name == f"{receiver}.{c.name}"
+            or c.qualified_name.startswith(f"{receiver}.")
+            or c.qualified_name.endswith(f".{receiver}.{c.name}")
         ]
         if len(receiver_matches) == 1:
-            return receiver_matches[0], "receiver_match", 0.90
+            return receiver_matches[0], "receiver_match", SCOPE_CONFIDENCE.get("receiver_match", 0.90)
         if len(receiver_matches) > 1:
             same_file_rec = [c for c in receiver_matches if c.path == source.path]
             if len(same_file_rec) == 1:
-                return same_file_rec[0], "same_file", 0.90
+                return same_file_rec[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
             if imports_list:
                 import_rec = [
                     c for c in receiver_matches
                     if any(_import_matches_candidate(imp, c) for imp in imports_list)
                 ]
                 if len(import_rec) == 1:
-                    return import_rec[0], "import_match", 0.90
+                    return import_rec[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
             return None, "receiver_ambiguous", 0.10
 
         # Receiver might be an imported module name
@@ -386,7 +473,7 @@ def _resolve_candidate(
                 if any(_import_matches_candidate(imp, c) for imp in matched_imports)
             ]
             if len(imp_cands) == 1:
-                return imp_cands[0], "import_module_match", 0.75
+                return imp_cands[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
             if len(imp_cands) > 1:
                 return None, "import_module_ambiguous", 0.10
 
@@ -410,7 +497,7 @@ def _resolve_candidate(
                                 imported_class_matches.append(c)
 
             if len(imported_class_matches) == 1:
-                return imported_class_matches[0], "exact_receiver_type", 0.85
+                return imported_class_matches[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.85)
             if len(imported_class_matches) > 1:
                 return None, "receiver_type_ambiguous", 0.10
 
@@ -422,7 +509,7 @@ def _resolve_candidate(
     # (Only for free function calls, direct identifier invocations without receiver)
     same_file = [candidate for candidate in candidates if candidate.path == source.path]
     if len(same_file) == 1:
-        return same_file[0], "same_file", 0.85
+        return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
     if len(same_file) > 1:
         return None, "same_file_ambiguous", 0.10
 
@@ -432,7 +519,7 @@ def _resolve_candidate(
             if any(_import_matches_candidate(imp, c) for imp in imports_list)
         ]
         if len(imported_cands) == 1:
-            return imported_cands[0], "import_match", 0.85
+            return imported_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
         if len(imported_cands) > 1:
             return None, "import_ambiguous", 0.10
 
@@ -444,7 +531,7 @@ def _resolve_candidate(
     ]
     if len(same_package) == 1:
         if same_package[0].name not in _GENERIC_METHOD_NAMES:
-            return same_package[0], "same_package", 0.75
+            return same_package[0], "same_package", SCOPE_CONFIDENCE.get("same_package", 0.75)
     if len(same_package) > 1:
         return None, "same_package_ambiguous", 0.10
 
@@ -456,9 +543,10 @@ def _resolve_candidate(
         if cand.name not in _GENERIC_METHOD_NAMES:
             is_class_method = ("." in cand.qualified_name) and (cand.kind in {"method", "function"})
             if not is_class_method:
-                return cand, "global", 0.40
+                return cand, "global", SCOPE_CONFIDENCE.get("global", 0.40)
 
     return None, "global_ambiguous", 0.10
+
 
 
 def _slice_by_byte(text: str, start_byte: int, end_byte: int) -> str:
