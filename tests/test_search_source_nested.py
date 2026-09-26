@@ -70,9 +70,10 @@ def test_search_source_caps_at_two_lines_per_file(nested_repo_config: Path) -> N
     res = service.search_source("test-nested", query="process target data", limit=10)
     file_matches = [m for m in res["data"]["matches"] if m["path"] == "multimatch.py"]
 
-    # Maximum 2 lines per file
-    assert len(file_matches) == 2
-    matched_lines = [m["start_line"] for m in file_matches]
+    # Under M5.1 contract: 1 entry per symbol, with up to 2 best lines in "lines"
+    assert len(file_matches) == 1
+    assert len(file_matches[0]["lines"]) == 2
+    matched_lines = [item[0] for item in file_matches[0]["lines"]]
     assert matched_lines == [2, 4]
 
 

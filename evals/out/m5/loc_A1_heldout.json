@@ -1,0 +1,808 @@
+{
+  "repo_id": "token-context",
+  "arm": "A1",
+  "split": "heldout",
+  "reviewed": true,
+  "split_seed": 20260926,
+  "search_parameters": {
+    "limit": 20,
+    "max_tokens": 2048,
+    "profile": null,
+    "expand": null,
+    "expand_k": null,
+    "expand_hops": null,
+    "min_confidence": null
+  },
+  "task_count": 20,
+  "overall": {
+    "task_count": 20,
+    "file_acc_at_5": 1.0,
+    "file_recall_at_5": 1.0,
+    "sym_recall_at_10": 0.725,
+    "mean_wire_tokens": 1564.7,
+    "latency_p50_ms": 47.81,
+    "latency_p95_ms": 73.9
+  },
+  "by_group": {
+    "a_keyword": {
+      "task_count": 7,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "mean_wire_tokens": 1009.9,
+      "latency_p50_ms": 9.54,
+      "latency_p95_ms": 68.28
+    },
+    "b_hidden_dep": {
+      "task_count": 7,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.5714,
+      "mean_wire_tokens": 1854.4,
+      "latency_p50_ms": 51.79,
+      "latency_p95_ms": 80.08
+    },
+    "c_multi_file": {
+      "task_count": 6,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.5833,
+      "mean_wire_tokens": 1873.8,
+      "latency_p50_ms": 50.22,
+      "latency_p95_ms": 68.28
+    }
+  },
+  "tasks": [
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "local push ppr personalized pagerank",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 260,
+      "latency_ms": 5.97,
+      "latencies_ms": [
+        6.53,
+        5.84,
+        6.1,
+        5.58
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/ranking.py::local_push_ppr"
+      ],
+      "eval_query": "local push ppr personalized pagerank"
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "read connection pool get connection",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 391,
+      "latency_ms": 9.55,
+      "latencies_ms": [
+        8.83,
+        10.26,
+        11.92,
+        7.76
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/index/sqlite_store.py",
+        "tests/test_code_tokens.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection"
+      ],
+      "eval_query": "read connection pool get connection"
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "gc snapshots clean old index database",
+      "hit": true,
+      "first_gold_file_rank": 3,
+      "first_gold_sym_rank": 3,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1915,
+      "latency_ms": 59.85,
+      "latencies_ms": [
+        67.12,
+        68.17,
+        52.58,
+        49.88
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/widgets/cache_tab.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/index/runner.py",
+        "src/token_context_mcp/index/sqlite_store.py",
+        "src/token_context_mcp/security/local_privacy.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/widgets/cache_tab.py::CacheTab._clean_stale",
+        "src/token_context_mcp/gui/bridge.py::CacheManager.clean_stale_snapshots",
+        "src/token_context_mcp/index/runner.py::gc_snapshots",
+        "src/token_context_mcp/gui/widgets/cache_tab.py::CacheTab.__init__",
+        "src/token_context_mcp/index/runner.py::database_path",
+        "src/token_context_mcp/gui/bridge.py::IndexWorker.run",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool",
+        "src/token_context_mcp/security/local_privacy.py::secure_sqlite_artifacts",
+        "scripts/build_desktop_exe.py::main",
+        "src/token_context_mcp/security/audit.py::AuditLogger.clear_old_logs"
+      ],
+      "eval_query": "gc snapshots clean old index database"
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "probe hardware detect ram ctypes",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 2,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1951,
+      "latency_ms": 51.65,
+      "latencies_ms": [
+        58.34,
+        44.97,
+        40.92,
+        68.34
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/sampling/hardware_probe.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/gui/widgets/dashboard_tab.py",
+        "src/token_context_mcp/sampling/router.py",
+        "src/token_context_mcp/parse/treesitter.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/sampling/hardware_probe.py::MEMORYSTATUSEX",
+        "src/token_context_mcp/sampling/hardware_probe.py::probe_hardware",
+        "src/token_context_mcp/sampling/hardware_probe.py::reset_hardware_cache",
+        "src/token_context_mcp/gui/bridge.py::detect_ai_hardware",
+        "src/token_context_mcp/gui/widgets/dashboard_tab.py::DashboardTab.update_telemetry",
+        "src/token_context_mcp/sampling/router.py::SamplingRouter.hardware",
+        "src/token_context_mcp/parse/treesitter.py::_detect_case_narrowing",
+        "src/token_context_mcp/sampling/router.py::SamplingRouter.__init__",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._on_telemetry_update",
+        "src/token_context_mcp/gui/widgets/dashboard_tab.py::DashboardTab.__init__"
+      ],
+      "eval_query": "probe hardware detect ram ctypes"
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "compute global ranks pagerank index time",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 265,
+      "latency_ms": 5.55,
+      "latencies_ms": [
+        4.59,
+        5.22,
+        7.01,
+        5.88
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/ranking.py::compute_global_ranks"
+      ],
+      "eval_query": "compute global ranks pagerank index time"
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "governance store set emergency halt",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 367,
+      "latency_ms": 5.73,
+      "latencies_ms": [
+        6.12,
+        6.81,
+        5.34,
+        4.99
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/security/governance_store.py",
+        "tests/test_governance_store.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.set_emergency_halt",
+        "tests/test_governance_store.py::test_governance_store_emergency_halt"
+      ],
+      "eval_query": "governance store set emergency halt"
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "fts query builder match terms",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 2,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1920,
+      "latency_ms": 53.93,
+      "latencies_ms": [
+        64.07,
+        85.54,
+        43.79,
+        42.44
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/retrieve/ranking.py",
+        "src/token_context_mcp/memory/store.py",
+        "src/token_context_mcp/index/sqlite_store.py",
+        "src/token_context_mcp/discovery/tools.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_fts_terms",
+        "src/token_context_mcp/retrieve/service.py::_fts_query",
+        "src/token_context_mcp/retrieve/ranking.py::_stage_path_match",
+        "src/token_context_mcp/retrieve/ranking.py::_term_match_count",
+        "src/token_context_mcp/retrieve/ranking.py::_expanded_query_terms",
+        "src/token_context_mcp/memory/store.py::MemoryStore.search",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.body_match_ids",
+        "src/token_context_mcp/retrieve/service.py::_first_matching_line",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.count_body_matches",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.count_source_matches"
+      ],
+      "eval_query": "fts query builder match terms"
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "sqlite read behind key value lookup tool",
+      "hit": true,
+      "first_gold_file_rank": 5,
+      "first_gold_sym_rank": 10,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1824,
+      "latency_ms": 52.42,
+      "latencies_ms": [
+        51.17,
+        52.31,
+        73.39,
+        52.53
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/index/sqlite_store.py",
+        "src/token_context_mcp/memory/service.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/memory/store.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/server.py::memory_put",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.metadata",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool",
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_put",
+        "src/token_context_mcp/retrieve/service.py::_profile_int",
+        "src/token_context_mcp/retrieve/service.py::_metadata_default",
+        "src/token_context_mcp/server.py::memory_get",
+        "src/token_context_mcp/retrieve/service.py::_profile_str",
+        "src/token_context_mcp/memory/store.py::MemoryStore.get"
+      ],
+      "eval_query": "sqlite read behind key value lookup tool"
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "verify path segments resolve correctly for module declaration",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.0,
+      "wire_tokens": 1906,
+      "latency_ms": 62.22,
+      "latencies_ms": [
+        47.14,
+        63.15,
+        64.94,
+        61.29
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/parse/lexical_edges.py",
+        "src/token_context_mcp/parse/treesitter.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/index/runner.py",
+        "src/token_context_mcp/security/path_policy.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/parse/lexical_edges.py::_path_segments",
+        "src/token_context_mcp/parse/treesitter.py::_anonymous_export_name",
+        "src/token_context_mcp/retrieve/service.py::_compact_declaration",
+        "src/token_context_mcp/parse/treesitter.py::_walk_symbols",
+        "src/token_context_mcp/index/runner.py::_resolve_entry_point",
+        "src/token_context_mcp/security/path_policy.py::repository_relative_parts",
+        "src/token_context_mcp/sampling/guardrail.py::verify_and_guard",
+        "src/token_context_mcp/gui/widgets/loading_overlay.py::LoadingSpinner.paintEvent",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.close_db",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._resolve_symbol_id"
+      ],
+      "eval_query": "verify path segments resolve correctly for module declaration"
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "file orientation reordering to conserve breadth budget",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.0,
+      "wire_tokens": 1858,
+      "latency_ms": 68.94,
+      "latencies_ms": [
+        83.68,
+        91.77,
+        52.8,
+        54.19
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/retrieve/token_budget.py",
+        "src/token_context_mcp/index/sqlite_store.py",
+        "scripts/reindex_all.py",
+        "src/token_context_mcp/server.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.repo_map",
+        "src/token_context_mcp/retrieve/service.py::_compact_rank_basis",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._pack_to_budget",
+        "src/token_context_mcp/retrieve/token_budget.py::estimate_tokens",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.file",
+        "scripts/reindex_all.py::main",
+        "src/token_context_mcp/server.py::inspect_symbol",
+        "src/token_context_mcp/retrieve/workflows.py::CompositeWorkflowEngine.inspect_symbol",
+        "src/token_context_mcp/server.py::build_server",
+        "src/token_context_mcp/server.py::get_repo_map"
+      ],
+      "eval_query": "file orientation reordering to conserve breadth budget"
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "scored line selector within innermost boundary",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.0,
+      "wire_tokens": 1850,
+      "latency_ms": 53.25,
+      "latencies_ms": [
+        55.23,
+        55.35,
+        45.97,
+        51.27
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/retrieve/serialization.py",
+        "src/token_context_mcp/discovery/tools.py",
+        "src/token_context_mcp/security/path_policy.py",
+        "src/token_context_mcp/parse/scip.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_innermost_symbol",
+        "src/token_context_mcp/retrieve/serialization.py::normalize_line_endings",
+        "src/token_context_mcp/discovery/tools.py::search_tools",
+        "src/token_context_mcp/retrieve/service.py::_score_and_select_file_matches",
+        "src/token_context_mcp/security/path_policy.py::PathPolicyError",
+        "src/token_context_mcp/parse/scip.py::scip_backend_status",
+        "src/token_context_mcp/security/content_policy.py::redact_text",
+        "src/token_context_mcp/retrieve/service.py::_score_symbol_lines",
+        "src/token_context_mcp/telemetry/benchmark.py::load_runs",
+        "src/token_context_mcp/sampling/router.py::SamplingRouter._heuristic_compress"
+      ],
+      "eval_query": "scored line selector within innermost boundary"
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "mask sensitive tokens secrets before saving",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1848,
+      "latency_ms": 36.39,
+      "latencies_ms": [
+        47.1,
+        33.23,
+        35.44,
+        37.34
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/memory/store.py",
+        "src/token_context_mcp/gui/widgets/settings_tab.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/retrieve/code_tokens.py",
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/memory/store.py::_redact_value",
+        "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings",
+        "src/token_context_mcp/gui/bridge.py::CacheManager.vacuum_database",
+        "src/token_context_mcp/retrieve/code_tokens.py::flush",
+        "src/token_context_mcp/retrieve/service.py::_payload_tokens",
+        "src/token_context_mcp/security/local_privacy.py::_harden_windows_tree",
+        "src/token_context_mcp/retrieve/code_tokens.py::add_token",
+        "src/token_context_mcp/retrieve/token_budget.py::estimate_tokens",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._effective_budget",
+        "src/token_context_mcp/server.py::inspect_symbol"
+      ],
+      "eval_query": "mask sensitive tokens secrets before saving"
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "active server periodic alive timestamp update",
+      "hit": true,
+      "first_gold_file_rank": 4,
+      "first_gold_sym_rank": 7,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1842,
+      "latency_ms": 46.32,
+      "latencies_ms": [
+        50.88,
+        59.57,
+        41.76,
+        39.79
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/cli.py",
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/security/governance_store.py",
+        "src/token_context_mcp/config.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+        "src/token_context_mcp/cli.py::build_parser",
+        "src/token_context_mcp/server.py::_result",
+        "src/token_context_mcp/security/governance_store.py::merge_seen_agents",
+        "src/token_context_mcp/config.py::update_repository",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._on_server_status",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat",
+        "src/token_context_mcp/memory/store.py::MemoryStore.put",
+        "src/token_context_mcp/security/audit.py::AuditLogger.query_logs",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._on_telemetry_update"
+      ],
+      "eval_query": "active server periodic alive timestamp update"
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "narrowest enclosing span covering line number",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1853,
+      "latency_ms": 47.43,
+      "latencies_ms": [
+        43.7,
+        44.33,
+        50.53,
+        57.66
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/sampling/router.py",
+        "src/token_context_mcp/sampling/schema.py",
+        "src/token_context_mcp/parse/lexical_edges.py",
+        "src/token_context_mcp/security/content_policy.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_innermost_symbol",
+        "src/token_context_mcp/retrieve/service.py::_source_snippet",
+        "src/token_context_mcp/sampling/router.py::SamplingRouter._heuristic_compress",
+        "src/token_context_mcp/retrieve/service.py::_source_import_lines",
+        "src/token_context_mcp/sampling/schema.py::ConstraintEvidence",
+        "src/token_context_mcp/parse/lexical_edges.py::build_lexical_edges",
+        "src/token_context_mcp/security/content_policy.py::redact_text",
+        "src/token_context_mcp/telemetry/benchmark.py::load_runs",
+        "src/token_context_mcp/parse/treesitter.py::_line_offsets",
+        "src/token_context_mcp/gui/bridge.py::ServerController._on_stdout"
+      ],
+      "eval_query": "narrowest enclosing span covering line number"
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "symbol context extraction with evidence digest",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.5,
+      "wire_tokens": 1856,
+      "latency_ms": 59.6,
+      "latencies_ms": [
+        56.87,
+        61.9,
+        69.41,
+        57.3
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/models.py",
+        "src/token_context_mcp/index/hashing.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/parse/treesitter.py",
+        "src/token_context_mcp/index/runner.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/models.py::Evidence.as_dict",
+        "src/token_context_mcp/index/hashing.py::sha256_file",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._evidence_for_symbol",
+        "src/token_context_mcp/parse/treesitter.py::_add_module_entry_roles",
+        "src/token_context_mcp/index/runner.py::_assign_structural_roles",
+        "src/token_context_mcp/parse/treesitter.py::_symbol_record",
+        "src/token_context_mcp/release.py::write_release_materials",
+        "src/token_context_mcp/parse/lexical_edges.py::build_lexical_edges",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.build_response",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._symbol_packet"
+      ],
+      "eval_query": "symbol context extraction with evidence digest"
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "gui refresh worker sync active servers",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 3,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1803,
+      "latency_ms": 50.22,
+      "latencies_ms": [
+        56.31,
+        48.79,
+        51.64,
+        38.91
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/security/governance_store.py",
+        "src/token_context_mcp/gui/widgets/agents_tab.py",
+        "src/token_context_mcp/gui/main_window.py",
+        "src/token_context_mcp/gui/widgets/tasks_tab.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/bridge.py::GovernanceRefreshWorker._poll_once",
+        "src/token_context_mcp/gui/bridge.py::GovernanceRefreshWorker.stop",
+        "src/token_context_mcp/gui/bridge.py::GovernanceRefreshWorker.run",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.get_active_servers",
+        "src/token_context_mcp/gui/widgets/agents_tab.py::AgentsTab.refresh",
+        "src/token_context_mcp/gui/widgets/agents_tab.py::AgentsTab._do_refresh",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._manual_refresh_current_tab",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._do_refresh_and_hide",
+        "src/token_context_mcp/gui/main_window.py::MainWindow._refresh_tab_async",
+        "src/token_context_mcp/gui/widgets/tasks_tab.py::TasksTab.refresh_repositories"
+      ],
+      "eval_query": "gui refresh worker sync active servers"
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "memory service lock with namespace store",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 1.0,
+      "wire_tokens": 1922,
+      "latency_ms": 33.27,
+      "latencies_ms": [
+        35.2,
+        32.76,
+        30.08,
+        33.78
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/memory/service.py",
+        "src/token_context_mcp/memory/store.py",
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/security/audit.py",
+        "src/token_context_mcp/memory/__init__.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_lock",
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_get",
+        "src/token_context_mcp/memory/store.py::MemoryStore.lock",
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_search",
+        "src/token_context_mcp/memory/store.py::MemoryStore.delete",
+        "src/token_context_mcp/memory/store.py::MemoryStore.release_lock",
+        "src/token_context_mcp/server.py::memory_get",
+        "src/token_context_mcp/server.py::memory_lock",
+        "src/token_context_mcp/server.py::memory_search",
+        "src/token_context_mcp/security/audit.py::AuditLogger.__init__"
+      ],
+      "eval_query": "memory service lock with namespace store"
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "cli command index runner build",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.5,
+      "wire_tokens": 1876,
+      "latency_ms": 40.37,
+      "latencies_ms": [
+        42.64,
+        36.53,
+        38.1,
+        59.78
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/cli.py",
+        "scripts/build_desktop_exe.py",
+        "src/token_context_mcp/index/runner.py",
+        "src/token_context_mcp/security/local_privacy.py",
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/cli.py::main",
+        "src/token_context_mcp/cli.py::build_parser",
+        "scripts/build_desktop_exe.py::build_executable",
+        "src/token_context_mcp/cli.py::_emit",
+        "src/token_context_mcp/index/runner.py::manifest_path",
+        "src/token_context_mcp/index/runner.py::_return_annotation",
+        "src/token_context_mcp/index/runner.py::current_pointer_path",
+        "src/token_context_mcp/security/local_privacy.py::_run",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._repository_store_uncached",
+        "scripts/build_desktop_exe.py::main"
+      ],
+      "eval_query": "cli command index runner build"
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "freshness cache directory scan mtime check",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.0,
+      "wire_tokens": 1945,
+      "latency_ms": 58.44,
+      "latencies_ms": [
+        53.19,
+        57.52,
+        59.37,
+        91.02
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/freshness.py",
+        "src/token_context_mcp/security/local_privacy.py",
+        "src/token_context_mcp/index/runner.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/gui/bridge.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache.path_state",
+        "src/token_context_mcp/security/local_privacy.py::harden_tree",
+        "src/token_context_mcp/index/runner.py::gc_snapshots",
+        "src/token_context_mcp/security/local_privacy.py::_harden_posix_tree",
+        "src/token_context_mcp/security/local_privacy.py::_harden_windows_tree",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.config",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache._compute_snapshot",
+        "src/token_context_mcp/gui/bridge.py::CacheManager.get_storage_stats",
+        "src/token_context_mcp/config.py::index_directory"
+      ],
+      "eval_query": "freshness cache directory scan mtime check"
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "permission revoked error wrap in server response",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "sym_recall_at_10": 0.5,
+      "wire_tokens": 1841,
+      "latency_ms": 46.96,
+      "latencies_ms": [
+        56.87,
+        48.49,
+        43.76,
+        45.43
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/gui/widgets/agents_tab.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/security/access_control.py",
+        "src/token_context_mcp/config.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/server.py::_wrap",
+        "src/token_context_mcp/gui/widgets/agents_tab.py::AgentsTab._on_revoke_all_locks",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService._assert_under_server_cap",
+        "src/token_context_mcp/server.py::_error",
+        "src/token_context_mcp/server.py::audit_logs",
+        "src/token_context_mcp/security/access_control.py::AccessControlManager",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.list_repositories",
+        "src/token_context_mcp/config.py::unregister_repository",
+        "src/token_context_mcp/config.py::update_repository",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.status"
+      ],
+      "eval_query": "permission revoked error wrap in server response"
+    }
+  ]
+}

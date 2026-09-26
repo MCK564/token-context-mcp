@@ -34,6 +34,7 @@ from token_context_mcp.models import (
 from token_context_mcp.parse.lexical_edges import build_lexical_edges
 from token_context_mcp.parse.treesitter import CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
+from token_context_mcp.retrieve.code_tokens import path_tokens, split_identifier
 from token_context_mcp.retrieve.ranking import compute_global_ranks
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
 from token_context_mcp.security.local_privacy import (
@@ -109,7 +110,7 @@ def build_index(
         try:
             previous_store = SQLiteStore(destination, read_only=True)
             previous_metadata = previous_store.metadata()
-            if previous_metadata.get("index_schema_version") in ("2.1", "2.2"):
+            if previous_metadata.get("index_schema_version") in ("2.1", "2.2", "2.3"):
                 previous_files = {item.path: item for item in previous_store.files()}
             else:
                 # The old snapshot may not have role columns. Reparse it
@@ -287,6 +288,99 @@ def build_index(
         if symbol.path in source_by_path
     }
     searchable_sources = {path: _search_text(source) for path, source in source_by_path.items()}
+
+    # M5.1 symbol-level FTS preparation (own_body and code_tokens)
+    symbol_fts_records: list[tuple[str, str, str, str, str, str]] = []
+    symbols_by_path: dict[str, list[SymbolRecord]] = {}
+    for sym in symbols:
+        symbols_by_path.setdefault(sym.path, []).append(sym)
+
+    for item in files:
+        file_path = item.path
+        source = source_by_path.get(file_path, "")
+        lines = source.splitlines()
+        file_syms = symbols_by_path.get(file_path, [])
+        file_sym_lines: set[int] = set()
+
+        for sym in file_syms:
+            children = [
+                c
+                for c in file_syms
+                if c.symbol_id != sym.symbol_id
+                and sym.start_line <= c.start_line
+                and c.end_line <= sym.end_line
+            ]
+            child_lines: set[int] = set()
+            for c in children:
+                child_lines.update(range(c.start_line, c.end_line + 1))
+            file_sym_lines.update(range(sym.start_line, sym.end_line + 1))
+
+            own_line_strings = [
+                lines[idx]
+                for idx in range(sym.start_line - 1, min(sym.end_line, len(lines)))
+                if (idx + 1) not in child_lines
+            ]
+            own_body = "\n".join(own_line_strings)
+
+            tokens: list[str] = []
+            seen_tokens: set[str] = set()
+
+            def add_token(t: str) -> None:
+                tc = t.strip().lower()
+                if tc and tc not in seen_tokens:
+                    seen_tokens.add(tc)
+                    tokens.append(tc)
+
+            for p in split_identifier(sym.name):
+                add_token(p)
+            for p in split_identifier(sym.qualified_name):
+                add_token(p)
+            if sym.signature:
+                for p in split_identifier(sym.signature):
+                    add_token(p)
+            for p in path_tokens(sym.path):
+                add_token(p)
+
+            code_tokens_str = " ".join(tokens)
+            symbol_fts_records.append((
+                sym.symbol_id,
+                sym.path,
+                sym.name,
+                sym.qualified_name,
+                code_tokens_str,
+                own_body,
+            ))
+
+        module_line_strings = [
+            lines[idx]
+            for idx in range(len(lines))
+            if (idx + 1) not in file_sym_lines
+        ]
+        module_body = "\n".join(module_line_strings)
+        lang = item.language or "unknown"
+        module_sym_id = f"{lang}:{file_path}:<module>"
+        mod_tokens: list[str] = []
+        mod_seen: set[str] = set()
+
+        def add_mod(t: str) -> None:
+            tc = t.strip().lower()
+            if tc and tc not in mod_seen:
+                mod_seen.add(tc)
+                mod_tokens.append(tc)
+
+        add_mod("module")
+        for p in path_tokens(file_path):
+            add_mod(p)
+
+        symbol_fts_records.append((
+            module_sym_id,
+            file_path,
+            "<module>",
+            "<module>",
+            " ".join(mod_tokens),
+            module_body,
+        ))
+
     dir_mtimes: dict[str, int] = {}
     try:
         dir_mtimes["."] = repository.root.stat().st_mtime_ns
@@ -351,6 +445,7 @@ def build_index(
             class_hierarchy=class_hierarchy_rows,
             external_stubs=active_stubs,
             symbol_ranks=global_ranks,
+            symbol_fts_records=symbol_fts_records,
         )
         _atomic_replace(temporary, run_destination)
         secure_sqlite_artifacts(run_destination)

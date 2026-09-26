@@ -57,6 +57,15 @@ CREATE VIRTUAL TABLE IF NOT EXISTS source_bodies USING fts5(
   path UNINDEXED,
   body
 );
+CREATE VIRTUAL TABLE IF NOT EXISTS symbol_fts USING fts5(
+  symbol_id UNINDEXED,
+  path UNINDEXED,
+  name,
+  qualified_name,
+  code_tokens,
+  own_body,
+  tokenize = "unicode61 remove_diacritics 2 tokenchars '_'"
+);
 CREATE TABLE IF NOT EXISTS external_stubs (
   stub_id INTEGER PRIMARY KEY AUTOINCREMENT,
   package TEXT NOT NULL,
@@ -248,12 +257,13 @@ class SQLiteStore:
         class_hierarchy: list[tuple[str, str, str | None]] | None = None,
         external_stubs: list[ExternalStubRecord] | None = None,
         symbol_ranks: list[tuple[str, float, list[str]]] | None = None,
+        symbol_fts_records: list[tuple[str, str, str, str, str, str]] | None = None,
     ) -> None:
         if self.read_only:
             raise StoreError("cannot write a read-only snapshot")
         self.initialize()
         with self.connection() as connection:
-            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbol_rank", "symbols", "files", "metadata"):
+            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbol_fts", "symbol_rank", "symbols", "files", "metadata"):
                 connection.execute(f"DELETE FROM {table}")
             connection.executemany(
                 "INSERT INTO metadata(key, value) VALUES (?, ?)",
@@ -360,6 +370,11 @@ class SQLiteStore:
                 "INSERT INTO source_bodies(path, body) VALUES (?, ?)",
                 [(path, body) for path, body in source_bodies.items()],
             )
+            if symbol_fts_records:
+                connection.executemany(
+                    "INSERT INTO symbol_fts(symbol_id, path, name, qualified_name, code_tokens, own_body) VALUES (?, ?, ?, ?, ?, ?)",
+                    symbol_fts_records,
+                )
             if symbol_ranks:
                 connection.executemany(
                     "INSERT INTO symbol_rank(symbol_id, score, basis_json) VALUES (?, ?, ?)",
@@ -666,6 +681,76 @@ class SQLiteStore:
             }
             for row in rows
         ]
+
+    def has_symbol_fts(self) -> bool:
+        with self.connection() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='symbol_fts'"
+            ).fetchone()
+            return row is not None
+
+    def count_symbol_matches(self, query: str) -> int:
+        try:
+            with self.connection() as connection:
+                row = connection.execute(
+                    "SELECT COUNT(*) AS count FROM symbol_fts WHERE symbol_fts MATCH ?",
+                    (query,),
+                ).fetchone()
+        except sqlite3.OperationalError as error:
+            raise StoreError("symbol search index is unavailable; rebuild the repository index") from error
+        assert row is not None
+        return int(row["count"])
+
+    def search_symbol_matches(self, query: str, *, limit: int) -> list[dict[str, Any]]:
+        try:
+            with self.connection() as connection:
+                rows = connection.execute(
+                    """
+                    SELECT f.symbol_id, f.path, f.name, f.qualified_name,
+                           s.kind, s.signature,
+                           COALESCE(s.start_line, 1) AS start_line,
+                           COALESCE(s.end_line, 1) AS end_line,
+                           fl.sha256, fl.size, fl.mtime_ns, fl.language, fl.parse_status, fl.warnings_json,
+                           bm25(symbol_fts, 0, 0, 10.0, 6.0, 3.0, 1.0) AS score
+                    FROM symbol_fts f
+                    LEFT JOIN symbols s ON f.symbol_id = s.symbol_id
+                    LEFT JOIN files fl ON f.path = fl.path
+                    WHERE symbol_fts MATCH ?
+                    ORDER BY bm25(symbol_fts, 0, 0, 10.0, 6.0, 3.0, 1.0), f.path, COALESCE(s.start_line, 1)
+                    LIMIT ?
+                    """,
+                    (query, limit),
+                ).fetchall()
+        except sqlite3.OperationalError as error:
+            raise StoreError("symbol search index is unavailable; rebuild the repository index") from error
+        results = []
+        for row in rows:
+            file_rec = None
+            if row["sha256"] is not None:
+                file_rec = FileRecord(
+                    path=str(row["path"]),
+                    sha256=str(row["sha256"]),
+                    size=int(row["size"]),
+                    mtime_ns=int(row["mtime_ns"]),
+                    language=str(row["language"]) if row["language"] is not None else None,
+                    parse_status=str(row["parse_status"]) if row["parse_status"] is not None else "parsed",
+                    warnings=json.loads(row["warnings_json"]) if row["warnings_json"] else [],
+                )
+            results.append(
+                {
+                    "symbol_id": str(row["symbol_id"]),
+                    "path": str(row["path"]),
+                    "name": str(row["name"]),
+                    "qualified_name": str(row["qualified_name"]),
+                    "kind": str(row["kind"]) if row["kind"] is not None else "module",
+                    "signature": str(row["signature"]) if row["signature"] is not None else "",
+                    "start_line": int(row["start_line"]),
+                    "end_line": int(row["end_line"]),
+                    "score": float(row["score"]),
+                    "file_record": file_rec,
+                }
+            )
+        return results
 
     def symbols_for_paths(self, paths: list[str]) -> list[SymbolRecord]:
         if not paths:

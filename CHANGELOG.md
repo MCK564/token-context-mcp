@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — M5.1 Symbol-level FTS & Code Tokenization (2026-09-26, branch `feat/m5-larger-lite`)
+
+- **Index Schema 2.3 (`symbol_fts`)**:
+  - Added SQLite FTS5 virtual table `symbol_fts` using `unicode61 remove_diacritics 2 tokenchars '_'` tokenizer.
+  - Columns indexed: `symbol_id`, `path`, `name`, `code_tokens`, `docstring`, `body`.
+  - Nested body exclusion: symbols only index their `own_body` statements, stripping child symbol line spans to prevent parent classes or functions from diluting BM25 match density.
+  - File-level pseudo-symbols: created `<module>` symbol per file (`symbol_id = f"{lang}:{path}:<module>"`) to index top-level statements, imports, and constants.
+  - Snapshot migration: preserves backward compatibility with `source_bodies` in `sqlite_store.py`.
+- **Code Tokenization (`code_tokens.py`)**:
+  - Deterministic splitting of programming identifiers across `snake_case`, `camelCase`, `PascalCase`, numbers (`parseV2Config` -> `parse`, `v2`, `config`), acronyms (`HTTPServer` -> `http`, `server`), Vietnamese diacritics, and file path segments.
+- **Output Contract & Retrieval Optimization**:
+  - `search_source` contract refined: returns 1 entry per matching symbol (capped at 3 symbols per file) with new `lines: [[line_number, snippet_text], ...]` array preserving top matching spans.
+  - Backward compatibility: `start_line` and `snippet` fields preserved, pointing to the top scoring line of the symbol.
+  - Zero N+1 queries: `SQLiteStore.search_symbol_matches` performs `LEFT JOIN files` and `LEFT JOIN symbols` to eagerly retrieve file hashes and AST kinds within a single query (`last_query_count <= 3`).
+  - Search latency p50 reduced to 5.08 ms (< 40 ms threshold), symbol recall@10 jumped from 0.1500 to 0.7250 on heldout eval tasks.
+
 ## Unreleased — M4 Edge Accuracy & Resolution Calibration (2026-09-26, branch `feat/m4-edge-accuracy`)
 
 - **Root Cause Fixes for False Positive Edges**:

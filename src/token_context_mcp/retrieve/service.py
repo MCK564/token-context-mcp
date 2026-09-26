@@ -34,6 +34,7 @@ from token_context_mcp.models import (
     edge_as_dict,
     symbol_as_dict,
 )
+from token_context_mcp.retrieve.code_tokens import split_identifier
 from token_context_mcp.retrieve.freshness import FreshnessCache
 from token_context_mcp.retrieve.graph_cache import GraphCache, RepoGraph
 from token_context_mcp.retrieve.ranking import rank_symbols
@@ -402,77 +403,206 @@ class RetrievalService:
         if not 1 <= limit <= 100:
             raise ArgumentOutOfRangeError("limit", limit, 1, 100)
         repository, store, metadata = self._repository_store(repo_id)
-        store.reset_query_count()
-        match_query = _fts_query(query)
-        try:
-            total_matches = store.count_source_matches(match_query)
-            rows = store.search_source_matches(match_query, limit=limit)
-        except StoreError as error:
-            raise RetrievalError(str(error)) from error
-        entries: list[dict[str, Any]] = []
-        stale_paths: list[str] = []
-        unselected_matches_count = 0
-        sorted_rows = sorted(
-            rows,
-            key=lambda r: (1 if r["path"].startswith(("tests/", "evals/")) else 0),
+        use_symbol_fts = (
+            float(metadata.get("index_schema_version", "0")) >= 2.3
+            if metadata and "index_schema_version" in metadata
+            else store.has_symbol_fts()
         )
+        store.reset_query_count()
 
-        paths = [r["path"] for r in sorted_rows]
-        all_symbols = store.symbols_for_paths(paths)
-        symbols_by_path: dict[str, list[SymbolRecord]] = {}
-        for s in all_symbols:
-            symbols_by_path.setdefault(s.path, []).append(s)
+        if use_symbol_fts:
+            match_query = _fts_query(query, op="AND")
+            try:
+                total_matches = store.count_symbol_matches(match_query)
+                rows = store.search_symbol_matches(match_query, limit=limit * 3)
+                if total_matches == 0:
+                    match_query_or = _fts_query(query, op="OR")
+                    if match_query_or != match_query:
+                        total_matches = store.count_symbol_matches(match_query_or)
+                        rows = store.search_symbol_matches(match_query_or, limit=limit * 3)
+                        match_query = match_query_or
+            except StoreError as error:
+                raise RetrievalError(str(error)) from error
 
-        file_records_map = {r["path"]: r["file_record"] for r in sorted_rows if "file_record" in r}
-
-        for row in sorted_rows:
-            file_record = row.get("file_record") or store.file(row["path"])
-            if file_record is None:
-                continue
-            state, current_hash = self._freshness_cache.path_state(
-                repository.root, file_record, allow_symlinks=repository.allow_symlinks
+            # Enforce max 3 symbols per file and total limit
+            sorted_symbol_rows = sorted(
+                rows,
+                key=lambda r: (
+                    1 if r["path"].startswith(("tests/", "evals/")) else 0,
+                    1 if r["symbol_id"].endswith(":<module>") else 0,
+                    r["score"],
+                ),
             )
-            file_symbols = symbols_by_path.get(row["path"], [])
-            if state != "fresh" or current_hash != file_record.sha256:
-                stale_paths.append(row["path"])
-                symbol = None
-                line_number = 1
-                entries.append(
-                    {
-                        "symbol_id": symbol.symbol_id if symbol else None,
-                        "path": row["path"],
-                        "start_line": line_number,
-                        "end_line": line_number,
-                        "snippet": None,
-                        "evidence": Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict(),
-                        "warnings": ["stale_content_unavailable"],
-                    }
+            symbols_per_file: dict[str, int] = {}
+            selected_rows: list[dict[str, Any]] = []
+            for r in sorted_symbol_rows:
+                p = r["path"]
+                if symbols_per_file.get(p, 0) < 3:
+                    symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
+                    selected_rows.append(r)
+                    if len(selected_rows) >= limit:
+                        break
+
+            entries: list[dict[str, Any]] = []
+            stale_paths: list[str] = []
+            unselected_matches_count = max(0, total_matches - len(selected_rows))
+
+            paths = list({r["path"] for r in selected_rows})
+            all_symbols = store.symbols_for_paths(paths)
+            symbols_by_path: dict[str, list[SymbolRecord]] = {}
+            for s in all_symbols:
+                symbols_by_path.setdefault(s.path, []).append(s)
+            symbols_by_id: dict[str, SymbolRecord] = {s.symbol_id: s for s in all_symbols}
+
+            file_records_map: dict[str, FileRecord] = {
+                r["path"]: r["file_record"] for r in selected_rows if r.get("file_record")
+            }
+
+            for row in selected_rows:
+                file_record = row.get("file_record") or file_records_map.get(row["path"]) or store.file(row["path"])
+                if file_record is None:
+                    continue
+                state, current_hash = self._freshness_cache.path_state(
+                    repository.root, file_record, allow_symlinks=repository.allow_symlinks
                 )
-                continue
-            file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
-            raw = file_path.read_bytes()
-            source = raw.decode("utf-8", errors="replace")
-            selected_lines, unselected = _score_and_select_file_matches(
-                source, query, file_symbols, row["path"]
-            )
-            unselected_matches_count += unselected
-            for line_number, symbol in selected_lines:
-                snippet, redacted = redact_text(_source_snippet(source, line_number))
+                if state != "fresh" or current_hash != file_record.sha256:
+                    stale_paths.append(row["path"])
+                    line_number = row["start_line"]
+                    entries.append(
+                        {
+                            "symbol_id": row["symbol_id"] if not row["symbol_id"].endswith(":<module>") else None,
+                            "path": row["path"],
+                            "start_line": line_number,
+                            "end_line": line_number,
+                            "snippet": None,
+                            "lines": [],
+                            "evidence": Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict(),
+                            "warnings": ["stale_content_unavailable"],
+                        }
+                    )
+                    continue
+
+                file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
+                raw = file_path.read_bytes()
+                source = raw.decode("utf-8", errors="replace")
+
+                is_module = row["symbol_id"].endswith(":<module>")
+                scored_lines = _score_symbol_lines(
+                    source,
+                    query,
+                    row["start_line"],
+                    row["end_line"],
+                    is_module=is_module,
+                    file_symbols=symbols_by_path.get(row["path"], []),
+                )
+
+                best_line_num, best_snippet, _ = scored_lines[0]
+                total_redacted = 0
+                selected_lines_payload: list[list[Any]] = []
+                for ln, raw_snip, _ in scored_lines[:2]:
+                    clean_snip, redacted = redact_text(raw_snip)
+                    total_redacted += redacted
+                    selected_lines_payload.append([ln, clean_snip])
+
+                best_snippet_clean = selected_lines_payload[0][1] if selected_lines_payload else None
+                best_ln = selected_lines_payload[0][0] if selected_lines_payload else row["start_line"]
+
+                sym_rec = symbols_by_id.get(row["symbol_id"])
                 entries.append(
                     {
-                        "symbol_id": symbol.symbol_id if symbol else None,
+                        "symbol_id": sym_rec.symbol_id if sym_rec else None,
                         "path": row["path"],
-                        "start_line": line_number,
-                        "end_line": line_number,
-                        "snippet": snippet,
+                        "start_line": best_ln,
+                        "end_line": best_ln,
+                        "snippet": best_snippet_clean,
+                        "lines": selected_lines_payload,
                         "evidence": (
-                            self._evidence_for_symbol(store, symbol, file_records=file_records_map).as_dict()
-                            if symbol
-                            else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
+                            self._evidence_for_symbol(store, sym_rec, file_records=file_records_map).as_dict()
+                            if sym_rec
+                            else Evidence(row["path"], best_ln, best_ln, file_record.sha256).as_dict()
                         ),
-                        **({"redacted_lines": redacted} if redacted else {}),
+                        **({"redacted_lines": total_redacted} if total_redacted else {}),
                     }
                 )
+        else:
+            match_query = _fts_query(query, op="AND")
+            try:
+                total_matches = store.count_source_matches(match_query)
+                rows = store.search_source_matches(match_query, limit=limit)
+                if total_matches == 0:
+                    match_query_or = _fts_query(query, op="OR")
+                    if match_query_or != match_query:
+                        total_matches = store.count_source_matches(match_query_or)
+                        rows = store.search_source_matches(match_query_or, limit=limit)
+                        match_query = match_query_or
+            except StoreError as error:
+                raise RetrievalError(str(error)) from error
+            entries = []
+            stale_paths = []
+            unselected_matches_count = 0
+            sorted_rows = sorted(
+                rows,
+                key=lambda r: (1 if r["path"].startswith(("tests/", "evals/")) else 0),
+            )
+
+            paths = [r["path"] for r in sorted_rows]
+            all_symbols = store.symbols_for_paths(paths)
+            symbols_by_path = {}
+            for s in all_symbols:
+                symbols_by_path.setdefault(s.path, []).append(s)
+
+            file_records_map = {r["path"]: r["file_record"] for r in sorted_rows if "file_record" in r}
+
+            for row in sorted_rows:
+                file_record = row.get("file_record") or store.file(row["path"])
+                if file_record is None:
+                    continue
+                state, current_hash = self._freshness_cache.path_state(
+                    repository.root, file_record, allow_symlinks=repository.allow_symlinks
+                )
+                file_symbols = symbols_by_path.get(row["path"], [])
+                if state != "fresh" or current_hash != file_record.sha256:
+                    stale_paths.append(row["path"])
+                    symbol = None
+                    line_number = 1
+                    entries.append(
+                        {
+                            "symbol_id": symbol.symbol_id if symbol else None,
+                            "path": row["path"],
+                            "start_line": line_number,
+                            "end_line": line_number,
+                            "snippet": None,
+                            "lines": [],
+                            "evidence": Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict(),
+                            "warnings": ["stale_content_unavailable"],
+                        }
+                    )
+                    continue
+                file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
+                raw = file_path.read_bytes()
+                source = raw.decode("utf-8", errors="replace")
+                selected_lines, unselected = _score_and_select_file_matches(
+                    source, query, file_symbols, row["path"]
+                )
+                unselected_matches_count += unselected
+                for line_number, symbol in selected_lines:
+                    snippet, redacted = redact_text(_source_snippet(source, line_number))
+                    entries.append(
+                        {
+                            "symbol_id": symbol.symbol_id if symbol else None,
+                            "path": row["path"],
+                            "start_line": line_number,
+                            "end_line": line_number,
+                            "snippet": snippet,
+                            "lines": [[line_number, snippet]],
+                            "evidence": (
+                                self._evidence_for_symbol(store, symbol, file_records=file_records_map).as_dict()
+                                if symbol
+                                else Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict()
+                            ),
+                            **({"redacted_lines": redacted} if redacted else {}),
+                        }
+                    )
         cached_snap = self._freshness_cache._snapshots.get((repository.repo_id, str(metadata.get("index_run_id", ""))))
         if cached_snap is not None and (time.monotonic() - cached_snap.timestamp) <= self._freshness_cache.ttl:
             freshness = cached_snap.status
@@ -1635,15 +1765,97 @@ def _module_candidates(path: str) -> list[str]:
     return sorted({item for item in candidates if item})
 
 
-def _fts_query(query: str) -> str:
+def _fts_query(query: str, op: str = "AND") -> str:
     terms = _fts_terms(query)
     if not terms:
         raise RetrievalError("query must contain searchable text")
-    return " AND ".join(f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms)
+    clauses: list[str] = []
+    for t in terms:
+        escaped_t = t.replace('"', '""')
+        parts = split_identifier(t)
+        sub_parts = [
+            p
+            for p in parts
+            if p.lower() != t.lower() and p.replace("_", "").lower() != t.replace("_", "").lower()
+        ]
+        if len(sub_parts) > 1:
+            sub_and = " AND ".join(f'"{p.replace(chr(34), chr(34) * 2)}"' for p in sub_parts)
+            clauses.append(f'("{escaped_t}" OR ({sub_and}))')
+        elif len(sub_parts) == 1:
+            p = sub_parts[0]
+            clauses.append(f'("{escaped_t}" OR "{p.replace(chr(34), chr(34) * 2)}")')
+        else:
+            clauses.append(f'"{escaped_t}"')
+
+    join_op = f" {op.strip().upper()} "
+    return join_op.join(clauses)
 
 
 def _fts_terms(query: str) -> list[str]:
-    return re.findall(r"[\w]+", query, flags=re.UNICODE)
+    cleaned = re.sub(r"[,\(\)\[\]\{\};:=]+", " ", query)
+    tokens = [t.strip("\"'~`!@#$%^&*") for t in cleaned.split()]
+    return [t for t in tokens if t]
+
+
+def _score_symbol_lines(
+    source: str,
+    query: str,
+    start_line: int,
+    end_line: int,
+    is_module: bool = False,
+    file_symbols: list[SymbolRecord] | None = None,
+) -> list[tuple[int, str, int]]:
+    """Return up to 2 best matching lines as (line_number, snippet, score) within symbol span."""
+    lines = source.splitlines()
+    if not lines:
+        return [(1, "", 0)]
+
+    terms = _fts_terms(query)
+    valid_terms = [t for t in terms if t.strip()]
+    all_terms: list[str] = list(valid_terms)
+    for t in valid_terms:
+        for sub in split_identifier(t):
+            if sub not in all_terms:
+                all_terms.append(sub)
+
+    patterns = [re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE) for term in all_terms]
+
+    if is_module:
+        sym_lines: set[int] = set()
+        if file_symbols:
+            for s in file_symbols:
+                sym_lines.update(range(s.start_line, s.end_line + 1))
+        candidate_line_nums = [ln for ln in range(1, len(lines) + 1) if ln not in sym_lines]
+    else:
+        candidate_line_nums = list(range(max(1, start_line), min(len(lines), end_line) + 1))
+
+    scored_lines: list[tuple[int, int]] = []
+    for ln in candidate_line_nums:
+        line_txt = lines[ln - 1]
+        score = sum(1 for p in patterns if p.search(line_txt))
+        if score > 0:
+            scored_lines.append((ln, score))
+
+    if not scored_lines and candidate_line_nums:
+        lowered_terms = [t.lower() for t in all_terms]
+        for ln in candidate_line_nums:
+            lowered_line = lines[ln - 1].lower()
+            score = sum(1 for t in lowered_terms if t in lowered_line)
+            if score > 0:
+                scored_lines.append((ln, score))
+
+    if not scored_lines:
+        default_ln = candidate_line_nums[0] if candidate_line_nums else 1
+        scored_lines = [(default_ln, 0)]
+
+    scored_lines.sort(key=lambda item: (-item[1], item[0]))
+    selected = scored_lines[:2]
+
+    res: list[tuple[int, str, int]] = []
+    for ln, sc in selected:
+        snip = _source_snippet(source, ln)
+        res.append((ln, snip, sc))
+    return res
 
 
 def _innermost_symbol(symbols: list[SymbolRecord], line_number: int) -> SymbolRecord | None:
