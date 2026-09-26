@@ -1,0 +1,537 @@
+{
+  "repo_id": "token-context",
+  "reviewed": false,
+  "split_seed": 20260926,
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "dev",
+      "query": "tính freshness bằng stat và mtime",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/freshness.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.path_state"
+        }
+      ],
+      "note": "Xác định độ tươi mới tập tin thông qua đối chiếu stat mtime và hash sha256"
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "dev",
+      "query": "ghi audit theo lô vào hàng đợi",
+      "gold_files": [
+        "src/token_context_mcp/security/audit.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/audit.py",
+          "qualified_name": "AuditLogger.log"
+        }
+      ],
+      "note": "Ghi nhật ký kiểm toán bất đồng bộ vào hàng đợi để xả theo lô xuống sqlite"
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "thuật toán local push ppr lan truyền điểm",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "local_push_ppr"
+        }
+      ],
+      "note": "Thuật toán local push personalized pagerank tính xác suất dừng và điểm số lân cận"
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "kết nối read pool quản lý connpool sqlite",
+      "gold_files": [
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "ReadConnectionPool.get_connection"
+        }
+      ],
+      "note": "Quản lý pool kết nối đọc SQLite tái sử dụng cho từng tiến trình đọc"
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "thu hồi snapshot cũ bằng cơ chế gc",
+      "gold_files": [
+        "src/token_context_mcp/index/runner.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "gc_snapshots"
+        }
+      ],
+      "note": "Thu gom rác và xóa bỏ các tệp snapshot chỉ mục sqlite cũ vượt số lượng lưu trữ"
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "đo phần cứng AI qua ctypes memory probe",
+      "gold_files": [
+        "src/token_context_mcp/sampling/hardware_probe.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/sampling/hardware_probe.py",
+          "qualified_name": "probe_hardware"
+        }
+      ],
+      "note": "Thăm dò tài nguyên bộ nhớ hệ thống qua thư viện ctypes kernel32 và cấu hình phần cứng"
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "tính toán điểm PageRank toàn cục lúc index",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "compute_global_ranks"
+        }
+      ],
+      "note": "Tính điểm thứ hạng PageRank tĩnh toàn cục cho các symbol tại thời điểm lập chỉ mục"
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "lưu vết và quản lý trạng thái khẩn cấp emergency halt",
+      "gold_files": [
+        "src/token_context_mcp/security/governance_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/governance_store.py",
+          "qualified_name": "GovernanceStore.set_emergency_halt"
+        }
+      ],
+      "note": "Kích hoạt cờ dừng khẩn cấp trên bảng governance store chia sẻ giữa các server"
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "dev",
+      "query": "tìm kiếm biểu tượng với ký tự đại diện wildcard find_symbols",
+      "gold_files": [
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.find_symbols"
+        }
+      ],
+      "note": "Truy vấn danh sách symbol theo chuỗi tìm kiếm có chứa dấu hoa thị hoặc tiền tố"
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "xử lý câu lệnh khớp FTS query terms match",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "_fts_query"
+        }
+      ],
+      "note": "Trích xuất các từ khóa và tạo biểu thức truy vấn toàn văn SQLite FTS5 an toàn"
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "khi agent gọi memory_get thì dữ liệu thật sự được đọc ở đâu",
+      "gold_files": [
+        "src/token_context_mcp/memory/store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/memory/store.py",
+          "qualified_name": "MemoryStore.get"
+        }
+      ],
+      "note": "Truy vấn bảng key_values trong sqlite cơ sở dữ liệu bộ nhớ để trả giá trị lưu trữ"
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "hàm nào kiểm tra một câu lệnh nạp thư viện có trỏ tới đúng thành phần khai báo theo từng đoạn",
+      "gold_files": [
+        "src/token_context_mcp/parse/lexical_edges.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/parse/lexical_edges.py",
+          "qualified_name": "_import_matches_candidate"
+        }
+      ],
+      "note": "So khớp các phân đoạn đường dẫn module với tệp chứa biểu tượng đích để loại bỏ so khớp chuỗi con giả"
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "dev",
+      "query": "tiến trình nào phụ trách ghi dồn dữ liệu giám sát ra đĩa theo chu kỳ",
+      "gold_files": [
+        "src/token_context_mcp/security/audit.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/audit.py",
+          "qualified_name": "AuditLogger._worker_loop"
+        }
+      ],
+      "note": "Vòng lặp chạy nền trong luồng riêng biệt để gom các sự kiện và ghi xuống cơ sở dữ liệu"
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "dev",
+      "query": "thành phần nào chịu trách nhiệm lưu bản đồ quan hệ giữa các nút sau khi dựng chỉ mục",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/graph_cache.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "GraphCache.get_graph"
+        }
+      ],
+      "note": "Lưu trữ biểu diễn đồ thị nén CSR trong bộ nhớ RAM phục vụ cho các thuật toán duyệt đồ thị"
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "khi yêu cầu sơ đồ tổng quan rút gọn thì thứ tự ưu tiên các tệp được điều chỉnh ở đâu",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "_compact_map_order"
+        }
+      ],
+      "note": "Nhóm các biểu tượng quan trọng nhất theo từng tệp đã mở để tối ưu dung lượng ngữ cảnh compact"
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "thuật toán nào tìm dòng chứa nội dung liên quan nhất bên trong phạm vi mã",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "_best_matching_lines"
+        }
+      ],
+      "note": "Đánh giá điểm số dòng dựa trên số lượng từ khóa và biểu tượng bao bọc nhỏ nhất"
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "nơi nào thực hiện trích xuất và che giấu các thông tin nhạy cảm trước khi cất giữ",
+      "gold_files": [
+        "src/token_context_mcp/memory/store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/memory/store.py",
+          "qualified_name": "_redact_value"
+        }
+      ],
+      "note": "Duyệt đệ quy cấu trúc dữ liệu và che giấu các chuỗi nhạy cảm trước khi ghi nhận"
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "phương thức nào duy trì thông tin nhịp tim định kỳ của các máy chủ đang hoạt động",
+      "gold_files": [
+        "src/token_context_mcp/security/governance_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/governance_store.py",
+          "qualified_name": "GovernanceStore.record_heartbeat"
+        }
+      ],
+      "note": "Ghi lại thời gian hoạt động gần nhất của server vào bảng server_heartbeats"
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "thành phần nào phụ trách xác định nút nằm sâu nhất bao bọc vị trí dòng cụ thể",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "_innermost_symbol"
+        }
+      ],
+      "note": "Tìm biểu tượng có phạm vi dòng hẹp nhất bao trùm dòng mã đang khớp"
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "dev",
+      "query": "hàm nào kiểm tra và phân giải con trỏ phiên bản hiện tại trước khi truy cập chỉ mục",
+      "gold_files": [
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.metadata"
+        }
+      ],
+      "note": "Đọc thông tin phiên bản index_run_id và cấu hình tệp chỉ mục từ bảng metadata"
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "dev",
+      "query": "luồng từ lúc gọi tool tới lúc ghi audit",
+      "gold_files": [
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/security/audit.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "_invoke"
+        },
+        {
+          "path": "src/token_context_mcp/security/audit.py",
+          "qualified_name": "AuditLogger.log"
+        }
+      ],
+      "note": "Bắt đầu từ hàm bao bọc invoke gọi công cụ đến khi nhật ký kiểm toán được gửi vào hàng đợi log"
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "dev",
+      "query": "cạnh được tạo lúc index rồi được dùng để rank thế nào",
+      "gold_files": [
+        "src/token_context_mcp/parse/lexical_edges.py",
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/parse/lexical_edges.py",
+          "qualified_name": "build_lexical_edges"
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "rank_symbols"
+        }
+      ],
+      "note": "Trích xuất cạnh quan hệ trong quá trình phân tích tĩnh và áp dụng trọng số cạnh trong thuật toán xếp hạng"
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "quy trình phân giải ngữ cảnh biểu tượng kèm bằng chứng mã hóa",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/models.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.symbol_context"
+        },
+        {
+          "path": "src/token_context_mcp/models.py",
+          "qualified_name": "Evidence.as_dict"
+        }
+      ],
+      "note": "Dịch vụ trích xuất thân hàm và đóng gói kèm đối tượng Evidence băm rút gọn"
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "dev",
+      "query": "luồng kiểm tra quyền truy cập trước khi chạy lệnh công cụ",
+      "gold_files": [
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/security/access_control.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "_invoke"
+        },
+        {
+          "path": "src/token_context_mcp/security/access_control.py",
+          "qualified_name": "AccessControlManager.check_access"
+        }
+      ],
+      "note": "Hàm invoke xác thực danh tính agent và gọi check_access để thẩm định quyền"
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "cơ chế đồng bộ trạng thái server giữa tiến trình giao diện và bộ lưu trữ quản trị",
+      "gold_files": [
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/security/governance_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/gui/bridge.py",
+          "qualified_name": "GovernanceRefreshWorker.run"
+        },
+        {
+          "path": "src/token_context_mcp/security/governance_store.py",
+          "qualified_name": "GovernanceStore.get_active_servers"
+        }
+      ],
+      "note": "Worker nền trong giao diện đọc danh sách server còn sống từ cơ sở dữ liệu quản trị sqlite"
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "dev",
+      "query": "cách xây dựng đồ thị ký hiệu từ cơ sở dữ liệu để phục vụ truy vấn sơ đồ",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/graph_cache.py",
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "GraphCache.get_graph"
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.repo_map"
+        }
+      ],
+      "note": "Bộ đệm đồ thị khởi tạo các mảng CSR từ database snapshot và cung cấp cho repo_map duyệt"
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "luồng phân lập không gian tên và xử lý khóa bộ nhớ dùng chung",
+      "gold_files": [
+        "src/token_context_mcp/memory/service.py",
+        "src/token_context_mcp/memory/store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/memory/service.py",
+          "qualified_name": "MemoryService.memory_lock"
+        },
+        {
+          "path": "src/token_context_mcp/memory/store.py",
+          "qualified_name": "MemoryStore.lock"
+        }
+      ],
+      "note": "Tầng dịch vụ chuẩn hóa tham số không gian tên và gọi tầng kho lưu trữ để chiếm giữ khóa nguyên tử"
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "chu trình khởi chạy lệnh quét chỉ mục từ giao diện dòng lệnh đến lưu trữ đĩa",
+      "gold_files": [
+        "src/token_context_mcp/cli.py",
+        "src/token_context_mcp/index/runner.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/cli.py",
+          "qualified_name": "main"
+        },
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "build_index"
+        }
+      ],
+      "note": "Xử lý các đối số dòng lệnh CLI và kích hoạt tiến trình trích xuất AST và tạo tệp snapshot"
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "cơ chế quét và phát hiện các tệp mới thêm vào hoặc bị thay đổi trong kho mã nguồn",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/freshness.py",
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.get_snapshot"
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._freshness"
+        }
+      ],
+      "note": "Kiểm tra mtime của thư mục và so sánh danh sách tệp đĩa với danh sách đã lưu trữ"
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "luồng xử lý từ chối quyền truy cập công cụ và tạo phản hồi lỗi",
+      "gold_files": [
+        "src/token_context_mcp/security/access_control.py",
+        "src/token_context_mcp/server.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/access_control.py",
+          "qualified_name": "AccessControlManager.check_access"
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "_wrap"
+        }
+      ],
+      "note": "Khi quyền bị từ chối sẽ phát sinh ngoại lệ PermissionRevokedError và được gói thành envelope lỗi"
+    }
+  ]
+}
