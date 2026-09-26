@@ -706,7 +706,7 @@ class SQLiteStore:
             with self.connection() as connection:
                 rows = connection.execute(
                     """
-                    SELECT f.symbol_id, f.path, f.name, f.qualified_name,
+                    SELECT f.symbol_id, f.path, f.name, f.qualified_name, f.code_tokens, f.own_body,
                            s.kind, s.signature,
                            COALESCE(s.start_line, 1) AS start_line,
                            COALESCE(s.end_line, 1) AS end_line,
@@ -742,6 +742,8 @@ class SQLiteStore:
                     "path": str(row["path"]),
                     "name": str(row["name"]),
                     "qualified_name": str(row["qualified_name"]),
+                    "code_tokens": str(row["code_tokens"] or ""),
+                    "own_body": str(row["own_body"] or ""),
                     "kind": str(row["kind"]) if row["kind"] is not None else "module",
                     "signature": str(row["signature"]) if row["signature"] is not None else "",
                     "start_line": int(row["start_line"]),

@@ -70,6 +70,36 @@ async def _run() -> None:
                     f"expected 10 core tools or 20 extended tools, got {len(names)}: {sorted(names)}"
                 )
 
+    # F0: Verify search_source via real stdio server with query 1
+    params_default = StdioServerParameters(
+        command=command,
+        args=["serve", "--transport", "stdio"],
+    )
+    async with Client(stdio_client(params_default)) as client:
+        res = await client.call_tool(
+            "search_source",
+            {"repo_id": "token-context", "query": "sqlite read behind key value lookup tool"},
+        )
+        if res.is_error:
+            raise AssertionError(f"search_source returned error: {res.content}")
+        payload = getattr(res, "structured_content", None)
+        if not payload and res.content and hasattr(res.content[0], "text"):
+            try:
+                payload = json.loads(res.content[0].text)
+            except Exception:
+                pass
+        if not isinstance(payload, dict):
+            raise AssertionError("search_source did not return structured payload")
+        matches = payload.get("data", {}).get("matches", [])
+        if len(matches) < 1:
+            raise AssertionError(f"expected >= 1 match for search_source, got {len(matches)}")
+        sids = [m["symbol_id"] for m in matches if m.get("symbol_id")]
+        if len(sids) != len(set(sids)):
+            raise AssertionError(f"duplicate symbol_id detected in search_source results: {sids}")
+        for idx, m in enumerate(matches):
+            if "lines" not in m or not isinstance(m["lines"], list):
+                raise AssertionError(f"match {idx} missing 'lines' list: {m}")
+
 
 def main() -> None:
     asyncio.run(_run())

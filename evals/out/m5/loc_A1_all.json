@@ -2,7 +2,7 @@
   "repo_id": "token-context",
   "arm": "A1",
   "split": "all",
-  "reviewed": true,
+  "reviewed": false,
   "split_seed": 20260926,
   "search_parameters": {
     "limit": 20,
@@ -18,38 +18,58 @@
     "task_count": 30,
     "file_acc_at_5": 0.9667,
     "file_recall_at_5": 0.95,
+    "file_mrr": 0.8761,
     "sym_recall_at_10": 0.6833,
-    "mean_wire_tokens": 1618.8,
-    "latency_p50_ms": 47.21,
-    "latency_p95_ms": 72.37
+    "sym_mrr": 0.5623,
+    "sym_acc_at_1": 0.4667,
+    "sym_acc_at_3": 0.6667,
+    "mean_test_ratio_top_10": 0.0067,
+    "mean_wire_tokens": 1892.8,
+    "latency_p50_ms": 29.27,
+    "latency_p95_ms": 42.7
   },
   "by_group": {
     "a_keyword": {
       "task_count": 10,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 0.9333,
       "sym_recall_at_10": 1.0,
-      "mean_wire_tokens": 1128.3,
-      "latency_p50_ms": 24.2,
-      "latency_p95_ms": 67.54
+      "sym_mrr": 0.7667,
+      "sym_acc_at_1": 0.6,
+      "sym_acc_at_3": 1.0,
+      "mean_test_ratio_top_10": 0.02,
+      "mean_wire_tokens": 1890.4,
+      "latency_p50_ms": 30.88,
+      "latency_p95_ms": 44.73
     },
     "b_hidden_dep": {
       "task_count": 10,
       "file_acc_at_5": 0.9,
       "file_recall_at_5": 0.9,
+      "file_mrr": 0.745,
       "sym_recall_at_10": 0.4,
-      "mean_wire_tokens": 1857.8,
-      "latency_p50_ms": 49.36,
-      "latency_p95_ms": 68.69
+      "sym_mrr": 0.2243,
+      "sym_acc_at_1": 0.2,
+      "sym_acc_at_3": 0.2,
+      "mean_test_ratio_top_10": 0.0,
+      "mean_wire_tokens": 1888.1,
+      "latency_p50_ms": 28.36,
+      "latency_p95_ms": 41.17
     },
     "c_multi_file": {
       "task_count": 10,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 0.95,
+      "file_mrr": 0.95,
       "sym_recall_at_10": 0.65,
-      "mean_wire_tokens": 1870.3,
-      "latency_p50_ms": 51.33,
-      "latency_p95_ms": 72.89
+      "sym_mrr": 0.6958,
+      "sym_acc_at_1": 0.6,
+      "sym_acc_at_3": 0.8,
+      "mean_test_ratio_top_10": 0.0,
+      "mean_wire_tokens": 1899.8,
+      "latency_p50_ms": 28.76,
+      "latency_p95_ms": 36.59
     }
   },
   "tasks": [
@@ -63,22 +83,43 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 419,
-      "latency_ms": 9.01,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.1,
+      "gold_sym_terms_matched": [
+        "freshness",
+        "stat",
+        "cache"
+      ],
+      "wire_tokens": 1939,
+      "latency_ms": 30.65,
       "latencies_ms": [
-        9.08,
-        9.58,
-        8.71,
-        8.95
+        29.4,
+        31.91,
+        29.01,
+        33.46
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/freshness.py",
-        "tests/test_freshness_cache.py"
+        "tests/test_freshness_cache.py",
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/index/freshness.py"
       ],
       "top_10_symbols": [
         "src/token_context_mcp/retrieve/freshness.py::FreshnessCache.path_state",
-        "tests/test_freshness_cache.py::test_touch_mtime_without_content_change_hashes_once_and_stays_fresh"
+        "tests/test_freshness_cache.py::test_touch_mtime_without_content_change_hashes_once_and_stays_fresh",
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.config",
+        "src/token_context_mcp/gui/bridge.py::CacheManager.get_storage_stats",
+        "src/token_context_mcp/index/freshness.py::pending_paths",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache",
+        "src/token_context_mcp/index/runner.py::gc_snapshots",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache._compute_snapshot",
+        "src/token_context_mcp/gui/bridge.py::CacheManager.vacuum_database",
+        "src/token_context_mcp/sampling/hardware_probe.py::probe_hardware"
       ],
       "eval_query": "freshness check stat mtime cache"
     },
@@ -92,14 +133,23 @@
       "first_gold_sym_rank": 3,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
+      "sym_mrr": 0.3333,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "audit",
+        "log"
+      ],
       "wire_tokens": 1915,
-      "latency_ms": 54.79,
+      "latency_ms": 40.69,
       "latencies_ms": [
-        76.19,
-        54.87,
-        43.92,
-        54.71
+        38.59,
+        42.52,
+        38.86,
+        63.2
       ],
       "top_5_files": [
         "src/token_context_mcp/security/audit.py",
@@ -132,20 +182,43 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 260,
-      "latency_ms": 4.52,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "local",
+        "push",
+        "ppr"
+      ],
+      "wire_tokens": 1795,
+      "latency_ms": 28.69,
       "latencies_ms": [
-        3.32,
-        4.06,
-        5.09,
-        4.99
+        31.65,
+        26.74,
+        28.38,
+        29.0
       ],
       "top_5_files": [
-        "src/token_context_mcp/retrieve/ranking.py"
+        "src/token_context_mcp/retrieve/ranking.py",
+        "src/token_context_mcp/security/local_privacy.py",
+        "src/token_context_mcp/config.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/cli.py"
       ],
       "top_10_symbols": [
-        "src/token_context_mcp/retrieve/ranking.py::local_push_ppr"
+        "src/token_context_mcp/retrieve/ranking.py::local_push_ppr",
+        "src/token_context_mcp/security/local_privacy.py::uses_posix_modes",
+        "src/token_context_mcp/security/local_privacy.py::_platform",
+        "src/token_context_mcp/security/local_privacy.py::secure_file",
+        "src/token_context_mcp/config.py::ConfigError",
+        "src/token_context_mcp/gui/bridge.py::AgentSecurityController._on_governance_agents",
+        "src/token_context_mcp/cli.py::build_parser",
+        "src/token_context_mcp/models.py::Evidence.as_dict",
+        "src/token_context_mcp/retrieve/ranking.py::compute_global_ranks",
+        "src/token_context_mcp/parse/lsp.py::lsp_backend_status"
       ],
       "eval_query": "local push ppr personalized pagerank"
     },
@@ -159,21 +232,44 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 391,
-      "latency_ms": 5.87,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "read",
+        "connection",
+        "pool",
+        "get"
+      ],
+      "wire_tokens": 1871,
+      "latency_ms": 34.28,
       "latencies_ms": [
-        5.5,
-        5.38,
-        6.24,
-        8.16
+        34.52,
+        43.71,
+        34.04,
+        27.38
       ],
       "top_5_files": [
         "src/token_context_mcp/index/sqlite_store.py",
-        "tests/test_code_tokens.py"
+        "tests/test_code_tokens.py",
+        "src/token_context_mcp/security/governance_store.py",
+        "src/token_context_mcp/memory/store.py",
+        "src/token_context_mcp/retrieve/context.py"
       ],
       "top_10_symbols": [
-        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection"
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.__init__",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore._get_connection",
+        "src/token_context_mcp/memory/store.py::MemoryStore._connection",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore._connection",
+        "src/token_context_mcp/memory/store.py::_needs_repair",
+        "src/token_context_mcp/retrieve/context.py::RetrievalContext",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.close",
+        "src/token_context_mcp/memory/store.py::MemoryStore._migrate_schema"
       ],
       "eval_query": "read connection pool get connection"
     },
@@ -187,14 +283,23 @@
       "first_gold_sym_rank": 3,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 0.3333,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1915,
-      "latency_ms": 45.95,
+      "sym_mrr": 0.3333,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "gc",
+        "snapshots"
+      ],
+      "wire_tokens": 1901,
+      "latency_ms": 32.7,
       "latencies_ms": [
-        55.59,
-        44.37,
-        47.53,
-        39.38
+        40.28,
+        30.85,
+        29.89,
+        34.55
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/widgets/cache_tab.py",
@@ -227,14 +332,23 @@
       "first_gold_sym_rank": 2,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
+      "sym_mrr": 0.5,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "probe",
+        "hardware"
+      ],
       "wire_tokens": 1951,
-      "latency_ms": 61.58,
+      "latency_ms": 32.93,
       "latencies_ms": [
-        67.42,
-        55.75,
-        69.77,
-        50.71
+        23.17,
+        22.91,
+        44.66,
+        42.68
       ],
       "top_5_files": [
         "src/token_context_mcp/sampling/hardware_probe.py",
@@ -267,20 +381,43 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 265,
-      "latency_ms": 4.13,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "compute",
+        "global",
+        "ranks"
+      ],
+      "wire_tokens": 1935,
+      "latency_ms": 28.11,
       "latencies_ms": [
-        4.18,
-        4.24,
-        4.09,
-        3.3
+        28.27,
+        27.41,
+        27.96,
+        30.14
       ],
       "top_5_files": [
-        "src/token_context_mcp/retrieve/ranking.py"
+        "src/token_context_mcp/retrieve/ranking.py",
+        "src/token_context_mcp/index/sqlite_store.py",
+        "src/token_context_mcp/retrieve/freshness.py",
+        "src/token_context_mcp/retrieve/graph_cache.py",
+        "src/token_context_mcp/security/access_control.py"
       ],
       "top_10_symbols": [
-        "src/token_context_mcp/retrieve/ranking.py::compute_global_ranks"
+        "src/token_context_mcp/retrieve/ranking.py::compute_global_ranks",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.symbol_ranks",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache.get_snapshot",
+        "src/token_context_mcp/retrieve/graph_cache.py::RepoGraph.__init__",
+        "src/token_context_mcp/retrieve/ranking.py::rank_symbols",
+        "src/token_context_mcp/security/access_control.py::AccessControlManager.emergency_resume",
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache._compute_snapshot",
+        "src/token_context_mcp/sampling/guardrail.py::verify_and_guard",
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_consolidate",
+        "src/token_context_mcp/index/runner.py::gc_snapshots"
       ],
       "eval_query": "compute global ranks pagerank index time"
     },
@@ -294,22 +431,45 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 367,
-      "latency_ms": 5.38,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.1,
+      "gold_sym_terms_matched": [
+        "governance",
+        "store",
+        "set",
+        "emergency",
+        "halt"
+      ],
+      "wire_tokens": 1860,
+      "latency_ms": 37.74,
       "latencies_ms": [
-        4.31,
-        4.17,
-        6.45,
-        6.9
+        46.11,
+        31.38,
+        39.32,
+        36.15
       ],
       "top_5_files": [
         "src/token_context_mcp/security/governance_store.py",
-        "tests/test_governance_store.py"
+        "tests/test_governance_store.py",
+        "src/token_context_mcp/security/access_control.py",
+        "src/token_context_mcp/gui/bridge.py",
+        "src/token_context_mcp/server.py"
       ],
       "top_10_symbols": [
         "src/token_context_mcp/security/governance_store.py::GovernanceStore.set_emergency_halt",
-        "tests/test_governance_store.py::test_governance_store_emergency_halt"
+        "tests/test_governance_store.py::test_governance_store_emergency_halt",
+        "src/token_context_mcp/security/access_control.py::AccessControlManager.emergency_halt",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.is_emergency_halted",
+        "src/token_context_mcp/security/access_control.py::AccessControlManager.emergency_resume",
+        "src/token_context_mcp/gui/bridge.py::AgentSecurityController.emergency_halt",
+        "src/token_context_mcp/gui/bridge.py::AgentSecurityController._on_governance_halt",
+        "src/token_context_mcp/server.py::agent_control",
+        "src/token_context_mcp/gui/widgets/agents_tab.py::AgentsTab._on_panic_emergency_stop",
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat"
       ],
       "eval_query": "governance store set emergency halt"
     },
@@ -323,14 +483,25 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1880,
-      "latency_ms": 51.51,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "sqlite",
+        "store",
+        "find",
+        "symbols"
+      ],
+      "wire_tokens": 1847,
+      "latency_ms": 28.89,
       "latencies_ms": [
-        49.54,
-        53.48,
-        67.12,
-        44.25
+        30.91,
+        26.67,
+        35.16,
+        26.87
       ],
       "top_5_files": [
         "src/token_context_mcp/index/sqlite_store.py",
@@ -349,7 +520,7 @@
         "src/token_context_mcp/server.py::build_server",
         "src/token_context_mcp/retrieve/ranking.py::rank_symbols",
         "src/token_context_mcp/retrieve/workflows.py::CompositeWorkflowEngine._inspect_symbol_scoped",
-        "tests/test_find_symbols_wildcards.py::test_find_symbols_wildcards"
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_search"
       ],
       "eval_query": "sqlite store find symbols wildcard query"
     },
@@ -363,14 +534,23 @@
       "first_gold_sym_rank": 2,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1920,
-      "latency_ms": 47.28,
+      "sym_mrr": 0.5,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "fts",
+        "query"
+      ],
+      "wire_tokens": 1890,
+      "latency_ms": 26.76,
       "latencies_ms": [
-        44.89,
-        38.82,
-        49.66,
-        50.93
+        23.0,
+        28.86,
+        30.69,
+        24.66
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -403,14 +583,20 @@
       "first_gold_sym_rank": 10,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 0.2,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1824,
-      "latency_ms": 59.41,
+      "sym_mrr": 0.1,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1920,
+      "latency_ms": 33.49,
       "latencies_ms": [
-        73.79,
-        72.37,
-        46.45,
-        44.26
+        32.92,
+        43.04,
+        34.05,
+        31.42
       ],
       "top_5_files": [
         "src/token_context_mcp/server.py",
@@ -443,14 +629,20 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1906,
-      "latency_ms": 49.97,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1951,
+      "latency_ms": 31.29,
       "latencies_ms": [
-        44.62,
-        49.04,
-        50.9,
-        53.86
+        30.8,
+        30.33,
+        31.77,
+        41.07
       ],
       "top_5_files": [
         "src/token_context_mcp/parse/lexical_edges.py",
@@ -483,14 +675,20 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1881,
-      "latency_ms": 51.66,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1885,
+      "latency_ms": 28.1,
       "latencies_ms": [
-        53.72,
-        49.6,
-        42.8,
-        61.83
+        32.52,
+        28.62,
+        27.58,
+        27.2
       ],
       "top_5_files": [
         "src/token_context_mcp/security/audit.py",
@@ -523,14 +721,20 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1782,
-      "latency_ms": 47.29,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1848,
+      "latency_ms": 32.08,
       "latencies_ms": [
-        41.13,
-        43.9,
-        59.31,
-        50.67
+        32.5,
+        43.54,
+        31.67,
+        30.4
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/graph_cache.py",
@@ -563,14 +767,20 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1858,
-      "latency_ms": 46.43,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1872,
+      "latency_ms": 25.03,
       "latencies_ms": [
-        43.75,
-        49.11,
-        54.97,
-        43.55
+        26.49,
+        24.78,
+        25.07,
+        24.99
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -603,14 +813,22 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1850,
-      "latency_ms": 51.38,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "line"
+      ],
+      "wire_tokens": 1851,
+      "latency_ms": 27.12,
       "latencies_ms": [
-        50.42,
-        55.35,
-        50.68,
-        52.09
+        29.53,
+        27.08,
+        27.16,
+        25.8
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -643,14 +861,20 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1848,
-      "latency_ms": 38.75,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1910,
+      "latency_ms": 23.67,
       "latencies_ms": [
-        45.76,
-        38.43,
-        38.62,
-        38.88
+        23.05,
+        24.02,
+        23.31,
+        25.4
       ],
       "top_5_files": [
         "src/token_context_mcp/memory/store.py",
@@ -683,14 +907,20 @@
       "first_gold_sym_rank": 7,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 0.25,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1842,
-      "latency_ms": 45.58,
+      "sym_mrr": 0.1429,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1860,
+      "latency_ms": 31.59,
       "latencies_ms": [
-        40.2,
-        44.22,
-        46.94,
-        47.48
+        27.55,
+        32.48,
+        30.7,
+        32.77
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/bridge.py",
@@ -709,7 +939,7 @@
         "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat",
         "src/token_context_mcp/memory/store.py::MemoryStore.put",
         "src/token_context_mcp/security/audit.py::AuditLogger.query_logs",
-        "src/token_context_mcp/gui/main_window.py::MainWindow._on_telemetry_update"
+        "src/token_context_mcp/server.py::_action"
       ],
       "eval_query": "active server periodic alive timestamp update"
     },
@@ -723,14 +953,20 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1853,
-      "latency_ms": 63.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1913,
+      "latency_ms": 25.88,
       "latencies_ms": [
-        62.83,
-        51.0,
-        68.5,
-        63.18
+        25.14,
+        25.6,
+        28.09,
+        26.16
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -763,14 +999,20 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 0.0,
       "file_recall_at_5": 0.0,
+      "file_mrr": 0.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1934,
-      "latency_ms": 45.14,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 1871,
+      "latency_ms": 28.12,
       "latencies_ms": [
-        39.61,
-        37.42,
-        50.68,
-        62.51
+        26.23,
+        27.38,
+        32.36,
+        28.86
       ],
       "top_5_files": [
         "src/token_context_mcp/index/runner.py",
@@ -803,14 +1045,22 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.5,
-      "wire_tokens": 1820,
-      "latency_ms": 52.58,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "audit"
+      ],
+      "wire_tokens": 1929,
+      "latency_ms": 32.68,
       "latencies_ms": [
-        52.64,
-        46.07,
-        52.51,
-        54.86
+        31.14,
+        33.61,
+        34.25,
+        31.75
       ],
       "top_5_files": [
         "src/token_context_mcp/security/audit.py",
@@ -843,14 +1093,22 @@
       "first_gold_sym_rank": 8,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 0.5,
+      "file_mrr": 0.5,
       "sym_recall_at_10": 0.5,
-      "wire_tokens": 1870,
-      "latency_ms": 68.6,
+      "sym_mrr": 0.125,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "edges"
+      ],
+      "wire_tokens": 1916,
+      "latency_ms": 32.68,
       "latencies_ms": [
-        54.93,
-        79.66,
-        72.45,
-        64.76
+        35.33,
+        29.29,
+        30.04,
+        41.65
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/bridge.py",
@@ -883,14 +1141,24 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.5,
-      "wire_tokens": 1856,
-      "latency_ms": 58.08,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "symbol",
+        "context",
+        "evidence"
+      ],
+      "wire_tokens": 1861,
+      "latency_ms": 30.68,
       "latencies_ms": [
-        57.67,
-        72.53,
-        58.5,
-        46.8
+        29.33,
+        29.75,
+        31.6,
+        36.58
       ],
       "top_5_files": [
         "src/token_context_mcp/models.py",
@@ -923,14 +1191,25 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1899,
-      "latency_ms": 44.4,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "invoke",
+        "access",
+        "control",
+        "check"
+      ],
+      "wire_tokens": 1934,
+      "latency_ms": 26.02,
       "latencies_ms": [
-        49.91,
-        38.54,
-        38.89,
-        52.82
+        35.74,
+        25.7,
+        26.33,
+        25.41
       ],
       "top_5_files": [
         "src/token_context_mcp/security/access_control.py",
@@ -963,14 +1242,25 @@
       "first_gold_sym_rank": 3,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1803,
-      "latency_ms": 40.08,
+      "sym_mrr": 0.3333,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "refresh",
+        "worker",
+        "active",
+        "servers"
+      ],
+      "wire_tokens": 1821,
+      "latency_ms": 23.97,
       "latencies_ms": [
-        46.18,
-        40.13,
-        40.03,
-        38.27
+        36.8,
+        24.25,
+        22.53,
+        23.7
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/bridge.py",
@@ -1003,14 +1293,25 @@
       "first_gold_sym_rank": 2,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
+      "sym_mrr": 0.5,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "graph",
+        "cache",
+        "repo",
+        "map"
+      ],
       "wire_tokens": 1871,
-      "latency_ms": 70.96,
+      "latency_ms": 29.97,
       "latencies_ms": [
-        72.22,
-        122.76,
-        69.7,
-        55.21
+        29.26,
+        29.01,
+        30.67,
+        30.97
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/graph_cache.py",
@@ -1043,21 +1344,32 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 1.0,
-      "wire_tokens": 1922,
-      "latency_ms": 46.91,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "memory",
+        "service",
+        "lock",
+        "store"
+      ],
+      "wire_tokens": 1948,
+      "latency_ms": 23.82,
       "latencies_ms": [
-        50.15,
-        60.5,
-        40.21,
-        43.68
+        23.34,
+        24.78,
+        23.75,
+        23.9
       ],
       "top_5_files": [
         "src/token_context_mcp/memory/service.py",
         "src/token_context_mcp/memory/store.py",
         "src/token_context_mcp/server.py",
         "src/token_context_mcp/security/audit.py",
-        "src/token_context_mcp/memory/__init__.py"
+        "src/token_context_mcp/retrieve/graph_cache.py"
       ],
       "top_10_symbols": [
         "src/token_context_mcp/memory/service.py::MemoryService.memory_lock",
@@ -1083,14 +1395,23 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.5,
-      "wire_tokens": 1876,
-      "latency_ms": 44.68,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "index",
+        "build"
+      ],
+      "wire_tokens": 1874,
+      "latency_ms": 27.52,
       "latencies_ms": [
-        42.41,
-        46.94,
-        56.27,
-        37.27
+        26.53,
+        34.42,
+        28.5,
+        20.04
       ],
       "top_5_files": [
         "src/token_context_mcp/cli.py",
@@ -1123,14 +1444,23 @@
       "first_gold_sym_rank": null,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.0,
-      "wire_tokens": 1945,
-      "latency_ms": 45.78,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "freshness",
+        "cache"
+      ],
+      "wire_tokens": 1922,
+      "latency_ms": 20.76,
       "latencies_ms": [
-        41.81,
-        46.78,
-        44.79,
-        56.2
+        21.4,
+        20.16,
+        21.11,
+        20.41
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/freshness.py",
@@ -1163,14 +1493,22 @@
       "first_gold_sym_rank": 1,
       "file_acc_at_5": 1.0,
       "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
       "sym_recall_at_10": 0.5,
-      "wire_tokens": 1841,
-      "latency_ms": 51.47,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "wrap"
+      ],
+      "wire_tokens": 1922,
+      "latency_ms": 26.89,
       "latencies_ms": [
-        49.64,
-        53.31,
-        58.18,
-        44.72
+        26.52,
+        26.11,
+        29.25,
+        27.27
       ],
       "top_5_files": [
         "src/token_context_mcp/server.py",

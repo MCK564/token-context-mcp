@@ -1,0 +1,812 @@
+{
+  "repo_id": "token-context",
+  "arm": "A1",
+  "split": "heldout",
+  "reviewed": false,
+  "split_seed": 20260926,
+  "search_parameters": {
+    "limit": 20,
+    "max_tokens": 512,
+    "profile": null,
+    "expand": null,
+    "expand_k": null,
+    "expand_hops": null,
+    "min_confidence": null
+  },
+  "task_count": 20,
+  "overall": {
+    "task_count": 20,
+    "file_acc_at_5": 0.85,
+    "file_recall_at_5": 0.7,
+    "file_mrr": 0.85,
+    "sym_recall_at_10": 0.5,
+    "sym_mrr": 0.55,
+    "sym_acc_at_1": 0.5,
+    "sym_acc_at_3": 0.6,
+    "mean_test_ratio_top_10": 0.025,
+    "mean_wire_tokens": 358.9,
+    "latency_p50_ms": 26.59,
+    "latency_p95_ms": 32.34
+  },
+  "by_group": {
+    "a_keyword": {
+      "task_count": 7,
+      "file_acc_at_5": 0.8571,
+      "file_recall_at_5": 0.8571,
+      "file_mrr": 0.8571,
+      "sym_recall_at_10": 0.8571,
+      "sym_mrr": 0.7143,
+      "sym_acc_at_1": 0.5714,
+      "sym_acc_at_3": 0.8571,
+      "mean_test_ratio_top_10": 0.0714,
+      "mean_wire_tokens": 373.3,
+      "latency_p50_ms": 26.09,
+      "latency_p95_ms": 32.08
+    },
+    "b_hidden_dep": {
+      "task_count": 7,
+      "file_acc_at_5": 0.7143,
+      "file_recall_at_5": 0.7143,
+      "file_mrr": 0.7143,
+      "sym_recall_at_10": 0.2857,
+      "sym_mrr": 0.2857,
+      "sym_acc_at_1": 0.2857,
+      "sym_acc_at_3": 0.2857,
+      "mean_test_ratio_top_10": 0.0,
+      "mean_wire_tokens": 366.0,
+      "latency_p50_ms": 27.15,
+      "latency_p95_ms": 32.87
+    },
+    "c_multi_file": {
+      "task_count": 6,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.3333,
+      "sym_mrr": 0.6667,
+      "sym_acc_at_1": 0.6667,
+      "sym_acc_at_3": 0.6667,
+      "mean_test_ratio_top_10": 0.0,
+      "mean_wire_tokens": 333.7,
+      "latency_p50_ms": 26.17,
+      "latency_p95_ms": 31.91
+    }
+  },
+  "tasks": [
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "local push ppr personalized pagerank",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "local",
+        "push",
+        "ppr"
+      ],
+      "wire_tokens": 385,
+      "latency_ms": 25.86,
+      "latencies_ms": [
+        32.09,
+        27.26,
+        24.27,
+        24.46
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/ranking.py",
+        "src/token_context_mcp/security/local_privacy.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/ranking.py::local_push_ppr",
+        "src/token_context_mcp/security/local_privacy.py::uses_posix_modes"
+      ],
+      "eval_query": "local push ppr personalized pagerank"
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "read connection pool get connection",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "read",
+        "connection",
+        "pool",
+        "get"
+      ],
+      "wire_tokens": 399,
+      "latency_ms": 24.95,
+      "latencies_ms": [
+        32.07,
+        26.5,
+        23.02,
+        23.4
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/index/sqlite_store.py",
+        "tests/test_code_tokens.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection"
+      ],
+      "eval_query": "read connection pool get connection"
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "gc snapshots clean old index database",
+      "hit": false,
+      "first_gold_file_rank": null,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 0.0,
+      "file_recall_at_5": 0.0,
+      "file_mrr": 0.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "gc",
+        "snapshots"
+      ],
+      "wire_tokens": 306,
+      "latency_ms": 24.49,
+      "latencies_ms": [
+        25.16,
+        25.96,
+        23.82,
+        23.74
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/widgets/cache_tab.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/widgets/cache_tab.py::CacheTab._clean_stale"
+      ],
+      "eval_query": "gc snapshots clean old index database"
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "probe hardware detect ram ctypes",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 2,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 0.5,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "probe",
+        "hardware"
+      ],
+      "wire_tokens": 392,
+      "latency_ms": 20.88,
+      "latencies_ms": [
+        19.47,
+        20.55,
+        21.2,
+        27.06
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/sampling/hardware_probe.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/sampling/hardware_probe.py::MEMORYSTATUSEX",
+        "src/token_context_mcp/sampling/hardware_probe.py::probe_hardware"
+      ],
+      "eval_query": "probe hardware detect ram ctypes"
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "compute global ranks pagerank index time",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "compute",
+        "global",
+        "ranks"
+      ],
+      "wire_tokens": 402,
+      "latency_ms": 26.89,
+      "latencies_ms": [
+        27.22,
+        28.86,
+        26.55,
+        26.23
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/ranking.py",
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/ranking.py::compute_global_ranks",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.symbol_ranks"
+      ],
+      "eval_query": "compute global ranks pagerank index time"
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "governance store set emergency halt",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.5,
+      "gold_sym_terms_matched": [
+        "governance",
+        "store",
+        "set",
+        "emergency",
+        "halt"
+      ],
+      "wire_tokens": 385,
+      "latency_ms": 29.43,
+      "latencies_ms": [
+        31.56,
+        26.95,
+        27.31,
+        38.26
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/security/governance_store.py",
+        "tests/test_governance_store.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.set_emergency_halt",
+        "tests/test_governance_store.py::test_governance_store_emergency_halt"
+      ],
+      "eval_query": "governance store set emergency halt"
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "heldout",
+      "query": "fts query builder match terms",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 2,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 0.5,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "fts",
+        "query"
+      ],
+      "wire_tokens": 344,
+      "latency_ms": 22.24,
+      "latencies_ms": [
+        26.64,
+        21.6,
+        21.05,
+        22.89
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_fts_terms",
+        "src/token_context_mcp/retrieve/service.py::_fts_query"
+      ],
+      "eval_query": "fts query builder match terms"
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "sqlite read behind key value lookup tool",
+      "hit": false,
+      "first_gold_file_rank": null,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 0.0,
+      "file_recall_at_5": 0.0,
+      "file_mrr": 0.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 414,
+      "latency_ms": 26.29,
+      "latencies_ms": [
+        26.73,
+        27.43,
+        25.84,
+        25.55
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/server.py",
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/server.py::memory_put",
+        "src/token_context_mcp/index/sqlite_store.py::ReadConnectionPool.get_connection"
+      ],
+      "eval_query": "sqlite read behind key value lookup tool"
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "verify path segments resolve correctly for module declaration",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 414,
+      "latency_ms": 29.29,
+      "latencies_ms": [
+        30.73,
+        28.62,
+        26.72,
+        29.96
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/parse/lexical_edges.py",
+        "src/token_context_mcp/parse/treesitter.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/parse/lexical_edges.py::_path_segments",
+        "src/token_context_mcp/parse/treesitter.py::_anonymous_export_name"
+      ],
+      "eval_query": "verify path segments resolve correctly for module declaration"
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "file orientation reordering to conserve breadth budget",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 355,
+      "latency_ms": 28.98,
+      "latencies_ms": [
+        33.17,
+        25.13,
+        31.04,
+        26.92
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::RetrievalService.repo_map",
+        "src/token_context_mcp/retrieve/service.py::_compact_rank_basis"
+      ],
+      "eval_query": "file orientation reordering to conserve breadth budget"
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "scored line selector within innermost boundary",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "line"
+      ],
+      "wire_tokens": 369,
+      "latency_ms": 29.09,
+      "latencies_ms": [
+        33.2,
+        31.16,
+        25.66,
+        27.03
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py",
+        "src/token_context_mcp/retrieve/serialization.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_innermost_symbol",
+        "src/token_context_mcp/retrieve/serialization.py::normalize_line_endings"
+      ],
+      "eval_query": "scored line selector within innermost boundary"
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "mask sensitive tokens secrets before saving",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 403,
+      "latency_ms": 24.57,
+      "latencies_ms": [
+        23.5,
+        23.36,
+        25.63,
+        27.64
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/memory/store.py",
+        "src/token_context_mcp/gui/widgets/settings_tab.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/memory/store.py::_redact_value",
+        "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings"
+      ],
+      "eval_query": "mask sensitive tokens secrets before saving"
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "active server periodic alive timestamp update",
+      "hit": false,
+      "first_gold_file_rank": null,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 0.0,
+      "file_recall_at_5": 0.0,
+      "file_mrr": 0.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 275,
+      "latency_ms": 26.6,
+      "latencies_ms": [
+        27.27,
+        32.32,
+        25.94,
+        25.01
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/bridge.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config"
+      ],
+      "eval_query": "active server periodic alive timestamp update"
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "narrowest enclosing span covering line number",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 1.0,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 1.0,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [],
+      "wire_tokens": 332,
+      "latency_ms": 29.47,
+      "latencies_ms": [
+        27.86,
+        31.09,
+        31.12,
+        25.94
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/service.py::_innermost_symbol",
+        "src/token_context_mcp/retrieve/service.py::_source_snippet"
+      ],
+      "eval_query": "narrowest enclosing span covering line number"
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "symbol context extraction with evidence digest",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.5,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "symbol",
+        "context",
+        "evidence"
+      ],
+      "wire_tokens": 405,
+      "latency_ms": 28.87,
+      "latencies_ms": [
+        27.93,
+        29.82,
+        32.75,
+        26.8
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/models.py",
+        "src/token_context_mcp/index/hashing.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/models.py::Evidence.as_dict",
+        "src/token_context_mcp/index/hashing.py::sha256_file"
+      ],
+      "eval_query": "symbol context extraction with evidence digest"
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "gui refresh worker sync active servers",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "refresh",
+        "worker",
+        "active",
+        "servers"
+      ],
+      "wire_tokens": 372,
+      "latency_ms": 24.73,
+      "latencies_ms": [
+        25.08,
+        27.58,
+        23.73,
+        24.38
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/gui/bridge.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/gui/bridge.py::GovernanceRefreshWorker._poll_once",
+        "src/token_context_mcp/gui/bridge.py::GovernanceRefreshWorker.stop"
+      ],
+      "eval_query": "gui refresh worker sync active servers"
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "memory service lock with namespace store",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.5,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "memory",
+        "service",
+        "lock",
+        "store"
+      ],
+      "wire_tokens": 291,
+      "latency_ms": 28.94,
+      "latencies_ms": [
+        25.28,
+        32.0,
+        31.38,
+        26.49
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/memory/service.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/memory/service.py::MemoryService.memory_lock"
+      ],
+      "eval_query": "memory service lock with namespace store"
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "cli command index runner build",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.5,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "index",
+        "build"
+      ],
+      "wire_tokens": 385,
+      "latency_ms": 20.32,
+      "latencies_ms": [
+        27.72,
+        19.86,
+        19.12,
+        20.78
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/cli.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/cli.py::main",
+        "src/token_context_mcp/cli.py::build_parser"
+      ],
+      "eval_query": "cli command index runner build"
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "freshness cache directory scan mtime check",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": null,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.0,
+      "sym_mrr": 0.0,
+      "sym_acc_at_1": 0.0,
+      "sym_acc_at_3": 0.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "freshness",
+        "cache"
+      ],
+      "wire_tokens": 276,
+      "latency_ms": 20.27,
+      "latencies_ms": [
+        20.09,
+        21.4,
+        19.74,
+        20.44
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/retrieve/freshness.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/retrieve/freshness.py::FreshnessCache.path_state"
+      ],
+      "eval_query": "freshness cache directory scan mtime check"
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "heldout",
+      "query": "permission revoked error wrap in server response",
+      "hit": true,
+      "first_gold_file_rank": 1,
+      "first_gold_sym_rank": 1,
+      "file_acc_at_5": 1.0,
+      "file_recall_at_5": 0.5,
+      "file_mrr": 1.0,
+      "sym_recall_at_10": 0.5,
+      "sym_mrr": 1.0,
+      "sym_acc_at_1": 1.0,
+      "sym_acc_at_3": 1.0,
+      "test_ratio_top_10": 0.0,
+      "gold_sym_terms_matched": [
+        "wrap"
+      ],
+      "wire_tokens": 273,
+      "latency_ms": 28.76,
+      "latencies_ms": [
+        25.85,
+        29.15,
+        30.99,
+        28.36
+      ],
+      "top_5_files": [
+        "src/token_context_mcp/server.py"
+      ],
+      "top_10_symbols": [
+        "src/token_context_mcp/server.py::_wrap"
+      ],
+      "eval_query": "permission revoked error wrap in server response"
+    }
+  ]
+}

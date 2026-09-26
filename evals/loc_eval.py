@@ -183,6 +183,25 @@ def evaluate_single_task(
             first_sym_rank = idx
             break
 
+    file_mrr = 1.0 / first_file_rank if first_file_rank else 0.0
+    sym_mrr = 1.0 / first_sym_rank if first_sym_rank else 0.0
+    sym_acc_1 = 1.0 if first_sym_rank == 1 else 0.0
+    sym_acc_3 = 1.0 if first_sym_rank and first_sym_rank <= 3 else 0.0
+    test_ratio_top_10 = (
+        sum(1 for p, _ in top_10_symbols if p.startswith(("tests/", "evals/"))) / max(1, len(top_10_symbols))
+    )
+
+    gold_sym_terms_matched: list[str] = []
+    if gold_symbols_spec:
+        query_words = [w.lower() for w in task["query"].split() if w.strip()]
+        for gs in gold_symbols_spec:
+            s_name = gs.get("name", "").lower()
+            s_qname = gs.get("qualified_name", "").lower()
+            for w in query_words:
+                if w in s_name or w in s_qname:
+                    if w not in gold_sym_terms_matched:
+                        gold_sym_terms_matched.append(w)
+
     wire_tokens = estimate_wire_tokens(response)
     p50_latency = percentile(latencies_ms, 50.0) if latencies_ms else 0.0
 
@@ -196,7 +215,13 @@ def evaluate_single_task(
         "first_gold_sym_rank": first_sym_rank,
         "file_acc_at_5": file_acc_5,
         "file_recall_at_5": file_recall_5,
+        "file_mrr": round(file_mrr, 4),
         "sym_recall_at_10": sym_recall_10,
+        "sym_mrr": round(sym_mrr, 4),
+        "sym_acc_at_1": sym_acc_1,
+        "sym_acc_at_3": sym_acc_3,
+        "test_ratio_top_10": round(test_ratio_top_10, 4),
+        "gold_sym_terms_matched": gold_sym_terms_matched,
         "wire_tokens": wire_tokens,
         "latency_ms": round(p50_latency, 2),
         "latencies_ms": [round(t, 2) for t in latencies_ms],
@@ -211,7 +236,12 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
             "task_count": 0,
             "file_acc_at_5": 0.0,
             "file_recall_at_5": 0.0,
+            "file_mrr": 0.0,
             "sym_recall_at_10": 0.0,
+            "sym_mrr": 0.0,
+            "sym_acc_at_1": 0.0,
+            "sym_acc_at_3": 0.0,
+            "mean_test_ratio_top_10": 0.0,
             "mean_wire_tokens": 0.0,
             "latency_p50_ms": 0.0,
             "latency_p95_ms": 0.0,
@@ -220,7 +250,12 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
     n = len(tasks_results)
     file_acc = sum(t["file_acc_at_5"] for t in tasks_results) / n
     file_recall = sum(t["file_recall_at_5"] for t in tasks_results) / n
+    file_mrr = sum(t["file_mrr"] for t in tasks_results) / n
     sym_recall = sum(t["sym_recall_at_10"] for t in tasks_results) / n
+    sym_mrr = sum(t["sym_mrr"] for t in tasks_results) / n
+    sym_acc_1 = sum(t["sym_acc_at_1"] for t in tasks_results) / n
+    sym_acc_3 = sum(t["sym_acc_at_3"] for t in tasks_results) / n
+    test_ratio = sum(t["test_ratio_top_10"] for t in tasks_results) / n
     mean_tokens = sum(t["wire_tokens"] for t in tasks_results) / n
 
     all_latencies: list[float] = []
@@ -234,7 +269,12 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
         "task_count": n,
         "file_acc_at_5": round(file_acc, 4),
         "file_recall_at_5": round(file_recall, 4),
+        "file_mrr": round(file_mrr, 4),
         "sym_recall_at_10": round(sym_recall, 4),
+        "sym_mrr": round(sym_mrr, 4),
+        "sym_acc_at_1": round(sym_acc_1, 4),
+        "sym_acc_at_3": round(sym_acc_3, 4),
+        "mean_test_ratio_top_10": round(test_ratio, 4),
         "mean_wire_tokens": round(mean_tokens, 1),
         "latency_p50_ms": round(lat_p50, 2),
         "latency_p95_ms": round(lat_p95, 2),
@@ -396,17 +436,17 @@ def main() -> int:
         profile=args.profile,
     )
 
-    print(f"================================================================================")
+    print(f"==========================================================================================================")
     print(f"LOC EVAL: Arm={report['arm']}  Split={report['split']}  Tasks={report['task_count']}  Reviewed={report['reviewed']}")
-    print(f"================================================================================")
-    print(f"{'Group':<14} | {'Tasks':<5} | {'Acc@5':<7} | {'Recall@5':<8} | {'SymRec@10':<9} | {'Tokens':<7} | {'p50(ms)':<7} | {'p95(ms)':<7}")
-    print(f"--------------------------------------------------------------------------------")
+    print(f"==========================================================================================================")
+    print(f"{'Group':<14} | {'Tasks':<5} | {'Acc@5':<7} | {'FileMRR':<7} | {'SymRec@10':<9} | {'SymMRR':<7} | {'SymAcc@1':<8} | {'Tokens':<7} | {'p50(ms)':<7}")
+    print(f"----------------------------------------------------------------------------------------------------------")
     for g, metrics in report["by_group"].items():
-        print(f"{g:<14} | {metrics['task_count']:<5} | {metrics['file_acc_at_5']:<7.4f} | {metrics['file_recall_at_5']:<8.4f} | {metrics['sym_recall_at_10']:<9.4f} | {metrics['mean_wire_tokens']:<7.1f} | {metrics['latency_p50_ms']:<7.2f} | {metrics['latency_p95_ms']:<7.2f}")
-    print(f"--------------------------------------------------------------------------------")
+        print(f"{g:<14} | {metrics['task_count']:<5} | {metrics['file_acc_at_5']:<7.4f} | {metrics['file_mrr']:<7.4f} | {metrics['sym_recall_at_10']:<9.4f} | {metrics['sym_mrr']:<7.4f} | {metrics['sym_acc_at_1']:<8.4f} | {metrics['mean_wire_tokens']:<7.1f} | {metrics['latency_p50_ms']:<7.2f}")
+    print(f"----------------------------------------------------------------------------------------------------------")
     ov = report["overall"]
-    print(f"{'OVERALL':<14} | {ov['task_count']:<5} | {ov['file_acc_at_5']:<7.4f} | {ov['file_recall_at_5']:<8.4f} | {ov['sym_recall_at_10']:<9.4f} | {ov['mean_wire_tokens']:<7.1f} | {ov['latency_p50_ms']:<7.2f} | {ov['latency_p95_ms']:<7.2f}")
-    print(f"================================================================================")
+    print(f"{'OVERALL':<14} | {ov['task_count']:<5} | {ov['file_acc_at_5']:<7.4f} | {ov['file_mrr']:<7.4f} | {ov['sym_recall_at_10']:<9.4f} | {ov['sym_mrr']:<7.4f} | {ov['sym_acc_at_1']:<8.4f} | {ov['mean_wire_tokens']:<7.1f} | {ov['latency_p50_ms']:<7.2f}")
+    print(f"==========================================================================================================")
     print(f"Report saved to: {out_path}")
     return 0
 

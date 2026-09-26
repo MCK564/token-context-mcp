@@ -411,22 +411,31 @@ class RetrievalService:
         store.reset_query_count()
 
         if use_symbol_fts:
-            match_query = _fts_query(query, op="AND")
+            # 1. Prepare terms and patterns for token matching and line scoring
+            raw_terms = [t.lower() for t in _fts_terms(query) if t.strip()]
+            all_terms: list[str] = list(raw_terms)
+            for t in raw_terms:
+                for sub in split_identifier(t):
+                    if sub not in all_terms:
+                        all_terms.append(sub)
+            compiled_patterns = [
+                re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE)
+                for term in all_terms
+            ]
+            lowered_all_terms = [t.lower() for t in all_terms]
+
+            match_query_and = _fts_query(query, op="AND")
+            match_query_or = _fts_query(query, op="OR")
+
             try:
-                total_matches = store.count_symbol_matches(match_query)
-                rows = store.search_symbol_matches(match_query, limit=limit * 3)
-                if total_matches == 0:
-                    match_query_or = _fts_query(query, op="OR")
-                    if match_query_or != match_query:
-                        total_matches = store.count_symbol_matches(match_query_or)
-                        rows = store.search_symbol_matches(match_query_or, limit=limit * 3)
-                        match_query = match_query_or
+                # Run AND query first
+                and_rows = store.search_symbol_matches(match_query_and, limit=limit * 3)
             except StoreError as error:
                 raise RetrievalError(str(error)) from error
 
-            # Enforce max 3 symbols per file and total limit
-            sorted_symbol_rows = sorted(
-                rows,
+            # Rank and select from AND rows, enforcing max 3 symbols per file
+            sorted_and_rows = sorted(
+                and_rows,
                 key=lambda r: (
                     1 if r["path"].startswith(("tests/", "evals/")) else 0,
                     1 if r["symbol_id"].endswith(":<module>") else 0,
@@ -435,20 +444,51 @@ class RetrievalService:
             )
             symbols_per_file: dict[str, int] = {}
             selected_rows: list[dict[str, Any]] = []
-            for r in sorted_symbol_rows:
+            seen_symbol_ids: set[str] = set()
+            for r in sorted_and_rows:
                 p = r["path"]
                 if symbols_per_file.get(p, 0) < 3:
                     symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
                     selected_rows.append(r)
+                    seen_symbol_ids.add(r["symbol_id"])
                     if len(selected_rows) >= limit:
                         break
 
-            entries: list[dict[str, Any]] = []
-            stale_paths: list[str] = []
+            # F8: If fewer than limit, supplement with OR results (dedup, ranked after AND)
+            or_rows: list[dict[str, Any]] = []
+            if len(selected_rows) < limit and match_query_or != match_query_and:
+                try:
+                    or_rows = store.search_symbol_matches(match_query_or, limit=limit * 5)
+                except StoreError as error:
+                    raise RetrievalError(str(error)) from error
+
+                # Filter out symbols already selected
+                or_candidates = [r for r in or_rows if r["symbol_id"] not in seen_symbol_ids]
+
+                sorted_or_rows = sorted(
+                    or_candidates,
+                    key=lambda r: (
+                        1 if r["path"].startswith(("tests/", "evals/")) else 0,
+                        1 if r["symbol_id"].endswith(":<module>") else 0,
+                        r["score"],
+                    ),
+                )
+
+                for r in sorted_or_rows:
+                    p = r["path"]
+                    if symbols_per_file.get(p, 0) < 3:
+                        symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
+                        selected_rows.append(r)
+                        seen_symbol_ids.add(r["symbol_id"])
+                        if len(selected_rows) >= limit:
+                            break
+
+            total_matches = len(and_rows) + len([r for r in or_rows if r["symbol_id"] not in {x["symbol_id"] for x in and_rows}])
             unselected_matches_count = max(0, total_matches - len(selected_rows))
 
-            paths = list({r["path"] for r in selected_rows})
-            all_symbols = store.symbols_for_paths(paths)
+            # F4: Batch path inspection, freshness check, and file reading (at most once per distinct path)
+            distinct_paths = list(dict.fromkeys(r["path"] for r in selected_rows))
+            all_symbols = store.symbols_for_paths(distinct_paths)
             symbols_by_path: dict[str, list[SymbolRecord]] = {}
             for s in all_symbols:
                 symbols_by_path.setdefault(s.path, []).append(s)
@@ -458,34 +498,48 @@ class RetrievalService:
                 r["path"]: r["file_record"] for r in selected_rows if r.get("file_record")
             }
 
-            for row in selected_rows:
-                file_record = row.get("file_record") or file_records_map.get(row["path"]) or store.file(row["path"])
+            source_cache: dict[str, str] = {}
+            stale_paths: list[str] = []
+            for p in distinct_paths:
+                file_record = file_records_map.get(p) or store.file(p)
                 if file_record is None:
                     continue
                 state, current_hash = self._freshness_cache.path_state(
                     repository.root, file_record, allow_symlinks=repository.allow_symlinks
                 )
                 if state != "fresh" or current_hash != file_record.sha256:
-                    stale_paths.append(row["path"])
+                    stale_paths.append(p)
+                else:
+                    try:
+                        file_path = safe_relative_path(repository.root, p, allow_symlinks=repository.allow_symlinks)
+                        source_cache[p] = file_path.read_text(encoding="utf-8", errors="replace")
+                    except OSError:
+                        stale_paths.append(p)
+
+            entries: list[dict[str, Any]] = []
+            for row in selected_rows:
+                p = row["path"]
+                file_record = row.get("file_record") or file_records_map.get(p) or store.file(p)
+                if file_record is None:
+                    continue
+
+                if p in stale_paths or p not in source_cache:
                     line_number = row["start_line"]
                     entries.append(
                         {
-                            "symbol_id": row["symbol_id"] if not row["symbol_id"].endswith(":<module>") else None,
-                            "path": row["path"],
+                            "symbol_id": row["symbol_id"],
+                            "path": p,
                             "start_line": line_number,
                             "end_line": line_number,
                             "snippet": None,
                             "lines": [],
-                            "evidence": Evidence(row["path"], line_number, line_number, file_record.sha256).as_dict(),
+                            "evidence": Evidence(p, line_number, line_number, file_record.sha256).as_dict(),
                             "warnings": ["stale_content_unavailable"],
                         }
                     )
                     continue
 
-                file_path = safe_relative_path(repository.root, row["path"], allow_symlinks=repository.allow_symlinks)
-                raw = file_path.read_bytes()
-                source = raw.decode("utf-8", errors="replace")
-
+                source = source_cache[p]
                 is_module = row["symbol_id"].endswith(":<module>")
                 scored_lines = _score_symbol_lines(
                     source,
@@ -493,7 +547,9 @@ class RetrievalService:
                     row["start_line"],
                     row["end_line"],
                     is_module=is_module,
-                    file_symbols=symbols_by_path.get(row["path"], []),
+                    file_symbols=symbols_by_path.get(p, []),
+                    patterns=compiled_patterns,
+                    lowered_terms=lowered_all_terms,
                 )
 
                 best_line_num, best_snippet, _ = scored_lines[0]
@@ -510,8 +566,8 @@ class RetrievalService:
                 sym_rec = symbols_by_id.get(row["symbol_id"])
                 entries.append(
                     {
-                        "symbol_id": sym_rec.symbol_id if sym_rec else None,
-                        "path": row["path"],
+                        "symbol_id": row["symbol_id"],
+                        "path": p,
                         "start_line": best_ln,
                         "end_line": best_ln,
                         "snippet": best_snippet_clean,
@@ -519,7 +575,7 @@ class RetrievalService:
                         "evidence": (
                             self._evidence_for_symbol(store, sym_rec, file_records=file_records_map).as_dict()
                             if sym_rec
-                            else Evidence(row["path"], best_ln, best_ln, file_record.sha256).as_dict()
+                            else Evidence(p, best_ln, best_ln, file_record.sha256).as_dict()
                         ),
                         **({"redacted_lines": total_redacted} if total_redacted else {}),
                     }
@@ -609,7 +665,7 @@ class RetrievalService:
         else:
             freshness = "stale" if stale_paths else "fresh"
 
-        source_limit_omitted = max(0, total_matches - len(rows))
+        source_limit_omitted = max(0, total_matches - (len(selected_rows) if use_symbol_fts else len(rows)))
         response_warnings: list[str] = []
         if any(item.get("redacted_lines", 0) for item in entries):
             response_warnings.append("potential_secrets_redacted")
@@ -991,6 +1047,42 @@ class RetrievalService:
         canonical_symbol_id = self._resolve_symbol_id(store, symbol_id, graph=graph)
         root_symbol = graph.get_symbol(canonical_symbol_id) if canonical_symbol_id else None
         if root_symbol is None:
+            if symbol_id.endswith(":<module>"):
+                parts = symbol_id.split(":", 2)
+                mod_path = parts[1] if len(parts) >= 3 else parts[0]
+                file_rec = file_records.get(mod_path) or store.file(mod_path)
+                if file_rec is not None:
+                    skeleton = self.file_skeleton(repo_id, path=mod_path, max_tokens=max_tokens)
+                    return self._envelope(
+                        repo_id,
+                        metadata,
+                        requested_tokens=max_tokens,
+                        estimated_tokens=skeleton.get("estimated_tokens", 150),
+                        freshness=freshness,
+                        warnings=[],
+                        truncated=False,
+                        evidence=[Evidence(mod_path, 1, 1, file_rec.sha256).as_dict()],
+                        data={
+                            "root_symbol_id": symbol_id,
+                            "symbols": [{
+                                "symbol": {
+                                    "symbol_id": symbol_id,
+                                    "path": mod_path,
+                                    "name": "<module>",
+                                    "qualified_name": f"{mod_path}:<module>",
+                                    "kind": "module",
+                                    "signature": "",
+                                    "start_line": 1,
+                                    "end_line": 1,
+                                    "is_private": False,
+                                },
+                                "edges": [],
+                            }],
+                            "file_skeleton": skeleton.get("data", {}),
+                        },
+                    )
+                raise RetrievalError(f"module pseudo-symbol target path '{mod_path}' not found")
+
             stub = None
             if symbol_id.startswith("ext:"):
                 stub_id_str = symbol_id[4:]
@@ -1804,21 +1896,24 @@ def _score_symbol_lines(
     end_line: int,
     is_module: bool = False,
     file_symbols: list[SymbolRecord] | None = None,
+    patterns: list[re.Pattern] | None = None,
+    lowered_terms: list[str] | None = None,
 ) -> list[tuple[int, str, int]]:
     """Return up to 2 best matching lines as (line_number, snippet, score) within symbol span."""
     lines = source.splitlines()
     if not lines:
         return [(1, "", 0)]
 
-    terms = _fts_terms(query)
-    valid_terms = [t for t in terms if t.strip()]
-    all_terms: list[str] = list(valid_terms)
-    for t in valid_terms:
-        for sub in split_identifier(t):
-            if sub not in all_terms:
-                all_terms.append(sub)
-
-    patterns = [re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE) for term in all_terms]
+    if patterns is None or lowered_terms is None:
+        terms = _fts_terms(query)
+        valid_terms = [t for t in terms if t.strip()]
+        all_terms: list[str] = list(valid_terms)
+        for t in valid_terms:
+            for sub in split_identifier(t):
+                if sub not in all_terms:
+                    all_terms.append(sub)
+        patterns = [re.compile(r"(?<!\w)" + re.escape(term) + r"(?!\w)", re.IGNORECASE) for term in all_terms]
+        lowered_terms = [t.lower() for t in all_terms]
 
     if is_module:
         sym_lines: set[int] = set()
@@ -1832,12 +1927,14 @@ def _score_symbol_lines(
     scored_lines: list[tuple[int, int]] = []
     for ln in candidate_line_nums:
         line_txt = lines[ln - 1]
+        line_lower = line_txt.lower()
+        if not any(t in line_lower for t in lowered_terms):
+            continue
         score = sum(1 for p in patterns if p.search(line_txt))
         if score > 0:
             scored_lines.append((ln, score))
 
     if not scored_lines and candidate_line_nums:
-        lowered_terms = [t.lower() for t in all_terms]
         for ln in candidate_line_nums:
             lowered_line = lines[ln - 1].lower()
             score = sum(1 for t in lowered_terms if t in lowered_line)
