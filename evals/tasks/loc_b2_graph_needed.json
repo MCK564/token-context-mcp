@@ -1,0 +1,468 @@
+{
+  "repo_id": "token-context",
+  "reviewed": false,
+  "construction": "selected where A1 misses; A1 = 0 by construction",
+  "split_seed": 20260926,
+  "tasks": [
+    {
+      "id": "b2_01",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "file skeleton",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._validate_budget"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.file_skeleton:ec27f303bffc32dc",
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.file_skeleton"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge RetrievalService.file_skeleton -> RetrievalService._validate_budget via call (conf=0.95)"
+    },
+    {
+      "id": "b2_02",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "impact slice",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/service.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._profile_settings"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.impact_slice:98c31b3dc47989ca",
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.impact_slice"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge RetrievalService.impact_slice -> RetrievalService._profile_settings via call (conf=0.95)"
+    },
+    {
+      "id": "b2_03",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "request scope",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/freshness.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.get_snapshot"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.request_scope:539d6aa334c7f88f",
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.request_scope"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge RetrievalService.request_scope -> FreshnessCache.get_snapshot via call (conf=0.95)"
+    },
+    {
+      "id": "b2_04",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "extract imports",
+      "gold_files": [
+        "src/token_context_mcp/parse/treesitter.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "_descendants"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_extract_imports:d2ba23b7eedb2998",
+        "path": "src/token_context_mcp/parse/treesitter.py",
+        "qualified_name": "_extract_imports"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge _extract_imports -> _descendants via call (conf=0.9)"
+    },
+    {
+      "id": "b2_05",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "module dependents",
+      "gold_files": [
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.imports_for_path"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.module_dependents:d7803b9e2cd052c1",
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.module_dependents"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge RetrievalService.module_dependents -> SQLiteStore.imports_for_path via call (conf=0.95)"
+    },
+    {
+      "id": "b2_06",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "action",
+      "gold_files": [
+        "src/token_context_mcp/security/access_control.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/access_control.py",
+          "qualified_name": "AccessControlManager.list_agents"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/server.py:_action:66df246b7e4d9b2c",
+        "path": "src/token_context_mcp/server.py",
+        "qualified_name": "_action"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge _action -> AccessControlManager.list_agents via call (conf=0.95)"
+    },
+    {
+      "id": "b2_07",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "harden posix tree",
+      "gold_files": [
+        "src/token_context_mcp/security/local_privacy.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/local_privacy.py",
+          "qualified_name": "_walk_with_intent"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/security/local_privacy.py:_harden_posix_tree:f71d191e98ca53b2",
+        "path": "src/token_context_mcp/security/local_privacy.py",
+        "qualified_name": "_harden_posix_tree"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge _harden_posix_tree -> _walk_with_intent via call (conf=0.9)"
+    },
+    {
+      "id": "b2_08",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "detect case narrowing",
+      "gold_files": [
+        "src/token_context_mcp/parse/treesitter.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "_clean_type_name"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_detect_case_narrowing:ef5f1ba017e7d8cd",
+        "path": "src/token_context_mcp/parse/treesitter.py",
+        "qualified_name": "_detect_case_narrowing"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge _detect_case_narrowing -> _clean_type_name via call (conf=0.9)"
+    },
+    {
+      "id": "b2_09",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "get relevant stubs perform import driven tree shaking",
+      "gold_files": [
+        "src/token_context_mcp/models.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/models.py",
+          "qualified_name": "ExternalStubRecord"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/stubs/catalog.py:get_relevant_stubs:b1bedd9f65426ddd",
+        "path": "src/token_context_mcp/stubs/catalog.py",
+        "qualified_name": "get_relevant_stubs"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge get_relevant_stubs -> ExternalStubRecord via call (conf=0.9)"
+    },
+    {
+      "id": "b2_10",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "symbols",
+      "gold_files": [
+        "src/token_context_mcp/index/sqlite_store.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.connection"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.symbols:1af8db978bae087d",
+        "path": "src/token_context_mcp/index/sqlite_store.py",
+        "qualified_name": "SQLiteStore.symbols"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge SQLiteStore.symbols -> SQLiteStore.connection via call (conf=0.95)"
+    },
+    {
+      "id": "b2_11",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "build index",
+      "gold_files": [
+        "src/token_context_mcp/index/runner.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "manifest_path"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/index/runner.py:build_index:055ca637def89435",
+        "path": "src/token_context_mcp/index/runner.py",
+        "qualified_name": "build_index"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge build_index -> manifest_path via call (conf=0.9)"
+    },
+    {
+      "id": "b2_12",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "status",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/freshness.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.get_snapshot"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status:ec0769d700033aed",
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.status"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge RetrievalService.status -> FreshnessCache.get_snapshot via call (conf=0.95)"
+    },
+    {
+      "id": "b2_13",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "resolve sid",
+      "gold_files": [
+        "src/token_context_mcp/security/local_privacy.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/local_privacy.py",
+          "qualified_name": "_run"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/security/local_privacy.py:_resolve_sid:c3dec3fc28494043",
+        "path": "src/token_context_mcp/security/local_privacy.py",
+        "qualified_name": "_resolve_sid"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge _resolve_sid -> _run via call (conf=0.9)"
+    },
+    {
+      "id": "b2_14",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "on indexing finished",
+      "gold_files": [
+        "src/token_context_mcp/gui/bridge.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/gui/bridge.py",
+          "qualified_name": "RepoManager.invalidate_cache"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/gui/main_window.py:MainWindow._on_indexing_finished:e3fd87e74cc8c493",
+        "path": "src/token_context_mcp/gui/main_window.py",
+        "qualified_name": "MainWindow._on_indexing_finished"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge MainWindow._on_indexing_finished -> RepoManager.invalidate_cache via call (conf=0.95)"
+    },
+    {
+      "id": "b2_15",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "unregister repository",
+      "gold_files": [
+        "src/token_context_mcp/models.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/models.py",
+          "qualified_name": "AppConfig"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/config.py:unregister_repository:a072f1be8c682624",
+        "path": "src/token_context_mcp/config.py",
+        "qualified_name": "unregister_repository"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge unregister_repository -> AppConfig via call (conf=0.9)"
+    },
+    {
+      "id": "b2_16",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "run",
+      "gold_files": [
+        "src/token_context_mcp/gui/bridge.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/gui/bridge.py",
+          "qualified_name": "SystemTelemetry"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/gui/bridge.py:SystemMonitor.run:5ef7a8e4369c5cdd",
+        "path": "src/token_context_mcp/gui/bridge.py",
+        "qualified_name": "SystemMonitor.run"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge SystemMonitor.run -> SystemTelemetry via call (conf=0.9)"
+    },
+    {
+      "id": "b2_17",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "local push ppr andersen chung lang personalized pagerank",
+      "gold_files": [
+        "src/token_context_mcp/retrieve/ranking.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "_term_match_count"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:local_push_ppr:97986026008550f3",
+        "path": "src/token_context_mcp/retrieve/ranking.py",
+        "qualified_name": "local_push_ppr"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge local_push_ppr -> _term_match_count via call (conf=0.9)"
+    },
+    {
+      "id": "b2_18",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "canonical repository root",
+      "gold_files": [
+        "src/token_context_mcp/security/path_policy.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/security/path_policy.py",
+          "qualified_name": "is_reparse_point"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/security/path_policy.py:canonical_repository_root:1c003354cc92005f",
+        "path": "src/token_context_mcp/security/path_policy.py",
+        "qualified_name": "canonical_repository_root"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge canonical_repository_root -> is_reparse_point via call (conf=0.9)"
+    },
+    {
+      "id": "b2_19",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "on indexing started",
+      "gold_files": [
+        "src/token_context_mcp/gui/widgets/tasks_tab.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/gui/widgets/tasks_tab.py",
+          "qualified_name": "TasksTab.append_log"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/gui/main_window.py:MainWindow._on_indexing_started:42622922e46ee9c0",
+        "path": "src/token_context_mcp/gui/main_window.py",
+        "qualified_name": "MainWindow._on_indexing_started"
+      },
+      "edge_kind": "call",
+      "confidence": 0.95,
+      "note": "Diagnostic edge MainWindow._on_indexing_started -> TasksTab.append_log via call (conf=0.95)"
+    },
+    {
+      "id": "b2_20",
+      "group": "b_hidden_dep",
+      "split": "heldout",
+      "query": "parse source",
+      "gold_files": [
+        "src/token_context_mcp/parse/treesitter.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "_add_module_entry_roles"
+        }
+      ],
+      "source_symbol": {
+        "symbol_id": "python:src/token_context_mcp/parse/treesitter.py:parse_source:c1a6163c5362d114",
+        "path": "src/token_context_mcp/parse/treesitter.py",
+        "qualified_name": "parse_source"
+      },
+      "edge_kind": "call",
+      "confidence": 0.9,
+      "note": "Diagnostic edge parse_source -> _add_module_entry_roles via call (conf=0.9)"
+    }
+  ]
+}
