@@ -1,0 +1,92 @@
+{
+  "purpose": "M6 Session 1 - rule 21 real-server probe, taken through the owner's live token-context MCP server after reindex + Claude desktop restart",
+  "probed_at_local": "2026-09-27T19:28+07:00",
+  "server": "token-context MCP on owner's machine (laptop-10v62hrs), real config under %APPDATA%\\token-context-mcp",
+  "get_index_status": {
+    "repo_id": "token-context",
+    "index_run_id": "run_20260927T122741Z_9da05582",
+    "generated_at": "2026-09-27T12:27:41.238588+00:00",
+    "freshness": "fresh",
+    "files_indexed": 318,
+    "symbols_indexed": 1021,
+    "edges_indexed": 2449,
+    "index_schema_version": "2.3",
+    "pending_path_count": 0,
+    "edge_precision": {"ambiguous_rate": 0.165, "resolved_rate": 0.835},
+    "note": "dev index used during Session 1 was run_20260927T103903Z_671166c3 (312 files / 1018 symbols / 2436 edges), built before evals/lint_packet_tasks.py was added; the remaining small difference in counts has not been traced and does not affect any probe below (symbol_ids and edges match exactly)."
+  },
+  "inspect_symbol_rank_symbols_minimal_1024": {
+    "budget": {"requested_tokens": 1024, "estimated_tokens": 667},
+    "truncated": false,
+    "warnings": [],
+    "data": {
+      "status": "resolved",
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:rank_symbols:f6d82500e94150de",
+      "relationships": [
+        ["python:src/token_context_mcp/retrieve/ranking.py:_expanded_query_terms:63c07c4c97fccacb", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/ranking.py:local_push_ppr:97986026008550f3", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/ranking.py:_term_match_count:e84c5ef26141aac6", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/ranking.py:_stage_path_match:a05ba9785e1fbe4c", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map:2ea16ff59a43c635", "caller", 0.9],
+        ["python:tests/test_local_push_ppr.py:test_rank_symbols_seed_biased_includes_seed_walk:880f85976ac14ed3", "caller", 0.9]
+      ],
+      "relationship_count": 6,
+      "relationships_filtered": 2
+    }
+  },
+  "inspect_symbol_rank_symbols_normal_2048": {
+    "budget": {"requested_tokens": 2048, "estimated_tokens": 865},
+    "truncated": true,
+    "warnings": ["root_body_omitted_budget"],
+    "relationship_count": 6,
+    "relationships_filtered": 2,
+    "relationship_targets_match_minimal": true,
+    "note": "same 6 filtered relationships as minimal, in {source,target,kind,confidence} form; no get/append. Root body omitted by budget (pre-existing packing behaviour for the 104-line body, not part of E14)."
+  },
+  "inspect_symbol_inspect_symbol_scoped_minimal_1024": {
+    "budget": {"requested_tokens": 1024, "estimated_tokens": 661},
+    "truncated": false,
+    "data": {
+      "status": "resolved",
+      "target_symbol_id": "python:src/token_context_mcp/retrieve/workflows.py:CompositeWorkflowEngine._inspect_symbol_scoped:1e19225234f2927f",
+      "relationships": [
+        ["python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/service.py:RetrievalService.symbol_context:b0266ec26744bdc3", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/service.py:RetrievalService.symbol_relationships:24ae09751a57a480", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/workflows.py:_edge_compact_tuple:a265b32c87d0f12b", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/workflows.py:_edge_normal_dict:1bd4ef572676f4aa", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/workflows.py:_pack_rows_to_budget:e0a16728b563a235", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/token_budget.py:estimate_tokens:9a4e26e041e5ea7a", "callee", 0.9],
+        ["python:src/token_context_mcp/retrieve/workflows.py:CompositeWorkflowEngine.inspect_symbol:2471e61f71246fcb", "caller", 0.95]
+      ],
+      "relationship_count": 8,
+      "relationships_filtered": 2
+    }
+  },
+  "get_impact_slice_inspect_symbol_scoped_callees_depth1": {
+    "completeness": {"value": 1, "basis": "resolved_edges / observed_edges"},
+    "nodes_visited": 8,
+    "attr_param_edges": [
+      {
+        "source_line": 93,
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e",
+        "status": "resolved", "backend": "lexical", "confidence": 0.9,
+        "evidence": ["ast_call", "scope:attr_param", "receiver:self.service", "type:RetrievalService"]
+      },
+      {
+        "source_line": 157,
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.symbol_context:b0266ec26744bdc3",
+        "status": "resolved", "backend": "lexical", "confidence": 0.9,
+        "evidence": ["ast_call", "scope:attr_param", "receiver:self.service", "type:RetrievalService"]
+      },
+      {
+        "source_line": 178,
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.symbol_relationships:24ae09751a57a480",
+        "status": "resolved", "backend": "lexical", "confidence": 0.9,
+        "evidence": ["ast_call", "scope:attr_param", "receiver:self.service", "type:RetrievalService"]
+      }
+    ],
+    "note": "impact_slice also lists the builtins.list.append virtual_stub edge (line 175); impact_slice does not apply the E14 filter, which is scoped to inspect_symbol by design. inspect_symbol drops it (counted in relationships_filtered)."
+  },
+  "verdict": "PASS - real server matches dev-index results exactly for E14 (rank_symbols: 6 relationships, 2 filtered, no get/append) and M6.0 (3 attr_param edges from _inspect_symbol_scoped via self.service: RetrievalService, same source lines as evals/out/m6/attr_param_new_edges_m6.json)."
+}
