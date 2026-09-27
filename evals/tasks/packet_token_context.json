@@ -1,0 +1,760 @@
+{
+  "repo_id": "token-context",
+  "reviewed": false,
+  "split_seed": 20260927,
+  "review_note": "M6.3a draft (Session 1). 20 target symbols, moi gold_context da duoc xac minh ton tai qua truy van truc tiep index that (run_20260927T103903Z_671166c3, sau M6.0/E14): 9 method + callee/caller cua RetrievalService/CompositeWorkflowEngine, 6 ham module-level dai (>100 dong: build_server, build_index, local_push_ppr, rank_symbols, module_dependents, write_snapshot), 4 ham module-level ngan (<30 dong: database_path, parse_source, safe_relative_path, pack_by_budget), va 1 method ngan bo sung (_repository_store, 5 dong). >=5 target co caller o file khac (thuc te ca 20/20 deu co, xem 'cross' trong evals/out/m6/packet_candidate_scan.txt). Split 8 dev / 12 heldout, seed 20260927, phan tang theo 3 nhom: short_function (4, dev=2), long_function (4, dev=2), method (12, dev=4) -- xem evals/lint_packet_tasks.py cho thuat toan tai lap chinh xac. reviewed=false: chi chu repo hoac Claude duoc dat true (luat 22).",
+  "tasks": [
+    {
+      "id": "p01",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/server.py",
+        "qualified_name": "build_server"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService",
+          "need": "signature",
+          "why": "build_server phải biết RetrievalService cần config_path gì để khởi tạo đúng; các tham số này quyết định toàn bộ hành vi retrieval của server."
+        },
+        {
+          "path": "src/token_context_mcp/security/governance_store.py",
+          "qualified_name": "GovernanceStore",
+          "need": "signature",
+          "why": "GovernanceStore được khởi tạo trước AccessControlManager/AuditLogger và dùng chung governance.sqlite; đổi tham số khởi tạo có thể vỡ chia sẻ state giữa các agent."
+        },
+        {
+          "path": "src/token_context_mcp/security/governance_store.py",
+          "qualified_name": "GovernanceStore.record_heartbeat",
+          "need": "signature",
+          "why": "build_server gọi record_heartbeat ngay khi khởi tạo server; cần biết chữ ký để không phá vỡ heartbeat log khi sửa thứ tự khởi tạo."
+        },
+        {
+          "path": "tests/test_hardware_probe.py",
+          "qualified_name": "test_build_server_does_not_probe_hardware",
+          "need": "body",
+          "why": "Khẳng định một ràng buộc hành vi không hiển nhiên từ code: build_server KHÔNG được probe hardware một cách eager. Sửa build_server mà không đọc test này dễ vô tình vi phạm ràng buộc."
+        },
+        {
+          "path": "tests/test_governance_e2e.py",
+          "qualified_name": "test_gui_controls_server_e2e",
+          "need": "signature",
+          "why": "Test e2e xác nhận GUI điều khiển được server tạo từ build_server; cho biết build_server phải trả về đối tượng có thuộc tính nào để GUI bridge hoạt động."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/index/runner.py",
+        "qualified_name": "build_index"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.write_snapshot",
+          "need": "signature",
+          "why": "build_index gom toàn bộ files/symbols/edges/imports rồi gọi write_snapshot; tham số phải khớp chính xác hình dạng dữ liệu build_index tạo ra."
+        },
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "parse_source",
+          "need": "signature",
+          "why": "build_index gọi parse_source cho mỗi file; ParseResult trả về quyết định symbols/calls/imports thu thập được."
+        },
+        {
+          "path": "src/token_context_mcp/parse/lexical_edges.py",
+          "qualified_name": "build_lexical_edges",
+          "need": "signature",
+          "why": "build_index dùng calls+imports đã parse để build_lexical_edges tạo cạnh; đổi cách build_index truyền dữ liệu vào sẽ ảnh hưởng trực tiếp chất lượng resolve cạnh (liên quan M6.0)."
+        },
+        {
+          "path": "src/token_context_mcp/security/local_privacy.py",
+          "qualified_name": "secure_directory",
+          "need": "signature",
+          "why": "Bước hardening quyền truy cập chạy giữa build_index; cần biết được gọi khi nào để không phá thứ tự an toàn."
+        },
+        {
+          "path": "src/token_context_mcp/cli.py",
+          "qualified_name": "main",
+          "need": "signature",
+          "why": "CLI là nơi thực sự gọi build_index trong production; cần biết progress_callback/lỗi được CLI xử lý và hiển thị ra sao."
+        },
+        {
+          "path": "src/token_context_mcp/gui/bridge.py",
+          "qualified_name": "IndexWorker.run",
+          "need": "body",
+          "why": "GUI chạy build_index trong background thread; phải hiểu progress/exception được đưa ngược lại GUI thế nào để không phá tính an toàn luồng."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.search_source"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.search_symbol_matches",
+          "need": "signature",
+          "why": "Đây là truy vấn FTS lõi quyết định kết quả nào tồn tại; search_source chỉ định dạng/lọc lại những gì hàm này trả về."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.search_source_matches",
+          "need": "signature",
+          "why": "Đường match-text kiểu cũ vẫn được dùng song song với FTS; sửa search_source phải biết cả hai nhánh."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.path_state",
+          "need": "signature",
+          "why": "Dùng để kiểm tra freshness từng file khớp; đổi vòng lặp per-file trong search_source phải giữ đúng hợp đồng này."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "GraphCache.get_graph",
+          "need": "signature",
+          "why": "Dùng cho tính năng expand=graph (M5); ai sửa logic expand phải hiểu hợp đồng RepoGraph trả về."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "search_source",
+          "need": "signature",
+          "why": "Đây là wrapper tool MCP; định nghĩa tham số nào thật sự lộ ra ngoài so với tham số chỉ dùng nội bộ."
+        },
+        {
+          "path": "evals/loc_eval.py",
+          "qualified_name": "run_evaluation",
+          "need": "body",
+          "why": "Cách eval harness gọi search_source (đúng cách dùng expand/profile) là nơi phát hiện hồi quy; phải giữ tương thích."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.symbol_context"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "RepoGraph.get_symbol",
+          "need": "signature",
+          "why": "symbol_context tra cứu symbol qua RepoGraph trước khi đọc SQLite; cần biết symbol trả về có field gì."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.external_stub",
+          "need": "signature",
+          "why": "Cạnh tới hàm bên ngoài (stdlib/third-party) được biểu diễn qua external_stub; ảnh hưởng tới cách symbol_context liệt kê quan hệ."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/workflows.py",
+          "qualified_name": "CompositeWorkflowEngine._inspect_symbol_scoped",
+          "need": "body",
+          "why": "Đây chính là consumer của E14 fix: cần biết chính xác cách _inspect_symbol_scoped dùng matched_entry/matched_content từ symbol_context để không phá inspect_symbol."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "get_symbol_context",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa tham số lộ ra ngoài (depth, include_body, max_tokens...)."
+        },
+        {
+          "path": "tests/test_index_retrieval.py",
+          "qualified_name": "test_symbol_context_withholds_content_when_index_offsets_are_stale",
+          "need": "body",
+          "why": "Test này mã hoá một edge case quan trọng (offset lệch so với index) không hiển nhiên nếu chỉ đọc thân hàm symbol_context."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.repo_map"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "RepoGraph.symbols_filtered",
+          "need": "signature",
+          "why": "repo_map dùng để lọc symbol theo include_tests/kind trước khi rank; đổi bộ lọc ở đây ảnh hưởng trực tiếp nội dung repo_map trả về."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "RepoGraph.edges_filtered",
+          "need": "signature",
+          "why": "Cạnh đã lọc dùng làm input cho rank_symbols; phải hiểu tiêu chí lọc để không đưa cạnh rác vào ranking."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "rank_symbols",
+          "need": "signature",
+          "why": "repo_map hữu ích hay không phụ thuộc hoàn toàn vào chất lượng/thứ tự mà rank_symbols trả về."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "get_repo_map",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa tham số format/budget lộ ra ngoài."
+        },
+        {
+          "path": "tests/test_global_rank.py",
+          "qualified_name": "test_repo_map_global_mode_uses_symbol_rank_table",
+          "need": "body",
+          "why": "Hành vi không hiển nhiên: ở global mode, repo_map đọc bảng symbol_rank tính sẵn thay vì chạy PPR trực tiếp; sửa repo_map phải giữ đúng nhánh rẽ này."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.impact_slice"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "RepoGraph.get_symbol",
+          "need": "signature",
+          "why": "impact_slice tra symbol gốc qua RepoGraph trước khi mở rộng theo cạnh callers/callees."
+        },
+        {
+          "path": "src/token_context_mcp/models.py",
+          "qualified_name": "edge_as_dict",
+          "need": "signature",
+          "why": "Định dạng wire của một cạnh khi trả ra; đổi impact_slice phải giữ nhất quán với định dạng này (cũng là thứ symbol_relationships mới của E14 dùng lại)."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "get_impact_slice",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa direction/depth/max_nodes lộ ra ngoài."
+        },
+        {
+          "path": "tests/test_graph_cache.py",
+          "qualified_name": "test_impact_slice_second_call_zero_sqlite_queries",
+          "need": "body",
+          "why": "Mã hoá một hợp đồng hiệu năng không hiển nhiên: lần gọi thứ hai trên graph đã cache phải là 0 SQL query. Vi phạm âm thầm sẽ không có test hành vi nào báo lỗi, chỉ chậm dần."
+        },
+        {
+          "path": "tests/test_index_retrieval.py",
+          "qualified_name": "test_symbol_context_and_impact_mark_lexical_limit",
+          "need": "body",
+          "why": "Ca biên cụ thể về cách impact_slice đánh dấu giới hạn lexical (lexical_limit) khi depth/max_nodes chạm trần."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.find_symbols"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.find_symbols",
+          "need": "signature",
+          "why": "Toàn bộ logic khớp glob/kind thực sự nằm ở đây; find_symbols của service chỉ bọc thêm budget/profile."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "find_symbols",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa tham số pattern/kind/limit lộ ra ngoài."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/workflows.py",
+          "qualified_name": "CompositeWorkflowEngine._inspect_symbol_scoped",
+          "need": "body",
+          "why": "Đây là bước đầu tiên của inspect_symbol; đổi cách find_symbols xử lý nhiều kết quả khớp (ambiguous) ảnh hưởng trực tiếp nhánh status=\"ambiguous\" của inspect_symbol."
+        },
+        {
+          "path": "tests/test_global_config_and_limits.py",
+          "qualified_name": "test_symbol_cap_warning_requires_more_matching_rows",
+          "need": "body",
+          "why": "Điều kiện kích hoạt cảnh báo cap không hiển nhiên: chỉ cảnh báo khi còn nhiều hàng khớp hơn cap, không phải bất cứ khi nào cap bị chạm."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.file_skeleton"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/security/path_policy.py",
+          "qualified_name": "safe_relative_path",
+          "need": "signature",
+          "why": "Kiểm tra an toàn đường dẫn trước khi đọc file; phải giữ nguyên khi sửa file_skeleton để không mở lỗ hổng path traversal."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.imports_for_path",
+          "need": "signature",
+          "why": "Nguồn dữ liệu cho phần import trong skeleton; đổi cách gọi ảnh hưởng nội dung phần \"context\" trả về."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.importers_for_modules",
+          "need": "signature",
+          "why": "Nguồn dữ liệu cho phần \"ai import file này\"; cùng cặp với imports_for_path."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "get_file_skeleton",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa path/include_private lộ ra ngoài."
+        },
+        {
+          "path": "tests/test_line_ending_normalization.py",
+          "qualified_name": "test_retrieval_normalizes_crlf_to_lf",
+          "need": "body",
+          "why": "Yêu cầu không hiển nhiên: số dòng trả về phải chuẩn hoá CRLF->LF trước; nếu không, số dòng skeleton lệch trên file có CRLF."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.module_dependents"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.imports_for_path",
+          "need": "signature",
+          "why": "module_dependents đảo ngược chính lookup này để tìm ai phụ thuộc vào module; phải hiểu chiều dữ liệu gốc trước khi đảo."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.importers_for_modules",
+          "need": "signature",
+          "why": "Lookup lõi trả về ai import một module; module_dependents chỉ là lớp bọc profile/budget quanh nó."
+        },
+        {
+          "path": "src/token_context_mcp/security/path_policy.py",
+          "qualified_name": "safe_relative_path",
+          "need": "signature",
+          "why": "Cùng pattern an toàn đường dẫn như file_skeleton/search_source; phải giữ nhất quán khi sửa."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "get_module_dependents",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa path/module lộ ra ngoài (một trong hai, không phải cả hai)."
+        },
+        {
+          "path": "tests/test_index_retrieval.py",
+          "qualified_name": "test_module_dependents_uses_lexical_imports",
+          "need": "body",
+          "why": "Làm rõ điểm dễ nhầm: kết quả phản ánh import LEXICAL (câu lệnh import), không phải cạnh gọi hàm đã resolve — tên hàm \"dependents\" dễ gây hiểu lầm ngược lại."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/ranking.py",
+        "qualified_name": "local_push_ppr"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "_expanded_query_terms",
+          "need": "signature",
+          "why": "local_push_ppr dùng các term mở rộng này để thiên vị walk về phía symbol khớp truy vấn."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "_term_match_count",
+          "need": "signature",
+          "why": "Được dùng để tính trọng số ban đầu trước khi push; ảnh hưởng trực tiếp kết quả PPR cục bộ."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "rank_symbols",
+          "need": "body",
+          "why": "Đây là caller sản xuất duy nhất; cách rank_symbols truyền seed/global_ranks vào quyết định local_push_ppr chạy trên tập hạt giống nào."
+        },
+        {
+          "path": "tests/test_local_push_ppr.py",
+          "qualified_name": "test_local_push_ppr_prunes_low_confidence",
+          "need": "body",
+          "why": "Mã hoá hành vi không hiển nhiên từ thuật toán: cạnh confidence thấp bị cắt khỏi walk, không chỉ giảm trọng số."
+        }
+      ]
+    },
+    {
+      "id": "p11",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/ranking.py",
+        "qualified_name": "rank_symbols"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "local_push_ppr",
+          "need": "signature",
+          "why": "rank_symbols gọi local_push_ppr làm một trong các tín hiệu xếp hạng; phải biết đầu vào/đầu ra của nó."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/ranking.py",
+          "qualified_name": "_stage_path_match",
+          "need": "signature",
+          "why": "Một tín hiệu xếp hạng khác (khớp theo stage/path) được kết hợp cùng PPR; đổi rank_symbols phải hiểu cách các tín hiệu này trộn với nhau."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.repo_map",
+          "need": "body",
+          "why": "repo_map truyền global_ranks/query_expansions vào rank_symbols theo cách rất cụ thể; đổi hợp đồng tham số của rank_symbols sẽ vỡ nhánh global mode của repo_map."
+        },
+        {
+          "path": "tests/test_local_push_ppr.py",
+          "qualified_name": "test_rank_symbols_seed_biased_includes_seed_walk",
+          "need": "body",
+          "why": "Ghi lại thuộc tính xếp hạng không hiển nhiên: kết quả bị thiên vị bởi seed walk, không chỉ bởi điểm khớp văn bản."
+        }
+      ]
+    },
+    {
+      "id": "p12",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/index/sqlite_store.py",
+        "qualified_name": "SQLiteStore.write_snapshot"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.initialize",
+          "need": "signature",
+          "why": "write_snapshot cần schema đã initialize đúng trước khi ghi; đổi thứ tự có thể ghi vào bảng chưa tồn tại."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.connection",
+          "need": "signature",
+          "why": "Toàn bộ ghi dữ liệu đi qua connection này; phải hiểu transaction/WAL mode đang dùng."
+        },
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "build_index",
+          "need": "body",
+          "why": "build_index lắp ráp TẤT CẢ tham số (files/symbols/edges/imports/...) theo một thứ tự/hình dạng rất cụ thể; đây là điểm ràng buộc chặt nhất trong toàn bộ pipeline index — đổi write_snapshot mà không đọc build_index rất dễ vỡ."
+        },
+        {
+          "path": "tests/test_alsp_v2.py",
+          "qualified_name": "test_sqlite_store_class_hierarchy_and_compaction",
+          "need": "body",
+          "why": "Bài test duy nhất khai thác tham số class_hierarchy/compaction không nằm trên đường đi chính của build_index; dễ bị phá vỡ âm thầm nếu chỉ nhìn theo build_index."
+        }
+      ]
+    },
+    {
+      "id": "p13",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/index/runner.py",
+        "qualified_name": "database_path"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "current_pointer_path",
+          "need": "signature",
+          "why": "database_path suy ra đường dẫn DB hiện hành thông qua con trỏ này; phải hiểu cơ chế con trỏ trước khi đổi cách suy đường dẫn."
+        },
+        {
+          "path": "evals/edge_audit.py",
+          "qualified_name": "audit_edges",
+          "need": "signature",
+          "why": "Đúng pattern mà mọi script eval trong repo dùng để mở DB; đổi chữ ký database_path sẽ hỏng toàn bộ script eval cùng lúc."
+        },
+        {
+          "path": "src/token_context_mcp/gui/bridge.py",
+          "qualified_name": "RepoManager.list_repositories",
+          "need": "signature",
+          "why": "GUI cũng phụ thuộc vào chính cách suy đường dẫn này để biết repo nào đã có index."
+        },
+        {
+          "path": "evals/lint_tasks.py",
+          "qualified_name": "main",
+          "need": "signature",
+          "why": "Linter của tập task M5 (và linter M6.3a mới) đều đi qua đúng điểm nghẽn database_path này để mở store."
+        }
+      ]
+    },
+    {
+      "id": "p14",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/parse/treesitter.py",
+        "qualified_name": "parse_source"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "extract_calls",
+          "need": "signature",
+          "why": "parse_source gọi extract_calls để lấy danh sách CallRecord; đây chính là nơi M6.0 thêm receiver_type_source — người sửa parse_source cần biết field này tồn tại."
+        },
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "_extract_inheritance",
+          "need": "signature",
+          "why": "Một phần khác của ParseResult; ảnh hưởng tới class_hierarchy dùng trong resolve cạnh."
+        },
+        {
+          "path": "src/token_context_mcp/parse/treesitter.py",
+          "qualified_name": "ParseResult",
+          "need": "signature",
+          "why": "Kiểu trả về của parse_source; các caller destructure trực tiếp field của nó (calls, imports, symbols...)."
+        },
+        {
+          "path": "src/token_context_mcp/index/runner.py",
+          "qualified_name": "build_index",
+          "need": "body",
+          "why": "build_index gọi parse_source một lần mỗi file rồi dùng calls_by_path/imports_by_path suy từ ParseResult cho toàn bộ bước dựng cạnh phía sau."
+        },
+        {
+          "path": "src/token_context_mcp/sampling/skeleton_hybrid.py",
+          "qualified_name": "extract_symbol_anchors",
+          "need": "signature",
+          "why": "Một consumer độc lập thứ hai của parse_source ngoài pipeline index; đổi parse_source có hai phạm vi ảnh hưởng, không chỉ một."
+        }
+      ]
+    },
+    {
+      "id": "p15",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/workflows.py",
+        "qualified_name": "CompositeWorkflowEngine.inspect_symbol"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.request_scope",
+          "need": "body",
+          "why": "request_scope là context manager thiết lập freshness/hash-count cho một request; tính đúng đắn của inspect_symbol (kể cả field index_run_id/freshness) phụ thuộc vào việc chạy trọn trong scope này."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/workflows.py",
+          "qualified_name": "CompositeWorkflowEngine._inspect_symbol_scoped",
+          "need": "signature",
+          "why": "Logic thật sự nằm ở đây; inspect_symbol chỉ là lớp bọc mở request_scope."
+        },
+        {
+          "path": "src/token_context_mcp/server.py",
+          "qualified_name": "inspect_symbol",
+          "need": "signature",
+          "why": "Wrapper tool MCP; định nghĩa tên tham số lộ ra ngoài cho agent gọi tool."
+        },
+        {
+          "path": "tests/test_request_scope.py",
+          "qualified_name": "test_inspect_symbol_uses_request_scope_one_freshness_zero_hashes",
+          "need": "body",
+          "why": "Mã hoá một hợp đồng hiệu năng dễ vỡ: đúng một lần kiểm tra freshness và không tính lại hash nào trong một lệnh gọi."
+        }
+      ]
+    },
+    {
+      "id": "p16",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/index/sqlite_store.py",
+        "qualified_name": "SQLiteStore.symbols"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "SQLiteStore.connection",
+          "need": "signature",
+          "why": "Toàn bộ đọc dữ liệu đi qua connection này; ảnh hưởng transaction/isolation khi symbols() được gọi giữa lúc ghi."
+        },
+        {
+          "path": "src/token_context_mcp/index/sqlite_store.py",
+          "qualified_name": "_symbol_from_row",
+          "need": "signature",
+          "why": "Hàm map một row SQLite sang SymbolRecord; phải đồng bộ với bất kỳ đổi schema nào."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/graph_cache.py",
+          "qualified_name": "GraphCache.get_graph",
+          "need": "body",
+          "why": "Đây là nơi duy nhất symbol_map trong RepoGraph được dựng và cache theo index_run_id; symbols() phải trả về danh sách đầy đủ, ổn định, nếu không graph cache sẽ âm thầm thiếu hoặc cũ."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._resolve_symbol_id",
+          "need": "signature",
+          "why": "Suy giải symbol_id dùng bởi mọi tool retrieval đều dựa trên kết quả symbols() trả về là chuẩn (canonical) và mới nhất."
+        }
+      ]
+    },
+    {
+      "id": "p17",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/security/path_policy.py",
+        "qualified_name": "safe_relative_path"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/security/path_policy.py",
+          "qualified_name": "repository_relative_parts",
+          "need": "signature",
+          "why": "Bước chuẩn hoá đường dẫn thành các phần tương đối với repo root trước khi kiểm tra an toàn."
+        },
+        {
+          "path": "src/token_context_mcp/security/path_policy.py",
+          "qualified_name": "is_reparse_point",
+          "need": "signature",
+          "why": "Phòng vệ dành riêng cho symlink/junction trên Windows; sửa safe_relative_path mà không biết reparse point rất dễ vô tình mở lại lỗ hổng thoát khỏi repo root."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.search_source",
+          "need": "signature",
+          "why": "Một trong nhiều điểm vào retrieval dựa vào safe_relative_path để đảm bảo an toàn đường dẫn."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._symbol_packet",
+          "need": "signature",
+          "why": "Một consumer khác của safe_relative_path trong service.py; cho biết phạm vi ảnh hưởng của hàm này rộng hơn một tool đơn lẻ."
+        },
+        {
+          "path": "tests/test_path_policy.py",
+          "qualified_name": "test_rejects_parent_absolute_and_unc_paths",
+          "need": "body",
+          "why": "Đây chính là đặc tả thật của \"an toàn\": phải chặn parent traversal, đường dẫn tuyệt đối, và UNC path — không hiển nhiên nếu chỉ đọc thân hàm."
+        }
+      ]
+    },
+    {
+      "id": "p18",
+      "split": "heldout",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService._repository_store"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._repository_store_uncached",
+          "need": "signature",
+          "why": "_repository_store chỉ là lớp cache mỏng quanh hàm này; logic thật (mở store, đọc metadata) nằm ở đây."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService.repo_map",
+          "need": "body",
+          "why": "Một trong 12 nơi gọi _repository_store trong cùng file; cho thấy cách metadata trả về (đặc biệt index_run_id) được dùng tiếp theo."
+        },
+        {
+          "path": "evals/loc_eval.py",
+          "qualified_name": "run_evaluation",
+          "need": "signature",
+          "why": "Eval harness cũng đi qua đúng điểm này để mở repo; đổi tham số sẽ hỏng cả eval ngoài service."
+        },
+        {
+          "path": "tests/test_global_rank.py",
+          "qualified_name": "test_repo_map_global_mode_uses_symbol_rank_table",
+          "need": "body",
+          "why": "Test này phụ thuộc gián tiếp vào field metadata mà _repository_store trả về (để phát hiện bảng symbol_rank) — dễ bị bỏ qua vì hàm chỉ dài 5 dòng."
+        }
+      ]
+    },
+    {
+      "id": "p19",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/token_budget.py",
+        "qualified_name": "pack_by_budget"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/token_budget.py",
+          "qualified_name": "estimate_tokens",
+          "need": "signature",
+          "why": "Nguyên hàm đếm token mà toàn bộ logic đóng gói của pack_by_budget dựa vào."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._pack_to_budget",
+          "need": "body",
+          "why": "Đây là caller sản xuất DUY NHẤT; phải hiểu chính xác cách _pack_to_budget thích ứng hợp đồng tổng quát (items, render, budget) của pack_by_budget cho việc đóng gói symbol/cạnh cụ thể trước khi đổi một trong hai."
+        },
+        {
+          "path": "tests/test_token_efficiency.py",
+          "qualified_name": "test_pack_by_budget_preserves_first_item",
+          "need": "body",
+          "why": "Ghi lại một đảm bảo cụ thể (preserve_first=True luôn giữ phần tử đầu dù vượt budget) rất dễ vô tình phá khi tái cấu trúc vòng lặp đóng gói."
+        }
+      ]
+    },
+    {
+      "id": "p20",
+      "split": "dev",
+      "target": {
+        "path": "src/token_context_mcp/retrieve/service.py",
+        "qualified_name": "RetrievalService.request_scope"
+      },
+      "gold_context": [
+        {
+          "path": "src/token_context_mcp/retrieve/freshness.py",
+          "qualified_name": "FreshnessCache.get_snapshot",
+          "need": "signature",
+          "why": "Snapshot freshness được lấy đúng một lần mỗi request tại đây; trung tâm của hợp đồng \"1 freshness check mỗi request\"."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "RetrievalService._repository_store_uncached",
+          "need": "signature",
+          "why": "request_scope mở repository/store một lần rồi giữ suốt scope; phải hiểu vòng đời khác với _repository_store (có cache) thế nào."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/service.py",
+          "qualified_name": "_RequestScope",
+          "need": "signature",
+          "why": "Đối tượng context được yield ra; các lời gọi bên trong scope đọc field của đối tượng này."
+        },
+        {
+          "path": "src/token_context_mcp/retrieve/workflows.py",
+          "qualified_name": "CompositeWorkflowEngine.inspect_symbol",
+          "need": "body",
+          "why": "Consumer chính minh hoạ cách dùng đúng: mở request_scope một lần rồi gọi nhiều service method bên trong, dùng chung một snapshot freshness."
+        },
+        {
+          "path": "tests/test_request_scope.py",
+          "qualified_name": "worker",
+          "need": "body",
+          "why": "Test đặt tên \"worker\" kiểm tra request_scope an toàn/đúng dưới điều kiện đồng thời — một thuộc tính không hiển nhiên với một scope theo-repo được chia sẻ."
+        }
+      ]
+    }
+  ]
+}
