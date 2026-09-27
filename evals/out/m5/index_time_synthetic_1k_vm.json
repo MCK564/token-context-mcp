@@ -1,0 +1,21 @@
+{
+  "environment": "Cowork Linux VM, repo copy on VM-local disk",
+  "repo": "synthetic-1k (evals/make_synthetic_repo.py --num-files 1000 --seed 42)",
+  "why_not_5k": "a single 5k index run exceeded the 180 s per-command limit of this environment; background jobs are killed when the command returns",
+  "m4_commit": "e5bfb9a (schema 2.2)",
+  "m5_commit": "working tree (schema 2.3; M5.2 adds no index-time work)",
+  "m4_seconds": [
+    8.603,
+    8.194,
+    8.668
+  ],
+  "m5_seconds": [
+    10.468,
+    10.697,
+    10.806
+  ],
+  "m4_median": 8.603,
+  "m5_median": 10.697,
+  "delta_pct": 24.3,
+  "threshold_pct": 20
+}

@@ -1,7 +1,8 @@
 {
   "repo_id": "token-context",
-  "reviewed": false,
+  "reviewed": true,
   "split_seed": 20260926,
+  "review_note": "Reviewed by Claude on the owner's delegation (2026-09-27). Known limits: group b queries are paraphrases of the target, not true hidden dependencies (A1 already finds most of them at file level); group a queries nearly restate target names. Accepted as-is; held-out not modified after results.",
   "tasks": [
     {
       "id": "t01",

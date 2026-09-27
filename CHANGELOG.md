@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — M5.2/M5.3 LARGER-lite graph expansion in `search_source` (2026-09-27, branch `feat/m5-larger-lite`)
+
+- **`search_source` contract (additive)**: new optional arguments `expand` (`auto` | `none` | `graph`, default `auto`), `expand_k` (1–8, default 3), `expand_hops` (1–2, default 1), `min_confidence` (0–1, default 0.6). Concrete types with defaults, no nullable `anyOf`.
+  - `expand="auto"` resolves to `graph` only for `profile="locate"`; calls without a profile keep the M5.1 behaviour (`none`). Output for `expand="none"`/`auto` without profile is byte-identical to M5.1 (tested).
+  - With `graph`, the response adds `neighbors: [[symbol_id, "path:line", "<kind> <name>", "callee|caller|test", score, anchor_id], ...]` and `retrieval: {expand_effective, profile_effective, anchors, neighbors, expand_k, expand_hops, min_confidence}`. The text summary shows `neighbors=<n>`.
+  - Neighbors take at most 25% of the packing budget and come out of the same `max_tokens`; neighbors whose anchor was packed out are dropped.
+- **Expansion (`retrieve/expansion.py`)**: top-5 matches are anchors; `<module>` anchors keep their rank but are not expanded. BFS over edges that are `resolved`, `backend=lexical`, point at a real symbol and have `confidence >= min_confidence` (excludes `global` 0.40, `unknown_receiver` 0.10, stubs). Score = best path product × 1.2 same file community × 0.5 utility hub (in-degree z > 3) × 0.5 test/eval path × (1 + 0.5·query terms in the name). Deterministic ordering (anchor rank, score, path, line). Relation labels: `callee`, `caller`, `test` only (the DB has `call` edges only; no `inherit`).
+- **File communities (M5.3)**: deterministic label propagation over the undirected in-repo import graph, computed lazily per index run and cached on `RepoGraph`. Deviation from plan: no `file_community` table and no schema bump; index schema stays 2.3. `SQLiteStore.import_pairs()` added.
+- **Ranking of AND/OR rows**: AND and OR top-up rows are now ranked together: non-test before `tests/`/`evals/`, AST symbols before `<module>`, AND before OR, then bm25. Fixes an eval file that embedded a task query outranking all source hits. Term-coverage ranking (F9) was implemented and **rejected on the dev split** (sym MRR 0.494 → 0.293 body-coverage, 0.423 name-coverage); kept behind `_COVERAGE_RANKING = "off"` for ablation only.
+- **Evals**: `loc_eval` now ranks each neighbor right after its anchor (was: after every match, so neighbors could never enter top-10) and reports `sym_recall_in_response` and `mean_neighbor_count`. New `evals/bench_search_source.py` replays the task queries per expand mode (M5 latency protocol). `evals/stdio_smoke.py` search check is now clean-room (temp repo) instead of depending on the local registry.
+- **Correction to the M5.1 entry below**: "latency p50 5.08 ms" was measured on a single easy query; on the 30 task queries M5.1 measured p50 ≈ 40–48 ms on Windows. See `evals/out/m5/latency_search_source_m5_2_vm.json` for the task-query protocol.
+
 ## Unreleased — M5.1 Symbol-level FTS & Code Tokenization (2026-09-26, branch `feat/m5-larger-lite`)
 
 - **Index Schema 2.3 (`symbol_fts`)**:

@@ -221,7 +221,10 @@ def build_server(
 
     @server.tool(
         title="Search source",
-        description="Full-text FTS5 search across source files, returning best matching lines grouped and scored by enclosing symbol.",
+        description=(
+            "Full-text search ranked by enclosing symbol. expand='graph' (default for profile "
+            "'locate') adds resolved callers/callees as neighbors. Call before reading files."
+        ),
     )
     def search_source(
         repo_id: str,
@@ -229,11 +232,23 @@ def build_server(
         limit: int | None = None,
         max_tokens: int | None = None,
         profile: str | None = None,
+        expand: Literal["auto", "none", "graph"] = "auto",
+        expand_k: int = 3,
+        expand_hops: int = 1,
+        min_confidence: float = 0.6,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
                 lambda: service.search_source(
-                    repo_id, query=query, limit=limit, max_tokens=max_tokens, profile=profile
+                    repo_id,
+                    query=query,
+                    limit=limit,
+                    max_tokens=max_tokens,
+                    profile=profile,
+                    expand=expand,
+                    expand_k=expand_k,
+                    expand_hops=expand_hops,
+                    min_confidence=min_confidence,
                 ),
                 tool_name="search_source",
             )

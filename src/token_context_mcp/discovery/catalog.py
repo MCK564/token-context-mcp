@@ -66,14 +66,22 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
     "search_source": ToolMeta(
         name="search_source",
         category="code_navigation",
-        summary="Full-text FTS5 search across source files, returning best matching lines and enclosing symbols.",
+        summary=(
+            "Symbol-level FTS5 search (AND, topped up with OR). expand='graph' (default for profile "
+            "'locate') adds resolved callers/callees of the top 5 hits as neighbors."
+        ),
         parameters_summary={
             "repo_id": "string (required)",
             "query": "string (required)",
             "limit": "integer (optional)",
             "max_tokens": "integer (optional)",
+            "profile": "string (optional)",
+            "expand": "auto | none | graph (optional, default auto)",
+            "expand_k": "integer 1-8 (optional, default 3)",
+            "expand_hops": "integer 1-2 (optional, default 1)",
+            "min_confidence": "number 0-1 (optional, default 0.6)",
         },
-        tags=["search", "grep", "text", "body", "fts5", "ripgrep"],
+        tags=["search", "grep", "text", "body", "fts5", "ripgrep", "graph", "neighbors", "callers", "callees"],
         recommended_followups=["get_symbol_context", "get_file_skeleton"],
         prerequisites=["list_repositories"],
     ),

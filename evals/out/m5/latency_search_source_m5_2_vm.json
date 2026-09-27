@@ -1,0 +1,61 @@
+{
+  "environment": {
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "python": "3.14.7",
+    "cpu_count": 2
+  },
+  "repo_id": "token-context",
+  "tasks_file": "evals/tasks/loc_token_context.json",
+  "query_count": 30,
+  "protocol": {
+    "warmup_passes": 1,
+    "passes": 5,
+    "runs": 3
+  },
+  "modes": {
+    "none": {
+      "runs": [
+        {
+          "p50": 14.07,
+          "p95": 22.68,
+          "max": 31.78
+        },
+        {
+          "p50": 12.99,
+          "p95": 18.8,
+          "max": 24.37
+        },
+        {
+          "p50": 13.17,
+          "p95": 18.2,
+          "max": 22.91
+        }
+      ],
+      "median_p50_ms": 13.17,
+      "median_p95_ms": 18.8,
+      "noisy": false
+    },
+    "graph": {
+      "runs": [
+        {
+          "p50": 15.37,
+          "p95": 21.71,
+          "max": 25.72
+        },
+        {
+          "p50": 15.32,
+          "p95": 21.01,
+          "max": 26.25
+        },
+        {
+          "p50": 15.58,
+          "p95": 21.27,
+          "max": 23.92
+        }
+      ],
+      "median_p50_ms": 15.37,
+      "median_p95_ms": 21.27,
+      "noisy": false
+    }
+  }
+}

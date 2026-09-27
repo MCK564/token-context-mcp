@@ -50,37 +50,64 @@ def estimate_wire_tokens(payload: Any) -> int:
     return max(1, math.ceil(len(payload_str.encode("utf-8")) / 4))
 
 
-def extract_ranked_files(response_data: dict[str, Any]) -> list[str]:
-    """Extract distinct ranked files: anchors first, then neighbors, preserving order."""
-    matches = response_data.get("matches", [])
-    neighbors = response_data.get("neighbors", [])
+def _neighbor_path_and_name(n: Any) -> tuple[str | None, str | None, str | None, str | None]:
+    """Return (symbol_id, path, name, anchor_id) for a neighbor row or dict."""
+    if isinstance(n, (list, tuple)) and len(n) >= 2:
+        sym_id = str(n[0]) if n else None
+        loc = str(n[1])
+        path = loc.rsplit(":", 1)[0] if ":" in loc else loc
+        name = str(n[2]).split(" ", 1)[-1].strip() if len(n) >= 3 else None
+        anchor = str(n[5]) if len(n) >= 6 else None
+        return sym_id, path.replace("\\", "/"), name, anchor
+    if isinstance(n, dict):
+        path = n.get("path")
+        return (
+            n.get("symbol_id"),
+            str(path).replace("\\", "/") if path else None,
+            n.get("qualified_name") or n.get("name"),
+            n.get("anchor_id"),
+        )
+    return None, None, None, None
 
+
+def _interleaved(response_data: dict[str, Any]) -> list[tuple[str, Any]]:
+    """Merged ranking: each match, immediately followed by the neighbors expanded from it.
+
+    Neighbors whose anchor is not among the matches go last, in their given order.
+    """
+    matches = response_data.get("matches", [])
+    neighbors = response_data.get("neighbors", []) or []
+    by_anchor: dict[str, list[Any]] = {}
+    orphans: list[Any] = []
+    match_ids = {m.get("symbol_id") for m in matches}
+    for n in neighbors:
+        anchor = _neighbor_path_and_name(n)[3]
+        if anchor and anchor in match_ids:
+            by_anchor.setdefault(anchor, []).append(n)
+        else:
+            orphans.append(n)
+    merged: list[tuple[str, Any]] = []
+    for m in matches:
+        merged.append(("match", m))
+        for n in by_anchor.pop(m.get("symbol_id"), []):
+            merged.append(("neighbor", n))
+    merged.extend(("neighbor", n) for n in orphans)
+    return merged
+
+
+def extract_ranked_files(response_data: dict[str, Any]) -> list[str]:
+    """Distinct files in merged order (match, then its neighbors)."""
     files: list[str] = []
     seen: set[str] = set()
-
-    for m in matches:
-        p = m.get("path")
-        if p:
-            norm_p = str(p).replace("\\", "/")
-            if norm_p not in seen:
-                seen.add(norm_p)
-                files.append(norm_p)
-
-    for n in neighbors:
-        # neighbor format: [id, "path:line", "<kind> <name>", "<relation>", score, "<anchor_id>"]
-        # or dict with path
-        p = None
-        if isinstance(n, (list, tuple)) and len(n) >= 2:
-            loc = str(n[1])
-            p = loc.split(":", 1)[0] if ":" in loc else loc
-        elif isinstance(n, dict):
-            p = n.get("path")
-        if p:
-            norm_p = str(p).replace("\\", "/")
-            if norm_p not in seen:
-                seen.add(norm_p)
-                files.append(norm_p)
-
+    for kind, item in _interleaved(response_data):
+        if kind == "match":
+            p = item.get("path")
+            p = str(p).replace("\\", "/") if p else None
+        else:
+            p = _neighbor_path_and_name(item)[1]
+        if p and p not in seen:
+            seen.add(p)
+            files.append(p)
     return files
 
 
@@ -88,51 +115,28 @@ def extract_ranked_symbols(
     response_data: dict[str, Any],
     symbol_id_map: dict[str, tuple[str, str]],
 ) -> list[tuple[str, str]]:
-    """Extract distinct ranked symbols as (path, qualified_name) pairs."""
-    matches = response_data.get("matches", [])
-    neighbors = response_data.get("neighbors", [])
-
+    """Distinct (path, qualified_name) pairs in merged order (match, then its neighbors)."""
     symbols: list[tuple[str, str]] = []
     seen: set[tuple[str, str]] = set()
-
-    for m in matches:
+    for kind, item in _interleaved(response_data):
         pair: tuple[str, str] | None = None
-        sym_id = m.get("symbol_id")
-        if sym_id and sym_id in symbol_id_map:
-            raw_p, raw_name = symbol_id_map[sym_id]
-            pair = (raw_p.replace("\\", "/"), raw_name)
-        elif m.get("path") and (m.get("qualified_name") or m.get("name")):
-            raw_p = str(m["path"]).replace("\\", "/")
-            raw_name = m.get("qualified_name") or m["name"]
-            pair = (raw_p, raw_name)
-        if pair and pair not in seen:
-            seen.add(pair)
-            symbols.append(pair)
-
-    for n in neighbors:
-        pair = None
-        if isinstance(n, (list, tuple)) and len(n) >= 1:
-            sym_id = str(n[0])
-            if sym_id in symbol_id_map:
-                raw_p, raw_name = symbol_id_map[sym_id]
-                pair = (raw_p.replace("\\", "/"), raw_name)
-            elif len(n) >= 3:
-                loc = str(n[1])
-                p = loc.split(":", 1)[0] if ":" in loc else loc
-                kind_name = str(n[2]).split(" ", 1)
-                name = kind_name[-1].strip()
-                pair = (p.replace("\\", "/"), name)
-        elif isinstance(n, dict):
-            sym_id = n.get("symbol_id")
+        if kind == "match":
+            sym_id = item.get("symbol_id")
             if sym_id and sym_id in symbol_id_map:
                 raw_p, raw_name = symbol_id_map[sym_id]
                 pair = (raw_p.replace("\\", "/"), raw_name)
-            elif n.get("path") and (n.get("qualified_name") or n.get("name")):
-                pair = (str(n["path"]).replace("\\", "/"), n.get("qualified_name") or n["name"])
+            elif item.get("path") and (item.get("qualified_name") or item.get("name")):
+                pair = (str(item["path"]).replace("\\", "/"), item.get("qualified_name") or item["name"])
+        else:
+            sym_id, path, name, _ = _neighbor_path_and_name(item)
+            if sym_id and sym_id in symbol_id_map:
+                raw_p, raw_name = symbol_id_map[sym_id]
+                pair = (raw_p.replace("\\", "/"), raw_name)
+            elif path and name:
+                pair = (path, name)
         if pair and pair not in seen:
             seen.add(pair)
             symbols.append(pair)
-
     return symbols
 
 
@@ -169,6 +173,12 @@ def evaluate_single_task(
         if f in gold_files:
             first_file_rank = idx
             break
+
+    # Symbol recall over everything the agent receives (matches + neighbors, budget-bound)
+    sym_recall_resp = (
+        len(set(ranked_symbols) & gold_symbol_pairs) / len(gold_symbol_pairs) if gold_symbol_pairs else 0.0
+    )
+    neighbor_count = len(data.get("neighbors", []) or [])
 
     # Symbol Recall@10
     found_symbols_10 = set(top_10_symbols) & gold_symbol_pairs
@@ -217,6 +227,8 @@ def evaluate_single_task(
         "file_recall_at_5": file_recall_5,
         "file_mrr": round(file_mrr, 4),
         "sym_recall_at_10": sym_recall_10,
+        "sym_recall_in_response": sym_recall_resp,
+        "neighbor_count": neighbor_count,
         "sym_mrr": round(sym_mrr, 4),
         "sym_acc_at_1": sym_acc_1,
         "sym_acc_at_3": sym_acc_3,
@@ -238,6 +250,8 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
             "file_recall_at_5": 0.0,
             "file_mrr": 0.0,
             "sym_recall_at_10": 0.0,
+            "sym_recall_in_response": 0.0,
+            "mean_neighbor_count": 0.0,
             "sym_mrr": 0.0,
             "sym_acc_at_1": 0.0,
             "sym_acc_at_3": 0.0,
@@ -252,6 +266,8 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
     file_recall = sum(t["file_recall_at_5"] for t in tasks_results) / n
     file_mrr = sum(t["file_mrr"] for t in tasks_results) / n
     sym_recall = sum(t["sym_recall_at_10"] for t in tasks_results) / n
+    sym_recall_resp = sum(t.get("sym_recall_in_response", 0.0) for t in tasks_results) / n
+    mean_neighbors = sum(t.get("neighbor_count", 0) for t in tasks_results) / n
     sym_mrr = sum(t["sym_mrr"] for t in tasks_results) / n
     sym_acc_1 = sum(t["sym_acc_at_1"] for t in tasks_results) / n
     sym_acc_3 = sum(t["sym_acc_at_3"] for t in tasks_results) / n
@@ -271,6 +287,8 @@ def compute_aggregate(tasks_results: list[dict[str, Any]]) -> dict[str, Any]:
         "file_recall_at_5": round(file_recall, 4),
         "file_mrr": round(file_mrr, 4),
         "sym_recall_at_10": round(sym_recall, 4),
+        "sym_recall_in_response": round(sym_recall_resp, 4),
+        "mean_neighbor_count": round(mean_neighbors, 2),
         "sym_mrr": round(sym_mrr, 4),
         "sym_acc_at_1": round(sym_acc_1, 4),
         "sym_acc_at_3": round(sym_acc_3, 4),

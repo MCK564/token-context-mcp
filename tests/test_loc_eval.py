@@ -47,16 +47,26 @@ def test_extract_ranked_files_and_symbols_with_neighbors():
         "sym_gamma": ("src/gamma.py", "GammaFunc"),
     }
 
+    # M5.2: neighbors are ranked immediately after the anchor they were expanded from
+    # (alpha -> gamma, beta), so a neighbor can enter the top-k instead of trailing every match.
     files = extract_ranked_files(response_data)
-    assert files == ["src/alpha.py", "src/beta.py", "src/gamma.py"]
+    assert files == ["src/alpha.py", "src/gamma.py", "src/beta.py"]
 
     symbols = extract_ranked_symbols(response_data, symbol_map)
     assert symbols == [
         ("src/alpha.py", "AlphaFunc"),
+        ("src/gamma.py", "GammaFunc"),
         ("src/beta.py", "BetaFunc"),
         ("src/alpha.py", "AlphaHelper"),
-        ("src/gamma.py", "GammaFunc"),
     ]
+
+
+def test_orphan_neighbors_go_last():
+    response_data = {
+        "matches": [{"path": "src/a.py", "symbol_id": "a"}],
+        "neighbors": [["z", "src/z.py:1", "function Z", "callee", 0.9, "not_a_match"]],
+    }
+    assert extract_ranked_files(response_data) == ["src/a.py", "src/z.py"]
 
 
 def test_evaluate_single_task_and_aggregate_hand_calculated():

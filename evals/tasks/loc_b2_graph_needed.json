@@ -1,8 +1,9 @@
 {
   "repo_id": "token-context",
-  "reviewed": false,
+  "reviewed": true,
   "construction": "selected where A1 misses; A1 = 0 by construction",
   "split_seed": 20260926,
+  "review_note": "Reviewed by Claude on the owner's delegation (2026-09-27). Mechanism test only: tasks were selected where A1 misses, so A1 = 0 by construction; queries are the source symbol's name. Not a quality metric.",
   "tasks": [
     {
       "id": "b2_01",

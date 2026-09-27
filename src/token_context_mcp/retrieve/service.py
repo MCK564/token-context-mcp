@@ -35,6 +35,7 @@ from token_context_mcp.models import (
     symbol_as_dict,
 )
 from token_context_mcp.retrieve.code_tokens import split_identifier
+from token_context_mcp.retrieve.expansion import communities_for, expand_anchors
 from token_context_mcp.retrieve.freshness import FreshnessCache
 from token_context_mcp.retrieve.graph_cache import GraphCache, RepoGraph
 from token_context_mcp.retrieve.ranking import rank_symbols
@@ -49,6 +50,13 @@ from token_context_mcp.security.path_policy import (
     relative_posix,
     safe_relative_path,
 )
+
+DEFAULT_EXPAND_K = 3
+DEFAULT_EXPAND_HOPS = 1
+DEFAULT_EXPAND_MIN_CONFIDENCE = 0.6
+NEIGHBOR_BUDGET_SHARE = 0.25
+# Ablation switch for evals only (F9 term-coverage ranking). Not exposed as a tool argument.
+_COVERAGE_RANKING = "off"  # "off" | "name" | "body"; dev ablation 2026-09-27: both on-modes lowered sym MRR
 
 Entry = TypeVar("Entry")
 
@@ -385,9 +393,32 @@ class RetrievalService:
         limit: int | None = None,
         max_tokens: int | None = None,
         profile: str | None = None,
+        expand: str | None = None,
+        expand_k: int | None = None,
+        expand_hops: int | None = None,
+        min_confidence: float | None = None,
     ) -> dict[str, Any]:
         """Full-text search across indexed files with FTS5, returning best matching lines grouped by enclosing symbol."""
         profile_settings = self._profile_settings(profile, "search_source")
+        if expand is None:
+            expand = str(profile_settings.get("expand", "auto"))
+        if expand not in {"auto", "none", "graph"}:
+            raise RetrievalError("expand must be auto, none, or graph")
+        if expand == "auto":
+            expand = "graph" if profile == "locate" else "none"
+        if expand_k is None:
+            expand_k = _profile_int(profile_settings, "expand_k", DEFAULT_EXPAND_K)
+        if expand_hops is None:
+            expand_hops = _profile_int(profile_settings, "expand_hops", DEFAULT_EXPAND_HOPS)
+        if min_confidence is None:
+            min_confidence = float(profile_settings.get("min_confidence", DEFAULT_EXPAND_MIN_CONFIDENCE))
+        if not 1 <= expand_k <= 8:
+            raise ArgumentOutOfRangeError("expand_k", expand_k, 1, 8)
+        if not 1 <= expand_hops <= 2:
+            raise ArgumentOutOfRangeError("expand_hops", expand_hops, 1, 2)
+        if not 0.0 <= min_confidence <= 1.0:
+            raise RetrievalError("min_confidence must be between 0 and 1")
+
         if limit is None:
             limit = _profile_int(profile_settings, "limit", 20)
         if max_tokens is None and "budget_tokens" in profile_settings:
@@ -433,55 +464,49 @@ class RetrievalService:
             except StoreError as error:
                 raise RetrievalError(str(error)) from error
 
-            # Rank and select from AND rows, enforcing max 3 symbols per file
-            sorted_and_rows = sorted(
-                and_rows,
-                key=lambda r: (
-                    1 if r["path"].startswith(("tests/", "evals/")) else 0,
-                    1 if r["symbol_id"].endswith(":<module>") else 0,
-                    r["score"],
-                ),
-            )
-            symbols_per_file: dict[str, int] = {}
-            selected_rows: list[dict[str, Any]] = []
-            seen_symbol_ids: set[str] = set()
-            for r in sorted_and_rows:
-                p = r["path"]
-                if symbols_per_file.get(p, 0) < 3:
-                    symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
-                    selected_rows.append(r)
-                    seen_symbol_ids.add(r["symbol_id"])
-                    if len(selected_rows) >= limit:
-                        break
-
-            # F8: If fewer than limit, supplement with OR results (dedup, ranked after AND)
+            # Fetch OR rows only when AND cannot fill `limit` on its own (F8).
             or_rows: list[dict[str, Any]] = []
-            if len(selected_rows) < limit and match_query_or != match_query_and:
+            and_per_file: dict[str, int] = {}
+            for r in and_rows:
+                and_per_file[r["path"]] = and_per_file.get(r["path"], 0) + 1
+            and_capacity = sum(min(3, n) for n in and_per_file.values())
+            if and_capacity < limit and match_query_or != match_query_and:
                 try:
                     or_rows = store.search_symbol_matches(match_query_or, limit=limit * 5)
                 except StoreError as error:
                     raise RetrievalError(str(error)) from error
 
-                # Filter out symbols already selected
-                or_candidates = [r for r in or_rows if r["symbol_id"] not in seen_symbol_ids]
-
-                sorted_or_rows = sorted(
-                    or_candidates,
-                    key=lambda r: (
-                        1 if r["path"].startswith(("tests/", "evals/")) else 0,
-                        1 if r["symbol_id"].endswith(":<module>") else 0,
-                        r["score"],
-                    ),
-                )
-
-                for r in sorted_or_rows:
-                    p = r["path"]
-                    if symbols_per_file.get(p, 0) < 3:
-                        symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
-                        selected_rows.append(r)
-                        seen_symbol_ids.add(r["symbol_id"])
-                        if len(selected_rows) >= limit:
-                            break
+            # F9: one ranking for AND and OR rows. Non-test before test/eval code, AST symbols before
+            # <module>, then by number of distinct query terms the symbol covers, then bm25.
+            and_ids = {r["symbol_id"] for r in and_rows}
+            candidates = list(and_rows) + [r for r in or_rows if r["symbol_id"] not in and_ids]
+            coverage = {
+                r["symbol_id"]: (_term_coverage(r, raw_terms, _COVERAGE_RANKING) if _COVERAGE_RANKING != "off" else 0) for r in candidates
+            }
+            ranked_rows = sorted(
+                candidates,
+                key=lambda r: (
+                    1 if _is_test_or_eval_path(r["path"]) else 0,
+                    1 if r["symbol_id"].endswith(":<module>") else 0,
+                    -coverage[r["symbol_id"]],
+                    0 if r["symbol_id"] in and_ids else 1,
+                    r["score"],
+                    r["path"],
+                    r["start_line"],
+                ),
+            )
+            symbols_per_file: dict[str, int] = {}
+            selected_rows: list[dict[str, Any]] = []
+            seen_symbol_ids: set[str] = set()
+            for r in ranked_rows:
+                p = r["path"]
+                if r["symbol_id"] in seen_symbol_ids or symbols_per_file.get(p, 0) >= 3:
+                    continue
+                symbols_per_file[p] = symbols_per_file.get(p, 0) + 1
+                selected_rows.append(r)
+                seen_symbol_ids.add(r["symbol_id"])
+                if len(selected_rows) >= limit:
+                    break
 
             total_matches = len(and_rows) + len([r for r in or_rows if r["symbol_id"] not in {x["symbol_id"] for x in and_rows}])
             unselected_matches_count = max(0, total_matches - len(selected_rows))
@@ -671,12 +696,52 @@ class RetrievalService:
             response_warnings.append("potential_secrets_redacted")
         response_warnings.extend(f"stale_content_unavailable:{path}" for path in stale_paths)
 
+        neighbor_entries: list[list[Any]] = []
+        anchors_expanded = 0
+        if expand == "graph":
+            index_run_id = str(metadata.get("index_run_id", ""))
+            graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
+            communities = communities_for(graph, store.import_pairs())
+            anchor_ids = [str(e["symbol_id"]) for e in entries if e.get("symbol_id")]
+            neighbors, anchors_expanded = expand_anchors(
+                graph,
+                anchor_ids,
+                query,
+                k=expand_k,
+                hops=expand_hops,
+                min_confidence=min_confidence,
+                communities=communities,
+            )
+            neighbor_entries = [n.as_row() for n in neighbors]
+            neighbor_budget = int(packing_budget * NEIGHBOR_BUDGET_SHARE)
+            while neighbor_entries and _payload_tokens(neighbor_entries) > neighbor_budget:
+                neighbor_entries.pop()
+
         def build_response(
             selected_items: list[dict[str, Any]],
             omitted_items: list[dict[str, Any]],
             estimated: int,
         ) -> dict[str, Any]:
             omitted_count = source_limit_omitted + unselected_matches_count + len(omitted_items)
+            data: dict[str, Any] = {
+                "query": query,
+                "matches": selected_items,
+                "omitted_count": omitted_count,
+                "estimator_version": ESTIMATOR_VERSION,
+            }
+            if expand == "graph":
+                kept_anchor_ids = {item.get("symbol_id") for item in selected_items}
+                kept_neighbors = [row for row in neighbor_entries if row[5] in kept_anchor_ids]
+                data["neighbors"] = kept_neighbors
+                data["retrieval"] = {
+                    "expand_effective": "graph",
+                    "profile_effective": profile,
+                    "anchors": anchors_expanded,
+                    "neighbors": len(kept_neighbors),
+                    "expand_k": expand_k,
+                    "expand_hops": expand_hops,
+                    "min_confidence": min_confidence,
+                }
             return self._envelope(
                 repo_id,
                 metadata,
@@ -686,12 +751,7 @@ class RetrievalService:
                 warnings=response_warnings,
                 truncated=omitted_count > 0,
                 evidence=[],
-                data={
-                    "query": query,
-                    "matches": selected_items,
-                    "omitted_count": omitted_count,
-                    "estimator_version": ESTIMATOR_VERSION,
-                },
+                data=data,
             )
 
         chosen, omitted, used = self._pack_to_budget(
@@ -2178,3 +2238,36 @@ def _json(value: Any) -> str:
 
 def _payload_tokens(value: Any) -> int:
     return estimate_tokens(json.dumps(value, sort_keys=True, ensure_ascii=False))
+
+
+def _is_test_or_eval_path(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    return normalized.startswith(("tests/", "evals/")) or "/tests/" in normalized
+
+
+_WORD_RE = re.compile(r"\w+", re.UNICODE)
+
+
+def _term_coverage(row: dict[str, Any], raw_terms: list[str], mode: str = "name") -> int:
+    """Number of distinct query terms present in a symbol's name, tokens or own body.
+
+    A term counts when it appears as a whole word, or when every part of its identifier split
+    appears as a snake_case sub-word. camelCase parts of the symbol's own identifiers are already
+    in ``code_tokens`` (split at index time), so body text only needs the cheap ``_`` split.
+    """
+    if not raw_terms:
+        return 0
+    fields = ("name", "qualified_name", "code_tokens") + (("own_body",) if mode == "body" else ())
+    text = " ".join(str(row.get(field) or "") for field in fields)
+    words = set(_WORD_RE.findall(text.lower()))
+    for word in [w for w in words if "_" in w]:
+        words.update(word.split("_"))
+    covered = 0
+    for term in dict.fromkeys(raw_terms):
+        if term in words:
+            covered += 1
+            continue
+        parts = split_identifier(term)
+        if len(parts) > 1 and all(part in words for part in parts):
+            covered += 1
+    return covered

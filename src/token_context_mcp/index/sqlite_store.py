@@ -577,6 +577,12 @@ class SQLiteStore:
             rows = connection.execute("SELECT module FROM imports WHERE path = ? ORDER BY module", (path,)).fetchall()
         return [str(row["module"]) for row in rows]
 
+    def import_pairs(self) -> list[tuple[str, str]]:
+        """All (path, module) import rows, ordered, for file-level graph construction."""
+        with self.connection() as connection:
+            rows = connection.execute("SELECT path, module FROM imports ORDER BY path, module").fetchall()
+        return [(str(row["path"]), str(row["module"])) for row in rows]
+
     def importers_for_modules(self, modules: list[str]) -> list[str]:
         if not modules:
             return []

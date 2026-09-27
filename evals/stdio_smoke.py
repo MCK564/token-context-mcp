@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -70,35 +72,57 @@ async def _run() -> None:
                     f"expected 10 core tools or 20 extended tools, got {len(names)}: {sorted(names)}"
                 )
 
-    # F0: Verify search_source via real stdio server with query 1
-    params_default = StdioServerParameters(
-        command=command,
-        args=["serve", "--transport", "stdio"],
-    )
-    async with Client(stdio_client(params_default)) as client:
-        res = await client.call_tool(
-            "search_source",
-            {"repo_id": "token-context", "query": "sqlite read behind key value lookup tool"},
+        # F0 / M5: exercise search_source end-to-end through the real stdio server on a clean-room
+        # repo. Query words never co-occur in one symbol, so this passes only when the OR top-up,
+        # one-entry-per-symbol and `lines` contract are live in the server process.
+        root = Path(directory) / "smoke-repo"
+        root.mkdir()
+        (root / "store.py").write_text(
+            "def read_row(key):\n    return lookup_value(key)\n\n\n"
+            "def lookup_value(key):\n    return {'value': key}\n\n\n"
+            "def write_row(key, value):\n    return (key, value)\n",
+            encoding="utf-8",
         )
-        if res.is_error:
-            raise AssertionError(f"search_source returned error: {res.content}")
-        payload = getattr(res, "structured_content", None)
-        if not payload and res.content and hasattr(res.content[0], "text"):
-            try:
-                payload = json.loads(res.content[0].text)
-            except Exception:
-                pass
-        if not isinstance(payload, dict):
-            raise AssertionError("search_source did not return structured payload")
-        matches = payload.get("data", {}).get("matches", [])
-        if len(matches) < 1:
-            raise AssertionError(f"expected >= 1 match for search_source, got {len(matches)}")
-        sids = [m["symbol_id"] for m in matches if m.get("symbol_id")]
-        if len(sids) != len(set(sids)):
-            raise AssertionError(f"duplicate symbol_id detected in search_source results: {sids}")
-        for idx, m in enumerate(matches):
-            if "lines" not in m or not isinstance(m["lines"], list):
-                raise AssertionError(f"match {idx} missing 'lines' list: {m}")
+        config.write_text(
+            "[server]\nmax_result_tokens = 8192\n\n[repos.smoke]\n"
+            f"root = {json.dumps(str(root.resolve()))}\n",
+            encoding="utf-8",
+        )
+        subprocess.run(
+            [command, "index", "--repo-id", "smoke", "--config", str(config)],
+            check=True,
+            capture_output=True,
+        )
+        async with Client(stdio_client(parameters)) as client:
+            for expand in ("none", "graph"):
+                res = await client.call_tool(
+                    "search_source",
+                    {"repo_id": "smoke", "query": "sqlite read behind key value lookup tool", "expand": expand},
+                )
+                if res.is_error:
+                    raise AssertionError(f"search_source returned error: {res.content}")
+                payload = getattr(res, "structured_content", None)
+                if not payload and res.content and hasattr(res.content[0], "text"):
+                    try:
+                        payload = json.loads(res.content[0].text)
+                    except ValueError:
+                        payload = None
+                if not isinstance(payload, dict):
+                    raise AssertionError("search_source did not return a structured payload")
+                data = payload.get("data", {})
+                matches = data.get("matches", [])
+                if len(matches) < 1:
+                    raise AssertionError(f"expected >= 1 match for search_source, got {len(matches)}")
+                sids = [m["symbol_id"] for m in matches if m.get("symbol_id")]
+                if len(sids) != len(set(sids)):
+                    raise AssertionError(f"duplicate symbol_id in search_source results: {sids}")
+                for idx, m in enumerate(matches):
+                    if not isinstance(m.get("lines"), list):
+                        raise AssertionError(f"match {idx} missing 'lines' list: {m}")
+                if expand == "graph" and "neighbors" not in data:
+                    raise AssertionError("expand='graph' response has no 'neighbors' field")
+                if expand == "none" and "neighbors" in data:
+                    raise AssertionError("expand='none' response must not carry 'neighbors'")
 
 
 def main() -> None:
