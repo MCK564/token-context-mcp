@@ -127,7 +127,14 @@ def file_communities(paths: Iterable[str], imports: Iterable[tuple[str, str]]) -
     return {path: dense.setdefault(label[path], len(dense)) for path in nodes}
 
 
-def _edge_ok(edge: object, min_confidence: float) -> bool:
+def edge_is_traversable(edge: object, min_confidence: float) -> bool:
+    """Shared "is this edge trustworthy enough to act on" predicate.
+
+    Used both for graph expansion (M5.2) and for the ``inspect_symbol`` relationship
+    filter (M6, E14): resolved, produced by the ``lexical`` backend (excludes
+    ``virtual_stub`` external-stub calls), points at a real symbol, and carries
+    ``confidence >= min_confidence``.
+    """
     return (
         getattr(edge, "status", None) == "resolved"
         and getattr(edge, "backend", None) == "lexical"
@@ -144,7 +151,7 @@ def hub_ids(graph: "RepoGraph", min_confidence: float) -> frozenset[str]:
         return cache[min_confidence]
     indegree: Counter[str] = Counter()
     for edge in graph.edges:
-        if _edge_ok(edge, min_confidence):
+        if edge_is_traversable(edge, min_confidence):
             indegree[edge.target_symbol_id] += 1  # type: ignore[index]
     values = [indegree.get(s.symbol_id, 0) for s in graph.symbols]
     hubs: frozenset[str] = frozenset()
@@ -201,10 +208,10 @@ def expand_anchors(
             for node, weight, relation in frontier:
                 steps: list[tuple[str, float, str]] = []
                 for edge in graph.out_edges.get(node, []):
-                    if _edge_ok(edge, min_confidence):
+                    if edge_is_traversable(edge, min_confidence):
                         steps.append((edge.target_symbol_id, float(edge.confidence), "callee"))  # type: ignore[arg-type]
                 for edge in graph.in_edges.get(node, []):
-                    if _edge_ok(edge, min_confidence):
+                    if edge_is_traversable(edge, min_confidence):
                         steps.append((edge.source_symbol_id, float(edge.confidence), "caller"))  # type: ignore[arg-type]
                 for other, conf, step_rel in sorted(steps):
                     if other == anchor_id or other.endswith(MODULE_SUFFIX) or other not in graph.symbol_map:

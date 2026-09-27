@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import pytest
 
@@ -118,20 +119,16 @@ def callee_repo_config(tmp_path: Path) -> Path:
     root = tmp_path / "callee-repo"
     root.mkdir()
 
-    lines = [
-        "def callee_one(): pass",
-        "def callee_two(): pass",
-        "def callee_three(): pass",
-        "def callee_four(): pass",
-        "def callee_five(): pass",
-        "",
-        "def caller_func():",
-        "    callee_one()",
-        "    callee_two()",
-        "    callee_three()",
-        "    callee_four()",
-        "    callee_five()",
-    ]
+    # 12 callees, not 5: the E14 fix (pulling relationships straight from the graph
+    # instead of through impact_slice's own internal budget) means edge_budget's 256-token
+    # floor now comfortably holds 5 small relationship dicts (~192 tokens), so 5 callees
+    # no longer characterizes a "tight" budget. 12 (~460 tokens) still fits the largest
+    # possible edge_budget (1024, at budget_tokens ~4096) but overflows the 256 floor,
+    # so the truncation case below stays genuinely tight under the corrected behaviour.
+    lines = [f"def callee_{i:02d}(): pass" for i in range(12)]
+    lines.append("")
+    lines.append("def caller_func():")
+    lines.extend(f"    callee_{i:02d}()" for i in range(12))
     (root / "caller.py").write_text("\n".join(lines), encoding="utf-8")
 
     config_path = tmp_path / "config_callee" / "repos.toml"
@@ -144,19 +141,110 @@ def callee_repo_config(tmp_path: Path) -> Path:
 def test_inspect_symbol_relationships_normal_and_truncated(callee_repo_config: Path) -> None:
     svc, wf = _service_and_wf(callee_repo_config)
 
-    # 1. View normal, budget 2048 -> returns all 5 relationships, estimated_tokens <= 2048
-    res = wf.inspect_symbol("test-callee", query="caller_func", view="normal", budget_tokens=2048)
+    # 1. View normal, budget 4096 (edge_budget maxes out at 1024) -> all 12 relationships
+    res = wf.inspect_symbol("test-callee", query="caller_func", view="normal", budget_tokens=4096)
     assert res["data"]["status"] == "resolved"
-    assert res["data"]["relationship_count"] == 5
-    assert len(res["data"]["relationships"]) == 5
+    assert res["data"]["relationship_count"] == 12
+    assert len(res["data"]["relationships"]) == 12
     # Compact format check: {source, target, kind, confidence}
     rel0 = res["data"]["relationships"][0]
     assert set(rel0.keys()) == {"source", "target", "kind", "confidence"}
-    assert res["budget"]["estimated_tokens"] <= 2048
+    assert res["budget"]["estimated_tokens"] <= 4096
     assert "relationships_truncated" not in res["warnings"]
 
-    # 2. Budget 256 -> tight budget causes relationships_truncated warning
+    # 2. Budget 256 (the edge_budget floor) -> too small for all 12, still truncates
     res_tight = wf.inspect_symbol("test-callee", query="caller_func", view="normal", budget_tokens=256)
     assert "relationships_truncated" in res_tight["warnings"]
-    assert res_tight["data"].get("relationships_omitted", 0) > 0 or res_tight["data"]["relationship_count"] < 5
+    assert res_tight["data"].get("relationships_omitted", 0) > 0 or res_tight["data"]["relationship_count"] < 12
+
+
+# --- E14: inspect_symbol relationship contract compliance (M6) -----------------------
+#
+# Fixture mirrors a pattern confirmed live on the real repo (get_impact_slice on
+# rank_symbols, 2026-09-27): a resolved same-file callee (local_push_ppr), an
+# ambiguous unresolved-receiver call (`get`, confidence 0.10), and a stdlib virtual_stub
+# call (`append`). The E14 fix must surface the first and exclude the other two in
+# every view.
+
+
+@pytest.fixture()
+def relationship_filter_repo_config(tmp_path: Path) -> Path:
+    root = tmp_path / "relfilter-repo"
+    root.mkdir()
+    lines = [
+        "def local_push_ppr(x):",
+        "    return x",
+        "",
+        "class Decoy:",
+        "    def get(self, k):",
+        "        return None",
+        "",
+        "def target_fn(ppr, ranked: list):",
+        "    local_push_ppr(ppr)",
+        "    ppr.get('k')",
+        "    ranked.append(1)",
+        "    return ranked",
+    ]
+    (root / "mod.py").write_text("\n".join(lines), encoding="utf-8")
+
+    config_path = tmp_path / "config_relfilter" / "repos.toml"
+    repo = RepositoryConfig(repo_id="test-relfilter", root=root.resolve())
+    save_config(config_path, AppConfig(repositories={"test-relfilter": repo}, server=ServerConfig()))
+    build_index(repo, config_path.parent / "indexes", network_policy="declared-deny-not-enforced")
+    return config_path
+
+
+def test_inspect_symbol_minimal_relationships_filtered(relationship_filter_repo_config: Path) -> None:
+    """minimal at budget 1024 must include local_push_ppr and must NOT include the
+    ambiguous `get` call or the stub `append` call."""
+    svc, wf = _service_and_wf(relationship_filter_repo_config)
+    res = wf.inspect_symbol("test-relfilter", query="target_fn", view="minimal", budget_tokens=1024)
+
+    assert res["data"]["status"] == "resolved"
+    rels = res["data"]["relationships"]
+    assert len(rels) == 1
+    other_id, relation, confidence = rels[0]
+    assert "local_push_ppr" in other_id
+    assert relation == "callee"
+    assert confidence >= 0.5
+    # the ambiguous `get` (0.10) and the virtual_stub `append` were excluded by the
+    # quality filter, not by budget -- relationships_filtered counts them separately
+    # from relationships_omitted.
+    assert res["data"]["relationships_filtered"] == 2
+    assert "relationships_truncated" not in res["warnings"]
+
+
+def test_inspect_symbol_normal_relationships_exclude_ambiguous_and_stub(
+    relationship_filter_repo_config: Path,
+) -> None:
+    svc, wf = _service_and_wf(relationship_filter_repo_config)
+    res = wf.inspect_symbol("test-relfilter", query="target_fn", view="normal", budget_tokens=2048)
+
+    rels = res["data"]["relationships"]
+    assert len(rels) == 1
+    assert set(rels[0].keys()) == {"source", "target", "kind", "confidence"}
+    assert rels[0]["confidence"] >= 0.5
+    assert "local_push_ppr" in rels[0]["target"]
+    assert res["data"]["relationships_filtered"] == 2
+
+
+def test_inspect_symbol_full_relationships_match_normal(relationship_filter_repo_config: Path) -> None:
+    """full's relationships are the same filtered/packed list as normal (M6 contract) --
+    no more raw, unfiltered edges in full view."""
+    svc, wf = _service_and_wf(relationship_filter_repo_config)
+    normal = wf.inspect_symbol("test-relfilter", query="target_fn", view="normal", budget_tokens=2048)
+    full = wf.inspect_symbol("test-relfilter", query="target_fn", view="full", budget_tokens=2048)
+    assert full["data"]["relationships"] == normal["data"]["relationships"]
+
+
+def test_inspect_symbol_view_size_ordering_and_determinism(relationship_filter_repo_config: Path) -> None:
+    svc, wf = _service_and_wf(relationship_filter_repo_config)
+    sizes = {}
+    for view in ("minimal", "normal", "full"):
+        res = wf.inspect_symbol("test-relfilter", query="target_fn", view=view, budget_tokens=2048)
+        sizes[view] = len(json.dumps(res))
+        res2 = wf.inspect_symbol("test-relfilter", query="target_fn", view=view, budget_tokens=2048)
+        assert json.dumps(res, sort_keys=True) == json.dumps(res2, sort_keys=True)
+
+    assert sizes["full"] >= sizes["normal"] >= sizes["minimal"]
 

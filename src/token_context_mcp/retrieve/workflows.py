@@ -1,10 +1,58 @@
 """Composite retrieval workflows combining multi-step operations (P2)."""
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+import json
+from typing import Any, Dict, List, Optional, Tuple
 
 from token_context_mcp.retrieve.projection import OutputProjector
 from token_context_mcp.retrieve.service import RetrievalError, RetrievalService
+from token_context_mcp.retrieve.token_budget import estimate_tokens
+
+# M6, E14: edges below this confidence, or produced by a non-"lexical" backend
+# (ambiguous status, or a virtual_stub external-call guess), never surface as an
+# inspect_symbol relationship in any view. See RetrievalService.symbol_relationships.
+RELATIONSHIP_MIN_CONFIDENCE = 0.5
+
+
+def _edge_other_id(edge: Dict[str, Any], target_symbol_id: str) -> Optional[str]:
+    """The *other* endpoint of a relationship edge, from the target symbol's point of view."""
+    if edge.get("source_symbol_id") == target_symbol_id:
+        return edge.get("target_symbol_id") or edge.get("target_name")
+    return edge.get("source_symbol_id")
+
+
+def _edge_relation(edge: Dict[str, Any], target_symbol_id: str) -> str:
+    return "callee" if edge.get("source_symbol_id") == target_symbol_id else "caller"
+
+
+def _edge_compact_tuple(edge: Dict[str, Any], target_symbol_id: str) -> List[Any]:
+    """``minimal`` view relationship shape: ``[symbol_id, "callee"|"caller", confidence]``."""
+    return [_edge_other_id(edge, target_symbol_id), _edge_relation(edge, target_symbol_id), edge.get("confidence")]
+
+
+def _edge_normal_dict(edge: Dict[str, Any]) -> Dict[str, Any]:
+    """``normal``/``full`` view relationship shape (unchanged from the pre-M6 contract)."""
+    return {
+        "source": edge.get("source_symbol_id"),
+        "target": edge.get("target_symbol_id") or edge.get("target_name"),
+        "kind": edge.get("edge_kind"),
+        "confidence": edge.get("confidence"),
+    }
+
+
+def _pack_rows_to_budget(rows: List[Any], budget_tokens: int) -> Tuple[List[Any], int]:
+    """Keep as many leading rows (already sorted best-first) as fit in budget_tokens.
+
+    Only a genuine, positive shortfall drops rows -- this is the E14 fix: relationships
+    are no longer lost to an internal, unrelated packing budget (impact_slice's own),
+    only to the composite call's own remaining budget, and only when they truly don't fit.
+    """
+    if budget_tokens <= 0 or not rows:
+        return [], len(rows)
+    kept = list(rows)
+    while kept and estimate_tokens(json.dumps(kept)) > budget_tokens:
+        kept.pop()
+    return kept, len(rows) - len(kept)
 
 
 class CompositeWorkflowEngine:
@@ -116,60 +164,29 @@ class CompositeWorkflowEngine:
         if "error" in ctx_res:
             return ctx_res
 
-        # 3. Get immediate impact slice
-        try:
-            slice_tokens = max(edge_budget, 1536) if budget_tokens >= 2048 else edge_budget
-            impact_res = self.service.impact_slice(
-                repo_id=repo_id,
-                symbol_id=symbol_id,
-                depth=1,
-                max_nodes=20,
-                max_tokens=slice_tokens,
-            )
-        except RetrievalError as err:
-            impact_res = {"error": {"code": "budget_exhausted", "message": str(err)}}
-
+        # 3. Fetch direct relationships straight from the graph (E14 fix): this bypasses
+        # impact_slice's own internal packing budget entirely, so a small overall
+        # budget_tokens can no longer wipe out every relationship the way it used to
+        # (docs/BACKLOG.md E14) -- only the packing into edge_budget below can drop a
+        # relationship now, and only when it genuinely doesn't fit.
         warnings: list[str] = []
         for w in ctx_res.get("warnings", []):
             if w not in warnings:
                 warnings.append(w)
 
-        omitted_edge_count = 0
-        if "error" in impact_res:
-            err_code = impact_res["error"].get("code", "unknown")
-            impact_warn = f"impact_unavailable:{err_code}"
-            if impact_warn not in warnings:
-                warnings.append(impact_warn)
-            edges = []
-            impact_est = 0
-            impact_truncated = False
-            try:
-                st = self.service._store(repo_id)
-                raw_edges = st.edges_from(symbol_id) + st.edges_to(symbol_id)
-                omitted_edge_count = len(raw_edges)
-            except Exception:
-                omitted_edge_count = 0
-        else:
-            edges = impact_res.get("data", {}).get("edges", [])
-            for w in impact_res.get("warnings", []):
-                if w not in warnings:
-                    warnings.append(w)
-            impact_est = impact_res.get("budget", {}).get("estimated_tokens", 0)
-            impact_truncated = bool(impact_res.get("truncated"))
-            omitted_edge_count = impact_res.get("data", {}).get("omitted_edge_count", 0)
-            if not edges and omitted_edge_count == 0:
-                try:
-                    st = self.service._store(repo_id)
-                    raw_edges = st.edges_from(symbol_id) + st.edges_to(symbol_id)
-                    if raw_edges:
-                        omitted_edge_count = len(raw_edges)
-                except Exception:
-                    pass
-
-
-        if omitted_edge_count > 0:
-            if "relationships_truncated" not in warnings:
-                warnings.append("relationships_truncated")
+        try:
+            rel_res = self.service.symbol_relationships(
+                repo_id=repo_id,
+                symbol_id=symbol_id,
+                min_confidence=RELATIONSHIP_MIN_CONFIDENCE,
+            )
+            all_edges = rel_res.get("edges", [])
+            relationships_filtered = rel_res.get("filtered_out_count", 0)
+        except RetrievalError:
+            all_edges = []
+            relationships_filtered = 0
+            if "relationships_unavailable" not in warnings:
+                warnings.append("relationships_unavailable")
 
         # Extract matching symbol entry from ctx_res["data"]["symbols"]
         matched_entry = None
@@ -196,15 +213,18 @@ class CompositeWorkflowEngine:
                 "max_tokens": 4096,
             }
 
-        rel_compact = [
-            {
-                "source": e.get("source_symbol_id"),
-                "target": e.get("target_symbol_id") or e.get("target_name"),
-                "kind": e.get("edge_kind"),
-                "confidence": e.get("confidence"),
-            }
-            for e in edges
-        ]
+        # Pack the (already deterministically sorted, quality-filtered) relationships
+        # into whatever budget remains, in the view's own wire shape: minimal's compact
+        # 3-tuples cost less per edge than normal/full's dicts, so each view packs its
+        # own row representation rather than sharing one already-trimmed list.
+        if view == "minimal":
+            candidate_rows: list = [_edge_compact_tuple(e, symbol_id) for e in all_edges]
+        else:
+            candidate_rows = [_edge_normal_dict(e) for e in all_edges]
+        rel_rows, omitted_edge_count = _pack_rows_to_budget(candidate_rows, edge_budget)
+
+        if omitted_edge_count > 0 and "relationships_truncated" not in warnings:
+            warnings.append("relationships_truncated")
 
         if view == "minimal":
             symbol_payload = {
@@ -220,19 +240,21 @@ class CompositeWorkflowEngine:
                 "query": query,
                 "target_symbol_id": symbol_id,
                 "symbol": symbol_payload,
-                "relationships": rel_compact,
-                "relationship_count": len(rel_compact),
+                "relationships": rel_rows,
+                "relationship_count": len(rel_rows),
             }
             evidence = [matched_entry.get("evidence")] if matched_entry and matched_entry.get("evidence") else []
         elif view == "full":
+            # M6 contract: full's relationships are the same filtered/packed list as
+            # normal now (no more raw, unfiltered edges). data.packet is Phase 2 (M6.1/M6.2).
             composite_data = {
                 "status": "resolved",
                 "query": query,
                 "target_symbol_id": symbol_id,
                 "symbol": matched_sym,
                 "content": matched_content,
-                "relationships": edges,
-                "relationship_count": len(edges),
+                "relationships": rel_rows,
+                "relationship_count": len(rel_rows),
             }
             evidence = ctx_res.get("evidence", [])
         else:  # normal
@@ -253,10 +275,14 @@ class CompositeWorkflowEngine:
                 "target_symbol_id": symbol_id,
                 "symbol": normal_sym,
                 "content": matched_content,
-                "relationships": rel_compact,
-                "relationship_count": len(rel_compact),
+                "relationships": rel_rows,
+                "relationship_count": len(rel_rows),
             }
             evidence = ctx_res.get("evidence", [])
+
+        # M6 contract: distinct from relationships_omitted (budget-driven, below) --
+        # this counts edges the resolved/lexical/confidence>=0.5 quality filter excluded.
+        composite_data["relationships_filtered"] = relationships_filtered
 
         if omitted_edge_count > 0:
             composite_data["relationships_omitted"] = omitted_edge_count
@@ -265,13 +291,9 @@ class CompositeWorkflowEngine:
             composite_data["retry_hint"] = retry_hint
 
         ctx_est = ctx_res.get("budget", {}).get("estimated_tokens", 0)
-        import json
-        from token_context_mcp.retrieve.token_budget import estimate_tokens
-        rel_est = estimate_tokens(json.dumps(rel_compact if view != "full" else edges))
+        rel_est = estimate_tokens(json.dumps(rel_rows))
         total_estimated = min(budget_tokens, ctx_est + rel_est)
-        is_truncated = bool(ctx_res.get("truncated")) or impact_truncated or ("content_omitted_budget" in warnings) or (omitted_edge_count > 0)
-
-
+        is_truncated = bool(ctx_res.get("truncated")) or ("content_omitted_budget" in warnings) or (omitted_edge_count > 0)
 
         composite_envelope = {
             "schema_version": "1.0",

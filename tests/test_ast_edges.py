@@ -241,3 +241,139 @@ def test_fn():
     assert put_edge.status == "resolved"
     assert put_edge.target_symbol_id == "store:put"
 
+
+# --- M6.0: self.x = <typed constructor/method parameter> -> attr_param scope ---------
+
+
+def test_attr_param_di_resolution() -> None:
+    """def __init__(self, service: RetrievalService): self.service = service, then
+    self.service.find_symbols() -> attr_param edge to RetrievalService.find_symbols."""
+
+    def symbol(symbol_id: str, path: str, name: str, qualified_name: str, start_byte: int, end_byte: int) -> SymbolRecord:
+        return SymbolRecord(
+            symbol_id=symbol_id,
+            path=path,
+            name=name,
+            qualified_name=qualified_name,
+            kind="method",
+            signature=f"def {name}()",
+            start_line=1,
+            end_line=10,
+            start_byte=start_byte,
+            end_byte=end_byte,
+            body_start_byte=start_byte + 10,
+            body_end_byte=end_byte,
+            is_private=False,
+        )
+
+    engine_code = b"""class CompositeWorkflowEngine:
+    def __init__(self, service: RetrievalService):
+        self.service = service
+    def run(self):
+        return self.service.find_symbols()
+"""
+    parsed = parse_source("workflows.py", engine_code, "python")
+    find_call = next(c for c in parsed.calls if c.name == "find_symbols")
+    assert find_call.receiver == "self.service"
+    assert find_call.receiver_type == "RetrievalService"
+    assert find_call.receiver_type_source == "attr_param"
+
+    engine_sym = symbol("wf:run", "workflows.py", "run", "CompositeWorkflowEngine.run", 90, 150)
+    find_symbols_sym = symbol("svc:find_symbols", "service.py", "find_symbols", "RetrievalService.find_symbols", 0, 50)
+    other_find = symbol("other:find_symbols", "other.py", "find_symbols", "Other.find_symbols", 0, 50)
+
+    edges = build_lexical_edges(
+        [engine_sym, find_symbols_sym, other_find],
+        {"workflows.py": engine_code.decode()},
+        calls_by_path={"workflows.py": parsed.calls},
+    )
+
+    find_edges = [e for e in edges if e.target_name == "find_symbols"]
+    assert len(find_edges) == 1
+    edge = find_edges[0]
+    assert edge.status == "resolved"
+    assert edge.target_symbol_id == "svc:find_symbols"
+    assert edge.confidence == 0.90
+    assert "scope:attr_param" in edge.evidence
+    assert "receiver:self.service" in edge.evidence
+
+
+def test_attr_param_typed_default_parameter_union_none() -> None:
+    """store: SQLiteStore | None = None -> resolves to SQLiteStore (typed_default_parameter,
+    not just typed_parameter)."""
+    code = b"""class Runner:
+    def __init__(self, store: SQLiteStore | None = None):
+        self.store = store
+    def go(self):
+        self.store.commit()
+"""
+    parsed = parse_source("runner.py", code, "python")
+    commit_call = next(c for c in parsed.calls if c.name == "commit")
+    assert commit_call.receiver == "self.store"
+    assert commit_call.receiver_type == "SQLiteStore"
+    assert commit_call.receiver_type_source == "attr_param"
+
+
+def test_attr_param_container_type_skipped() -> None:
+    """items: dict[str, X] then self.items = items; self.items.get(k) -> no receiver_type,
+    same container-skip rule as M4.3 (a dict is not a resolvable class)."""
+
+    def symbol(symbol_id: str, path: str, name: str, qualified_name: str, start_byte: int, end_byte: int) -> SymbolRecord:
+        return SymbolRecord(
+            symbol_id=symbol_id,
+            path=path,
+            name=name,
+            qualified_name=qualified_name,
+            kind="function",
+            signature=f"def {name}()",
+            start_line=1,
+            end_line=5,
+            start_byte=start_byte,
+            end_byte=end_byte,
+            body_start_byte=start_byte + 10,
+            body_end_byte=end_byte,
+            is_private=False,
+        )
+
+    code = b"""class Cache:
+    def __init__(self, items: dict[str, int]):
+        self.items = items
+    def go(self):
+        self.items.get("k")
+"""
+    parsed = parse_source("cache.py", code, "python")
+    get_call = next(c for c in parsed.calls if c.name == "get")
+    assert get_call.receiver == "self.items"
+    assert get_call.receiver_type is None
+    assert get_call.receiver_type_source is None
+
+    cache_sym = symbol("cache:go", "cache.py", "go", "Cache.go", 90, 140)
+    store_get = symbol("mem:get", "store.py", "get", "MemoryStore.get", 0, 50)
+
+    edges = build_lexical_edges(
+        [cache_sym, store_get],
+        {"cache.py": code.decode()},
+        calls_by_path={"cache.py": parsed.calls},
+    )
+    resolved_to_store = [e for e in edges if e.target_symbol_id == "mem:get"]
+    assert len(resolved_to_store) == 0
+
+
+def test_attr_param_two_types_tainted() -> None:
+    """Two different methods assign self.x from parameters typed as two different
+    classes -> tainted, not resolved (same multi-type taint rule as constructor-call
+    inference)."""
+    code = b"""class Multi:
+    def __init__(self, a: TypeA):
+        self.x = a
+    def reset(self, b: TypeB):
+        self.x = b
+    def go(self):
+        self.x.act()
+"""
+    parsed = parse_source("multi.py", code, "python")
+    act_call = next(c for c in parsed.calls if c.name == "act")
+    assert act_call.receiver == "self.x"
+    assert act_call.receiver_type is None
+    assert act_call.is_tainted is True
+
