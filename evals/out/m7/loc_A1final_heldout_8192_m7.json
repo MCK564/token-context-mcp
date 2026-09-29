@@ -27,8 +27,8 @@
     "sym_acc_at_3": 0.7,
     "mean_test_ratio_top_10": 0.0,
     "mean_wire_tokens": 2786.9,
-    "latency_p50_ms": 53.58,
-    "latency_p95_ms": 76.57
+    "latency_p50_ms": 54.52,
+    "latency_p95_ms": 70.94
   },
   "by_group": {
     "a_keyword": {
@@ -44,8 +44,8 @@
       "sym_acc_at_3": 1.0,
       "mean_test_ratio_top_10": 0.0,
       "mean_wire_tokens": 2773.7,
-      "latency_p50_ms": 53.01,
-      "latency_p95_ms": 76.29
+      "latency_p50_ms": 53.84,
+      "latency_p95_ms": 69.34
     },
     "b_hidden_dep": {
       "task_count": 7,
@@ -60,8 +60,8 @@
       "sym_acc_at_3": 0.2857,
       "mean_test_ratio_top_10": 0.0,
       "mean_wire_tokens": 2821.6,
-      "latency_p50_ms": 52.42,
-      "latency_p95_ms": 83.39
+      "latency_p50_ms": 53.74,
+      "latency_p95_ms": 75.53
     },
     "c_multi_file": {
       "task_count": 6,
@@ -76,8 +76,8 @@
       "sym_acc_at_3": 0.8333,
       "mean_test_ratio_top_10": 0.0,
       "mean_wire_tokens": 2762.0,
-      "latency_p50_ms": 57.53,
-      "latency_p95_ms": 73.63
+      "latency_p50_ms": 56.34,
+      "latency_p95_ms": 70.55
     }
   },
   "tasks": [
@@ -105,12 +105,12 @@
         "ppr"
       ],
       "wire_tokens": 2746,
-      "latency_ms": 55.19,
+      "latency_ms": 44.72,
       "latencies_ms": [
-        49.37,
-        60.61,
-        57.0,
-        53.38
+        46.52,
+        47.99,
+        42.91,
+        41.27
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/ranking.py",
@@ -158,12 +158,12 @@
         "get"
       ],
       "wire_tokens": 2765,
-      "latency_ms": 61.12,
+      "latency_ms": 49.43,
       "latencies_ms": [
-        73.03,
-        49.22,
-        48.32,
-        76.44
+        68.24,
+        45.86,
+        50.28,
+        48.57
       ],
       "top_5_files": [
         "src/token_context_mcp/index/sqlite_store.py",
@@ -209,12 +209,12 @@
         "snapshots"
       ],
       "wire_tokens": 2822,
-      "latency_ms": 50.28,
+      "latency_ms": 54.83,
       "latencies_ms": [
-        46.46,
-        52.49,
-        48.06,
-        52.64
+        45.44,
+        51.46,
+        62.75,
+        58.2
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/widgets/cache_tab.py",
@@ -260,12 +260,12 @@
         "hardware"
       ],
       "wire_tokens": 2684,
-      "latency_ms": 47.89,
+      "latency_ms": 54.9,
       "latencies_ms": [
-        44.08,
-        47.84,
-        47.94,
-        76.0
+        55.12,
+        44.17,
+        54.69,
+        66.84
       ],
       "top_5_files": [
         "src/token_context_mcp/sampling/hardware_probe.py",
@@ -312,12 +312,12 @@
         "ranks"
       ],
       "wire_tokens": 2728,
-      "latency_ms": 49.77,
+      "latency_ms": 67.51,
       "latencies_ms": [
-        61.25,
-        45.61,
-        44.18,
-        53.94
+        69.93,
+        65.09,
+        70.08,
+        52.99
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/ranking.py",
@@ -366,12 +366,12 @@
         "halt"
       ],
       "wire_tokens": 2853,
-      "latency_ms": 58.28,
+      "latency_ms": 54.27,
       "latencies_ms": [
-        69.81,
-        57.27,
-        48.7,
-        59.3
+        41.54,
+        53.0,
+        55.55,
+        55.95
       ],
       "top_5_files": [
         "src/token_context_mcp/security/governance_store.py",
@@ -417,12 +417,12 @@
         "query"
       ],
       "wire_tokens": 2818,
-      "latency_ms": 56.59,
+      "latency_ms": 55.16,
       "latencies_ms": [
-        79.06,
-        53.78,
-        49.37,
-        59.39
+        54.91,
+        55.61,
+        49.07,
+        55.41
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -465,12 +465,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2950,
-      "latency_ms": 83.16,
+      "latency_ms": 63.3,
       "latencies_ms": [
-        93.72,
-        82.42,
-        83.91,
-        65.95
+        60.79,
+        83.02,
+        65.81,
+        55.08
       ],
       "top_5_files": [
         "src/token_context_mcp/server.py",
@@ -513,12 +513,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2927,
-      "latency_ms": 55.86,
+      "latency_ms": 63.82,
       "latencies_ms": [
-        74.89,
-        56.65,
-        55.07,
-        52.45
+        74.42,
+        61.81,
+        57.51,
+        65.84
       ],
       "top_5_files": [
         "src/token_context_mcp/parse/lexical_edges.py",
@@ -561,12 +561,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2772,
-      "latency_ms": 51.87,
+      "latency_ms": 42.37,
       "latencies_ms": [
-        63.83,
-        48.74,
-        48.75,
-        54.98
+        51.14,
+        65.31,
+        33.6,
+        29.34
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -611,12 +611,12 @@
         "line"
       ],
       "wire_tokens": 2806,
-      "latency_ms": 47.85,
+      "latency_ms": 36.22,
       "latencies_ms": [
-        48.18,
-        53.16,
-        47.52,
-        41.42
+        57.21,
+        32.75,
+        33.7,
+        38.74
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -659,12 +659,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2661,
-      "latency_ms": 50.16,
+      "latency_ms": 50.85,
       "latencies_ms": [
-        43.46,
-        49.3,
-        64.43,
-        51.01
+        49.03,
+        52.68,
+        59.96,
+        44.63
       ],
       "top_5_files": [
         "src/token_context_mcp/memory/store.py",
@@ -707,12 +707,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2900,
-      "latency_ms": 46.48,
+      "latency_ms": 57.82,
       "latencies_ms": [
-        48.33,
-        47.74,
-        45.21,
-        43.16
+        76.13,
+        61.85,
+        50.62,
+        53.79
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/bridge.py",
@@ -755,12 +755,12 @@
       "test_ratio_top_10": 0.0,
       "gold_sym_terms_matched": [],
       "wire_tokens": 2735,
-      "latency_ms": 53.55,
+      "latency_ms": 49.07,
       "latencies_ms": [
-        60.35,
-        49.95,
-        52.4,
-        54.7
+        49.07,
+        49.08,
+        48.96,
+        53.69
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/service.py",
@@ -807,12 +807,12 @@
         "evidence"
       ],
       "wire_tokens": 2932,
-      "latency_ms": 66.64,
+      "latency_ms": 62.48,
       "latencies_ms": [
-        63.3,
-        65.44,
-        67.84,
-        69.57
+        54.06,
+        56.52,
+        68.44,
+        69.3
       ],
       "top_5_files": [
         "src/token_context_mcp/models.py",
@@ -860,12 +860,12 @@
         "servers"
       ],
       "wire_tokens": 2580,
-      "latency_ms": 47.47,
+      "latency_ms": 49.5,
       "latencies_ms": [
-        47.18,
-        44.71,
-        47.76,
-        74.54
+        49.41,
+        49.6,
+        48.71,
+        54.36
       ],
       "top_5_files": [
         "src/token_context_mcp/gui/bridge.py",
@@ -913,12 +913,12 @@
         "store"
       ],
       "wire_tokens": 2982,
-      "latency_ms": 59.69,
+      "latency_ms": 58.56,
       "latencies_ms": [
-        66.74,
-        65.11,
-        54.26,
-        51.1
+        64.05,
+        74.75,
+        51.46,
+        53.06
       ],
       "top_5_files": [
         "src/token_context_mcp/memory/service.py",
@@ -964,12 +964,12 @@
         "build"
       ],
       "wire_tokens": 2687,
-      "latency_ms": 55.56,
+      "latency_ms": 56.74,
       "latencies_ms": [
-        57.92,
-        49.12,
-        53.21,
-        64.5
+        56.16,
+        57.32,
+        60.19,
+        47.1
       ],
       "top_5_files": [
         "src/token_context_mcp/cli.py",
@@ -1015,12 +1015,12 @@
         "cache"
       ],
       "wire_tokens": 2679,
-      "latency_ms": 67.41,
+      "latency_ms": 55.55,
       "latencies_ms": [
-        73.82,
-        72.55,
-        51.7,
-        62.28
+        64.62,
+        58.35,
+        49.08,
+        52.75
       ],
       "top_5_files": [
         "src/token_context_mcp/retrieve/freshness.py",
@@ -1065,12 +1065,12 @@
         "wrap"
       ],
       "wire_tokens": 2712,
-      "latency_ms": 48.44,
+      "latency_ms": 67.44,
       "latencies_ms": [
-        36.1,
-        42.35,
-        54.53,
-        57.14
+        70.76,
+        69.34,
+        54.21,
+        65.53
       ],
       "top_5_files": [
         "src/token_context_mcp/server.py",

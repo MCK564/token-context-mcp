@@ -6,8 +6,6 @@ import os
 import time
 from pathlib import Path
 
-import psutil
-
 from token_context_mcp.index import runner
 
 
@@ -26,7 +24,14 @@ def sleepy_worker(task):
 
 
 def pid_is_running(pid: int) -> bool:
+    """True while the process exists and is not a zombie (POSIX)."""
     try:
-        return psutil.Process(pid).status() != psutil.STATUS_ZOMBIE
-    except psutil.NoSuchProcess:
+        os.kill(pid, 0)
+    except ProcessLookupError:
         return False
+    except PermissionError:
+        return True
+    try:
+        return "\nState:\tZ" not in Path(f"/proc/{pid}/status").read_text(encoding="utf-8")
+    except OSError:
+        return True

@@ -28,6 +28,7 @@ from token_context_mcp.constants import (
     INDEX_SCHEMA_VERSION,
     SUPPORTED_EXTENSIONS,
 )
+from token_context_mcp.index.gitinfo import git_head
 from token_context_mcp.index.hashing import sha256_bytes, sha256_file
 from token_context_mcp.index.sqlite_store import SQLiteStore, snapshot_free_ratio
 from token_context_mcp.models import (
@@ -40,6 +41,7 @@ from token_context_mcp.parse.lexical_edges import build_lexical_edges
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
 from token_context_mcp.retrieve.code_tokens import path_tokens, split_identifier
+from token_context_mcp.retrieve.edge_stats import edge_precision
 from token_context_mcp.retrieve.ranking import compute_global_ranks
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
 from token_context_mcp.security.local_privacy import (
@@ -859,7 +861,7 @@ def build_index(
         "index_schema_version": INDEX_SCHEMA_VERSION,
         "repo_id": repository.repo_id,
         "repo_root_id": sha256_bytes(str(repository.root).encode()),
-        "commit_sha": None,
+        "commit_sha": git_head(repository.root),
         "index_run_id": index_run_id,
         "indexer_version": "0.1.0",
         "parser_versions": {"backend": "tree-sitter", "languages": sorted({item.language for item in files if item.language})},
@@ -879,6 +881,11 @@ def build_index(
         "stubs_indexed": len(active_stubs),
         "entry_points": entry_points,
         "role_counts": _role_counts(symbols),
+        # aggregates get_index_status used to recompute from every symbol/edge row on each call (M7.6)
+        "symbols_with_roles": sum(bool(symbol.roles) for symbol in symbols),
+        "edge_precision": edge_precision(edges),
+        "import_count": sum(len(modules) for modules in imports.values()),
+        "importer_count": sum(1 for modules in imports.values() if modules),
         "derived_defaults": derived_defaults,
         "dir_mtimes": dir_mtimes,
         "warnings": warnings,
