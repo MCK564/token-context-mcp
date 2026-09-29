@@ -130,6 +130,8 @@ class PacketInputs:
     warnings: tuple[str, ...] = ()
     raw_edge_count: int = 0
     retained_edge_count: int = 0
+    # memo for derived, pure values (priority order, per-size render cost); never part of equality
+    _cache: dict[Any, Any] = field(default_factory=dict, compare=False, repr=False)
 
     @property
     def is_class(self) -> bool:
@@ -145,6 +147,13 @@ class PacketInputs:
 # --------------------------------------------------------------------------------------
 
 def target_priority(inputs: PacketInputs) -> list[int]:
+    cached = inputs._cache.get("priority")
+    if cached is None:
+        cached = inputs._cache["priority"] = _target_priority(inputs)
+    return cached
+
+
+def _target_priority(inputs: PacketInputs) -> list[int]:
     """Indices into ``source_lines`` ordered by how much they matter (kept set = a prefix).
 
     Essentials first: signature lines, the first docstring line, every line that calls a filtered
@@ -242,6 +251,15 @@ def render_target(inputs: PacketInputs, n_lines: int | None) -> dict[str, Any]:
     return base
 
 
+def target_cost(inputs: PacketInputs, n_lines: int | None) -> int:
+    """JSON bytes of ``render_target(inputs, n_lines)`` (memoised: the fill loops ask for the same sizes often)."""
+    key = ("cost", n_lines)
+    cost = inputs._cache.get(key)
+    if cost is None:
+        cost = inputs._cache[key] = _jbytes(render_target(inputs, n_lines))
+    return cost
+
+
 def _target_total_units(inputs: PacketInputs) -> int:
     if inputs.is_class:
         return len(inputs.skeleton)
@@ -253,19 +271,19 @@ def _fit_target(inputs: PacketInputs, cap_bytes: int) -> int | None:
     total = _target_total_units(inputs)
     if total == 0:
         return None
-    if _jbytes(render_target(inputs, None)) <= cap_bytes:
+    if target_cost(inputs, None) <= cap_bytes:
         return None
     lo, hi = 0, total - 1  # find the largest n with cost <= cap (cost is near-monotone in n)
     best = 0
     while lo <= hi:
         mid = (lo + hi) // 2
-        if _jbytes(render_target(inputs, mid)) <= cap_bytes:
+        if target_cost(inputs, mid) <= cap_bytes:
             best = mid
             lo = mid + 1
         else:
             hi = mid - 1
     # cost is only near-monotone (adding a line can merge two omitted ranges): extend greedily
-    while best + 1 < total and _jbytes(render_target(inputs, best + 1)) <= cap_bytes:
+    while best + 1 < total and target_cost(inputs, best + 1) <= cap_bytes:
         best += 1
     return best
 
@@ -298,12 +316,21 @@ class _State:
         self.n_callers = 0
         self.n_more = 0
         self.n_ctx = 0
-        self._callee_rows = [n.signature_row() for n in inputs.callees]
-        self._caller_rows = [n.signature_row() for n in inputs.callers]
-        self._ctx_rows: list[Any] = [*inputs.imports, *[m.method_row() for m in inputs.class_methods]]
-        self._ctx_costs = [_row_bytes(r) for r in self._ctx_rows]
-        self._callee_costs = [_row_bytes(r) for r in self._callee_rows]
-        self._caller_costs = [_row_bytes(r) for r in self._caller_rows]
+        rows = inputs._cache.get("rows")
+        if rows is None:
+            callee_rows = [n.signature_row() for n in inputs.callees]
+            caller_rows = [n.signature_row() for n in inputs.callers]
+            ctx_rows: list[Any] = [*inputs.imports, *[m.method_row() for m in inputs.class_methods]]
+            rows = inputs._cache["rows"] = (
+                callee_rows,
+                caller_rows,
+                ctx_rows,
+                [_row_bytes(r) for r in callee_rows],
+                [_row_bytes(r) for r in caller_rows],
+                [_row_bytes(r) for r in ctx_rows],
+            )
+        (self._callee_rows, self._caller_rows, self._ctx_rows,
+         self._callee_costs, self._caller_costs, self._ctx_costs) = rows
 
     # ---- derived lists ------------------------------------------------------------
     def more_pool(self) -> list[Neighbor]:
@@ -314,7 +341,7 @@ class _State:
 
     def section_bytes(self, section: str) -> int:
         if section == "target":
-            return _jbytes(render_target(self.inputs, self.n_target))
+            return target_cost(self.inputs, self.n_target)
         if section == "callees":
             return sum(self._callee_costs[: self.n_callees])
         if section == "callers":
@@ -503,7 +530,7 @@ def trim_packet(inputs: PacketInputs, packet: dict[str, Any], excess_tokens: int
             current_n = _current_target_units(packet["target"], total)
             before = _jbytes(cur)
             n = current_n
-            while n > 0 and before - _jbytes(render_target(inputs, n)) < need_bytes - freed:
+            while n > 0 and before - target_cost(inputs, n) < need_bytes - freed:
                 n -= 1
             packet["target"] = render_target(inputs, n)
             freed += max(0, before - _jbytes(packet["target"]))
