@@ -1,0 +1,106 @@
+{
+  "arm": "CMP",
+  "budget": 2048,
+  "overall": {
+    "p0": {
+      "errors": 0,
+      "mean_body_coverage": 0.0,
+      "mean_reach_ceiling": 1.0,
+      "mean_read_tokens": 29655.375,
+      "mean_ref_coverage": 0.6,
+      "mean_savings_vs_read": 0.8578,
+      "mean_sig_coverage": 0.0,
+      "mean_wire_tokens": 1794.375,
+      "tasks": 8
+    },
+    "p1": {
+      "errors": 0,
+      "mean_body_coverage": 0.0,
+      "mean_reach_ceiling": 1.0,
+      "mean_read_tokens": 29655.375,
+      "mean_ref_coverage": 0.95,
+      "mean_savings_vs_read": 0.8991,
+      "mean_sig_coverage": 0.825,
+      "mean_wire_tokens": 1751.0,
+      "tasks": 8
+    },
+    "ref_coverage_p1_minus_p0": 0.35
+  },
+  "p0_index_run_id": "run_20260929T050442Z_efb55d0d",
+  "p1_index_run_id": "run_20260929T050442Z_efb55d0d",
+  "split": "dev",
+  "tasks": [
+    {
+      "id": "p01",
+      "p0_ref_coverage": 0.4,
+      "p0_wire_tokens": 1500,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 0.6,
+      "p1_wire_tokens": 1925,
+      "read_tokens": 36567
+    },
+    {
+      "id": "p04",
+      "p0_ref_coverage": 0.0,
+      "p0_wire_tokens": 1512,
+      "p1_ref_coverage": 0.6,
+      "p1_sig_coverage": 0.4,
+      "p1_wire_tokens": 1920,
+      "read_tokens": 50592
+    },
+    {
+      "id": "p09",
+      "p0_ref_coverage": 0.0,
+      "p0_wire_tokens": 1495,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 0.6,
+      "p1_wire_tokens": 1926,
+      "read_tokens": 46230
+    },
+    {
+      "id": "p10",
+      "p0_ref_coverage": 1.0,
+      "p0_wire_tokens": 3248,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 1.0,
+      "p1_wire_tokens": 1706,
+      "read_tokens": 4298
+    },
+    {
+      "id": "p12",
+      "p0_ref_coverage": 1.0,
+      "p0_wire_tokens": 1676,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 1.0,
+      "p1_wire_tokens": 1876,
+      "read_tokens": 17781
+    },
+    {
+      "id": "p14",
+      "p0_ref_coverage": 0.4,
+      "p0_wire_tokens": 2027,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 1.0,
+      "p1_wire_tokens": 1915,
+      "read_tokens": 23796
+    },
+    {
+      "id": "p19",
+      "p0_ref_coverage": 1.0,
+      "p0_wire_tokens": 1252,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 1.0,
+      "p1_wire_tokens": 828,
+      "read_tokens": 26992
+    },
+    {
+      "id": "p20",
+      "p0_ref_coverage": 1.0,
+      "p0_wire_tokens": 1645,
+      "p1_ref_coverage": 1.0,
+      "p1_sig_coverage": 1.0,
+      "p1_wire_tokens": 1912,
+      "read_tokens": 30987
+    }
+  ]
+}
