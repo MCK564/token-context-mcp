@@ -5,7 +5,7 @@
 ## What is implemented
 
 - explicit repository registration; MCP tools receive a `repo_id`, never an arbitrary path;
-- Tree-sitter parsing for Python, JavaScript, TypeScript/TSX, Java, C#/.NET, HTML and CSS;
+- Tree-sitter parsing for Python, JavaScript, TypeScript/TSX, Java, C#/.NET, Go, HTML and CSS;
 - SQLite snapshots with files, symbols, lexical edges, manifests and source hashes;
 - AST call-expression query extraction with receiver recognition (`self`, `cls`, `this`, class prefixes) and import linking, cutting ambiguous lexical edges down from ~15–22% to <3%;
 - token-budgeted repository maps, source-backed skeletons, symbol context and bounded impact slices;
