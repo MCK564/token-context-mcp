@@ -1,0 +1,309 @@
+{
+  "candidate_language_files": {
+    "c/cpp": 0,
+    "go": 0,
+    "kotlin": 0,
+    "php": 0,
+    "ruby": 0,
+    "rust": 0
+  },
+  "indexes_dirs": [
+    "/sessions/rcw-01wjxsmkpkkhykqwuyrfcgou/mnt/Roaming--token-context-mcp/indexes"
+  ],
+  "repos": {
+    "bench-invoice": {
+      "by_extension": {
+        "(none)": 5,
+        ".json": 1,
+        ".md": 1,
+        ".toml": 1,
+        ".txt": 5,
+        ".yaml": 9
+      },
+      "files": 132,
+      "unsupported": 22
+    },
+    "deeplog_unlearning": {
+      "by_extension": {
+        ".bin": 4,
+        ".csv": 12,
+        ".ipynb": 1,
+        ".json": 87,
+        ".jsonl": 2,
+        ".log": 3,
+        ".md": 18,
+        ".ps1": 1,
+        ".sh": 1,
+        ".txt": 1
+      },
+      "files": 196,
+      "unsupported": 130
+    },
+    "gpuvm-task3-movement": {
+      "by_extension": {
+        "(none)": 3,
+        ".json": 10,
+        ".md": 2,
+        ".toml": 2,
+        ".txt": 7,
+        ".yaml": 7
+      },
+      "files": 126,
+      "unsupported": 31
+    },
+    "gpuvm-task4-facial": {
+      "by_extension": {
+        "(none)": 1,
+        ".json": 10,
+        ".lock": 1,
+        ".md": 1,
+        ".toml": 2,
+        ".yaml": 2
+      },
+      "files": 77,
+      "unsupported": 17
+    },
+    "gpuvm-task5-speech": {
+      "by_extension": {
+        "(none)": 2,
+        ".json": 11,
+        ".md": 1,
+        ".toml": 2,
+        ".txt": 4,
+        ".yaml": 8
+      },
+      "files": 108,
+      "unsupported": 28
+    },
+    "gpuvm-task6-fusion": {
+      "by_extension": {
+        "(none)": 1,
+        ".csv": 22,
+        ".json": 13,
+        ".jsonl": 5,
+        ".lock": 1,
+        ".md": 22,
+        ".ps1": 2,
+        ".sh": 5,
+        ".toml": 1,
+        ".txt": 1,
+        ".yaml": 15
+      },
+      "files": 217,
+      "unsupported": 88
+    },
+    "invoice-recognition": {
+      "by_extension": {
+        "(none)": 2,
+        ".gpu": 1,
+        ".json": 2,
+        ".md": 34,
+        ".toml": 1,
+        ".txt": 4,
+        ".yaml": 12,
+        ".yml": 1
+      },
+      "files": 170,
+      "unsupported": 57
+    },
+    "invoice-scanner": {
+      "by_extension": {
+        "(none)": 16,
+        ".json": 10,
+        ".jsonl": 5,
+        ".md": 37,
+        ".toml": 1,
+        ".txt": 17,
+        ".yaml": 9,
+        ".yml": 1
+      },
+      "files": 220,
+      "unsupported": 96
+    },
+    "ir": {
+      "by_extension": {
+        "(none)": 3,
+        ".csv": 15,
+        ".gpu": 1,
+        ".json": 2,
+        ".md": 36,
+        ".toml": 1,
+        ".txt": 10,
+        ".yaml": 13,
+        ".yml": 1
+      },
+      "files": 226,
+      "unsupported": 82
+    },
+    "logad-bench": {
+      "by_extension": {
+        "(none)": 1,
+        ".csv": 6,
+        ".json": 5,
+        ".md": 5,
+        ".toml": 1,
+        ".txt": 1,
+        ".yaml": 8
+      },
+      "files": 81,
+      "unsupported": 27
+    },
+    "research-shared": {
+      "by_extension": {
+        "(none)": 1,
+        ".json": 3,
+        ".jsonl": 10,
+        ".lock": 1,
+        ".md": 7,
+        ".toml": 1,
+        ".txt": 3
+      },
+      "files": 57,
+      "unsupported": 26
+    },
+    "task2-demo": {
+      "by_extension": {
+        "(none)": 2,
+        ".csv": 3,
+        ".json": 38,
+        ".jsonl": 18,
+        ".lock": 1,
+        ".md": 21,
+        ".ps1": 2,
+        ".toml": 1,
+        ".txt": 7,
+        ".yaml": 4
+      },
+      "files": 149,
+      "unsupported": 97
+    },
+    "task3-movement": {
+      "by_extension": {
+        "(none)": 4,
+        ".bat": 1,
+        ".csv": 4,
+        ".json": 96,
+        ".jsonl": 88,
+        ".lock": 1,
+        ".log": 12,
+        ".md": 39,
+        ".sh": 1,
+        ".toml": 1,
+        ".txt": 4,
+        ".yaml": 9
+      },
+      "files": 356,
+      "unsupported": 260
+    },
+    "task4-facial": {
+      "by_extension": {
+        "(none)": 3,
+        ".bat": 1,
+        ".csv": 1,
+        ".in": 1,
+        ".json": 38,
+        ".jsonl": 9,
+        ".lock": 1,
+        ".md": 26,
+        ".sh": 1,
+        ".toml": 1,
+        ".yaml": 2
+      },
+      "files": 140,
+      "unsupported": 84
+    },
+    "task4-facial-expression": {
+      "by_extension": {
+        "(none)": 3,
+        ".bat": 1,
+        ".csv": 1,
+        ".in": 1,
+        ".json": 38,
+        ".jsonl": 9,
+        ".lock": 1,
+        ".md": 26,
+        ".sh": 1,
+        ".toml": 1,
+        ".yaml": 2
+      },
+      "files": 140,
+      "unsupported": 84
+    },
+    "task5-speech": {
+      "by_extension": {
+        "(none)": 2,
+        ".ass": 6,
+        ".bat": 1,
+        ".ckpt": 1,
+        ".csv": 1,
+        ".json": 44,
+        ".jsonl": 38,
+        ".lock": 1,
+        ".md": 38,
+        ".sh": 1,
+        ".toml": 1,
+        ".txt": 4,
+        ".yaml": 9
+      },
+      "files": 223,
+      "unsupported": 147
+    },
+    "task6-fusion": {
+      "by_extension": {
+        "(none)": 1,
+        ".json": 65,
+        ".jsonl": 12,
+        ".md": 18,
+        ".ps1": 2,
+        ".sh": 2,
+        ".sha256": 1,
+        ".toml": 2,
+        ".txt": 6,
+        ".yaml": 13
+      },
+      "files": 245,
+      "unsupported": 122
+    },
+    "token-context": {
+      "by_extension": {
+        "(none)": 3,
+        ".bat": 1,
+        ".example": 2,
+        ".json": 119,
+        ".jsonl": 6,
+        ".lock": 1,
+        ".md": 40,
+        ".ps1": 3,
+        ".sh": 2,
+        ".toml": 3,
+        ".yml": 2
+      },
+      "files": 319,
+      "unsupported": 182
+    }
+  },
+  "total_by_extension": {
+    "(none)": 53,
+    ".ass": 6,
+    ".bat": 5,
+    ".bin": 4,
+    ".ckpt": 1,
+    ".csv": 65,
+    ".example": 2,
+    ".gpu": 2,
+    ".in": 2,
+    ".ipynb": 1,
+    ".json": 592,
+    ".jsonl": 202,
+    ".lock": 9,
+    ".log": 15,
+    ".md": 372,
+    ".ps1": 10,
+    ".sh": 14,
+    ".sha256": 1,
+    ".toml": 23,
+    ".txt": 74,
+    ".yaml": 122,
+    ".yml": 5
+  }
+}
