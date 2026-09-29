@@ -148,6 +148,8 @@ def main() -> int:
             },
             "parse_source_calls": [r["manifest"]["parse_source_calls"] for r in runs],
             "files_reparsed": [r["manifest"]["files_reparsed"] for r in runs],
+            "write_mode": [r["manifest"].get("write_mode") for r in runs],
+            "edge_resolution": runs[-1]["manifest"].get("edge_resolution"),
         }
     report = {
         "repo_id": args.repo_id,

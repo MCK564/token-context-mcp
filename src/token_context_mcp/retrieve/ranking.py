@@ -68,15 +68,22 @@ def compute_global_ranks(
     p = {s.symbol_id: 1.0 / N for s in symbols}
     out_sum = {s.symbol_id: sum(out_adj[s.symbol_id].values()) for s in symbols}
 
+    # Loop invariants hoisted out of the 30 iterations (M7): same operands, same order of accumulation, so the
+    # scores are bit-identical to the straightforward loop.
+    ordered_ids = [s.symbol_id for s in symbols]
+    dangling_ids = [sid for sid in ordered_ids if out_sum[sid] == 0]
+    inbound = {
+        sid: [(src, weight / out_sum[src]) for src, weight in in_adj[sid].items() if out_sum[src] > 0]
+        for sid in ordered_ids
+    }
     for _ in range(30):
-        dangling_mass = sum(p[s.symbol_id] for s in symbols if out_sum[s.symbol_id] == 0)
+        dangling_mass = sum(p[sid] for sid in dangling_ids)
+        teleport = (1.0 - d) / N + d * dangling_mass / N
         p_next = {}
-        for s in symbols:
-            sid = s.symbol_id
-            val = (1.0 - d) / N + d * dangling_mass / N
-            for src, weight in in_adj[sid].items():
-                if out_sum[src] > 0:
-                    val += d * p[src] * (weight / out_sum[src])
+        for sid in ordered_ids:
+            val = teleport
+            for src, share in inbound[sid]:
+                val += d * p[src] * share
             p_next[sid] = val
         p = p_next
 

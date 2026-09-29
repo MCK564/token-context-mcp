@@ -46,7 +46,8 @@ def main() -> int:
             for key in (
                 "index_schema_version", "index_run_id", "files_seen", "files_indexed", "files_skipped",
                 "files_reused", "files_reparsed", "symbols_indexed", "edges_indexed",
-                "parse_source_calls", "timings_ms", "warnings",
+                "parse_source_calls", "timings_ms", "warnings", "write_mode", "edge_resolution", "files_stat_skipped",
+                "incremental", "parse_mode",
             )
         },
     }

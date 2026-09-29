@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sqlite3
 import threading
-from collections.abc import Iterator
+from collections.abc import Collection, Iterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -115,6 +116,17 @@ CREATE TABLE IF NOT EXISTS symbol_rank (
   basis_json TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS symbol_rank_score_idx ON symbol_rank(score DESC);
+CREATE TABLE IF NOT EXISTS file_parse_artifacts (
+  path TEXT PRIMARY KEY REFERENCES files(path),
+  sha256 TEXT NOT NULL,
+  parser_version INTEGER NOT NULL,
+  language TEXT,
+  calls_json TEXT NOT NULL,
+  inheritance_json TEXT NOT NULL,
+  imports_json TEXT NOT NULL,
+  warnings_json TEXT NOT NULL,
+  facts_json TEXT NOT NULL DEFAULT '{}'
+);
 """
 
 
@@ -252,19 +264,45 @@ class SQLiteStore:
         symbols: list[SymbolRecord],
         edges: list[EdgeRecord],
         imports: dict[str, list[str]],
-        symbol_bodies: dict[str, str],
-        source_bodies: dict[str, str],
+        symbol_bodies: dict[str, str] | None = None,
+        source_bodies: dict[str, str] | None = None,
         class_hierarchy: list[tuple[str, str, str | None]] | None = None,
         external_stubs: list[ExternalStubRecord] | None = None,
         symbol_ranks: list[tuple[str, float, list[str]]] | None = None,
-        symbol_fts_records: list[tuple[str, str, str, str, str, str]] | None = None,
+        symbol_fts_records: Iterable[tuple[str, str, str, str, str, str]] | None = None,
+        symbol_body_rows: Iterable[tuple[str, str, str]] | None = None,
+        source_body_rows: Iterable[tuple[str, str]] | None = None,
+        parse_artifact_rows: Iterable[tuple] | None = None,
+        reuse_text_from: Path | None = None,
+        reuse_text_paths: Collection[str] | None = None,
+        delta_from_base: bool = False,
     ) -> None:
+        """Write a complete snapshot.
+
+        ``symbol_bodies`` / ``source_bodies`` (dicts) and ``symbol_body_rows`` / ``source_body_rows`` (row
+        iterables) are alternative ways to give the full-text rows.  ``reuse_text_from`` + ``reuse_text_paths``
+        additionally copy the text rows (``symbol_bodies``, ``source_bodies``, ``symbol_fts``) of those paths
+        from an earlier snapshot, so unchanged files need not be read again (M7).  With ``delta_from_base`` the
+        new file starts as a page-level copy of that snapshot and only the text rows of paths *outside*
+        ``reuse_text_paths`` are deleted (the caller re-supplies rows for changed files), so the full-text index
+        is not rebuilt for untouched files; every other table is rewritten.
+        """
         if self.read_only:
             raise StoreError("cannot write a read-only snapshot")
+        delta = bool(delta_from_base and reuse_text_from is not None and reuse_text_paths is not None)
+        if delta:
+            _clone_snapshot(reuse_text_from, self.path)  # type: ignore[arg-type]
         self.initialize()
         with self.connection() as connection:
-            for table in ("external_stubs", "class_hierarchy", "edges", "imports", "symbol_bodies", "source_bodies", "symbol_fts", "symbol_rank", "symbols", "files", "metadata"):
+            wiped = ("file_parse_artifacts", "external_stubs", "class_hierarchy", "edges", "imports", "symbol_rank", "symbols", "files", "metadata")
+            fts_tables = ("symbol_bodies", "source_bodies", "symbol_fts")
+            for table in (*wiped, *(() if delta else fts_tables)):
                 connection.execute(f"DELETE FROM {table}")
+            if delta:
+                connection.execute("CREATE TEMP TABLE keep_paths(path TEXT PRIMARY KEY)")
+                connection.executemany("INSERT INTO keep_paths(path) VALUES (?)", [(path,) for path in reuse_text_paths])  # type: ignore[union-attr]
+                for table in fts_tables:
+                    connection.execute(f"DELETE FROM {table} WHERE path NOT IN (SELECT path FROM keep_paths)")
             connection.executemany(
                 "INSERT INTO metadata(key, value) VALUES (?, ?)",
                 [(key, json.dumps(value, sort_keys=True)) for key, value in metadata.items()],
@@ -363,28 +401,43 @@ class SQLiteStore:
                 "INSERT INTO symbol_bodies(symbol_id, path, body) VALUES (?, ?, ?)",
                 [
                     (symbol_id, symbol_id.split(":", 2)[1], body)
-                    for symbol_id, body in symbol_bodies.items()
+                    for symbol_id, body in (symbol_bodies or {}).items()
                 ],
             )
             connection.executemany(
                 "INSERT INTO source_bodies(path, body) VALUES (?, ?)",
-                [(path, body) for path, body in source_bodies.items()],
+                [(path, body) for path, body in (source_bodies or {}).items()],
             )
+            if symbol_body_rows:
+                connection.executemany(
+                    "INSERT INTO symbol_bodies(symbol_id, path, body) VALUES (?, ?, ?)", symbol_body_rows
+                )
+            if source_body_rows:
+                connection.executemany("INSERT INTO source_bodies(path, body) VALUES (?, ?)", source_body_rows)
             if symbol_fts_records:
                 connection.executemany(
                     "INSERT INTO symbol_fts(symbol_id, path, name, qualified_name, code_tokens, own_body) VALUES (?, ?, ?, ?, ?, ?)",
                     symbol_fts_records,
                 )
+            if parse_artifact_rows:
+                connection.executemany(
+                    """INSERT INTO file_parse_artifacts(
+                        path, sha256, parser_version, language, calls_json, inheritance_json, imports_json,
+                        warnings_json, facts_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    parse_artifact_rows,
+                )
+            if reuse_text_from is not None and reuse_text_paths and not delta:
+                _copy_text_rows(connection, reuse_text_from, set(reuse_text_paths))
             if symbol_ranks:
                 connection.executemany(
                     "INSERT INTO symbol_rank(symbol_id, score, basis_json) VALUES (?, ?, ?)",
                     [(item[0], item[1], json.dumps(item[2])) for item in symbol_ranks],
                 )
         with self.connection() as connection:
+            # No VACUUM (M7): the file was just created, so it has no free pages to give back.
             connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             connection.commit()
-            connection.execute("PRAGMA page_size = 4096")
-            connection.execute("VACUUM")
             connection.execute("PRAGMA optimize")
 
     def has_symbol_rank(self) -> bool:
@@ -784,6 +837,70 @@ class SQLiteStore:
         with self.connection() as connection:
             rows = connection.execute(f"SELECT * FROM edges WHERE {where} ORDER BY edge_id", params).fetchall()
         return [_edge_from_row(row) for row in rows]
+
+
+def _clone_snapshot(source: Path, destination: Path) -> None:
+    """Consistent copy of a snapshot; the source is only read.
+
+    A finished snapshot has been checkpointed (no WAL content), so its file is complete and a plain file copy is
+    enough; if a WAL with content is present the SQLite online backup produces the consistent copy instead."""
+    wal = source.with_name(f"{source.name}-wal")
+    try:
+        wal_bytes = wal.stat().st_size if wal.exists() else 0
+    except OSError:
+        wal_bytes = 1
+    if wal_bytes == 0:
+        shutil.copyfile(source, destination)
+        return
+    old = sqlite3.connect(f"file:{source.as_posix()}?mode=ro", uri=True)
+    new = sqlite3.connect(destination)
+    try:
+        old.backup(new)
+    finally:
+        new.close()
+        old.close()
+
+
+def snapshot_free_ratio(path: Path) -> float:
+    """Fraction of a snapshot's pages that are free (bloat left behind by delta writes)."""
+    connection = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
+    try:
+        pages = connection.execute("PRAGMA page_count").fetchone()[0]
+        free = connection.execute("PRAGMA freelist_count").fetchone()[0]
+    finally:
+        connection.close()
+    return (free / pages) if pages else 0.0
+
+
+def _copy_text_rows(connection: sqlite3.Connection, source: Path, paths: set[str]) -> None:
+    """Copy full-text rows of ``paths`` from another snapshot, streaming, without materialising them."""
+    uri = f"file:{source.as_posix()}?mode=ro"
+    old = sqlite3.connect(uri, uri=True)
+    try:
+        def rows(sql: str, path_index: int):
+            cursor = old.execute(sql)
+            while True:
+                batch = cursor.fetchmany(2000)
+                if not batch:
+                    return
+                for row in batch:
+                    if row[path_index] in paths:
+                        yield row
+
+        connection.executemany(
+            "INSERT INTO symbol_bodies(symbol_id, path, body) VALUES (?, ?, ?)",
+            rows("SELECT symbol_id, path, body FROM symbol_bodies", 1),
+        )
+        connection.executemany(
+            "INSERT INTO source_bodies(path, body) VALUES (?, ?)",
+            rows("SELECT path, body FROM source_bodies", 0),
+        )
+        connection.executemany(
+            "INSERT INTO symbol_fts(symbol_id, path, name, qualified_name, code_tokens, own_body) VALUES (?, ?, ?, ?, ?, ?)",
+            rows("SELECT symbol_id, path, name, qualified_name, code_tokens, own_body FROM symbol_fts", 1),
+        )
+    finally:
+        old.close()
 
 
 def _file_from_row(row: sqlite3.Row) -> FileRecord:

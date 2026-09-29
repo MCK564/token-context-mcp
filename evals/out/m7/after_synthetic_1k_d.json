@@ -1,0 +1,519 @@
+{
+  "changed_file": "pkg_23/mod_15.py",
+  "environment": {
+    "cpu_count": 2,
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "python": "3.12.14"
+  },
+  "files_indexed": 1051,
+  "raw": {
+    "full": [
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T063449Z_68ea481c",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1250.2,
+            "finalize": 25.6,
+            "fts_prep": 335.6,
+            "inventory": 76.0,
+            "parse": 2406.0,
+            "ranks": 133.4,
+            "read_hash": 52.9,
+            "roles": 51.3,
+            "write": 411.1
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 70.5,
+        "wall_s": 4.865
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T063458Z_fb719371",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1215.6,
+            "finalize": 18.3,
+            "fts_prep": 337.1,
+            "inventory": 77.8,
+            "parse": 2373.4,
+            "ranks": 113.5,
+            "read_hash": 56.5,
+            "roles": 52.2,
+            "write": 477.3
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 71.2,
+        "wall_s": 4.822
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T063507Z_c9d588db",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1227.7,
+            "finalize": 18.6,
+            "fts_prep": 349.2,
+            "inventory": 75.5,
+            "parse": 2494.2,
+            "ranks": 115.8,
+            "read_hash": 51.3,
+            "roles": 51.1,
+            "write": 490.7
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 70.6,
+        "wall_s": 4.982
+      }
+    ],
+    "noop": [
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 0,
+            "files_reused": 1050,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 0,
+          "files_reused": 1050,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063451Z_a6f4df5f",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 0,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 14.0,
+            "finalize": 26.8,
+            "fts_prep": 0.0,
+            "inventory": 67.0,
+            "parse": 0.1,
+            "ranks": 77.3,
+            "read_hash": 61.9,
+            "roles": 67.8,
+            "write": 301.1
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 58.5,
+        "wall_s": 0.765
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 0,
+            "files_reused": 1050,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 0,
+          "files_reused": 1050,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063500Z_07dd764a",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 0,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 16.7,
+            "finalize": 19.3,
+            "fts_prep": 0.0,
+            "inventory": 67.0,
+            "parse": 0.1,
+            "ranks": 77.7,
+            "read_hash": 54.9,
+            "roles": 74.0,
+            "write": 316.5
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 59.0,
+        "wall_s": 0.773
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 0,
+            "files_reused": 1050,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 0,
+          "files_reused": 1050,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063508Z_81cb96f7",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 0,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 14.3,
+            "finalize": 18.8,
+            "fts_prep": 0.0,
+            "inventory": 74.5,
+            "parse": 0.1,
+            "ranks": 75.7,
+            "read_hash": 53.7,
+            "roles": 70.2,
+            "write": 306.8
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 59.0,
+        "wall_s": 0.762
+      }
+    ],
+    "one": [
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 1,
+            "files_reused": 1049,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1,
+          "files_reused": 1049,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063452Z_9a8a83cc",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 22.4,
+            "finalize": 26.6,
+            "fts_prep": 0.5,
+            "inventory": 68.3,
+            "parse": 5.1,
+            "ranks": 77.8,
+            "read_hash": 55.5,
+            "roles": 68.7,
+            "write": 351.1
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 60.5,
+        "wall_s": 0.822
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 1,
+            "files_reused": 1049,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1,
+          "files_reused": 1049,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063501Z_4933a1ad",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 21.7,
+            "finalize": 26.1,
+            "fts_prep": 0.4,
+            "inventory": 67.3,
+            "parse": 4.6,
+            "ranks": 76.1,
+            "read_hash": 54.4,
+            "roles": 63.8,
+            "write": 324.8
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 60.6,
+        "wall_s": 0.777
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "changed_names": 0,
+            "files_resolved": 1,
+            "files_reused": 1049,
+            "mode": "scoped"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1,
+          "files_reused": 1049,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 1050,
+          "incremental": true,
+          "index_run_id": "run_20260929T063510Z_8e0e9349",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "sequential",
+            "workers": 1
+          },
+          "parse_source_calls": 1,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 22.8,
+            "finalize": 22.1,
+            "fts_prep": 0.4,
+            "inventory": 66.6,
+            "parse": 12.7,
+            "ranks": 78.2,
+            "read_hash": 54.6,
+            "roles": 63.5,
+            "write": 295.0
+          },
+          "warnings": [],
+          "write_mode": "delta"
+        },
+        "rss_peak_mb": 60.3,
+        "wall_s": 0.758
+      }
+    ]
+  },
+  "repo_id": "synthetic-1k",
+  "runs": 3,
+  "summary": {
+    "full": {
+      "edge_resolution": {
+        "files_resolved": 1050,
+        "mode": "full"
+      },
+      "files_reparsed": [
+        1050,
+        1050,
+        1050
+      ],
+      "median_rss_peak_mb": 70.6,
+      "median_timings_ms": {
+        "edges": 1227.7,
+        "finalize": 18.6,
+        "fts_prep": 337.1,
+        "inventory": 76.0,
+        "parse": 2406.0,
+        "ranks": 115.8,
+        "read_hash": 52.9,
+        "roles": 51.3,
+        "write": 477.3
+      },
+      "median_wall_s": 4.865,
+      "parse_source_calls": [
+        1050,
+        1050,
+        1050
+      ],
+      "wall_s_runs": [
+        4.865,
+        4.822,
+        4.982
+      ],
+      "write_mode": [
+        "rewrite",
+        "rewrite",
+        "rewrite"
+      ]
+    },
+    "noop": {
+      "edge_resolution": {
+        "changed_names": 0,
+        "files_resolved": 0,
+        "files_reused": 1050,
+        "mode": "scoped"
+      },
+      "files_reparsed": [
+        0,
+        0,
+        0
+      ],
+      "median_rss_peak_mb": 59.0,
+      "median_timings_ms": {
+        "edges": 14.3,
+        "finalize": 19.3,
+        "fts_prep": 0.0,
+        "inventory": 67.0,
+        "parse": 0.1,
+        "ranks": 77.3,
+        "read_hash": 54.9,
+        "roles": 70.2,
+        "write": 306.8
+      },
+      "median_wall_s": 0.765,
+      "parse_source_calls": [
+        0,
+        0,
+        0
+      ],
+      "wall_s_runs": [
+        0.765,
+        0.773,
+        0.762
+      ],
+      "write_mode": [
+        "delta",
+        "delta",
+        "delta"
+      ]
+    },
+    "one": {
+      "edge_resolution": {
+        "changed_names": 0,
+        "files_resolved": 1,
+        "files_reused": 1049,
+        "mode": "scoped"
+      },
+      "files_reparsed": [
+        1,
+        1,
+        1
+      ],
+      "median_rss_peak_mb": 60.5,
+      "median_timings_ms": {
+        "edges": 22.4,
+        "finalize": 26.1,
+        "fts_prep": 0.4,
+        "inventory": 67.3,
+        "parse": 5.1,
+        "ranks": 77.8,
+        "read_hash": 54.6,
+        "roles": 63.8,
+        "write": 324.8
+      },
+      "median_wall_s": 0.777,
+      "parse_source_calls": [
+        1,
+        1,
+        1
+      ],
+      "wall_s_runs": [
+        0.822,
+        0.777,
+        0.758
+      ],
+      "write_mode": [
+        "delta",
+        "delta",
+        "delta"
+      ]
+    }
+  },
+  "symbols_indexed": 8000,
+  "tracemalloc_peak_mb": {
+    "full": 38.2,
+    "noop": 29.2
+  }
+}
