@@ -23,6 +23,8 @@ from statistics import median
 
 import pathspec
 
+from token_context_mcp import __version__
+
 from token_context_mcp.constants import (
     DEFAULT_MAX_GRAPH_NODES,
     INDEX_SCHEMA_VERSION,
@@ -863,7 +865,7 @@ def build_index(
         "repo_root_id": sha256_bytes(str(repository.root).encode()),
         "commit_sha": git_head(repository.root),
         "index_run_id": index_run_id,
-        "indexer_version": "0.1.0",
+        "indexer_version": __version__,
         "parser_versions": {"backend": "tree-sitter", "languages": sorted({item.language for item in files if item.language})},
         "parser_fingerprint": fingerprint,
         "parser_artifact_version": PARSER_ARTIFACT_VERSION,

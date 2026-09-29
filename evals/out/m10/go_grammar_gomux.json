@@ -1,0 +1,28 @@
+{
+  "repo": "gorilla/mux",
+  "url": "https://github.com/gorilla/mux",
+  "commit_sha": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265",
+  "license": "BSD-3-Clause",
+  "go_files": 17,
+  "go_parse_status": {
+    "parsed": 16,
+    "parsed_with_warnings": 1
+  },
+  "parse_error_files": 0,
+  "parse_error_rate": 0.0,
+  "parsed_with_warnings": [
+    "doc.go"
+  ],
+  "symbols_by_kind": {
+    "function": 136,
+    "interface": 2,
+    "method": 92,
+    "struct": 21,
+    "type": 10
+  },
+  "edges_by_status": {
+    "ambiguous": 395,
+    "resolved": 253
+  },
+  "note": "grammar tree-sitter-go 0.25.0; edges are name-based (no receiver type inference beyond the method receiver), hence the high ambiguous share"
+}

@@ -1,0 +1,4 @@
+{
+  "_note": "Every third-party figure quoted anywhere in this repository must have an entry here: {claim, value, url, quote, accessed}, and is self-reported by its source. No third-party figure is quoted at the moment, so the list is empty. README.md takes numbers only from this file and from the JSON files under evals/out/.",
+  "claims": []
+}

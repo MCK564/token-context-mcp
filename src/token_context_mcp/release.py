@@ -8,13 +8,15 @@ import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
 
+from token_context_mcp import __version__
+
 
 def write_release_materials(project_root: Path, output: Path) -> dict[str, Path]:
     output.mkdir(parents=True, exist_ok=True)
     pyproject = project_root / "pyproject.toml"
     lock = project_root / "uv.lock"
     components: list[dict[str, object]] = [
-        {"type": "application", "name": "token-context-mcp", "version": "0.1.0"},
+        {"type": "application", "name": "token-context-mcp", "version": __version__},
         {"type": "file", "name": "pyproject.toml", "hashes": [{"alg": "SHA-256", "content": _sha256(pyproject)}]},
         {"type": "file", "name": "uv.lock", "hashes": [{"alg": "SHA-256", "content": _sha256(lock)}]},
     ]

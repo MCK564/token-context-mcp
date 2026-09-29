@@ -14,7 +14,7 @@ import json
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, parse_source
 
 # (PARSER_ARTIFACT_VERSION, digest of the parse of SAMPLES).  Update both together.
-GOLDEN = (1, "26efdaf2b8edc963bd01e6a9591cf05efd707ad56c26b7ffbe414e3a3d9e436e")
+GOLDEN = (2, "6abd38c07b0251c225ecc1c2f81d40e61555c52a9e76d65b00234ef30456ca45")
 
 SAMPLES = {
     "python": (
@@ -41,6 +41,10 @@ SAMPLES = {
     "javascript": (
         "s.js",
         "const x = require('x');\nfunction a(n) { return b(n) + 1; }\nfunction b(n) { return x.c(n); }\nclass K extends J { m() { return a(1); } }\n",
+    ),
+    "go": (
+        "s.go",
+        "package p\n\nimport \"fmt\"\n\ntype S struct{}\n\nfunc (s *S) F(n int) int { return s.g(n) }\n\nfunc (s S) g(n int) int { fmt.Println(n); return n + 1 }\n\nfunc Main() int { return (&S{}).F(1) }\n",
     ),
 }
 

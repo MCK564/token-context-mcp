@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0 — M6–M10: context packets, incremental index, client compatibility, GUI, Go (2026-09-29)
+
+Not pushed and not tagged (D7). Details are in the milestone sections below; the run ledger is `docs/progress/RUN_LEDGER_M6_M10.md`, the report `docs/reports/M6_M10_REPORT.vi.md`.
+
+- **M6** `inspect_symbol(view="full")` returns a context packet (`data.packet`: target body or truncated lines, callee/caller signatures, `more` refs, imports, class methods, file hashes) inside the response budget; `attr_param` receiver typing. Held-out, packet vs pre-M6 `full`: `evals/out/m6/packet_CMP_heldout_{2048,4096}.json`.
+- **M7** Schema **2.4** (re-index every repository once: `token-context index --all`); incremental index by `(size, mtime_ns)`, per-file parse artifacts, spawn parse pool, scoped edge resolution, delta snapshot write; cheap `get_index_status`; `index --all/--watch/--progress-format ndjson/--workers/--verify-hashes/--full`; `commit_sha` and `head_changed_since_index`. Measured gains and misses: `evals/out/m7/`.
+- **M9** `mcp_compat`, `serve --output-mode auto`, `serve --schema-profile gemini_safe`, real `get_tool_schema`, prompt-injection warnings inside each tool budget, `locate` profile 2048 tokens, heartbeat with client info, `docs/CLIENT_MATRIX.md`.
+- **M8** Desktop GUI: no I/O on the UI thread, child-process indexing with tree-kill Cancel, honest status badges, table model, running-server panel instead of Start/Stop, VACUUM only on mutable databases, stall watchdog.
+- **M10** Go grammar (`.go`; tree-sitter-go 0.25, `PARSER_ARTIFACT_VERSION = 2`: the first index after upgrading re-parses every file); one version source (`__version__`: pyproject, SBOM, `indexer_version`); `evals/bench_retrieval.py` and the public benchmark protocol in `docs/BENCHMARK.md`.
+
+## Unreleased — M10: Go grammar, single version source, public benchmark harness (2026-09-29, branch `feat/m10-public-benchmark`)
+
+- **M10.2 Go (D8)** — chosen by data: the 18 real index snapshots hold 0 `unsupported` files among {go, rust, c/cpp, kotlin, php, ruby} (`evals/out/m10/real_unsupported_extensions.json`), so Go, as D8 prescribes. `SUPPORTED_EXTENSIONS[".go"] = "go"`, dependency `tree-sitter-go>=0.25.0,<0.26` (locked 0.25.0). Symbols: functions, methods (qualified `Type.Method`, pointer or value receiver, generic receivers), `struct`, `interface`, other `type` declarations and aliases; `is_private` is capitalisation; imports are the quoted paths (aliases and `_` imports included); calls are `name(...)` and `x.name(...)` and the receiver variable of a method carries the receiver type (`s.helper()` inside `func (s *Server)`). Edges are **name based** (no type inference for other receivers), so Go graphs are more ambiguous than Python's (gorilla/mux: 253 resolved, 395 ambiguous). `PARSER_ARTIFACT_VERSION` 1 → 2. Evidence: gorilla/mux @ `db9d1d0`, 17 `.go` files, parse_error rate 0% (`evals/out/m10/go_grammar_gomux.json`).
+- **Version** — `0.2.0` from `token_context_mcp.__version__` everywhere; `release.py` (SBOM) and `build_index` (`indexer_version`) no longer hard-code `0.1.0`; `tests/test_version_single_source.py`.
+- **`evals/bench_retrieval.py`** — deterministic arms R0-grep, R0-grep@R2 (same wire tokens as R2), R0-read, R1, R2 and R3 (packet vs reading), bootstrap CI95 (mean, seed 0), raw JSONL per arm plus a summary; refuses task sets that are not `reviewed: true`. Tested on fake data (`tests/test_bench_retrieval.py`). Frozen with the local tag `m10-freeze`.
+- **C3 on `bench-rich`** prepared (`evals/c3_prompts_rich.json`, `evals/c3_protocol_rich.md`); `run_c3_matrix --dry-run` lists all 45 runs (`evals/out/m10/c3_dry_run_rich.json`). Not executed (D6).
+- Regression gate (`tc-pinned`, loc A1final/A2 held-out @8192, `edge_eval`): identical, `evals/out/m10/regression_gate_m10.json`.
+
 ## Unreleased — M8: the desktop GUI stops blocking (2026-09-29, branch `feat/m8-gui-offload`)
 
 - **M8.1/M8.2 `gui/workers.py::run_async(fn, *args, on_ok, on_err)`** on `QThreadPool.globalInstance()` (max 4 threads); callbacks are delivered on the UI thread through queued signals. Every tab has a pure `fetch()` (worker: reads only) and a `render()` (UI thread). `MainWindow._refresh_tab` runs them, shows `LoadingOverlay` until render completes, drops results of superseded refreshes; tabs no longer read anything in their constructors and the first refresh starts after the first paint.
