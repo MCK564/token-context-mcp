@@ -1,0 +1,2525 @@
+{
+  "tasks_file": "tmp/csvhelper_draft/bench_csvhelper.json",
+  "repo_id": "bench-csvhelper",
+  "loc": [
+    {
+      "id": "t01",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.SanitizeForInjection",
+          "found": true,
+          "kind": "method",
+          "span": "734-793",
+          "lines": 60,
+          "body_returned": true,
+          "body_chars": 1357,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t02",
+      "gold": [
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.GetConstructor",
+          "found": true,
+          "kind": "method",
+          "span": "115-174",
+          "lines": 60,
+          "body_returned": true,
+          "body_chars": 1347,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t03",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.CheckForCircularReference",
+          "found": true,
+          "kind": "method",
+          "span": "547-570",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 343,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t04",
+      "gold": [
+        {
+          "path": "src/CsvHelper/ArrayHelper.cs",
+          "qualified_name": "ArrayHelper.Trim",
+          "found": true,
+          "kind": "method",
+          "span": "22-49",
+          "lines": 28,
+          "body_returned": true,
+          "body_chars": 482,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t05",
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/TypeConverterOptions.cs",
+          "qualified_name": "TypeConverterOptions.Merge",
+          "found": true,
+          "kind": "method",
+          "span": "76-152",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 1698,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t06",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ParseNamedIndexes",
+          "found": true,
+          "kind": "method",
+          "span": "1413-1437",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 569,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t07",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.GetGenericCsvClassMapType",
+          "found": true,
+          "kind": "method",
+          "span": "112-122",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 367,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t08",
+      "gold": [
+        {
+          "path": "src/CsvHelper/FieldCache.cs",
+          "qualified_name": "FieldCache.Resize",
+          "found": true,
+          "kind": "method",
+          "span": "96-120",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 463,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t09",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteToBuffer",
+          "found": true,
+          "kind": "method",
+          "span": "799-823",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 473,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.CheckHasBeenRead",
+          "found": true,
+          "kind": "method",
+          "span": "1400-1407",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 229,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.ShouldQuote",
+          "found": true,
+          "kind": "method",
+          "span": "96-117",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 675,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/BooleanConverter.cs",
+          "qualified_name": "BooleanConverter.ConvertFromString",
+          "found": true,
+          "kind": "method",
+          "span": "16-53",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 886,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvHelperException.cs",
+          "qualified_name": "CsvHelperException.AddDetails",
+          "found": true,
+          "kind": "method",
+          "span": "74-141",
+          "lines": 68,
+          "body_returned": true,
+          "body_chars": 2369,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/ByteArrayConverter.cs",
+          "qualified_name": "ByteArrayConverter.ByteArrayToHexString",
+          "found": true,
+          "kind": "method",
+          "span": "71-91",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 476,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Expressions/RecordHydrator.cs",
+          "qualified_name": "RecordHydrator.CreateHydrateRecordAction",
+          "found": true,
+          "kind": "method",
+          "span": "73-120",
+          "lines": 48,
+          "body_returned": true,
+          "body_chars": 1592,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "gold": [
+        {
+          "path": "src/CsvHelper/ReflectionExtensions.cs",
+          "qualified_name": "ReflectionExtensions.IsAnonymous",
+          "found": true,
+          "kind": "method",
+          "span": "68-84",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 549,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBuffer",
+          "found": true,
+          "kind": "method",
+          "span": "741-771",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 732,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBufferAsync",
+          "found": true,
+          "kind": "method",
+          "span": "773-801",
+          "lines": 29,
+          "body_returned": true,
+          "body_chars": 739,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/NullableConverter.cs",
+          "qualified_name": "NullableConverter.ConvertFromString",
+          "found": true,
+          "kind": "method",
+          "span": "63-79",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 380,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvDataReader.cs",
+          "qualified_name": "CsvDataReader.GetOrdinal",
+          "found": true,
+          "kind": "method",
+          "span": "244-267",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 775,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadEndOfFile",
+          "found": true,
+          "kind": "method",
+          "span": "678-719",
+          "lines": 42,
+          "body_returned": true,
+          "body_chars": 860,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetReadDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "40-46",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 306,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordCreatorFactory.cs",
+          "qualified_name": "RecordCreatorFactory.MakeRecordCreator",
+          "found": true,
+          "kind": "method",
+          "span": "33-46",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 263,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordCreator.cs",
+          "qualified_name": "ObjectRecordCreator.CreateCreateRecordDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "26-62",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1132,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateMemberAssignmentsForMapping",
+          "found": true,
+          "kind": "method",
+          "span": "157-196",
+          "lines": 40,
+          "body_returned": true,
+          "body_chars": 1326,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteRecord",
+          "found": true,
+          "kind": "method",
+          "span": "324-347",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 535,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "65-71",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 312,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordWriterFactory.cs",
+          "qualified_name": "RecordWriterFactory.MakeRecordWriter",
+          "found": true,
+          "kind": "method",
+          "span": "35-53",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 397,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordWriter.cs",
+          "qualified_name": "ObjectRecordWriter.CreateWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "29-120",
+          "lines": 92,
+          "body_returned": true,
+          "body_chars": 3861,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.DetectDelimiter",
+          "found": true,
+          "kind": "method",
+          "span": "277-287",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 310,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.GetDelimiter",
+          "found": true,
+          "kind": "method",
+          "span": "183-268",
+          "lines": 86,
+          "body_returned": true,
+          "body_chars": 2484,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ValidateHeader",
+          "found": true,
+          "kind": "method",
+          "span": "162-238",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 1994,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.HeaderValidated",
+          "found": true,
+          "kind": "method",
+          "span": "20-45",
+          "lines": 26,
+          "body_returned": true,
+          "body_chars": 937,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.AutoMapMembers",
+          "found": true,
+          "kind": "method",
+          "span": "301-442",
+          "lines": 142,
+          "body_returned": true,
+          "body_chars": 5057,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetUniqueProperties",
+          "found": true,
+          "kind": "method",
+          "span": "61-90",
+          "lines": 30,
+          "body_returned": true,
+          "body_chars": 756,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetDeclaringProperty",
+          "found": true,
+          "kind": "method",
+          "span": "24-34",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 394,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t26",
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180BadField",
+          "found": true,
+          "kind": "method",
+          "span": "943-1019",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 1754,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.BadDataFound",
+          "found": true,
+          "kind": "method",
+          "span": "76-79",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 203,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Expressions/DynamicRecordCreator.cs",
+          "qualified_name": "DynamicRecordCreator.CreateDynamicRecord",
+          "found": true,
+          "kind": "method",
+          "span": "29-55",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 764,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.GetDynamicPropertyName",
+          "found": true,
+          "kind": "method",
+          "span": "164-176",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 450,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/FastDynamicObject.cs",
+          "qualified_name": "FastDynamicObject",
+          "found": true,
+          "kind": "class",
+          "span": "12-182",
+          "lines": 171,
+          "body_returned": true,
+          "body_chars": 4787,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t28",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Expressions/DynamicRecordWriter.cs",
+          "qualified_name": "DynamicRecordWriter.CreateWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "32-57",
+          "lines": 26,
+          "body_returned": true,
+          "body_chars": 730,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpandoObjectRecordWriter.cs",
+          "qualified_name": "ExpandoObjectRecordWriter.CreateWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "24-43",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 463,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteDynamicHeader",
+          "found": true,
+          "kind": "method",
+          "span": "299-321",
+          "lines": 23,
+          "body_returned": true,
+          "body_chars": 532,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t29",
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.AutoMapConstructorParameters",
+          "found": true,
+          "kind": "method",
+          "span": "451-538",
+          "lines": 88,
+          "body_returned": true,
+          "body_chars": 4060,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateConstructorArgumentExpressionsForMapping",
+          "found": true,
+          "kind": "method",
+          "span": "43-150",
+          "lines": 108,
+          "body_returned": true,
+          "body_chars": 3770,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.ShouldUseConstructorParameters",
+          "found": true,
+          "kind": "method",
+          "span": "137-146",
+          "lines": 10,
+          "body_returned": true,
+          "body_chars": 407,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t30",
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.ConvertFromString",
+          "found": true,
+          "kind": "method",
+          "span": "70-104",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 765,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.EnumConverter",
+          "found": true,
+          "kind": "constructor",
+          "span": "32-67",
+          "lines": 36,
+          "body_returned": true,
+          "body_chars": 984,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverterFactory.cs",
+          "qualified_name": "EnumConverterFactory.Create",
+          "found": true,
+          "kind": "method",
+          "span": "17-31",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 398,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ],
+  "packet": [
+    {
+      "id": "p01",
+      "target": {
+        "path": "src/CsvHelper/CsvWriter.cs",
+        "qualified_name": "CsvWriter.WriteRecord",
+        "found": true,
+        "kind": "method",
+        "span": "324-347",
+        "lines": 24,
+        "body_returned": true,
+        "body_chars": 535,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.GetTypeInfoForRecord",
+          "found": true,
+          "kind": "method",
+          "span": "717-726",
+          "lines": 10,
+          "body_returned": true,
+          "body_chars": 247,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/RecordTypeInfo.cs",
+          "qualified_name": "RecordTypeInfo",
+          "found": true,
+          "kind": "constructor",
+          "span": "34-40",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 149,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "65-71",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 312,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordWriter.cs",
+          "qualified_name": "RecordWriter.GetWriteDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "41-56",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 381,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/WriterException.cs",
+          "qualified_name": "WriterException",
+          "found": true,
+          "kind": "class",
+          "span": "10-36",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 1348,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "target": {
+        "path": "src/CsvHelper/CsvParser.cs",
+        "qualified_name": "CsvParser.Read",
+        "found": true,
+        "kind": "method",
+        "span": "208-240",
+        "lines": 33,
+        "body_returned": true,
+        "body_chars": 523,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBuffer",
+          "found": true,
+          "kind": "method",
+          "span": "741-771",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 732,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadLine",
+          "found": true,
+          "kind": "method",
+          "span": "289-506",
+          "lines": 218,
+          "body_returned": true,
+          "body_chars": 5049,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadEndOfFile",
+          "found": true,
+          "kind": "method",
+          "span": "678-719",
+          "lines": 42,
+          "body_returned": true,
+          "body_chars": 860,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.DetectDelimiter",
+          "found": true,
+          "kind": "method",
+          "span": "277-287",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 310,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.Read",
+          "found": true,
+          "kind": "method",
+          "span": "241-272",
+          "lines": 32,
+          "body_returned": true,
+          "body_chars": 787,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "target": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader.Read",
+        "found": true,
+        "kind": "method",
+        "span": "241-272",
+        "lines": 32,
+        "body_returned": true,
+        "body_chars": 787,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.Read",
+          "found": true,
+          "kind": "method",
+          "span": "208-240",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 523,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Delegates/ShouldSkipRecord.cs",
+          "qualified_name": "ShouldSkipRecordArgs",
+          "found": true,
+          "kind": "constructor",
+          "span": "26-29",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 62,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/BadDataException.cs",
+          "qualified_name": "BadDataException",
+          "found": true,
+          "kind": "class",
+          "span": "10-64",
+          "lines": 55,
+          "body_returned": true,
+          "body_chars": 2125,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Delegates/ReadingExceptionOccurred.cs",
+          "qualified_name": "ReadingExceptionOccurredArgs",
+          "found": true,
+          "kind": "constructor",
+          "span": "35-38",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 96,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ReadAsync",
+          "found": true,
+          "kind": "method",
+          "span": "275-304",
+          "lines": 30,
+          "body_returned": true,
+          "body_chars": 788,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "target": {
+        "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+        "qualified_name": "ExpressionManager.CreateGetFieldExpression",
+        "found": true,
+        "kind": "method",
+        "span": "203-281",
+        "lines": 79,
+        "body_returned": true,
+        "body_chars": 2929,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateTypeConverterExpression",
+          "found": true,
+          "kind": "method",
+          "span": "395-426",
+          "lines": 32,
+          "body_returned": true,
+          "body_chars": 1528,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateDefaultExpression",
+          "found": true,
+          "kind": "method",
+          "span": "469-497",
+          "lines": 29,
+          "body_returned": true,
+          "body_chars": 1649,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.GetFieldIndex",
+          "found": true,
+          "kind": "method",
+          "span": "1258-1316",
+          "lines": 59,
+          "body_returned": true,
+          "body_chars": 1599,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.CanRead",
+          "found": true,
+          "kind": "method",
+          "span": "1348-1364",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 486,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/FieldValidationException.cs",
+          "qualified_name": "FieldValidationException",
+          "found": true,
+          "kind": "class",
+          "span": "10-52",
+          "lines": 43,
+          "body_returned": true,
+          "body_chars": 1801,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+          "qualified_name": "MemberMapData",
+          "found": true,
+          "kind": "class",
+          "span": "14-165",
+          "lines": 152,
+          "body_returned": true,
+          "body_chars": 4195,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "target": {
+        "path": "src/CsvHelper/ObjectCreator.cs",
+        "qualified_name": "ObjectCreator.GetFunc",
+        "found": true,
+        "kind": "method",
+        "span": "40-51",
+        "lines": 12,
+        "body_returned": true,
+        "body_chars": 330,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.GetArgTypes",
+          "found": true,
+          "kind": "method",
+          "span": "53-68",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 334,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CreateInstanceFunc",
+          "found": true,
+          "kind": "method",
+          "span": "70-113",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 1415,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CacheKey",
+          "found": true,
+          "kind": "constructor",
+          "span": "196-200",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 89,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CreateInstance",
+          "found": true,
+          "kind": "method",
+          "span": "33-38",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 124,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/ObjectResolver.cs",
+          "qualified_name": "ObjectResolver.ResolveWithObjectCreator",
+          "found": true,
+          "kind": "method",
+          "span": "136-139",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 129,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "target": {
+        "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+        "qualified_name": "ClassMapCollection.Add",
+        "found": true,
+        "kind": "method",
+        "span": "74-81",
+        "lines": 8,
+        "body_returned": true,
+        "body_chars": 175,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.SetMapDefaults",
+          "found": true,
+          "kind": "method",
+          "span": "131-186",
+          "lines": 56,
+          "body_returned": true,
+          "body_chars": 1644,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.GetGenericCsvClassMapType",
+          "found": true,
+          "kind": "method",
+          "span": "112-122",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 367,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap",
+          "found": true,
+          "kind": "class",
+          "span": "17-644",
+          "lines": 628,
+          "body_returned": true,
+          "body_chars": 30,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_body_tokens_needed",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [
+            "root_body_omitted_budget"
+          ],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/CsvContext.cs",
+          "qualified_name": "CsvContext.RegisterClassMap",
+          "found": true,
+          "kind": "method",
+          "span": "131-139",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 266,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+          "qualified_name": "MemberMapData",
+          "found": true,
+          "kind": "class",
+          "span": "14-165",
+          "lines": 152,
+          "body_returned": true,
+          "body_chars": 4195,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "target": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader.ReadHeader",
+        "found": true,
+        "kind": "method",
+        "span": "104-115",
+        "lines": 12,
+        "body_returned": true,
+        "body_chars": 240,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ParseNamedIndexes",
+          "found": true,
+          "kind": "method",
+          "span": "1413-1437",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 569,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.Record",
+          "found": true,
+          "kind": "property",
+          "span": "82-108",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 370,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/ReaderException.cs",
+          "qualified_name": "ReaderException",
+          "found": true,
+          "kind": "class",
+          "span": "10-36",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 1348,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ValidateHeader",
+          "found": true,
+          "kind": "method",
+          "span": "162-238",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 1994,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.GetFieldIndex",
+          "found": true,
+          "kind": "method",
+          "span": "1258-1316",
+          "lines": 59,
+          "body_returned": true,
+          "body_chars": 1599,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "target": {
+        "path": "src/CsvHelper/TypeConversion/CollectionConverterFactory.cs",
+        "qualified_name": "CollectionConverterFactory.Create",
+        "found": true,
+        "kind": "method",
+        "span": "93-171",
+        "lines": 79,
+        "body_returned": true,
+        "body_chars": 1848,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/TypeConversion/CollectionConverterFactory.cs",
+          "qualified_name": "CollectionConverterFactory.CanCreate",
+          "found": true,
+          "kind": "method",
+          "span": "23-90",
+          "lines": 68,
+          "body_returned": true,
+          "body_chars": 1492,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/ITypeConverterFactory.cs",
+          "qualified_name": "ITypeConverterFactory",
+          "found": true,
+          "kind": "interface",
+          "span": "10-27",
+          "lines": 18,
+          "body_returned": true,
+          "body_chars": 884,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/ArrayConverter.cs",
+          "qualified_name": "ArrayConverter",
+          "found": true,
+          "kind": "class",
+          "span": "12-69",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1818,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/CollectionGenericConverter.cs",
+          "qualified_name": "CollectionGenericConverter",
+          "found": true,
+          "kind": "class",
+          "span": "14-62",
+          "lines": 49,
+          "body_returned": true,
+          "body_chars": 1610,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/IEnumerableGenericConverter.cs",
+          "qualified_name": "IEnumerableGenericConverter",
+          "found": true,
+          "kind": "class",
+          "span": "13-62",
+          "lines": 50,
+          "body_returned": true,
+          "body_chars": 1521,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/TypeConverterCache.cs",
+          "qualified_name": "TypeConverterCache.CreateDefaultConverters",
+          "found": true,
+          "kind": "method",
+          "span": "212-244",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 1610,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "target": {
+        "path": "src/CsvHelper/CsvParser.cs",
+        "qualified_name": "CsvParser.GetField",
+        "found": true,
+        "kind": "method",
+        "span": "803-852",
+        "lines": 50,
+        "body_returned": true,
+        "body_chars": 1186,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/FieldCache.cs",
+          "qualified_name": "FieldCache.GetField",
+          "found": true,
+          "kind": "method",
+          "span": "32-73",
+          "lines": 42,
+          "body_returned": true,
+          "body_chars": 883,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180Field",
+          "found": true,
+          "kind": "method",
+          "span": "861-935",
+          "lines": 75,
+          "body_returned": true,
+          "body_chars": 1771,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180BadField",
+          "found": true,
+          "kind": "method",
+          "span": "943-1019",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 1754,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessEscapeField",
+          "found": true,
+          "kind": "method",
+          "span": "1027-1070",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 918,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessNoEscapeField",
+          "found": true,
+          "kind": "method",
+          "span": "1079-1090",
+          "lines": 12,
+          "body_returned": true,
+          "body_chars": 327,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessedField",
+          "found": true,
+          "kind": "constructor",
+          "span": "1155-1160",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 125,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "target": {
+        "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+        "qualified_name": "ExpressionManager.CreateInstanceAndAssignMembers",
+        "found": true,
+        "kind": "method",
+        "span": "358-371",
+        "lines": 14,
+        "body_returned": true,
+        "body_chars": 1025,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/CsvHelper/ObjectResolver.cs",
+          "qualified_name": "ObjectResolver.Current",
+          "found": true,
+          "kind": "property",
+          "span": "19-34",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 230,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/IObjectResolver.cs",
+          "qualified_name": "IObjectResolver",
+          "found": true,
+          "kind": "interface",
+          "span": "11-54",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 1863,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateMemberAssignmentsForMapping",
+          "found": true,
+          "kind": "method",
+          "span": "157-196",
+          "lines": 40,
+          "body_returned": true,
+          "body_chars": 1326,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordCreator.cs",
+          "qualified_name": "ObjectRecordCreator.CreateCreateRecordDelegate",
+          "found": true,
+          "kind": "method",
+          "span": "26-62",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1132,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordHydrator.cs",
+          "qualified_name": "RecordHydrator.CreateHydrateRecordAction",
+          "found": true,
+          "kind": "method",
+          "span": "73-120",
+          "lines": 48,
+          "body_returned": true,
+          "body_chars": 1592,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "loc_tasks": 30,
+    "packet_tasks": 10,
+    "missing_gold": 0,
+    "packet_reach_items": 53,
+    "packet_reach_hit": 25,
+    "packet_reach_ceiling": 0.4717
+  }
+}

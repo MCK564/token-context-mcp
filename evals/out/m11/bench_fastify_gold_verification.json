@@ -1,0 +1,2403 @@
+{
+  "tasks_file": "tmp/fastify_draft/bench_fastify.json",
+  "repo_id": "bench-fastify",
+  "loc": [
+    {
+      "id": "t01",
+      "gold": [
+        {
+          "path": "lib/content-type-parser.js",
+          "qualified_name": "rawBody",
+          "found": true,
+          "kind": "function",
+          "span": "233-304",
+          "lines": 72,
+          "body_returned": true,
+          "body_chars": 2158,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t02",
+      "gold": [
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "headRouteOnSendHandler",
+          "found": true,
+          "kind": "function",
+          "span": "2-34",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 796,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t03",
+      "gold": [
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "setErrorHeaders",
+          "found": true,
+          "kind": "function",
+          "span": "152-168",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 477,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t04",
+      "gold": [
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "validateLogger",
+          "found": true,
+          "kind": "function",
+          "span": "60-73",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 472,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t05",
+      "gold": [
+        {
+          "path": "lib/request.js",
+          "qualified_name": "getTrustProxyFn",
+          "found": true,
+          "kind": "function",
+          "span": "40-58",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 492,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t06",
+      "gold": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForSerialization",
+          "found": true,
+          "kind": "function",
+          "span": "18-55",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1140,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t07",
+      "gold": [
+        {
+          "path": "lib/initial-config-validation.js",
+          "qualified_name": "deepFreezeObject",
+          "found": true,
+          "kind": "function",
+          "span": "19-33",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 377,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t08",
+      "gold": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "buildDefaultGenReqId",
+          "found": true,
+          "kind": "function",
+          "span": "28-41",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 644,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t09",
+      "gold": [
+        {
+          "path": "lib/wrap-thenable.js",
+          "qualified_name": "wrapThenable",
+          "found": true,
+          "kind": "function",
+          "span": "12-82",
+          "lines": 71,
+          "body_returned": true,
+          "body_chars": 2100,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "gold": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "getAddresses",
+          "found": true,
+          "kind": "function",
+          "span": "363-374",
+          "lines": 12,
+          "body_returned": true,
+          "body_chars": 439,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "gold": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "defaultClientErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "923-961",
+          "lines": 39,
+          "body_returned": true,
+          "body_chars": 1654,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "gold": [
+        {
+          "path": "lib/plugin-utils.js",
+          "qualified_name": "checkVersion",
+          "found": true,
+          "kind": "function",
+          "span": "109-129",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 969,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "gold": [
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "fourOhFourFallBack",
+          "found": true,
+          "kind": "function",
+          "span": "170-187",
+          "lines": 18,
+          "body_returned": true,
+          "body_chars": 818,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "gold": [
+        {
+          "path": "lib/plugin-override.js",
+          "qualified_name": "buildRoutePrefix",
+          "found": true,
+          "kind": "function",
+          "span": "76-90",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 450,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "gold": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "handleTimeout",
+          "found": true,
+          "kind": "function",
+          "span": "595-603",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 161,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "gold": [
+        {
+          "path": "lib/schemas.js",
+          "qualified_name": "normalizeSchema",
+          "found": true,
+          "kind": "function",
+          "span": "57-114",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1691,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "gold": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "createCloseHttp2SessionsByHttp2Server",
+          "found": true,
+          "kind": "function",
+          "span": "403-441",
+          "lines": 39,
+          "body_returned": true,
+          "body_chars": 1207,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "gold": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "routeHandler",
+          "found": true,
+          "kind": "function",
+          "span": "459-586",
+          "lines": 128,
+          "body_returned": true,
+          "body_chars": 4482,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendEnd",
+          "found": true,
+          "kind": "function",
+          "span": "575-683",
+          "lines": 109,
+          "body_returned": true,
+          "body_chars": 3653,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "gold": [
+        {
+          "path": "lib/logger-pino.js",
+          "qualified_name": "createPinoLogger",
+          "found": true,
+          "kind": "function",
+          "span": "15-44",
+          "lines": 30,
+          "body_returned": true,
+          "body_chars": 829,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "gold": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute",
+          "found": true,
+          "kind": "function",
+          "span": "279-455",
+          "lines": 177,
+          "body_returned": true,
+          "body_chars": 6951,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "parseHeadOnSendHandlers",
+          "found": true,
+          "kind": "function",
+          "span": "36-41",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 249,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "headRouteOnSendHandler",
+          "found": true,
+          "kind": "function",
+          "span": "2-34",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 796,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "gold": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "setNotFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "694-699",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 217,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "setNotFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "81-136",
+          "lines": 56,
+          "body_returned": true,
+          "body_chars": 1676,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "_setNotFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "138-168",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 1033,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "gold": [
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "handleRequest",
+          "found": true,
+          "kind": "function",
+          "span": "19-66",
+          "lines": 48,
+          "body_returned": true,
+          "body_chars": 1384,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/content-type.js",
+          "qualified_name": "ContentType",
+          "found": true,
+          "kind": "class",
+          "span": "44-158",
+          "lines": 115,
+          "body_returned": true,
+          "body_chars": 3347,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/content-type-parser.js",
+          "qualified_name": "rawBody",
+          "found": true,
+          "kind": "function",
+          "span": "233-304",
+          "lines": 72,
+          "body_returned": true,
+          "body_chars": 2158,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "gold": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForValidation",
+          "found": true,
+          "kind": "function",
+          "span": "57-116",
+          "lines": 60,
+          "body_returned": true,
+          "body_chars": 2447,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validate",
+          "found": true,
+          "kind": "function",
+          "span": "146-203",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1946,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback",
+          "found": true,
+          "kind": "function",
+          "span": "85-103",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 518,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/schema-controller.js",
+          "qualified_name": "SchemaController.setupValidator",
+          "found": true,
+          "kind": "method",
+          "span": "140-146",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 260,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute",
+          "found": true,
+          "kind": "function",
+          "span": "279-455",
+          "lines": 177,
+          "body_returned": true,
+          "body_chars": 6951,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "preSerializationHookEnd",
+          "found": true,
+          "kind": "function",
+          "span": "514-535",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 675,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "serialize",
+          "found": true,
+          "kind": "function",
+          "span": "1018-1024",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 223,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/schemas.js",
+          "qualified_name": "getSchemaSerializer",
+          "found": true,
+          "kind": "function",
+          "span": "144-201",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1810,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t26",
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook",
+          "found": true,
+          "kind": "function",
+          "span": "882-895",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 371,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "handleError",
+          "found": true,
+          "kind": "function",
+          "span": "30-80",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 1507,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "103-140",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1463,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "gold": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "multipleBindings",
+          "found": true,
+          "kind": "function",
+          "span": "151-230",
+          "lines": 80,
+          "body_returned": true,
+          "body_chars": 2932,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "listenCallback",
+          "found": true,
+          "kind": "function",
+          "span": "232-266",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 971,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onListenHookRunner",
+          "found": true,
+          "kind": "function",
+          "span": "183-228",
+          "lines": 46,
+          "body_returned": true,
+          "body_chars": 821,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t28",
+      "gold": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "reqIdGenFactory",
+          "found": true,
+          "kind": "function",
+          "span": "14-22",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 228,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "buildOptionalHeaderReqId",
+          "found": true,
+          "kind": "function",
+          "span": "43-47",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 152,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "createChildLogger",
+          "found": true,
+          "kind": "function",
+          "span": "22-34",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 495,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t29",
+      "gold": [
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateConstructor",
+          "found": true,
+          "kind": "function",
+          "span": "48-67",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 637,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateRequest",
+          "found": true,
+          "kind": "function",
+          "span": "129-134",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 191,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateReply",
+          "found": true,
+          "kind": "function",
+          "span": "122-127",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 187,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "buildRegularRequest",
+          "found": true,
+          "kind": "function",
+          "span": "68-91",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 577,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "buildReply",
+          "found": true,
+          "kind": "function",
+          "span": "955-983",
+          "lines": 29,
+          "body_returned": true,
+          "body_chars": 717,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t30",
+      "gold": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "onBadUrl",
+          "found": true,
+          "kind": "function",
+          "span": "638-664",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 1034,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "createOnBadUrl",
+          "found": true,
+          "kind": "function",
+          "span": "63-73",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 493,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ],
+  "packet": [
+    {
+      "id": "p01",
+      "target": {
+        "path": "lib/route.js",
+        "qualified_name": "routeHandler",
+        "found": true,
+        "kind": "function",
+        "span": "459-586",
+        "lines": 128,
+        "body_returned": true,
+        "body_chars": 4482,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "getGenReqId",
+          "found": true,
+          "kind": "function",
+          "span": "24-26",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 82,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "createChildLogger",
+          "found": true,
+          "kind": "function",
+          "span": "22-34",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 495,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "setupResponseListeners",
+          "found": true,
+          "kind": "function",
+          "span": "897-931",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 960,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "runPreParsing",
+          "found": true,
+          "kind": "function",
+          "span": "638-653",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 459,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "handleTimeout",
+          "found": true,
+          "kind": "function",
+          "span": "595-603",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 161,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onRequestAbortHookRunner",
+          "found": true,
+          "kind": "function",
+          "span": "370-404",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 613,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "target": {
+        "path": "lib/handle-request.js",
+        "qualified_name": "handleRequest",
+        "found": true,
+        "kind": "function",
+        "span": "19-66",
+        "lines": 48,
+        "body_returned": true,
+        "body_chars": 1384,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "handler",
+          "found": true,
+          "kind": "function",
+          "span": "68-83",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 387,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/content-type.js",
+          "qualified_name": "ContentType",
+          "found": true,
+          "kind": "class",
+          "span": "44-158",
+          "lines": 115,
+          "body_returned": true,
+          "body_chars": 3347,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "runPreParsing",
+          "found": true,
+          "kind": "function",
+          "span": "638-653",
+          "lines": 16,
+          "body_returned": true,
+          "body_chars": 459,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback",
+          "found": true,
+          "kind": "function",
+          "span": "85-103",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 518,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "target": {
+        "path": "lib/reply.js",
+        "qualified_name": "onSendEnd",
+        "found": true,
+        "kind": "function",
+        "span": "575-683",
+        "lines": 109,
+        "body_returned": true,
+        "body_chars": 3653,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendStream",
+          "found": true,
+          "kind": "function",
+          "span": "768-821",
+          "lines": 54,
+          "body_returned": true,
+          "body_chars": 1658,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendWebStream",
+          "found": true,
+          "kind": "function",
+          "span": "695-766",
+          "lines": 72,
+          "body_returned": true,
+          "body_chars": 1762,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "safeWriteHead",
+          "found": true,
+          "kind": "function",
+          "span": "563-573",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 372,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendTrailer",
+          "found": true,
+          "kind": "function",
+          "span": "823-875",
+          "lines": 53,
+          "body_returned": true,
+          "body_chars": 1680,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendHook",
+          "found": true,
+          "kind": "function",
+          "span": "541-553",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 263,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onSendHookRunner",
+          "found": true,
+          "kind": "function",
+          "span": "278-321",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 852,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "target": {
+        "path": "lib/error-handler.js",
+        "qualified_name": "handleError",
+        "found": true,
+        "kind": "function",
+        "span": "30-80",
+        "lines": 51,
+        "body_returned": true,
+        "body_chars": 1507,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "103-140",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1463,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/wrap-thenable.js",
+          "qualified_name": "wrapThenable",
+          "found": true,
+          "kind": "function",
+          "span": "12-82",
+          "lines": 71,
+          "body_returned": true,
+          "body_chars": 2100,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook",
+          "found": true,
+          "kind": "function",
+          "span": "882-895",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 371,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "buildErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "142-150",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 196,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "target": {
+        "path": "lib/validation.js",
+        "qualified_name": "validate",
+        "found": true,
+        "kind": "function",
+        "span": "146-203",
+        "lines": 58,
+        "body_returned": true,
+        "body_chars": 1946,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validateParam",
+          "found": true,
+          "kind": "function",
+          "span": "118-144",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 768,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "wrapValidationError",
+          "found": true,
+          "kind": "function",
+          "span": "249-263",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 526,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "getEssenceMediaType",
+          "found": true,
+          "kind": "function",
+          "span": "270-273",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 135,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validateAsyncParams",
+          "found": true,
+          "kind": "function",
+          "span": "205-214",
+          "lines": 10,
+          "body_returned": true,
+          "body_chars": 316,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback",
+          "found": true,
+          "kind": "function",
+          "span": "85-103",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 518,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "target": {
+        "path": "lib/server.js",
+        "qualified_name": "listenCallback",
+        "found": true,
+        "kind": "function",
+        "span": "232-266",
+        "lines": 35,
+        "body_returned": true,
+        "body_chars": 971,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "logServerAddress",
+          "found": true,
+          "kind": "function",
+          "span": "376-397",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 716,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "defaultResolveServerListeningText",
+          "found": true,
+          "kind": "function",
+          "span": "23-25",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 98,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "multipleBindings",
+          "found": true,
+          "kind": "function",
+          "span": "151-230",
+          "lines": 80,
+          "body_returned": true,
+          "body_chars": 2932,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "listenPromise",
+          "found": true,
+          "kind": "function",
+          "span": "268-307",
+          "lines": 40,
+          "body_returned": true,
+          "body_chars": 1128,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onListenHookRunner",
+          "found": true,
+          "kind": "function",
+          "span": "183-228",
+          "lines": 46,
+          "body_returned": true,
+          "body_chars": 821,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "target": {
+        "path": "lib/route.js",
+        "qualified_name": "prepareRoute",
+        "found": true,
+        "kind": "function",
+        "span": "145-173",
+        "lines": 29,
+        "body_returned": true,
+        "body_chars": 1012,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "route",
+          "found": true,
+          "kind": "function",
+          "span": "208-456",
+          "lines": 249,
+          "body_returned": true,
+          "body_chars": 9554,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "fastify.js",
+          "qualified_name": "addHttpMethod",
+          "found": true,
+          "kind": "function",
+          "span": "800-821",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 725,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute",
+          "found": true,
+          "kind": "function",
+          "span": "279-455",
+          "lines": 177,
+          "body_returned": true,
+          "body_chars": 6951,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "target": {
+        "path": "lib/schemas.js",
+        "qualified_name": "getSchemaSerializer",
+        "found": true,
+        "kind": "function",
+        "span": "144-201",
+        "lines": 58,
+        "body_returned": true,
+        "body_chars": 1810,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "serialize",
+          "found": true,
+          "kind": "function",
+          "span": "1018-1024",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 223,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "103-140",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1463,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForSerialization",
+          "found": true,
+          "kind": "function",
+          "span": "18-55",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1140,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "target": {
+        "path": "lib/four-oh-four.js",
+        "qualified_name": "setNotFoundHandler",
+        "found": true,
+        "kind": "function",
+        "span": "81-136",
+        "lines": 56,
+        "body_returned": true,
+        "body_chars": 1676,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "_setNotFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "138-168",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 1033,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "fastify.js",
+          "qualified_name": "setNotFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "694-699",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 217,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "basic404",
+          "found": true,
+          "kind": "function",
+          "span": "49-61",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 459,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/context.js",
+          "qualified_name": "Context",
+          "found": true,
+          "kind": "function",
+          "span": "23-85",
+          "lines": 63,
+          "body_returned": true,
+          "body_chars": 1803,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "buildErrorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "142-150",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 196,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "target": {
+        "path": "lib/hooks.js",
+        "qualified_name": "onSendHookRunner",
+        "found": true,
+        "kind": "function",
+        "span": "278-321",
+        "lines": 44,
+        "body_returned": true,
+        "body_chars": 852,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendHook",
+          "found": true,
+          "kind": "function",
+          "span": "541-553",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 263,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook",
+          "found": true,
+          "kind": "function",
+          "span": "882-895",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 371,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "preSerializationHook",
+          "found": true,
+          "kind": "function",
+          "span": "500-512",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 344,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "hookRunnerGenerator",
+          "found": true,
+          "kind": "function",
+          "span": "230-266",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 753,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "loc_tasks": 30,
+    "packet_tasks": 10,
+    "missing_gold": 0,
+    "packet_reach_items": 45,
+    "packet_reach_hit": 22,
+    "packet_reach_ceiling": 0.4889
+  }
+}

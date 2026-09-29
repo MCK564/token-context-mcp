@@ -1,0 +1,1011 @@
+{
+  "repo_id": "bench-csvhelper",
+  "repo_url": "https://github.com/JoshClose/CsvHelper",
+  "tag": null,
+  "commit_sha": "33970e5183383bdac1fbce3b3fbcdf46b318ca52",
+  "license": "MS-PL OR Apache-2.0",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Drafted by one Claude session and reviewed by a different Claude session (9 of 40 tasks changed; log in evals/out/m11). All tasks are TEST tasks; no retrieval tool was run to write or review them, so nothing is tuned. The repository owner has not reviewed this set.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "sanitize a field against CSV injection: escape or strip leading formula characters, or throw when an injection character is detected",
+      "gold_files": [
+        "src/CsvHelper/CsvWriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.SanitizeForInjection"
+        }
+      ],
+      "note": "CsvWriter.SanitizeForInjection checks the first character against the injection characters and then throws, escapes or strips depending on InjectionOptions."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "pick the constructor whose parameter types exactly or loosely match the given argument types, throwing on an ambiguous match",
+      "gold_files": [
+        "src/CsvHelper/ObjectCreator.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.GetConstructor"
+        }
+      ],
+      "note": "ObjectCreator.GetConstructor returns the exact-match constructor, a single fuzzy match, or throws AmbiguousMatchException or a not-found exception."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "check whether a type already appears in the list of parent map types to detect a circular reference",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ClassMap.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.CheckForCircularReference"
+        }
+      ],
+      "note": "ClassMap.CheckForCircularReference walks the mapParents linked list backwards looking for the given type."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "trim characters from the start and end of a char buffer by adjusting the start and length arguments",
+      "gold_files": [
+        "src/CsvHelper/ArrayHelper.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/ArrayHelper.cs",
+          "qualified_name": "ArrayHelper.Trim"
+        }
+      ],
+      "note": "ArrayHelper.Trim advances start and reduces length while the edge characters are in the trim set."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "merge several type converter options by applying each source in order, only overriding the boolean and null value lists when they differ from the defaults",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/TypeConverterOptions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/TypeConverterOptions.cs",
+          "qualified_name": "TypeConverterOptions.Merge"
+        }
+      ],
+      "note": "TypeConverterOptions.Merge applies each non-null source onto the first and only replaces the true/false/null value lists when they differ from defaults."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "build the dictionary mapping prepared header names to lists of column indexes, clearing the named index cache first",
+      "gold_files": [
+        "src/CsvHelper/CsvReader.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ParseNamedIndexes"
+        }
+      ],
+      "note": "CsvReader.ParseNamedIndexes clears namedIndexes and namedIndexCache and fills namedIndexes from the prepared header names."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "walk up the inheritance tree to find the generic ClassMap base type of a map class",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ClassMapCollection.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.GetGenericCsvClassMapType"
+        }
+      ],
+      "note": "ClassMapCollection.GetGenericCsvClassMapType recurses through BaseType until the generic type definition is ClassMap<>."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "double the size of the entries and buckets arrays and rehash the entries when the field cache is full",
+      "gold_files": [
+        "src/CsvHelper/FieldCache.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/FieldCache.cs",
+          "qualified_name": "FieldCache.Resize"
+        }
+      ],
+      "note": "FieldCache.Resize doubles the size, copies entries and rebuilds the bucket chains."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "append a string value to the internal write buffer, doubling the buffer size when the needed length would not fit",
+      "gold_files": [
+        "src/CsvHelper/CsvWriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteToBuffer"
+        }
+      ],
+      "note": "CsvWriter.WriteToBuffer grows the char buffer by doubling and copies the value at bufferPosition."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "throw an error saying you must call read before accessing data when the reader has not been read yet",
+      "gold_files": [
+        "src/CsvHelper/CsvReader.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.CheckHasBeenRead"
+        }
+      ],
+      "note": "CsvReader.CheckHasBeenRead throws a ReaderException when hasBeenRead is false."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "decide whether an outgoing value must be wrapped in the text qualifier: leading or trailing space, a line break, or the separator appears inside",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.ShouldQuote"
+        }
+      ],
+      "note": "ConfigurationFunctions.ShouldQuote is the default predicate testing for space edges, quote, newline and delimiter."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "turns cell text into true or false, accepting 0 and 1 and user-configured yes/no style words compared case-insensitively",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/BooleanConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/BooleanConverter.cs",
+          "qualified_name": "BooleanConverter.ConvertFromString"
+        }
+      ],
+      "note": "BooleanConverter.ConvertFromString tries bool.TryParse, 0/1 shorts, then the configured true/false value lists ignoring case."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "builds the diagnostic block appended to error messages with reader, parser and writer state such as row numbers, column count and raw data, hiding raw data when disabled",
+      "gold_files": [
+        "src/CsvHelper/CsvHelperException.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvHelperException.cs",
+          "qualified_name": "CsvHelperException.AddDetails"
+        }
+      ],
+      "note": "CsvHelperException.AddDetails composes the IReader/IParser/IWriter state lines and honours ExceptionMessagesContainRawData."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "renders binary data as uppercase two-digit base-16 pairs, with an optional 0x prefix and optional dash separators",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/ByteArrayConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/ByteArrayConverter.cs",
+          "qualified_name": "ByteArrayConverter.ByteArrayToHexString"
+        }
+      ],
+      "note": "ByteArrayConverter.ByteArrayToHexString appends 0x if requested then each byte as X2, joined by the dash prefix."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "compiles a lambda that assigns every mapped property and nested reference on an already existing instance from the current row",
+      "gold_files": [
+        "src/CsvHelper/Expressions/RecordHydrator.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Expressions/RecordHydrator.cs",
+          "qualified_name": "RecordHydrator.CreateHydrateRecordAction"
+        }
+      ],
+      "note": "RecordHydrator.CreateHydrateRecordAction builds member assignments from the map for an existing object and compiles an Action<T>."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "detects compiler-generated nameless classes, such as those produced by new { A = 1 } expressions, by checking generic-type attributes and the naming prefix",
+      "gold_files": [
+        "src/CsvHelper/ReflectionExtensions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/ReflectionExtensions.cs",
+          "qualified_name": "ReflectionExtensions.IsAnonymous"
+        }
+      ],
+      "note": "ReflectionExtensions.IsAnonymous checks CompilerGenerated, generic, name contains AnonymousType with <> or VB$ prefix, and not public."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "shifts the unconsumed characters to the front, grows the character array when a row is longer than it, and pulls more text from the underlying stream",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBuffer"
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBufferAsync"
+        }
+      ],
+      "note": "CsvParser.FillBuffer doubles the buffer if the row fills it, moves the leftover chars to index 0 and reads more from the TextReader; FillBufferAsync is its line-for-line async twin and equally correct."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "returns null for empty text or any configured null marker, otherwise delegates to the wrapped underlying type's conversion",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/NullableConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/NullableConverter.cs",
+          "qualified_name": "NullableConverter.ConvertFromString"
+        }
+      ],
+      "note": "NullableConverter.ConvertFromString returns null for empty or NullValues text and otherwise calls UnderlyingTypeConverter."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "find a column position by header text, falling back to a case-insensitive comparison of normalised names, and throw index out of range if missing",
+      "gold_files": [
+        "src/CsvHelper/CsvDataReader.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvDataReader.cs",
+          "qualified_name": "CsvDataReader.GetOrdinal"
+        }
+      ],
+      "note": "CsvDataReader.GetOrdinal tries GetFieldIndex, then compares prepared header names ignoring case, else throws IndexOutOfRangeException."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "finalize the last row when the input ends without a line terminator, adding the remaining cells depending on the previous token",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadEndOfFile"
+        }
+      ],
+      "note": "CsvParser.ReadEndOfFile inspects the saved parser state and adds the trailing fields for delimiter, line ending or new line states."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how are CSV rows turned into strongly typed objects: choosing a creator for the type, compiling a delegate that assigns each mapped member from the current row",
+      "gold_files": [
+        "src/CsvHelper/Expressions/RecordManager.cs",
+        "src/CsvHelper/Expressions/RecordCreatorFactory.cs",
+        "src/CsvHelper/Expressions/ObjectRecordCreator.cs",
+        "src/CsvHelper/Expressions/ExpressionManager.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetReadDelegate"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordCreatorFactory.cs",
+          "qualified_name": "RecordCreatorFactory.MakeRecordCreator"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordCreator.cs",
+          "qualified_name": "ObjectRecordCreator.CreateCreateRecordDelegate"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateMemberAssignmentsForMapping"
+        }
+      ],
+      "note": "RecordManager asks the factory for a creator, ObjectRecordCreator compiles the lambda, and ExpressionManager builds the member assignments."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how a class instance is written as a CSV row: the writer picks a writer strategy for the type and compiles a delegate that converts each mapped member to text and writes it",
+      "gold_files": [
+        "src/CsvHelper/CsvWriter.cs",
+        "src/CsvHelper/Expressions/RecordManager.cs",
+        "src/CsvHelper/Expressions/RecordWriterFactory.cs",
+        "src/CsvHelper/Expressions/ObjectRecordWriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteRecord"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetWriteDelegate"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordWriterFactory.cs",
+          "qualified_name": "RecordWriterFactory.MakeRecordWriter"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordWriter.cs",
+          "qualified_name": "ObjectRecordWriter.CreateWriteDelegate"
+        }
+      ],
+      "note": "CsvWriter.WriteRecord gets a write delegate from RecordManager, the factory picks the writer, and ObjectRecordWriter compiles the per-member writes."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "automatic separator detection: when the first chunk of text is loaded, candidate characters are counted per line outside quoted text and the best one replaces the current delimiter",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs",
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.DetectDelimiter"
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.GetDelimiter"
+        }
+      ],
+      "note": "CsvParser.DetectDelimiter passes the first text to the configuration function, and ConfigurationFunctions.GetDelimiter counts and ranks candidates."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "what happens when a class-mapped column is missing from the header row: collecting the invalid headers, then the callback that raises an error listing them",
+      "gold_files": [
+        "src/CsvHelper/CsvReader.cs",
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ValidateHeader"
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.HeaderValidated"
+        }
+      ],
+      "note": "CsvReader.ValidateHeader (public entry, Type overload, and the protected ClassMap overload that collects InvalidHeader entries all belong to the chain) feeds ConfigurationFunctions.HeaderValidated, which builds the message and throws."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "auto-mapping a class's members by reflection: collecting properties up the base classes with hidden-by-new handling, finding the declaring type, and skipping ignored members",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ClassMap.cs",
+        "src/CsvHelper/ReflectionHelper.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.AutoMapMembers"
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetUniqueProperties"
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetDeclaringProperty"
+        }
+      ],
+      "note": "ClassMap.AutoMapMembers uses ReflectionHelper to collect unique and declaring properties then builds member and reference maps."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "a quoted cell with a stray quote character in the middle: the callback that fires, its default behaviour that throws, and how the malformed text is salvaged",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs",
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180BadField"
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.BadDataFound"
+        }
+      ],
+      "note": "ProcessRFC4180BadField invokes badDataFound and salvages the text; the default BadDataFound callback throws."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "reading rows as dynamic objects: property names come from the header (or Field1, Field2 with no header) and values are stored in a dictionary-backed object",
+      "gold_files": [
+        "src/CsvHelper/Expressions/DynamicRecordCreator.cs",
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+        "src/CsvHelper/FastDynamicObject.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Expressions/DynamicRecordCreator.cs",
+          "qualified_name": "DynamicRecordCreator.CreateDynamicRecord"
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.GetDynamicPropertyName"
+        },
+        {
+          "path": "src/CsvHelper/FastDynamicObject.cs",
+          "qualified_name": "FastDynamicObject"
+        }
+      ],
+      "note": "DynamicRecordCreator fills a FastDynamicObject using property names produced by GetDynamicPropertyName."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "writing dynamic or expando records: header and value order come from member names, optionally sorted by a configured comparer",
+      "gold_files": [
+        "src/CsvHelper/Expressions/DynamicRecordWriter.cs",
+        "src/CsvHelper/Expressions/ExpandoObjectRecordWriter.cs",
+        "src/CsvHelper/CsvWriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Expressions/DynamicRecordWriter.cs",
+          "qualified_name": "DynamicRecordWriter.CreateWriteDelegate"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpandoObjectRecordWriter.cs",
+          "qualified_name": "ExpandoObjectRecordWriter.CreateWriteDelegate"
+        },
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.WriteDynamicHeader"
+        }
+      ],
+      "note": "The dynamic and expando record writers write values in (optionally sorted) member order and WriteDynamicHeader writes the matching header."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "reading into immutable types without a parameterless constructor: deciding to use constructor-parameter mapping, mapping each parameter, and building the argument expressions",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ClassMap.cs",
+        "src/CsvHelper/Expressions/ExpressionManager.cs",
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.AutoMapConstructorParameters"
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateConstructorArgumentExpressionsForMapping"
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+          "qualified_name": "ConfigurationFunctions.ShouldUseConstructorParameters"
+        }
+      ],
+      "note": "ShouldUseConstructorParameters decides the strategy, AutoMapConstructorParameters builds parameter maps, and ExpressionManager builds the argument expressions."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how text becomes an enum value: custom names from attributes on enum members, case-insensitive matching, and when the factory defers to a user-registered generic enum converter",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/EnumConverter.cs",
+        "src/CsvHelper/TypeConversion/EnumConverterFactory.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.ConvertFromString"
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.EnumConverter"
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverterFactory.cs",
+          "qualified_name": "EnumConverterFactory.Create"
+        }
+      ],
+      "note": "EnumConverter's constructor indexes Name attributes, ConvertFromString parses with optional ignore-case, and EnumConverterFactory.Create picks or defers the converter."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/CsvWriter.cs",
+        "qualified_name": "CsvWriter.WriteRecord"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/CsvWriter.cs",
+          "qualified_name": "CsvWriter.GetTypeInfoForRecord",
+          "need": "body",
+          "why": "WriteRecord calls it to decide between typeof(T) and the runtime type for object records; changes to type selection must match its contract."
+        },
+        {
+          "path": "src/CsvHelper/RecordTypeInfo.cs",
+          "qualified_name": "RecordTypeInfo",
+          "need": "signature",
+          "why": "the value returned by GetTypeInfoForRecord and passed to GetWriteDelegate."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordManager.cs",
+          "qualified_name": "RecordManager.GetWriteDelegate",
+          "need": "signature",
+          "why": "WriteRecord obtains and invokes the cached write delegate from here."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordWriter.cs",
+          "qualified_name": "RecordWriter.GetWriteDelegate",
+          "need": "body",
+          "why": "caches delegates by the type key that RecordTypeInfo produces, so behaviour for object records depends on it."
+        },
+        {
+          "path": "src/CsvHelper/WriterException.cs",
+          "qualified_name": "WriterException",
+          "need": "signature",
+          "why": "the exception type used to wrap unexpected errors raised while writing."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/CsvParser.cs",
+        "qualified_name": "CsvParser.Read"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.FillBuffer",
+          "need": "body",
+          "why": "Read refills the buffer when it is exhausted; row start positions and buffer growth are shared state."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadLine",
+          "need": "signature",
+          "why": "the per-character state machine that Read loops on until a row completes."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ReadEndOfFile",
+          "need": "body",
+          "why": "decides what Read returns when FillBuffer finds no more text."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.DetectDelimiter",
+          "need": "body",
+          "why": "invoked from Read on the first row when delimiter detection is on."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.Read",
+          "need": "signature",
+          "why": "main caller that loops over parser.Read while skipping records."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader.Read"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.Read",
+          "need": "signature",
+          "why": "CsvReader.Read repeatedly calls parser.Read; its return value drives the loop."
+        },
+        {
+          "path": "src/CsvHelper/Delegates/ShouldSkipRecord.cs",
+          "qualified_name": "ShouldSkipRecordArgs",
+          "need": "signature",
+          "why": "argument type passed to the shouldSkipRecord callback in the loop condition."
+        },
+        {
+          "path": "src/CsvHelper/BadDataException.cs",
+          "qualified_name": "BadDataException",
+          "need": "signature",
+          "why": "thrown when the column count changes between rows."
+        },
+        {
+          "path": "src/CsvHelper/Delegates/ReadingExceptionOccurred.cs",
+          "qualified_name": "ReadingExceptionOccurredArgs",
+          "need": "signature",
+          "why": "lets the user decide whether the column-count exception is thrown."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ReadAsync",
+          "need": "body",
+          "why": "async twin that must be kept in sync with Read (the code comment warns about it)."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+        "qualified_name": "ExpressionManager.CreateGetFieldExpression"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateTypeConverterExpression",
+          "need": "body",
+          "why": "final step (MemberMap overload; a ParameterMap twin exists) that wraps the field expression in the ConvertFromString call and merges converter options."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateDefaultExpression",
+          "need": "signature",
+          "why": "used (MemberMap overload; a ParameterMap twin exists) when a default is configured, both for a missing column and for the normal field path."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.GetFieldIndex",
+          "need": "signature",
+          "why": "resolves the column index from the mapped names (the IEnumerable overload; the string overload delegates to it) and fires the missing-field callback unless optional or try-get."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.CanRead",
+          "need": "signature",
+          "why": "called right after the user-supplied ConvertUsing branch; a false result makes CreateGetFieldExpression return null (member skipped), so its setter/ignore rules decide which members get an expression."
+        },
+        {
+          "path": "src/CsvHelper/FieldValidationException.cs",
+          "qualified_name": "FieldValidationException",
+          "need": "signature",
+          "why": "the exception thrown by the generated validate expression."
+        },
+        {
+          "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+          "qualified_name": "MemberMapData",
+          "need": "signature",
+          "why": "the memberMap.Data object whose ReadingConvertExpression, IsConstantSet, TypeConverter, Names, Index, IsDefaultSet and ValidateExpression drive every branch of CreateGetFieldExpression."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/ObjectCreator.cs",
+        "qualified_name": "ObjectCreator.GetFunc"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.GetArgTypes",
+          "need": "body",
+          "why": "turns runtime arguments into the type array that forms the cache key."
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CreateInstanceFunc",
+          "need": "body",
+          "why": "builds the compiled factory on a cache miss."
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CacheKey",
+          "need": "signature",
+          "why": "the key type used for the dictionary lookup, with its equality semantics."
+        },
+        {
+          "path": "src/CsvHelper/ObjectCreator.cs",
+          "qualified_name": "ObjectCreator.CreateInstance",
+          "need": "signature",
+          "why": "public entry points: the Type overload calls GetFunc and invokes the result, the generic overload delegates to it."
+        },
+        {
+          "path": "src/CsvHelper/ObjectResolver.cs",
+          "qualified_name": "ObjectResolver.ResolveWithObjectCreator",
+          "need": "signature",
+          "why": "caller in another file that relies on ObjectCreator for default object creation."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+        "qualified_name": "ClassMapCollection.Add"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.SetMapDefaults",
+          "need": "body",
+          "why": "Add applies defaults to the whole mapping tree before storing the map."
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ClassMapCollection.cs",
+          "qualified_name": "ClassMapCollection.GetGenericCsvClassMapType",
+          "need": "body",
+          "why": "Add uses it to find the record type key for storage."
+        },
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap",
+          "need": "signature",
+          "why": "the map type being registered."
+        },
+        {
+          "path": "src/CsvHelper/CsvContext.cs",
+          "qualified_name": "CsvContext.RegisterClassMap",
+          "need": "signature",
+          "why": "public registration API; all three overloads end up calling Maps.Add (the ClassMap overload directly)."
+        },
+        {
+          "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+          "qualified_name": "MemberMapData",
+          "need": "signature",
+          "why": "the per-member data whose TypeConverter and Names SetMapDefaults fills in before the map is stored."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader.ReadHeader"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ParseNamedIndexes",
+          "need": "body",
+          "why": "ReadHeader delegates building the name-to-index lookup to it."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.Record",
+          "need": "signature",
+          "why": "source of the header row array."
+        },
+        {
+          "path": "src/CsvHelper/ReaderException.cs",
+          "qualified_name": "ReaderException",
+          "need": "signature",
+          "why": "thrown when HasHeaderRecord is false."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.ValidateHeader",
+          "need": "body",
+          "why": "typical follow-up call (public generic/Type overloads and the protected ClassMap overload) that resolves each mapped name through GetFieldIndex against the named indexes built here."
+        },
+        {
+          "path": "src/CsvHelper/CsvReader.cs",
+          "qualified_name": "CsvReader.GetFieldIndex",
+          "need": "body",
+          "why": "looks names up in the namedIndexes built by ReadHeader and caches hits in namedIndexCache, which ParseNamedIndexes clears; the string overload delegates to the IEnumerable one."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/TypeConversion/CollectionConverterFactory.cs",
+        "qualified_name": "CollectionConverterFactory.Create"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/TypeConversion/CollectionConverterFactory.cs",
+          "qualified_name": "CollectionConverterFactory.CanCreate",
+          "need": "body",
+          "why": "must accept exactly the types Create handles; a type accepted by CanCreate but missed in Create hits the final InvalidOperationException."
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/ITypeConverterFactory.cs",
+          "qualified_name": "ITypeConverterFactory",
+          "need": "signature",
+          "why": "the contract Create implements, including the bool return that tells the cache whether to store the created converter."
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/ArrayConverter.cs",
+          "qualified_name": "ArrayConverter",
+          "need": "signature",
+          "why": "converter Create returns for array types."
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/CollectionGenericConverter.cs",
+          "qualified_name": "CollectionGenericConverter",
+          "need": "signature",
+          "why": "converter Create returns for List<> and Collection<>."
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/IEnumerableGenericConverter.cs",
+          "qualified_name": "IEnumerableGenericConverter",
+          "need": "signature",
+          "why": "converter Create returns for IList<>, ICollection<> and IEnumerable<>."
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/TypeConverterCache.cs",
+          "qualified_name": "TypeConverterCache.CreateDefaultConverters",
+          "need": "body",
+          "why": "registers CollectionConverterFactory among the default factories that the cache queries via CanCreate and Create."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/CsvParser.cs",
+        "qualified_name": "CsvParser.GetField"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/FieldCache.cs",
+          "qualified_name": "FieldCache.GetField",
+          "need": "body",
+          "why": "used to intern the processed field when caching is enabled."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180Field",
+          "need": "body",
+          "why": "handles quoted and unquoted fields in RFC4180 mode."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessRFC4180BadField",
+          "need": "body",
+          "why": "handles fields flagged bad while reading."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessEscapeField",
+          "need": "body",
+          "why": "processing branch for CsvMode.Escape."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessNoEscapeField",
+          "need": "body",
+          "why": "processing branch for CsvMode.NoEscape."
+        },
+        {
+          "path": "src/CsvHelper/CsvParser.cs",
+          "qualified_name": "CsvParser.ProcessedField",
+          "need": "signature",
+          "why": "the struct returned by every process method and consumed here."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+        "qualified_name": "ExpressionManager.CreateInstanceAndAssignMembers"
+      },
+      "gold_context": [
+        {
+          "path": "src/CsvHelper/ObjectResolver.cs",
+          "qualified_name": "ObjectResolver.Current",
+          "need": "signature",
+          "why": "the static resolver instance embedded as a constant in the generated instance-creation expression."
+        },
+        {
+          "path": "src/CsvHelper/IObjectResolver.cs",
+          "qualified_name": "IObjectResolver",
+          "need": "signature",
+          "why": "its Resolve(Type, object[]) method is looked up by reflection via GetMethod(nameof(Resolve), ...) in the target; changing that signature breaks the lookup."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+          "qualified_name": "ExpressionManager.CreateMemberAssignmentsForMapping",
+          "need": "body",
+          "why": "produces the MemberAssignment list passed in and calls this method for references."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/ObjectRecordCreator.cs",
+          "qualified_name": "ObjectRecordCreator.CreateCreateRecordDelegate",
+          "need": "body",
+          "why": "main caller that wraps the block into a compiled lambda."
+        },
+        {
+          "path": "src/CsvHelper/Expressions/RecordHydrator.cs",
+          "qualified_name": "RecordHydrator.CreateHydrateRecordAction",
+          "need": "body",
+          "why": "second caller, building nested reference objects."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude review session (not the author); edits logged in the review log; owner review pending",
+  "reviewed_at": "2026-09-29"
+}

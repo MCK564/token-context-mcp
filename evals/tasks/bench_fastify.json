@@ -1,0 +1,972 @@
+{
+  "repo_id": "bench-fastify",
+  "repo_url": "https://github.com/fastify/fastify",
+  "tag": "v5.8.5",
+  "commit_sha": "3983cce8124714242099e8756a7a9a80a0ba0aea",
+  "license": "MIT",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Drafted by one Claude session and reviewed by a different Claude session (6 of 40 tasks changed; log in evals/out/m11). All tasks are TEST tasks; no retrieval tool was run to write or review them, so nothing is tuned. The repository owner has not reviewed this set.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "read the request payload chunk by chunk, reject it when it exceeds the body limit or does not match content-length, then hand it to the parser",
+      "gold_files": [
+        "lib/content-type-parser.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/content-type-parser.js",
+          "qualified_name": "rawBody"
+        }
+      ],
+      "note": "rawBody accumulates data events, enforces the limit and content-length, and calls parser.fn with the collected body."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "onSend handler for automatically exposed HEAD routes that computes content-length and discards the payload, resuming streams",
+      "gold_files": [
+        "lib/head-route.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "headRouteOnSendHandler"
+        }
+      ],
+      "note": "headRouteOnSendHandler sets content-length (or resumes/cancels streams) and replaces the payload with null for HEAD responses."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "copy headers from an error object onto the reply and choose the status code from error status or statusCode, defaulting to 500",
+      "gold_files": [
+        "lib/error-handler.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "setErrorHeaders"
+        }
+      ],
+      "note": "setErrorHeaders applies error.headers and picks statusCode from status/statusCode >= 400 else 500."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "check that a logger object has the info, error, debug, fatal, warn, trace and child methods and throw when methods are missing in strict mode",
+      "gold_files": [
+        "lib/logger-factory.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "validateLogger"
+        }
+      ],
+      "note": "validateLogger filters the required method names and throws or returns false depending on strict."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "convert the trustProxy option given as a function, true, hop count number, or comma-separated string into a trust function",
+      "gold_files": [
+        "lib/request.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/request.js",
+          "qualified_name": "getTrustProxyFn"
+        }
+      ],
+      "note": "getTrustProxyFn maps each accepted trustProxy shape to a predicate, compiling address lists via proxy-addr."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "compile the response schemas for each status code and content type, rejecting keys that are not 2xx style status codes",
+      "gold_files": [
+        "lib/validation.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForSerialization"
+        }
+      ],
+      "note": "compileSchemasForSerialization iterates schema.response, validates the status code key and stores compiled serializers on the context."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "recursively freeze an object and its nested objects while skipping typed array views",
+      "gold_files": [
+        "lib/initial-config-validation.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/initial-config-validation.js",
+          "qualified_name": "deepFreezeObject"
+        }
+      ],
+      "note": "deepFreezeObject walks own properties, skips ArrayBuffer views and freezes nested objects."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "default request id generator that yields req- prefixed base36 counter values and wraps around at the maximum small integer",
+      "gold_files": [
+        "lib/req-id-gen-factory.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "buildDefaultGenReqId"
+        }
+      ],
+      "note": "buildDefaultGenReqId returns a closure incrementing a masked counter formatted as req-<base36>."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "handle a promise returned from a route handler: send the resolved payload if the reply is not already sent, or send the rejection as an error",
+      "gold_files": [
+        "lib/wrap-thenable.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/wrap-thenable.js",
+          "qualified_name": "wrapThenable"
+        }
+      ],
+      "note": "wrapThenable attaches then handlers that call reply.send with the resolved value or the error."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "expand the wildcard 0.0.0.0 bind address into the list of IPv4 addresses of the network interfaces, otherwise return the single address",
+      "gold_files": [
+        "lib/server.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "getAddresses"
+        }
+      ],
+      "note": "getAddresses maps the 0.0.0.0 address to IPv4 network interface addresses."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "when a TCP connection reports an idle timeout or oversized headers before a request is parsed, write a raw 408, 431 or 400 JSON response to the socket and destroy it",
+      "gold_files": [
+        "fastify.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "defaultClientErrorHandler"
+        }
+      ],
+      "note": "defaultClientErrorHandler picks 408/431/400 by err.code, writes a raw HTTP response to the socket and destroys it."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "verify that the required framework release range in an extension's metadata matches the running release, tolerating candidate builds of the next major",
+      "gold_files": [
+        "lib/plugin-utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/plugin-utils.js",
+          "qualified_name": "checkVersion"
+        }
+      ],
+      "note": "checkVersion reads meta.fastify, allows RC builds, and throws FST_ERR_PLUGIN_VERSION_MISMATCH when semver does not satisfy."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "last-resort router branch that warns this is likely a framework bug, prints the route table and replies with a 404 error object",
+      "gold_files": [
+        "lib/four-oh-four.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "fourOhFourFallBack"
+        }
+      ],
+      "note": "fourOhFourFallBack logs the two bug warnings, prints the router and sends FST_ERR_NOT_FOUND with 404."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "join the parent's URL mount path with an extension's mount path, making sure exactly one slash separates the two parts",
+      "gold_files": [
+        "lib/plugin-override.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/plugin-override.js",
+          "qualified_name": "buildRoutePrefix"
+        }
+      ],
+      "note": "buildRoutePrefix concatenates instance and plugin prefixes, adding or removing a slash at the junction."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "function used as a socket idle-event listener: it reads the context, request and reply stored on the socket and runs the registered hooks with an empty callback",
+      "gold_files": [
+        "lib/route.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "handleTimeout"
+        }
+      ],
+      "note": "handleTimeout is the 'timeout' listener registered in routeHandler; it reads this._meta and runs onTimeoutHookRunner with the context's onTimeout hooks and a noop callback."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "prepare a route's validation definitions: alias query to querystring, fail if both are set, unwrap fluent builder values, require inner definitions for media types, mark as visited",
+      "gold_files": [
+        "lib/schemas.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/schemas.js",
+          "qualified_name": "normalizeSchema"
+        }
+      ],
+      "note": "normalizeSchema aliases query, throws on duplicates, converts fluent schemas, validates content entries and sets kSchemaVisited."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "track every open multiplexed-protocol connection via events, dropping ones that receive goaway or frame errors, and return a function that terminates the remaining ones",
+      "gold_files": [
+        "lib/server.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "createCloseHttp2SessionsByHttp2Server"
+        }
+      ],
+      "note": "createCloseHttp2SessionsByHttp2Server keeps a Set of sessions updated by events and returns closeHttp2Sessions that closes them."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "on each matched HTTP call, create an id and scoped logger, refuse with 503 during shutdown, track keep-alive sockets, build request and reply, arm the deadline timer, start onRequest hooks",
+      "gold_files": [
+        "lib/route.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "routeHandler"
+        }
+      ],
+      "note": "routeHandler is the per-request entry: id, child logger, 503 on closing, keep-alive tracking, Request/Reply construction, handler timeout, then hooks."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "final stage of writing a response: declare trailers, unwrap a Fetch Response, omit content-length for 204 and 304, dispatch streams, else compute content-length and write head and body",
+      "gold_files": [
+        "lib/reply.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendEnd"
+        }
+      ],
+      "note": "onSendEnd handles trailers, Response objects, empty payloads, stream dispatch and writes head plus payload with content-length."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "instantiate the structured log backend, refusing both an output stream and a file path, opening the file destination, or deriving a child from a supplied instance with merged serializers",
+      "gold_files": [
+        "lib/logger-pino.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/logger-pino.js",
+          "qualified_name": "createPinoLogger"
+        }
+      ],
+      "note": "createPinoLogger validates stream/file, opens pino.destination, and either builds a child of the previous logger or a new pino instance."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how does a GET route automatically get a matching HEAD route that returns the same headers, including content-length, but no body",
+      "gold_files": [
+        "lib/head-route.js",
+        "lib/route.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute"
+        },
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "parseHeadOnSendHandlers"
+        },
+        {
+          "path": "lib/head-route.js",
+          "qualified_name": "headRouteOnSendHandler"
+        }
+      ],
+      "note": "addNewRoute registers the HEAD twin via prepareRoute with parseHeadOnSendHandlers, whose headRouteOnSendHandler drops the body and sets content-length."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "registering a custom not-found handler on a plugin scope with its own prefix, including the public instance method and the internal router setup",
+      "gold_files": [
+        "fastify.js",
+        "lib/four-oh-four.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "setNotFoundHandler"
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "setNotFoundHandler"
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "_setNotFoundHandler"
+        }
+      ],
+      "note": "The instance method delegates to four-oh-four's setNotFoundHandler, which defers to _setNotFoundHandler to build the context and router entries."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how an incoming POST body is parsed based on its Content-Type header: header parsing, rejecting invalid media types, and reading the raw payload",
+      "gold_files": [
+        "lib/content-type-parser.js",
+        "lib/content-type.js",
+        "lib/handle-request.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "handleRequest"
+        },
+        {
+          "path": "lib/content-type.js",
+          "qualified_name": "ContentType"
+        },
+        {
+          "path": "lib/content-type-parser.js",
+          "qualified_name": "rawBody"
+        }
+      ],
+      "note": "handleRequest parses the header with ContentType and runs the parser machinery, whose rawBody collects the payload."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how route JSON definitions become validator functions at startup and are then applied to params, body, query and headers of an incoming request before the handler runs",
+      "gold_files": [
+        "lib/handle-request.js",
+        "lib/route.js",
+        "lib/schema-controller.js",
+        "lib/validation.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForValidation"
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validate"
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback"
+        },
+        {
+          "path": "lib/schema-controller.js",
+          "qualified_name": "SchemaController.setupValidator"
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute"
+        }
+      ],
+      "note": "setupValidator builds the compiler, compileSchemasForValidation stores validators on the context, and preValidationCallback calls validate per request. The startup wiring (normalizeSchema, setupValidator, compileSchemasForValidation calls in the preReady hook) lives in addNewRoute in route.js."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how a reply payload is serialized: honoring a custom reply serializer, else using a per-status-code response definition, else falling back to JSON stringify",
+      "gold_files": [
+        "lib/reply.js",
+        "lib/schemas.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "preSerializationHookEnd"
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "serialize"
+        },
+        {
+          "path": "lib/schemas.js",
+          "qualified_name": "getSchemaSerializer"
+        }
+      ],
+      "note": "preSerializationHookEnd picks the reply serializer or falls to serialize, which asks getSchemaSerializer for the per-status/content-type function and else uses JSON.stringify."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how a thrown or passed error becomes an HTTP response: run the error hooks, choose the current error handler in the chain, and fall back to a minimal serialized error when the handler fails",
+      "gold_files": [
+        "lib/error-handler.js",
+        "lib/reply.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook"
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "handleError"
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler"
+        }
+      ],
+      "note": "onErrorHook runs onError hooks then handleError, which invokes the handler chain and finally fallbackErrorHandler."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "what happens after the server starts listening on localhost: binding the extra resolved addresses, logging the address and running the onListen hooks",
+      "gold_files": [
+        "lib/hooks.js",
+        "lib/server.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "multipleBindings"
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "listenCallback"
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onListenHookRunner"
+        }
+      ],
+      "note": "listenCallback starts and reports listening, multipleBindings adds secondary servers, and onListenHookRunner runs the hooks."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how a per-request identifier is produced, optionally taken from an incoming header, and attached to the request-scoped logger",
+      "gold_files": [
+        "lib/logger-factory.js",
+        "lib/req-id-gen-factory.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "reqIdGenFactory"
+        },
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "buildOptionalHeaderReqId"
+        },
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "createChildLogger"
+        }
+      ],
+      "note": "reqIdGenFactory/buildOptionalHeaderReqId generate the id and createChildLogger binds it to the child logger."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "adding custom properties to the request and reply classes so that child scopes inherit them when instances are constructed",
+      "gold_files": [
+        "lib/decorate.js",
+        "lib/reply.js",
+        "lib/request.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateConstructor"
+        },
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateRequest"
+        },
+        {
+          "path": "lib/decorate.js",
+          "qualified_name": "decorateReply"
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "buildRegularRequest"
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "buildReply"
+        }
+      ],
+      "note": "decorateConstructor records props on the constructor and buildRegularRequest/buildReply copy those props onto each new instance."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how a request whose URL path cannot be decoded is answered: the main router's handler honoring a custom framework-error callback, and the router used for not-found scopes",
+      "gold_files": [
+        "fastify.js",
+        "lib/four-oh-four.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "onBadUrl"
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "createOnBadUrl"
+        }
+      ],
+      "note": "fastify.js onBadUrl answers bad URLs for the main router (frameworkErrors or 400 JSON) while createOnBadUrl builds the 404 router's equivalent."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "lib/route.js",
+        "qualified_name": "routeHandler"
+      },
+      "gold_context": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "getGenReqId",
+          "need": "signature",
+          "why": "routeHandler obtains the request id from the server's generator through this helper."
+        },
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "createChildLogger",
+          "need": "signature",
+          "why": "builds the child logger from context, logger, req, id and options; argument order must be kept."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "setupResponseListeners",
+          "need": "signature",
+          "why": "called when logging, onResponse hooks or handler timeout are active to attach finish/error listeners."
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "runPreParsing",
+          "need": "body",
+          "why": "the callback that receives control after onRequest hooks; routeHandler relies on its (err, request, reply) contract."
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "handleTimeout",
+          "need": "body",
+          "why": "socket timeout listener that relies on the socket._meta object routeHandler stores."
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onRequestAbortHookRunner",
+          "need": "signature",
+          "why": "routeHandler runs abort hooks through it when the request is aborted."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "lib/handle-request.js",
+        "qualified_name": "handleRequest"
+      },
+      "gold_context": [
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "handler",
+          "need": "body",
+          "why": "handleRequest delegates to handler for bodyless methods and empty bodies; it starts the validation pipeline."
+        },
+        {
+          "path": "lib/content-type.js",
+          "qualified_name": "ContentType",
+          "need": "signature",
+          "why": "handleRequest constructs it from the content-type header and checks isValid."
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "runPreParsing",
+          "need": "body",
+          "why": "caller that binds handleRequest as the continuation after preParsing hooks."
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback",
+          "need": "signature",
+          "why": "next stage after handler, whose (err, request, reply) contract follows the same convention."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "lib/reply.js",
+        "qualified_name": "onSendEnd"
+      },
+      "gold_context": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendStream",
+          "need": "signature",
+          "why": "onSendEnd delegates node streams to it."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendWebStream",
+          "need": "signature",
+          "why": "onSendEnd delegates web streams to it."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "safeWriteHead",
+          "need": "body",
+          "why": "writes the status and headers and logs a hint if the reply was already sent."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "sendTrailer",
+          "need": "signature",
+          "why": "closes the response and emits trailers after the payload is written."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendHook",
+          "need": "signature",
+          "why": "calls onSendEnd directly when there are no onSend hooks, otherwise passes wrapOnSendEnd to the hook runner."
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onSendHookRunner",
+          "need": "signature",
+          "why": "runs the onSend hooks whose (possibly replaced) payload is what onSendEnd receives."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "lib/error-handler.js",
+        "qualified_name": "handleError"
+      },
+      "gold_context": [
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler",
+          "need": "body",
+          "why": "handleError calls it when no user error handler remains or after an error handler throws."
+        },
+        {
+          "path": "lib/wrap-thenable.js",
+          "qualified_name": "wrapThenable",
+          "need": "signature",
+          "why": "used when the error handler returns a promise."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook",
+          "need": "body",
+          "why": "caller that runs onError hooks and then invokes handleError."
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "buildErrorHandler",
+          "need": "signature",
+          "why": "builds the error handler chain that handleError walks through kReplyNextErrorHandler."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "lib/validation.js",
+        "qualified_name": "validate"
+      },
+      "gold_context": [
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validateParam",
+          "need": "body",
+          "why": "runs one compiled validator and normalizes sync or async results that validate branches on."
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "wrapValidationError",
+          "need": "body",
+          "why": "turns validator output into an error with statusCode and validationContext."
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "getEssenceMediaType",
+          "need": "signature",
+          "why": "used to pick the body validator by media type."
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "validateAsyncParams",
+          "need": "signature",
+          "why": "async continuation that re-enters validate with skip flags."
+        },
+        {
+          "path": "lib/handle-request.js",
+          "qualified_name": "preValidationCallback",
+          "need": "signature",
+          "why": "the caller that consumes validate's return value (false, error or promise)."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "lib/server.js",
+        "qualified_name": "listenCallback"
+      },
+      "gold_context": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "logServerAddress",
+          "need": "signature",
+          "why": "listenCallback calls it with the server and text resolver to log and return the address."
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "defaultResolveServerListeningText",
+          "need": "signature",
+          "why": "default text resolver used when no listenTextResolver option is given."
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "multipleBindings",
+          "need": "signature",
+          "why": "invoked from within the cb callback and also calls listenCallback for secondary servers."
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "listenPromise",
+          "need": "body",
+          "why": "promise-based sibling that duplicates the listening logic and must stay consistent."
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onListenHookRunner",
+          "need": "signature",
+          "why": "run after the listen callback reports success."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "lib/route.js",
+        "qualified_name": "prepareRoute"
+      },
+      "gold_context": [
+        {
+          "path": "lib/route.js",
+          "qualified_name": "route",
+          "need": "signature",
+          "why": "prepareRoute builds the options object and calls route with it."
+        },
+        {
+          "path": "fastify.js",
+          "qualified_name": "addHttpMethod",
+          "need": "body",
+          "why": "caller that registers shorthand route methods through prepareRoute."
+        },
+        {
+          "path": "lib/route.js",
+          "qualified_name": "addNewRoute",
+          "need": "body",
+          "why": "calls prepareRoute for the derived HEAD route and consumes its options."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "lib/schemas.js",
+        "qualified_name": "getSchemaSerializer"
+      },
+      "gold_context": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "serialize",
+          "need": "body",
+          "why": "calls it to find the serializer for the reply status and content type."
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "fallbackErrorHandler",
+          "need": "body",
+          "why": "uses it to serialize errors with a response schema."
+        },
+        {
+          "path": "lib/validation.js",
+          "qualified_name": "compileSchemasForSerialization",
+          "need": "body",
+          "why": "builds the kSchemaResponse structure that getSchemaSerializer reads."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "lib/four-oh-four.js",
+        "qualified_name": "setNotFoundHandler"
+      },
+      "gold_context": [
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "_setNotFoundHandler",
+          "need": "body",
+          "why": "deferred worker that creates the 404 context and router entries."
+        },
+        {
+          "path": "fastify.js",
+          "qualified_name": "setNotFoundHandler",
+          "need": "body",
+          "why": "public method that calls this function with avvio and routeHandler."
+        },
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "basic404",
+          "need": "signature",
+          "why": "default handler assigned when none is provided."
+        },
+        {
+          "path": "lib/context.js",
+          "qualified_name": "Context",
+          "need": "signature",
+          "why": "the 404 context is created with the Context constructor."
+        },
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "buildErrorHandler",
+          "need": "signature",
+          "why": "used in the preReady hook to set the 404 context's error handler."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "lib/hooks.js",
+        "qualified_name": "onSendHookRunner"
+      },
+      "gold_context": [
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onSendHook",
+          "need": "body",
+          "why": "calls it with wrapOnSendEnd as callback for onSend hooks."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "onErrorHook",
+          "need": "body",
+          "why": "reuses it to run onError hooks with a different callback."
+        },
+        {
+          "path": "lib/reply.js",
+          "qualified_name": "preSerializationHook",
+          "need": "signature",
+          "why": "reuses it as preSerializationHookRunner for preSerialization hooks."
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "hookRunnerGenerator",
+          "need": "signature",
+          "why": "sibling runner factory for the other hooks; contrasts payload-carrying behaviour."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude review session (not the author); edits logged in the review log; owner review pending",
+  "reviewed_at": "2026-09-29"
+}
