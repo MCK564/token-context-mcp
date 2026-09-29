@@ -1,0 +1,2547 @@
+{
+  "tasks_file": "evals/tasks/bench_rich.json",
+  "repo_id": "bench-rich",
+  "loc": [
+    {
+      "id": "t01",
+      "gold": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.wrap",
+          "found": true,
+          "kind": "function",
+          "span": "1201-1250",
+          "lines": 50,
+          "body_returned": true,
+          "body_chars": 1955,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t02",
+      "gold": [
+        {
+          "path": "rich/color.py",
+          "qualified_name": "Color.parse",
+          "found": true,
+          "kind": "function",
+          "span": "433-482",
+          "lines": 50,
+          "body_returned": true,
+          "body_chars": 1915,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t03",
+      "gold": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.export_svg",
+          "found": true,
+          "kind": "function",
+          "span": "2352-2604",
+          "lines": 253,
+          "body_returned": true,
+          "body_chars": 9702,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t04",
+      "gold": [
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.guess_lexer",
+          "found": true,
+          "kind": "function",
+          "span": "383-422",
+          "lines": 40,
+          "body_returned": true,
+          "body_chars": 1702,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t05",
+      "gold": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.add_row",
+          "found": true,
+          "kind": "function",
+          "span": "422-467",
+          "lines": 46,
+          "body_returned": true,
+          "body_chars": 1907,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t06",
+      "gold": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "escape",
+          "found": true,
+          "kind": "function",
+          "span": "48-70",
+          "lines": 23,
+          "body_returned": true,
+          "body_chars": 679,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t07",
+      "gold": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.split_row",
+          "found": true,
+          "kind": "function",
+          "span": "299-305",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 293,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t08",
+      "gold": [
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "track",
+          "found": true,
+          "kind": "function",
+          "span": "104-179",
+          "lines": 76,
+          "body_returned": true,
+          "body_chars": 3298,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t09",
+      "gold": [
+        {
+          "path": "rich/filesize.py",
+          "qualified_name": "pick_unit_and_suffix",
+          "found": true,
+          "kind": "function",
+          "span": "43-49",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 278,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "gold": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.highlight_regex",
+          "found": true,
+          "kind": "function",
+          "span": "593-631",
+          "lines": 39,
+          "body_returned": true,
+          "body_chars": 1590,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "gold": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console._detect_color_system",
+          "found": true,
+          "kind": "function",
+          "span": "789-811",
+          "lines": 23,
+          "body_returned": true,
+          "body_chars": 1057,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "gold": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "render",
+          "found": true,
+          "kind": "function",
+          "span": "106-231",
+          "lines": 126,
+          "body_returned": true,
+          "body_chars": 4793,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "gold": [
+        {
+          "path": "rich/box.py",
+          "qualified_name": "Box.substitute",
+          "found": true,
+          "kind": "function",
+          "span": "67-83",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 739,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "gold": [
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.position_cursor",
+          "found": true,
+          "kind": "function",
+          "span": "51-70",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 657,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "gold": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.extract",
+          "found": true,
+          "kind": "function",
+          "span": "433-624",
+          "lines": 192,
+          "body_returned": true,
+          "body_chars": 8174,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "gold": [
+        {
+          "path": "rich/spinner.py",
+          "qualified_name": "Spinner.__init__",
+          "found": true,
+          "kind": "function",
+          "span": "26-48",
+          "lines": 23,
+          "body_returned": true,
+          "body_chars": 767,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "gold": [
+        {
+          "path": "rich/filesize.py",
+          "qualified_name": "decimal",
+          "found": true,
+          "kind": "function",
+          "span": "52-88",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1114,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "gold": [
+        {
+          "path": "rich/ansi.py",
+          "qualified_name": "AnsiDecoder.decode_line",
+          "found": true,
+          "kind": "function",
+          "span": "138-211",
+          "lines": 74,
+          "body_returned": true,
+          "body_chars": 3229,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "gold": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._collapse_widths",
+          "found": true,
+          "kind": "function",
+          "span": "589-625",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1572,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "gold": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.expand_tabs",
+          "found": true,
+          "kind": "function",
+          "span": "817-857",
+          "lines": 41,
+          "body_returned": true,
+          "body_chars": 1436,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "gold": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.print",
+          "found": true,
+          "kind": "function",
+          "span": "1652-1756",
+          "lines": 105,
+          "body_returned": true,
+          "body_chars": 4725,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_str",
+          "found": true,
+          "kind": "function",
+          "span": "1409-1468",
+          "lines": 60,
+          "body_returned": true,
+          "body_chars": 2486,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "render",
+          "found": true,
+          "kind": "function",
+          "span": "106-231",
+          "lines": 126,
+          "body_returned": true,
+          "body_chars": 4793,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "689-705",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 693,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "gold": [
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.emit",
+          "found": true,
+          "kind": "function",
+          "span": "138-188",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 2228,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render",
+          "found": true,
+          "kind": "function",
+          "span": "215-247",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 1222,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/_log_render.py",
+          "qualified_name": "LogRender.__call__",
+          "found": true,
+          "kind": "function",
+          "span": "32-86",
+          "lines": 55,
+          "body_returned": true,
+          "body_chars": 2106,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "gold": [
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.refresh",
+          "found": true,
+          "kind": "function",
+          "span": "244-276",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 1423,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.set_renderable",
+          "found": true,
+          "kind": "function",
+          "span": "43-49",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 237,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "86-116",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 1174,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "gold": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._calculate_column_widths",
+          "found": true,
+          "kind": "function",
+          "span": "523-586",
+          "lines": 64,
+          "body_returned": true,
+          "body_chars": 2786,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._measure_column",
+          "found": true,
+          "kind": "function",
+          "span": "716-753",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1461,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/measure.py",
+          "qualified_name": "Measurement.get",
+          "found": true,
+          "kind": "function",
+          "span": "79-122",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 1816,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "gold": [
+        {
+          "path": "rich/prompt.py",
+          "qualified_name": "PromptBase.__call__",
+          "found": true,
+          "kind": "function",
+          "span": "280-301",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 777,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/prompt.py",
+          "qualified_name": "PromptBase.get_input",
+          "found": true,
+          "kind": "function",
+          "span": "194-211",
+          "lines": 18,
+          "body_returned": true,
+          "body_chars": 449,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.input",
+          "found": true,
+          "kind": "function",
+          "span": "2156-2190",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 1361,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t26",
+      "gold": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback._render_stack",
+          "found": true,
+          "kind": "function",
+          "span": "768-895",
+          "lines": 128,
+          "body_returned": true,
+          "body_chars": 5385,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.__init__",
+          "found": true,
+          "kind": "function",
+          "span": "279-315",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1338,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.stylize_range",
+          "found": true,
+          "kind": "function",
+          "span": "555-574",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 837,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "gold": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.wrap",
+          "found": true,
+          "kind": "function",
+          "span": "1201-1250",
+          "lines": 50,
+          "body_returned": true,
+          "body_chars": 1955,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/_wrap.py",
+          "qualified_name": "divide_line",
+          "found": true,
+          "kind": "function",
+          "span": "26-78",
+          "lines": 53,
+          "body_returned": true,
+          "body_chars": 2213,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "cell_len",
+          "found": true,
+          "kind": "function",
+          "span": "98-110",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 483,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t28",
+      "gold": [
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "BarColumn.render",
+          "found": true,
+          "kind": "function",
+          "span": "673-685",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 583,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "Progress.make_tasks_table",
+          "found": true,
+          "kind": "function",
+          "span": "1562-1593",
+          "lines": 32,
+          "body_returned": true,
+          "body_chars": 1037,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/progress_bar.py",
+          "qualified_name": "ProgressBar.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "156-198",
+          "lines": 43,
+          "body_returned": true,
+          "body_chars": 1799,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t29",
+      "gold": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout._make_region_map",
+          "found": true,
+          "kind": "function",
+          "span": "345-364",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 830,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.render",
+          "found": true,
+          "kind": "function",
+          "span": "366-393",
+          "lines": 28,
+          "body_returned": true,
+          "body_chars": 1077,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/region.py",
+          "qualified_name": "Region",
+          "found": true,
+          "kind": "class",
+          "span": "4-10",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 133,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t30",
+      "gold": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.pager",
+          "found": true,
+          "kind": "function",
+          "span": "1113-1134",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 1001,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "PagerContext.__exit__",
+          "found": true,
+          "kind": "function",
+          "span": "383-400",
+          "lines": 18,
+          "body_returned": true,
+          "body_chars": 739,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "rich/pager.py",
+          "qualified_name": "SystemPager.show",
+          "found": true,
+          "kind": "function",
+          "span": "23-25",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 114,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ],
+  "packet": [
+    {
+      "id": "p01",
+      "target": {
+        "path": "rich/console.py",
+        "qualified_name": "Console.print",
+        "found": true,
+        "kind": "function",
+        "span": "1652-1756",
+        "lines": 105,
+        "body_returned": true,
+        "body_chars": 4725,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console._collect_renderables",
+          "found": true,
+          "kind": "function",
+          "span": "1500-1587",
+          "lines": 88,
+          "body_returned": true,
+          "body_chars": 3261,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render",
+          "found": true,
+          "kind": "function",
+          "span": "1294-1343",
+          "lines": 50,
+          "body_returned": true,
+          "body_chars": 2150,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "RenderHook.process_renderables",
+          "found": true,
+          "kind": "function",
+          "span": "548-560",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 456,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.apply_style",
+          "found": true,
+          "kind": "function",
+          "span": "187-225",
+          "lines": 39,
+          "body_returned": true,
+          "body_chars": 1417,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.split_and_crop_lines",
+          "found": true,
+          "kind": "function",
+          "span": "307-351",
+          "lines": 45,
+          "body_returned": true,
+          "body_chars": 1742,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "tests/test_console.py",
+          "qualified_name": "test_print",
+          "found": true,
+          "kind": "function",
+          "span": "189-192",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 164,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "target": {
+        "path": "rich/text.py",
+        "qualified_name": "Text.wrap",
+        "found": true,
+        "kind": "function",
+        "span": "1201-1250",
+        "lines": 50,
+        "body_returned": true,
+        "body_chars": 1955,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/_wrap.py",
+          "qualified_name": "divide_line",
+          "found": true,
+          "kind": "function",
+          "span": "26-78",
+          "lines": 53,
+          "body_returned": true,
+          "body_chars": 2213,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.split",
+          "found": true,
+          "kind": "function",
+          "span": "1062-1104",
+          "lines": 43,
+          "body_returned": true,
+          "body_chars": 1434,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/containers.py",
+          "qualified_name": "Lines",
+          "found": true,
+          "kind": "class",
+          "span": "66-167",
+          "lines": 102,
+          "body_returned": true,
+          "body_chars": 3823,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "689-705",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 693,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "tests/test_text.py",
+          "qualified_name": "test_wrap_3",
+          "found": true,
+          "kind": "function",
+          "span": "457-464",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 240,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "target": {
+        "path": "rich/live.py",
+        "qualified_name": "Live.refresh",
+        "found": true,
+        "kind": "function",
+        "span": "244-276",
+        "lines": 33,
+        "body_returned": true,
+        "body_chars": 1423,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.set_renderable",
+          "found": true,
+          "kind": "function",
+          "span": "43-49",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 237,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/control.py",
+          "qualified_name": "Control",
+          "found": true,
+          "kind": "class",
+          "span": "48-178",
+          "lines": 131,
+          "body_returned": true,
+          "body_chars": 3803,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.process_renderables",
+          "found": true,
+          "kind": "function",
+          "span": "278-297",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 921,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.update",
+          "found": true,
+          "kind": "function",
+          "span": "230-242",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 528,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "Progress.refresh",
+          "found": true,
+          "kind": "function",
+          "span": "1547-1550",
+          "lines": 4,
+          "body_returned": true,
+          "body_chars": 169,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "target": {
+        "path": "rich/table.py",
+        "qualified_name": "Table._calculate_column_widths",
+        "found": true,
+        "kind": "function",
+        "span": "523-586",
+        "lines": 64,
+        "body_returned": true,
+        "body_chars": 2786,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._measure_column",
+          "found": true,
+          "kind": "function",
+          "span": "716-753",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 1461,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._collapse_widths",
+          "found": true,
+          "kind": "function",
+          "span": "589-625",
+          "lines": 37,
+          "body_returned": true,
+          "body_chars": 1572,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/_ratio.py",
+          "qualified_name": "ratio_distribute",
+          "found": true,
+          "kind": "function",
+          "span": "107-140",
+          "lines": 34,
+          "body_returned": true,
+          "body_chars": 1170,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/_ratio.py",
+          "qualified_name": "ratio_reduce",
+          "found": true,
+          "kind": "function",
+          "span": "75-104",
+          "lines": 30,
+          "body_returned": true,
+          "body_chars": 1073,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "ConsoleOptions.update_width",
+          "found": true,
+          "kind": "function",
+          "span": "194-205",
+          "lines": 12,
+          "body_returned": true,
+          "body_chars": 394,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "475-521",
+          "lines": 47,
+          "body_returned": true,
+          "body_chars": 1603,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.__rich_measure__",
+          "found": true,
+          "kind": "function",
+          "span": "320-351",
+          "lines": 32,
+          "body_returned": true,
+          "body_chars": 1127,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "target": {
+        "path": "rich/traceback.py",
+        "qualified_name": "Traceback._render_stack",
+        "found": true,
+        "kind": "function",
+        "span": "768-895",
+        "lines": 128,
+        "body_returned": true,
+        "body_chars": 5385,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback._guess_lexer",
+          "found": true,
+          "kind": "function",
+          "span": "752-765",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 742,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.render_locals",
+          "found": true,
+          "kind": "function",
+          "span": "772-782",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 484,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "_iter_syntax_lines",
+          "found": true,
+          "kind": "function",
+          "span": "56-81",
+          "lines": 26,
+          "body_returned": true,
+          "body_chars": 679,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax",
+          "found": true,
+          "kind": "class",
+          "span": "243-841",
+          "lines": 599,
+          "body_returned": true,
+          "body_chars": 27,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_body_tokens_needed",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [
+            "root_body_omitted_budget"
+          ],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.assemble",
+          "found": true,
+          "kind": "function",
+          "span": "357-400",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 1822,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/columns.py",
+          "qualified_name": "Columns",
+          "found": true,
+          "kind": "class",
+          "span": "16-171",
+          "lines": 156,
+          "body_returned": true,
+          "body_chars": 6247,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.render_stack",
+          "found": true,
+          "kind": "function",
+          "span": "658-723",
+          "lines": 66,
+          "body_returned": true,
+          "body_chars": 2972,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "target": {
+        "path": "rich/markup.py",
+        "qualified_name": "render",
+        "found": true,
+        "kind": "function",
+        "span": "106-231",
+        "lines": 126,
+        "body_returned": true,
+        "body_chars": 4793,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "_parse",
+          "found": true,
+          "kind": "function",
+          "span": "73-103",
+          "lines": 31,
+          "body_returned": true,
+          "body_chars": 1141,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text",
+          "found": true,
+          "kind": "class",
+          "span": "118-1335",
+          "lines": 1218,
+          "body_returned": true,
+          "body_chars": 25,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_body_tokens_needed",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [
+            "root_body_omitted_budget"
+          ],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/style.py",
+          "qualified_name": "Style.normalize",
+          "found": true,
+          "kind": "function",
+          "span": "389-402",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 434,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/style.py",
+          "qualified_name": "StyleStack.pop",
+          "found": true,
+          "kind": "function",
+          "span": "789-796",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 220,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/errors.py",
+          "qualified_name": "MarkupError",
+          "found": true,
+          "kind": "class",
+          "span": "25-26",
+          "lines": 2,
+          "body_returned": true,
+          "body_chars": 70,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "target": {
+        "path": "rich/cells.py",
+        "qualified_name": "cell_len",
+        "found": true,
+        "kind": "function",
+        "span": "98-110",
+        "lines": 13,
+        "body_returned": true,
+        "body_chars": 483,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "cached_cell_len",
+          "found": true,
+          "kind": "function",
+          "span": "82-95",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 537,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "_cell_len",
+          "found": true,
+          "kind": "function",
+          "span": "113-158",
+          "lines": 46,
+          "body_returned": true,
+          "body_chars": 1514,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.cell_len",
+          "found": true,
+          "kind": "function",
+          "span": "225-227",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 130,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "set_cell_size",
+          "found": true,
+          "kind": "function",
+          "span": "299-323",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 805,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "target": {
+        "path": "rich/logging.py",
+        "qualified_name": "RichHandler.emit",
+        "found": true,
+        "kind": "function",
+        "span": "138-188",
+        "lines": 51,
+        "body_returned": true,
+        "body_chars": 2228,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render_message",
+          "found": true,
+          "kind": "function",
+          "span": "190-213",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 838,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render",
+          "found": true,
+          "kind": "function",
+          "span": "215-247",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 1222,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.from_exception",
+          "found": true,
+          "kind": "function",
+          "span": "353-430",
+          "lines": 78,
+          "body_returned": true,
+          "body_chars": 3868,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.__init__",
+          "found": true,
+          "kind": "function",
+          "span": "71-121",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 2155,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "target": {
+        "path": "rich/segment.py",
+        "qualified_name": "Segment.split_and_crop_lines",
+        "found": true,
+        "kind": "function",
+        "span": "307-351",
+        "lines": 45,
+        "body_returned": true,
+        "body_chars": 1742,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.adjust_line_length",
+          "found": true,
+          "kind": "function",
+          "span": "354-396",
+          "lines": 43,
+          "body_returned": true,
+          "body_chars": 1671,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_lines",
+          "found": true,
+          "kind": "function",
+          "span": "1345-1407",
+          "lines": 63,
+          "body_returned": true,
+          "body_chars": 2564,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.print",
+          "found": true,
+          "kind": "function",
+          "span": "1652-1756",
+          "lines": 105,
+          "body_returned": true,
+          "body_chars": 4725,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.log",
+          "found": true,
+          "kind": "function",
+          "span": "1947-2028",
+          "lines": 82,
+          "body_returned": true,
+          "body_chars": 3477,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "tests/test_segment.py",
+          "qualified_name": "test_split_and_crop_lines",
+          "found": true,
+          "kind": "function",
+          "span": "52-59",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 288,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "target": {
+        "path": "rich/layout.py",
+        "qualified_name": "Layout.render",
+        "found": true,
+        "kind": "function",
+        "span": "366-393",
+        "lines": 28,
+        "body_returned": true,
+        "body_chars": 1077,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout._make_region_map",
+          "found": true,
+          "kind": "function",
+          "span": "345-364",
+          "lines": 20,
+          "body_returned": true,
+          "body_chars": 830,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "LayoutRender",
+          "found": true,
+          "kind": "class",
+          "span": "32-36",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 122,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "ConsoleOptions.update_dimensions",
+          "found": true,
+          "kind": "function",
+          "span": "230-243",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 514,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_lines",
+          "found": true,
+          "kind": "function",
+          "span": "1345-1407",
+          "lines": 63,
+          "body_returned": true,
+          "body_chars": 2564,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.__rich_console__",
+          "found": true,
+          "kind": "function",
+          "span": "395-415",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 901,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "loc_tasks": 30,
+    "packet_tasks": 10,
+    "missing_gold": 0,
+    "packet_reach_items": 53,
+    "packet_reach_hit": 53,
+    "packet_reach_ceiling": 1.0
+  }
+}

@@ -1,0 +1,1008 @@
+{
+  "repo_id": "bench-rich",
+  "repo_url": "https://github.com/Textualize/rich",
+  "tag": "v15.0.0",
+  "commit_sha": "6ac483cbea39cab124dfd3483bba70ffafb71050",
+  "license": "MIT",
+  "reviewed": false,
+  "split_seed": null,
+  "review_note": "M10.1 draft by Claude (2026-09-29). All 30 tasks form the TEST set; nothing may be tuned against them. Every gold symbol was located in the index and its body read; queries in group b_hidden_dep avoid the target name, its qualified-name parts >= 4 chars and the file stem (lint Rule 3). Awaiting review by the repo owner or by a different Claude session: reviewer edits the copy in tmp/review/, sets reviewed=true and fills review_note.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "wrap text into lines that fit a given width",
+      "gold_files": [
+        "rich/text.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.wrap"
+        }
+      ],
+      "note": "Text.wrap divides the text into a Lines object no wider than the width, using divide_line per paragraph."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "parse color string hex rgb ansi name into Color",
+      "gold_files": [
+        "rich/color.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/color.py",
+          "qualified_name": "Color.parse"
+        }
+      ],
+      "note": "Color.parse turns names, #rrggbb, rgb(...) and color(N) strings into Color objects."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "export console recording as svg image",
+      "gold_files": [
+        "rich/console.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.export_svg"
+        }
+      ],
+      "note": "Console.export_svg renders recorded segments into an SVG document string."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "guess pygments lexer from file name or code",
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.guess_lexer"
+        }
+      ],
+      "note": "Syntax.guess_lexer picks a lexer name from the path (and optionally the code)."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "add row of renderables to table",
+      "gold_files": [
+        "rich/table.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.add_row"
+        }
+      ],
+      "note": "Table.add_row appends a row of renderables, creating columns when needed."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "escape square brackets in markup string",
+      "gold_files": [
+        "rich/markup.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "escape"
+        }
+      ],
+      "note": "markup.escape backslash-escapes tag-like square brackets."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "split layout in to a row of side by side layouts",
+      "gold_files": [
+        "rich/layout.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.split_row"
+        }
+      ],
+      "note": "Layout.split_row splits the layout into a row of child layouts."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "track progress over an iterable with progress bar",
+      "gold_files": [
+        "rich/progress.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "track"
+        }
+      ],
+      "note": "progress.track wraps an iterable and displays a progress bar while iterating."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "pick unit and suffix for file size in bytes",
+      "gold_files": [
+        "rich/filesize.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/filesize.py",
+          "qualified_name": "pick_unit_and_suffix"
+        }
+      ],
+      "note": "filesize.pick_unit_and_suffix chooses the largest unit for a byte count."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "highlight regex matches in text with style",
+      "gold_files": [
+        "rich/text.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.highlight_regex"
+        }
+      ],
+      "note": "Text.highlight_regex stylizes every match of a regular expression."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "environment variables and tty checks deciding the palette depth at startup",
+      "gold_files": [
+        "rich/console.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console._detect_color_system"
+        }
+      ],
+      "note": "Console._detect_color_system inspects jupyter, tty, dumb terminal, Windows features, COLORTERM and TERM to choose the color system."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "turns bracketed tag notation inside a string into styled spans",
+      "gold_files": [
+        "rich/markup.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "render"
+        }
+      ],
+      "note": "markup.render parses [tag] notation and produces a Text with spans."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "swap border glyphs for plain ascii ones on limited terminals",
+      "gold_files": [
+        "rich/box.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/box.py",
+          "qualified_name": "Box.substitute"
+        }
+      ],
+      "note": "Box.substitute returns a legacy-Windows or ASCII replacement box when the terminal cannot draw the original."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "emits escape codes that go back up over previously drawn lines and blank them so a dynamic display can repaint in place",
+      "gold_files": [
+        "rich/live_render.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.position_cursor"
+        }
+      ],
+      "note": "LiveRender.position_cursor builds a Control that returns to the start of the last drawing and erases each line."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "walks a raised error's chain of causes and contexts, collecting stack frames along with local variables",
+      "gold_files": [
+        "rich/traceback.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.extract"
+        }
+      ],
+      "note": "Traceback.extract builds a Trace of Stack/Frame objects following __cause__ and __context__."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "animated loading indicator picks its frame sequence and interval from a lookup table by name",
+      "gold_files": [
+        "rich/spinner.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/spinner.py",
+          "qualified_name": "Spinner.__init__"
+        }
+      ],
+      "note": "Spinner.__init__ looks up the named entry in SPINNERS and raises KeyError when unknown."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "human friendly byte counts with kilo mega giga suffixes",
+      "gold_files": [
+        "rich/filesize.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/filesize.py",
+          "qualified_name": "decimal"
+        }
+      ],
+      "note": "filesize.decimal formats a byte count in SI (powers of 1000) units."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "converts raw terminal escape codes embedded in a string back into styled output",
+      "gold_files": [
+        "rich/ansi.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/ansi.py",
+          "qualified_name": "AnsiDecoder.decode_line"
+        }
+      ],
+      "note": "AnsiDecoder.decode_line tokenizes SGR escape sequences into a Text with styles."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "shrinks the widest fields first when a grid exceeds the screen width",
+      "gold_files": [
+        "rich/table.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._collapse_widths"
+        }
+      ],
+      "note": "Table._collapse_widths reduces the widest wrapable columns until the total fits max_width."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "replaces indentation made of hard tab characters with spaces up to the next stop while keeping styled ranges aligned",
+      "gold_files": [
+        "rich/text.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.expand_tabs"
+        }
+      ],
+      "note": "Text.expand_tabs replaces tabs with spaces up to the next tab stop and adjusts spans."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "print a string containing bracket tags until styled segments reach the output buffer",
+      "gold_files": [
+        "rich/console.py",
+        "rich/markup.py",
+        "rich/text.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.print"
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_str"
+        },
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "render"
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.__rich_console__"
+        }
+      ],
+      "note": "Console.print collects renderables, render_str calls markup.render to make a Text, and Text.__rich_console__ yields the segments."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "log record to formatted table row with time level and source path",
+      "gold_files": [
+        "rich/logging.py",
+        "rich/_log_render.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.emit"
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render"
+        },
+        {
+          "path": "rich/_log_render.py",
+          "qualified_name": "LogRender.__call__"
+        }
+      ],
+      "note": "RichHandler.emit renders the message and calls LogRender to build the time/level/message/path row."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how an update to the dynamic display reaches the terminal, from refresh to the stored shape of the last drawing",
+      "gold_files": [
+        "rich/live.py",
+        "rich/live_render.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.refresh"
+        },
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.set_renderable"
+        },
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.__rich_console__"
+        }
+      ],
+      "note": "Live.refresh hands the renderable to LiveRender and prints control codes plus the new segments."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "negotiating how wide every column becomes between measured content and available space",
+      "gold_files": [
+        "rich/table.py",
+        "rich/measure.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._calculate_column_widths"
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._measure_column"
+        },
+        {
+          "path": "rich/measure.py",
+          "qualified_name": "Measurement.get"
+        }
+      ],
+      "note": "_calculate_column_widths measures columns via _measure_column, which calls Measurement.get for each cell."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "asking the user for typed input with validation and a default value",
+      "gold_files": [
+        "rich/prompt.py",
+        "rich/console.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/prompt.py",
+          "qualified_name": "PromptBase.__call__"
+        },
+        {
+          "path": "rich/prompt.py",
+          "qualified_name": "PromptBase.get_input"
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.input"
+        }
+      ],
+      "note": "PromptBase.__call__ loops calling get_input, which delegates to Console.input."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "showing a syntax highlighted source snippet inside an error report",
+      "gold_files": [
+        "rich/traceback.py",
+        "rich/syntax.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback._render_stack"
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.__init__"
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.stylize_range"
+        }
+      ],
+      "note": "Traceback._render_stack builds a Syntax for each frame and stylizes the error range."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "wrapping text into lines while counting wide unicode glyphs by their terminal columns",
+      "gold_files": [
+        "rich/text.py",
+        "rich/_wrap.py",
+        "rich/cells.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.wrap"
+        },
+        {
+          "path": "rich/_wrap.py",
+          "qualified_name": "divide_line"
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "cell_len"
+        }
+      ],
+      "note": "Text.wrap uses divide_line, which measures words with cell_len and chops long words with chop_cells."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "drawing one progress row for a task, from completed percentage to the colored bar",
+      "gold_files": [
+        "rich/progress.py",
+        "rich/progress_bar.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "BarColumn.render"
+        },
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "Progress.make_tasks_table"
+        },
+        {
+          "path": "rich/progress_bar.py",
+          "qualified_name": "ProgressBar.__rich_console__"
+        }
+      ],
+      "note": "BarColumn.render builds a ProgressBar, whose __rich_console__ draws the bar segments."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "splitting the screen into rectangular regions and rendering each child into lines",
+      "gold_files": [
+        "rich/layout.py",
+        "rich/region.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout._make_region_map"
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.render"
+        },
+        {
+          "path": "rich/region.py",
+          "qualified_name": "Region"
+        }
+      ],
+      "note": "Layout._make_region_map assigns Region rectangles; Layout.render renders every leaf into lines for its region."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "showing long output through the system viewer one screen at a time",
+      "gold_files": [
+        "rich/console.py",
+        "rich/pager.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.pager"
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "PagerContext.__exit__"
+        },
+        {
+          "path": "rich/pager.py",
+          "qualified_name": "SystemPager.show"
+        }
+      ],
+      "note": "Console.pager returns a PagerContext whose __exit__ sends the buffered content to Pager.show."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "rich/console.py",
+        "qualified_name": "Console.print"
+      },
+      "gold_context": [
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console._collect_renderables",
+          "need": "signature",
+          "why": "print delegates the conversion of objects (str, markup, rich-cast) to renderables; sep/end/justify/emoji/markup/highlight must stay consistent with this signature."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render",
+          "need": "signature",
+          "why": "every renderable is turned into segments through render(renderable, render_options)."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "RenderHook.process_renderables",
+          "need": "signature",
+          "why": "render hooks such as Live may rewrite the renderables before they are rendered."
+        },
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.apply_style",
+          "need": "signature",
+          "why": "used when style= is passed to print."
+        },
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.split_and_crop_lines",
+          "need": "signature",
+          "why": "used when crop=True to cut the output to the console width."
+        },
+        {
+          "path": "tests/test_console.py",
+          "qualified_name": "test_print",
+          "need": "body",
+          "why": "test that pins the basic output format of print."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "rich/text.py",
+        "qualified_name": "Text.wrap"
+      },
+      "gold_context": [
+        {
+          "path": "rich/_wrap.py",
+          "qualified_name": "divide_line",
+          "need": "signature",
+          "why": "computes the break offsets of each line; wrap depends on its return contract."
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.split",
+          "need": "signature",
+          "why": "wrap splits the text into paragraphs before dividing each one."
+        },
+        {
+          "path": "rich/containers.py",
+          "qualified_name": "Lines",
+          "need": "signature",
+          "why": "wrap builds and returns a Lines container."
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.__rich_console__",
+          "need": "signature",
+          "why": "the caller that passes width, justify, overflow and tab_size into wrap."
+        },
+        {
+          "path": "tests/test_text.py",
+          "qualified_name": "test_wrap_3",
+          "need": "body",
+          "why": "test that pins wrapping behaviour."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "rich/live.py",
+        "qualified_name": "Live.refresh"
+      },
+      "gold_context": [
+        {
+          "path": "rich/live_render.py",
+          "qualified_name": "LiveRender.set_renderable",
+          "need": "signature",
+          "why": "refresh first hands the current renderable to the LiveRender."
+        },
+        {
+          "path": "rich/control.py",
+          "qualified_name": "Control",
+          "need": "signature",
+          "why": "refresh prints an empty Control so the render hook can emit cursor codes."
+        },
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.process_renderables",
+          "need": "signature",
+          "why": "the render hook that adds the cursor-repositioning control codes when the Live is printed."
+        },
+        {
+          "path": "rich/live.py",
+          "qualified_name": "Live.update",
+          "need": "signature",
+          "why": "caller that triggers refresh after replacing the renderable."
+        },
+        {
+          "path": "rich/progress.py",
+          "qualified_name": "Progress.refresh",
+          "need": "signature",
+          "why": "cross-module caller: Progress.refresh forwards to Live.refresh."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "rich/table.py",
+        "qualified_name": "Table._calculate_column_widths"
+      },
+      "gold_context": [
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._measure_column",
+          "need": "signature",
+          "why": "supplies the measured minimum and maximum width of each column."
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table._collapse_widths",
+          "need": "body",
+          "why": "the shrinking algorithm applied when the columns exceed the available width; its edge cases matter when editing."
+        },
+        {
+          "path": "rich/_ratio.py",
+          "qualified_name": "ratio_distribute",
+          "need": "signature",
+          "why": "used to hand out extra width among ratio columns."
+        },
+        {
+          "path": "rich/_ratio.py",
+          "qualified_name": "ratio_reduce",
+          "need": "signature",
+          "why": "used to take away excess width among ratio columns."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "ConsoleOptions.update_width",
+          "need": "signature",
+          "why": "used to derive the options for measuring with a given width."
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.__rich_console__",
+          "need": "signature",
+          "why": "caller that renders the table with the computed widths."
+        },
+        {
+          "path": "rich/table.py",
+          "qualified_name": "Table.__rich_measure__",
+          "need": "signature",
+          "why": "caller that measures the table with the computed widths."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "rich/traceback.py",
+        "qualified_name": "Traceback._render_stack"
+      },
+      "gold_context": [
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback._guess_lexer",
+          "need": "signature",
+          "why": "picks the lexer used for each frame's source."
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.render_locals",
+          "need": "signature",
+          "why": "renders the local variables table of a frame when show_locals is set."
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "_iter_syntax_lines",
+          "need": "signature",
+          "why": "yields the syntax ranges that _render_stack stylizes for the error position."
+        },
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax",
+          "need": "signature",
+          "why": "each frame's code snippet is rendered by a Syntax instance."
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.assemble",
+          "need": "signature",
+          "why": "builds the frame header line from styled pieces."
+        },
+        {
+          "path": "rich/columns.py",
+          "qualified_name": "Columns",
+          "need": "signature",
+          "why": "used to lay out the frame and its locals side by side."
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.render_stack",
+          "need": "signature",
+          "why": "the caller that iterates over frames and delegates to _render_stack."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "rich/markup.py",
+        "qualified_name": "render"
+      },
+      "gold_context": [
+        {
+          "path": "rich/markup.py",
+          "qualified_name": "_parse",
+          "need": "body",
+          "why": "yields the (position, text, tag) triples that render consumes; its escape handling defines what render sees."
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text",
+          "need": "signature",
+          "why": "render builds and returns a Text."
+        },
+        {
+          "path": "rich/style.py",
+          "qualified_name": "Style.normalize",
+          "need": "signature",
+          "why": "normalises style names before they are matched against closing tags."
+        },
+        {
+          "path": "rich/style.py",
+          "qualified_name": "StyleStack.pop",
+          "need": "signature",
+          "why": "render pops styles when a closing tag is found."
+        },
+        {
+          "path": "rich/errors.py",
+          "qualified_name": "MarkupError",
+          "need": "signature",
+          "why": "raised for unbalanced or unknown closing tags."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "rich/cells.py",
+        "qualified_name": "cell_len"
+      },
+      "gold_context": [
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "cached_cell_len",
+          "need": "signature",
+          "why": "cell_len delegates short strings to this cached variant."
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "_cell_len",
+          "need": "body",
+          "why": "the uncached implementation used for long strings; the length threshold in cell_len decides which one runs."
+        },
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.cell_len",
+          "need": "signature",
+          "why": "property that exposes cell_len on Text."
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "set_cell_size",
+          "need": "signature",
+          "why": "second caller inside the module that relies on cell_len."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "rich/logging.py",
+        "qualified_name": "RichHandler.emit"
+      },
+      "gold_context": [
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render_message",
+          "need": "signature",
+          "why": "builds the message renderable from the formatted text."
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.render",
+          "need": "signature",
+          "why": "assembles the log row (time, level, message, path) from the record."
+        },
+        {
+          "path": "rich/traceback.py",
+          "qualified_name": "Traceback.from_exception",
+          "need": "signature",
+          "why": "used when rich_tracebacks is enabled and the record has exc_info."
+        },
+        {
+          "path": "rich/logging.py",
+          "qualified_name": "RichHandler.__init__",
+          "need": "signature",
+          "why": "defines the tracebacks_* and rich_tracebacks attributes that emit reads."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "rich/segment.py",
+        "qualified_name": "Segment.split_and_crop_lines"
+      },
+      "gold_context": [
+        {
+          "path": "rich/segment.py",
+          "qualified_name": "Segment.adjust_line_length",
+          "need": "signature",
+          "why": "crops or pads each finished line to the requested length."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_lines",
+          "need": "signature",
+          "why": "caller that renders a renderable to fixed-width lines."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.print",
+          "need": "signature",
+          "why": "caller that crops printed output when crop=True."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.log",
+          "need": "signature",
+          "why": "caller that crops log output."
+        },
+        {
+          "path": "tests/test_segment.py",
+          "qualified_name": "test_split_and_crop_lines",
+          "need": "body",
+          "why": "test that pins the split-and-crop behaviour."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "rich/layout.py",
+        "qualified_name": "Layout.render"
+      },
+      "gold_context": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout._make_region_map",
+          "need": "signature",
+          "why": "produces the region for every layout that render then draws."
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "LayoutRender",
+          "need": "signature",
+          "why": "the tuple type stored in the returned render map."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "ConsoleOptions.update_dimensions",
+          "need": "signature",
+          "why": "used to size the options for each child region."
+        },
+        {
+          "path": "rich/console.py",
+          "qualified_name": "Console.render_lines",
+          "need": "signature",
+          "why": "renders each leaf layout into lines."
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.__rich_console__",
+          "need": "signature",
+          "why": "the caller that turns the render map into segments."
+        }
+      ]
+    }
+  ]
+}
