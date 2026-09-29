@@ -177,7 +177,7 @@ def test_touched_but_identical_file_is_hashed_not_parsed(tree: Path, tmp_path: P
 def test_non_code_change_updates_hash_without_parsing(tree: Path, tmp_path: Path) -> None:
     out = tmp_path / "idx"
     index(tree, out)
-    (tree / "README.md").write_text("# changed\n", encoding="utf-8")
+    (tree / "README.md").write_bytes(b"# changed\n")
     manifest = index(tree, out)
     assert manifest["parse_source_calls"] == 0 and manifest["files_hashed"] == 1
     sha = db_rows(out, "SELECT sha256 FROM files WHERE path = 'README.md'")[0][0]

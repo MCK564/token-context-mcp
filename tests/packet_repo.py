@@ -141,12 +141,12 @@ def build_packet_repo(tmp_path: Path, *, repo_id: str = REPO_ID) -> Path:
     root = tmp_path / "packet-src"
     (root / "pkg").mkdir(parents=True)
     (root / "tests").mkdir()
-    (root / "pkg" / "__init__.py").write_text("", encoding="utf-8")
-    (root / "pkg" / "model.py").write_text(MODEL_PY, encoding="utf-8")
-    (root / "pkg" / "util.py").write_text(UTIL_PY, encoding="utf-8")
-    (root / "pkg" / "service.py").write_text(SERVICE_PY, encoding="utf-8")
-    (root / "pkg" / "batch.py").write_text(BATCH_PY, encoding="utf-8")
-    (root / "tests" / "test_service.py").write_text(TEST_PY, encoding="utf-8")
+    (root / "pkg" / "__init__.py").write_text("", encoding="utf-8", newline="\n")
+    (root / "pkg" / "model.py").write_text(MODEL_PY, encoding="utf-8", newline="\n")
+    (root / "pkg" / "util.py").write_text(UTIL_PY, encoding="utf-8", newline="\n")
+    (root / "pkg" / "service.py").write_text(SERVICE_PY, encoding="utf-8", newline="\n")
+    (root / "pkg" / "batch.py").write_text(BATCH_PY, encoding="utf-8", newline="\n")
+    (root / "tests" / "test_service.py").write_text(TEST_PY, encoding="utf-8", newline="\n")
     config_path = tmp_path / "config" / "repos.toml"
     repo = RepositoryConfig(repo_id=repo_id, root=root.resolve())
     save_config(config_path, AppConfig(repositories={repo_id: repo}, server=ServerConfig()))
