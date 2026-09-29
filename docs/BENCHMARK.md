@@ -163,3 +163,65 @@ uv run python evals/bench_retrieval.py --tasks evals/tasks/bench_rich.json --con
 
 The harness and the retrieval code in `src/` are frozen at the local tag `m10-freeze` (after it only `gui/main.py` changed, for the GUI install hint).
 
+
+## M11 — second language: TypeScript (`honojs/hono`)
+
+Same harness, same arms, same pre-registered KPIs as the `rich` benchmark above, run on a TypeScript repository so that the result does not rest on Python alone.
+
+**Repository (pinned).** `honojs/hono` v4.9.9, commit `16eb88269ffb0ae68590ad55ac9ac58807850f26`, MIT, 359 corpus files. The index reports an ambiguous-edge rate of 45 % for this repository (Python repositories: about 2–10 %), which matters for the packet result below.
+
+**Tasks.** `evals/tasks/bench_hono.json`: 30 locate tasks (10 per group) and 10 packet tasks. **Review status: written by one Claude session and reviewed by a different Claude session, not by the repository owner.** The reviewer read every gold symbol in the source and changed 8 of 40 tasks (log: `evals/out/m11/bench_hono_review_log.md`); no retrieval tool was used to write or review them. After the first run aborted on a 205-character query (the tool accepts at most 200), the coordinator shortened that one query before any result had been seen. The owner has not reviewed this set, so treat these numbers as one notch less firm than the `rich` ones.
+
+Raw records and summary: `evals/out/m11/bench_hono_*`. Reproduce with `uv run python evals/bench_retrieval.py --tasks evals/tasks/bench_hono.json --config <dev repos.toml> --name hono --out-dir evals/out/m11`.
+
+### Locate tasks (30)
+
+| Arm | File Acc@5 (CI95) | Symbol Recall@10 (CI95) | Mean wire tokens | Latency p50 (ms) |
+|---|---|---|---:|---:|
+| `R0-grep` (unbounded) | 0.63 [0.43, 0.80] | 0.13 [0.03, 0.25] | 20,934 | 445 |
+| `R0-grep@R2` (cut to R2's tokens) | 0.23 [0.10, 0.40] | 0.01 [0.00, 0.03] | 1,877 | 445 |
+| `R0-read` (5 files whole) | 0.63 [0.43, 0.80] | 0.09 [0.01, 0.19] | 35,325 | 445 |
+| `R1` `search_source(expand="none")` | 0.80 [0.63, 0.93] | 0.55 [0.39, 0.71] | 1,878 | 23 |
+| `R2` `search_source(profile="locate")` | 0.80 [0.63, 0.93] | 0.66 [0.50, 0.81] | 1,888 | 25 |
+
+By group (means only; 10 tasks per group):
+
+| Group | Arm | File Acc@5 | Symbol Recall@10 | Mean wire tokens |
+|---|---|---|---|---:|
+| a_keyword | R0-grep | 0.70 | 0.20 | 22,560 |
+| a_keyword | R0-grep@R2 | 0.10 | 0.00 | 1,891 |
+| a_keyword | R1 | 0.80 | 0.70 | 1,887 |
+| a_keyword | R2 | 0.80 | 0.80 | 1,899 |
+| b_hidden_dep | R0-grep | 0.50 | 0.10 | 19,551 |
+| b_hidden_dep | R0-grep@R2 | 0.30 | 0.00 | 1,872 |
+| b_hidden_dep | R1 | 0.80 | 0.50 | 1,868 |
+| b_hidden_dep | R2 | 0.80 | 0.70 | 1,886 |
+| c_multi_file | R0-grep | 0.70 | 0.08 | 20,692 |
+| c_multi_file | R0-grep@R2 | 0.30 | 0.03 | 1,867 |
+| c_multi_file | R1 | 0.80 | 0.46 | 1,880 |
+| c_multi_file | R2 | 0.80 | 0.49 | 1,877 |
+
+### Packet tasks (10)
+
+`sig_coverage` 0.575 [0.41, 0.74], `ref_coverage` 0.575 [0.41, 0.74], `reach_ceiling` 0.575, `savings_vs_read` 0.569 [0.45, 0.69] (1,238 wire tokens against 4,124 to read the files).
+
+### Pre-registered KPIs
+
+| KPI | Result | Threshold | Met |
+|---|---|---|---|
+| R2 − `R0-grep@R2` File Acc@5 (same cost) | +0.567 [0.40, 0.73] | ≥ +0.10, CI excludes 0 | yes |
+| R2 − unbounded `R0-grep` File Acc@5 | +0.167 [0.00, 0.33] | ≥ −0.05 | yes |
+| R3 `sig_coverage` | 0.575 | ≥ 0.60 | **no** |
+| R3 `ref_coverage` | 0.575 | ≥ 0.80 | **no** |
+| R3 `savings_vs_read` | 0.569 | ≥ 0.70 | **no** |
+| R2 vs R1 (no threshold) | File Acc@5 +0.000; Symbol Recall@10 +0.111 [0.01, 0.23] | report only | n/a |
+
+### How to read this
+
+- **Locating works on TypeScript too.** At equal cost (about 1.9k tokens) R2 finds the right file in 80 % of tasks against 23 % for grep cut to the same size, and unbounded grep, which reads about 11 times more tokens (20,934 against 1,888), reaches only 63 %. Symbol Recall@10 is 0.66 against 0.13 for grep.
+- **Graph expansion helps here.** Unlike `rich`, R2 beats R1 on symbols (+0.11, CI95 excludes 0) at the same File Acc@5. One repository per language cannot say whether that is a language effect.
+- **The packet does not meet its targets on TypeScript.** Coverage (0.57) equals the reach ceiling (0.57): the packet returns what the call graph reaches, and 21 of the 48 gold neighbours (type definitions such as `Context` and `HTTPException`, callers through re-exports and adapters) are not reachable by the graph, because call edges are heavily ambiguous in this repository. The saving against reading is also smaller (0.57) because Hono's files are short. On Python (`rich`) the same KPIs were met (0.98 / 0.98 / 0.91).
+
+### Limits
+
+One repository, 30 + 10 tasks, wide intervals, a simulated grep baseline (its latency is not that of `rg`), retrieval only. The task set was reviewed by another Claude session but not by the owner. There is still no end-to-end (C3) measurement.
