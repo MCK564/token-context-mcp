@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "token-context-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Read-only, local code-context MCP server with provenance-aware retrieval."
 readme = "README.md"
 requires-python = ">=3.12"
