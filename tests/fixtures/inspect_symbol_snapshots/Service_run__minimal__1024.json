@@ -1,0 +1,56 @@
+{
+ "budget": {
+  "estimated_tokens": 392,
+  "requested_tokens": 1024
+ },
+ "data": {
+  "query": "Service.run",
+  "relationship_count": 4,
+  "relationships": [
+   [
+    "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "callee",
+    0.95
+   ],
+   [
+    "python:pkg/service.py:Service.summary:fb1fae25c7b030ac",
+    "callee",
+    0.95
+   ],
+   [
+    "python:pkg/util.py:helper_two:9b7ac48c5207ed32",
+    "callee",
+    0.9
+   ],
+   [
+    "python:tests/test_service.py:test_run_returns_summary:16260267547c1e1c",
+    "caller",
+    0.95
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "function",
+   "name": "run",
+   "path": "pkg/service.py",
+   "signature": "def run(self, names: list[str], flag: bool = False) -> str",
+   "start_line": 26,
+   "symbol_id": "python:pkg/service.py:Service.run:576db31cd810c9e8"
+  },
+  "target_symbol_id": "python:pkg/service.py:Service.run:576db31cd810c9e8"
+ },
+ "evidence": [
+  {
+   "end_line": 31,
+   "path": "pkg/service.py",
+   "sha256": "82debe1fda86",
+   "start_line": 26
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": false,
+ "warnings": []
+}

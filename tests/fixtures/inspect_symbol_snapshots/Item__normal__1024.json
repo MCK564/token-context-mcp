@@ -1,0 +1,46 @@
+{
+ "budget": {
+  "estimated_tokens": 402,
+  "requested_tokens": 1024
+ },
+ "data": {
+  "content": "class Item(Base):\n    \"\"\"A named thing.\"\"\"\n\n    def __init__(self, name: str, weight: int = 1) -> None:\n        self.name = name\n        self.weight = weight\n\n    def describe(self) -> str:\n        return f\"{self.name}:{self.weight}\"\n\n    def rename(self, new_name: str) -> None:\n        self.name = new_name",
+  "query": "Item",
+  "relationship_count": 1,
+  "relationships": [
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "target": "python:pkg/model.py:Item:db12e205680de411"
+   }
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "end_line": 23,
+   "kind": "class",
+   "name": "Item",
+   "path": "pkg/model.py",
+   "qualified_name": "Item",
+   "roles": [],
+   "signature": "class Item(Base)",
+   "start_line": 12,
+   "symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+  },
+  "target_symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+ },
+ "evidence": [
+  {
+   "end_line": 23,
+   "path": "pkg/model.py",
+   "sha256": "f920134d0f32",
+   "start_line": 12
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": false,
+ "warnings": []
+}

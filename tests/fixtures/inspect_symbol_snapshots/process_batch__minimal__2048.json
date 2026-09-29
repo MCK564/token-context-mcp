@@ -1,0 +1,51 @@
+{
+ "budget": {
+  "estimated_tokens": 371,
+  "requested_tokens": 2048
+ },
+ "data": {
+  "query": "process_batch",
+  "relationship_count": 3,
+  "relationships": [
+   [
+    "python:pkg/util.py:helper_short:ba3a37df461cd82f",
+    "callee",
+    0.9
+   ],
+   [
+    "python:pkg/util.py:helper_two:9b7ac48c5207ed32",
+    "callee",
+    0.9
+   ],
+   [
+    "python:pkg/util.py:helper_three:7b97b32e57dc8f69",
+    "callee",
+    0.9
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "function",
+   "name": "process_batch",
+   "path": "pkg/batch.py",
+   "signature": "def process_batch(values: list[int], flag: bool = False) -> int",
+   "start_line": 9,
+   "symbol_id": "python:pkg/batch.py:process_batch:a04905682bf19c54"
+  },
+  "target_symbol_id": "python:pkg/batch.py:process_batch:a04905682bf19c54"
+ },
+ "evidence": [
+  {
+   "end_line": 135,
+   "path": "pkg/batch.py",
+   "sha256": "d8a2eff5ad1a",
+   "start_line": 9
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": false,
+ "warnings": []
+}

@@ -1,0 +1,56 @@
+{
+ "budget": {
+  "estimated_tokens": 262,
+  "requested_tokens": 512
+ },
+ "data": {
+  "content": null,
+  "query": "helper_short",
+  "relationship_count": 2,
+  "relationships": [
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/batch.py:process_batch:a04905682bf19c54",
+    "target": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+   },
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "target": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+   }
+  ],
+  "relationships_filtered": 0,
+  "retry_hint": {
+   "depth": 0,
+   "include_body": true,
+   "max_tokens": 4096,
+   "symbol_id": "python:pkg/util.py:helper_short:ba3a37df461cd82f",
+   "tool": "get_symbol_context"
+  },
+  "status": "resolved",
+  "symbol": {
+   "end_line": 9,
+   "kind": "function",
+   "name": "helper_short",
+   "path": "pkg/util.py",
+   "qualified_name": "helper_short",
+   "roles": [],
+   "signature": "def helper_short(value: int) -> int",
+   "start_line": 7,
+   "symbol_id": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+  },
+  "target_symbol_id": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+ },
+ "evidence": [],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_body_omitted_budget",
+  "root_omitted_budget",
+  "content_omitted_budget"
+ ]
+}
