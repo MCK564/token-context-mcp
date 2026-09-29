@@ -13,6 +13,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
+from contextlib import contextmanager
 
 import pathspec
 
@@ -43,6 +44,38 @@ from token_context_mcp.security.local_privacy import (
     secure_sqlite_artifacts,
 )
 from token_context_mcp.security.path_policy import is_reparse_point, relative_posix
+
+
+class _Timings:
+    """Accumulates wall-clock milliseconds per index stage (M7.0)."""
+
+    STAGES = ("inventory", "read_hash", "parse", "roles", "edges", "fts_prep", "ranks", "write", "finalize")
+
+    def __init__(self) -> None:
+        self.ms: dict[str, float] = {name: 0.0 for name in self.STAGES}
+
+    @contextmanager
+    def stage(self, name: str):
+        started = time.perf_counter()
+        try:
+            yield
+        finally:
+            self.ms[name] += (time.perf_counter() - started) * 1000.0
+
+    def add(self, name: str, started: float) -> None:
+        self.ms[name] += (time.perf_counter() - started) * 1000.0
+
+    def as_dict(self) -> dict[str, float]:
+        return {name: round(value, 1) for name, value in self.ms.items()}
+
+
+class _ParseCounter:
+    calls = 0
+
+
+def _counted_parse_source(relative: str, raw: bytes, language: str):
+    _ParseCounter.calls += 1
+    return parse_source(relative, raw, language)
 
 
 def current_pointer_path(index_directory: Path, repo_id: str) -> Path:
@@ -103,6 +136,8 @@ def build_index(
     progress_callback: Callable[[str, int, int], None] | None = None,
 ) -> dict[str, object]:
     secure_directory(index_directory)
+    timings = _Timings()
+    _ParseCounter.calls = 0
     destination = database_path(index_directory, repository.repo_id)
     previous_files: dict[str, FileRecord] = {}
     previous_store: SQLiteStore | None = None
@@ -130,7 +165,9 @@ def build_index(
     files_skipped = 0
     files_reused = 0
     files_reparsed = 0
-    for file_path in _inventory(repository):
+    with timings.stage("inventory"):
+        inventory = _inventory(repository)
+    for file_path in inventory:
         files_seen += 1
         relative = relative_posix(repository.root, file_path)
         if progress_callback and files_seen % 10 == 0:
@@ -138,6 +175,7 @@ def build_index(
         if is_hard_denied(relative):
             files_skipped += 1
             continue
+        _t_read = time.perf_counter()
         try:
             raw = file_path.read_bytes()
         except OSError as error:
@@ -162,6 +200,7 @@ def build_index(
                 warnings=file_warnings,
             )
         )
+        timings.add("read_hash", _t_read)
         if language is None:
             continue
         previous = previous_files.get(relative)
@@ -184,18 +223,22 @@ def build_index(
             symbols.extend(previous_store.symbols(path=relative))
             imports[relative] = previous_store.imports_for_path(relative)
             files_reused += 1
+            _t_parse = time.perf_counter()
             try:
-                parsed_reused = parse_source(relative, raw, language)
+                parsed_reused = _counted_parse_source(relative, raw, language)
                 calls_by_path[relative] = parsed_reused.calls
                 inheritance_by_path[relative] = parsed_reused.inheritance
             except Exception:
                 calls_by_path[relative] = []
                 inheritance_by_path[relative] = {}
+            timings.add("parse", _t_parse)
             continue
         files_reparsed += 1
+        _t_parse = time.perf_counter()
         try:
-            parsed = parse_source(relative, raw, language)
+            parsed = _counted_parse_source(relative, raw, language)
         except ParseError as error:
+            timings.add("parse", _t_parse)
             files[-1] = FileRecord(
                 path=relative,
                 sha256=sha256_bytes(raw),
@@ -220,8 +263,10 @@ def build_index(
         imports[relative] = parsed.imports
         calls_by_path[relative] = parsed.calls
         inheritance_by_path[relative] = parsed.inheritance
+        timings.add("parse", _t_parse)
     if progress_callback:
         progress_callback("Assigning structural roles...", files_seen, len(symbols))
+    _t_roles = time.perf_counter()
     declared_entry_points = _declared_entry_points(repository.root)
     symbols, entry_points = _assign_structural_roles(symbols, source_by_path, declared_entry_points)
     body_lengths = [
@@ -251,6 +296,8 @@ def build_index(
             "formula": "ceil(3 * sqrt(symbol_count)), floor=30, cap=500",
         },
     }
+    timings.add("roles", _t_roles)
+    _t_edges = time.perf_counter()
     class_hierarchy_map: dict[str, list[str]] = {}
     for inh in inheritance_by_path.values():
         for cls_name, parents in inh.items():
@@ -282,6 +329,8 @@ def build_index(
         class_hierarchy=class_hierarchy_map,
         external_stubs=active_stubs,
     )
+    timings.add("edges", _t_edges)
+    _t_fts = time.perf_counter()
     symbol_bodies = {
         symbol.symbol_id: _search_text(_slice_source(source_by_path[symbol.path], symbol.start_byte, symbol.end_byte))
         for symbol in symbols
@@ -381,6 +430,7 @@ def build_index(
             module_body,
         ))
 
+    timings.add("fts_prep", _t_fts)
     dir_mtimes: dict[str, int] = {}
     try:
         dir_mtimes["."] = repository.root.stat().st_mtime_ns
@@ -421,6 +471,8 @@ def build_index(
         "derived_defaults": derived_defaults,
         "dir_mtimes": dir_mtimes,
         "warnings": warnings,
+        "parse_source_calls": _ParseCounter.calls,
+        "timings_ms": timings.as_dict(),
         "network_policy": network_policy,
         "network_policy_status": "declared_only; enforce at OS/container boundary",
     }
@@ -430,10 +482,13 @@ def build_index(
     try:
         if progress_callback:
             progress_callback("Computing global symbol PageRank...", files_seen, len(symbols))
+        _t_ranks = time.perf_counter()
         global_ranks = compute_global_ranks(symbols, edges)
+        timings.add("ranks", _t_ranks)
 
         if progress_callback:
             progress_callback("Writing atomic SQLite snapshot...", files_seen, len(symbols))
+        _t_write = time.perf_counter()
         SQLiteStore(temporary).write_snapshot(
             metadata=manifest,
             files=files,
@@ -447,14 +502,13 @@ def build_index(
             symbol_ranks=global_ranks,
             symbol_fts_records=symbol_fts_records,
         )
+        timings.add("write", _t_write)
+        _t_final = time.perf_counter()
         _atomic_replace(temporary, run_destination)
         secure_sqlite_artifacts(run_destination)
         manifest["artifact_sha256"] = sha256_bytes(run_destination.read_bytes())
-        manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-        temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
-        temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
-        secure_file(temporary_manifest)
-        temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
+        _final_partial = time.perf_counter()
+        manifest_json = None
 
         # Write pointer file <repo>.current.json atomically
         pointer_dest = current_pointer_path(index_directory, repository.repo_id)
@@ -478,6 +532,14 @@ def build_index(
 
         # GC older snapshots
         gc_snapshots(index_directory, repository.repo_id, current_db_name=run_db_name)
+        timings.add("finalize", _t_final)
+        manifest["timings_ms"] = timings.as_dict()
+        manifest["parse_source_calls"] = _ParseCounter.calls
+        manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+        temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
+        temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
+        secure_file(temporary_manifest)
+        temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
 
         if progress_callback:
             progress_callback("Index snapshot complete!", files_seen, len(symbols))
