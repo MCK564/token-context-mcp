@@ -234,7 +234,21 @@ def test_inspect_symbol_full_relationships_match_normal(relationship_filter_repo
     svc, wf = _service_and_wf(relationship_filter_repo_config)
     normal = wf.inspect_symbol("test-relfilter", query="target_fn", view="normal", budget_tokens=2048)
     full = wf.inspect_symbol("test-relfilter", query="target_fn", view="full", budget_tokens=2048)
-    assert full["data"]["relationships"] == normal["data"]["relationships"]
+    # M6 phase 2 (D9): `full` carries a context packet instead of `relationships`; every relationship of
+    # `normal` shows up in the packet (callees + callers + more) when the budget is generous.
+    assert "relationships" not in full["data"]
+    assert "content" not in full["data"]
+    from token_context_mcp.retrieve.service import _compact_symbol_ref
+
+    target_id = normal["data"]["target_symbol_id"]
+    normal_refs = set()
+    for rel in normal["data"]["relationships"]:
+        other = rel["target"] if rel["source"] == target_id else rel["source"]
+        normal_refs.add(_compact_symbol_ref(other))
+    packet = full["data"]["packet"]
+    packet_refs = {row[0] for key in ("callees", "callers", "more") for row in packet[key]}
+    assert normal_refs and normal_refs <= packet_refs
+    assert full["data"]["relationships_filtered"] == normal["data"]["relationships_filtered"]
 
 
 def test_inspect_symbol_view_size_ordering_and_determinism(relationship_filter_repo_config: Path) -> None:

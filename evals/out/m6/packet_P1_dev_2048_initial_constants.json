@@ -1,0 +1,186 @@
+{
+  "arm": "P1",
+  "budget": 2048,
+  "constants": {
+    "callers_k": 5,
+    "shares": {
+      "callees": 0.2,
+      "callers": 0.12,
+      "context": 0.13,
+      "more": 0.1,
+      "target": 0.45
+    }
+  },
+  "estimator": "utf8-bytes-div-4-v1",
+  "index_run_id": "run_20260929T050442Z_efb55d0d",
+  "overall": {
+    "errors": 0,
+    "mean_body_coverage": 0.0,
+    "mean_reach_ceiling": 1.0,
+    "mean_read_tokens": 29655.375,
+    "mean_ref_coverage": 0.9,
+    "mean_savings_vs_read": 0.8988,
+    "mean_sig_coverage": 0.8,
+    "mean_wire_tokens": 1754.5,
+    "tasks": 8
+  },
+  "repo_id": "tc-pinned",
+  "split": "dev",
+  "tasks": [
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1836,
+      "id": "p01",
+      "latency_ms": 142.45,
+      "missing_ref": [
+        "tests/test_hardware_probe.py::test_build_server_does_not_probe_hardware"
+      ],
+      "missing_sig": [
+        "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat",
+        "tests/test_hardware_probe.py::test_build_server_does_not_probe_hardware"
+      ],
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 36567,
+      "ref_coverage": 0.8,
+      "savings_vs_read": 0.9472,
+      "sig_coverage": 0.6,
+      "target": "src/token_context_mcp/server.py::build_server",
+      "truncated": true,
+      "wire_tokens": 1929
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1823,
+      "id": "p04",
+      "latency_ms": 42.01,
+      "missing_ref": [
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.external_stub",
+        "tests/test_index_retrieval.py::test_symbol_context_withholds_content_when_index_offsets_are_stale"
+      ],
+      "missing_sig": [
+        "src/token_context_mcp/retrieve/graph_cache.py::RepoGraph.get_symbol",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.external_stub",
+        "tests/test_index_retrieval.py::test_symbol_context_withholds_content_when_index_offsets_are_stale"
+      ],
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 50592,
+      "ref_coverage": 0.6,
+      "savings_vs_read": 0.962,
+      "sig_coverage": 0.4,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.symbol_context",
+      "truncated": true,
+      "wire_tokens": 1922
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1821,
+      "id": "p09",
+      "latency_ms": 21.32,
+      "missing_ref": [
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.importers_for_modules"
+      ],
+      "missing_sig": [
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.imports_for_path",
+        "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.importers_for_modules",
+        "src/token_context_mcp/security/path_policy.py::safe_relative_path"
+      ],
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 46230,
+      "ref_coverage": 0.8,
+      "savings_vs_read": 0.9584,
+      "sig_coverage": 0.4,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.module_dependents",
+      "truncated": true,
+      "wire_tokens": 1922
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1614,
+      "id": "p10",
+      "latency_ms": 14.33,
+      "missing_ref": [],
+      "missing_sig": [],
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 4298,
+      "ref_coverage": 1.0,
+      "savings_vs_read": 0.6031,
+      "sig_coverage": 1.0,
+      "target": "src/token_context_mcp/retrieve/ranking.py::local_push_ppr",
+      "truncated": false,
+      "wire_tokens": 1706
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1824,
+      "id": "p12",
+      "latency_ms": 13.45,
+      "missing_ref": [],
+      "missing_sig": [],
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 17781,
+      "ref_coverage": 1.0,
+      "savings_vs_read": 0.892,
+      "sig_coverage": 1.0,
+      "target": "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.write_snapshot",
+      "truncated": true,
+      "wire_tokens": 1920
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1805,
+      "id": "p14",
+      "latency_ms": 10.04,
+      "missing_ref": [],
+      "missing_sig": [],
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 23796,
+      "ref_coverage": 1.0,
+      "savings_vs_read": 0.9203,
+      "sig_coverage": 1.0,
+      "target": "src/token_context_mcp/parse/treesitter.py::parse_source",
+      "truncated": true,
+      "wire_tokens": 1897
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 736,
+      "id": "p19",
+      "latency_ms": 6.01,
+      "missing_ref": [],
+      "missing_sig": [],
+      "n_gold": 3,
+      "reach_ceiling": 1.0,
+      "read_tokens": 26992,
+      "ref_coverage": 1.0,
+      "savings_vs_read": 0.9693,
+      "sig_coverage": 1.0,
+      "target": "src/token_context_mcp/retrieve/token_budget.py::pack_by_budget",
+      "truncated": false,
+      "wire_tokens": 828
+    },
+    {
+      "body_coverage": 0.0,
+      "estimated_tokens": 1813,
+      "id": "p20",
+      "latency_ms": 8.28,
+      "missing_ref": [],
+      "missing_sig": [],
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 30987,
+      "ref_coverage": 1.0,
+      "savings_vs_read": 0.9383,
+      "sig_coverage": 1.0,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.request_scope",
+      "truncated": true,
+      "wire_tokens": 1912
+    }
+  ],
+  "tasks_file": "/sessions/rcw-01wjxsmkpkkhykqwuyrfcgou/mnt/AI--token-context-mcp/tmp/run/evals/tasks/packet_token_context.json"
+}

@@ -1398,6 +1398,12 @@ class RetrievalService:
             "index_run_id": index_run_id,
         }
 
+    def packet_inputs(self, repo_id: str, *, symbol_id: str) -> Any:
+        """Raw material for ``inspect_symbol(view="full")``'s context packet (M6.2); not budget-limited."""
+        from token_context_mcp.retrieve.packet_inputs import gather_packet_inputs
+
+        return gather_packet_inputs(self, repo_id, symbol_id=symbol_id)
+
     def impact_slice(
         self,
         repo_id: str,

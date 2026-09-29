@@ -4,6 +4,12 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional, Tuple
 
+from token_context_mcp.retrieve.packet import (
+    build_context_packet,
+    packet_is_truncated,
+    payload_tokens,
+    trim_packet,
+)
 from token_context_mcp.retrieve.projection import OutputProjector
 from token_context_mcp.retrieve.service import RetrievalError, RetrievalService
 from token_context_mcp.retrieve.token_budget import estimate_tokens
@@ -76,6 +82,71 @@ class CompositeWorkflowEngine:
                 view=view,
                 budget_tokens=budget_tokens,
             )
+
+    def _inspect_symbol_full(
+        self,
+        repo_id: str,
+        query: str,
+        symbol_id: str,
+        target_sym: Dict[str, Any],
+        find_res: Dict[str, Any],
+        budget_tokens: int,
+    ) -> Dict[str, Any]:
+        """``view="full"``: a context packet whose whole response fits ``_effective_budget(budget)`` (M6.2)."""
+        inputs = self.service.packet_inputs(repo_id, symbol_id=symbol_id)
+        effective = self.service._effective_budget(budget_tokens)
+        symbol_payload = {
+            "symbol_id": target_sym.get("symbol_id"),
+            "name": target_sym.get("name"),
+            "qualified_name": target_sym.get("qualified_name"),
+            "kind": target_sym.get("kind"),
+            "path": target_sym.get("path"),
+            "signature": target_sym.get("signature"),
+            "start_line": target_sym.get("start_line"),
+            "end_line": target_sym.get("end_line"),
+            "roles": target_sym.get("roles", []),
+        }
+        base_warnings = list(dict.fromkeys([*find_res.get("warnings", []), *inputs.warnings]))
+        relationship_count = inputs.relation_count
+        relationships_filtered = max(0, inputs.raw_edge_count - inputs.retained_edge_count)
+
+        def make(packet: Dict[str, Any], estimated: int) -> Dict[str, Any]:
+            return {
+                "schema_version": "1.0",
+                "repo_id": repo_id,
+                "index_run_id": find_res.get("index_run_id"),
+                "freshness": find_res.get("freshness"),
+                "budget": {"requested_tokens": budget_tokens, "estimated_tokens": estimated},
+                "truncated": packet_is_truncated(packet),
+                "warnings": sorted(base_warnings),
+                "evidence": [],
+                "data": {
+                    "status": "resolved",
+                    "query": query,
+                    "target_symbol_id": symbol_id,
+                    "symbol": symbol_payload,
+                    "packet": packet,
+                    "relationship_count": relationship_count,
+                    "relationships_filtered": relationships_filtered,
+                },
+            }
+
+        overhead = payload_tokens(make(build_context_packet(inputs, 0), 0))
+        packet = build_context_packet(inputs, max(0, effective - overhead))
+        estimated = 0
+        response = make(packet, estimated)
+        for _ in range(64):  # fixed point: estimated_tokens is itself part of the measured response
+            measured = payload_tokens(response)
+            if measured <= effective:
+                if measured == estimated:
+                    return response
+                estimated = measured
+                response = make(packet, estimated)
+                continue
+            if not trim_packet(inputs, packet, measured - effective):
+                break
+            response = make(packet, estimated)
+        return response
 
     def _inspect_symbol_scoped(
         self,
@@ -151,6 +222,9 @@ class CompositeWorkflowEngine:
             }
 
         symbol_id = target_sym["symbol_id"]
+
+        if view == "full":
+            return self._inspect_symbol_full(repo_id, query, symbol_id, target_sym, find_res, budget_tokens)
 
         # 2. Get symbol context with depth=0
         include_body = (view != "minimal")
@@ -244,19 +318,6 @@ class CompositeWorkflowEngine:
                 "relationship_count": len(rel_rows),
             }
             evidence = [matched_entry.get("evidence")] if matched_entry and matched_entry.get("evidence") else []
-        elif view == "full":
-            # M6 contract: full's relationships are the same filtered/packed list as
-            # normal now (no more raw, unfiltered edges). data.packet is Phase 2 (M6.1/M6.2).
-            composite_data = {
-                "status": "resolved",
-                "query": query,
-                "target_symbol_id": symbol_id,
-                "symbol": matched_sym,
-                "content": matched_content,
-                "relationships": rel_rows,
-                "relationship_count": len(rel_rows),
-            }
-            evidence = ctx_res.get("evidence", [])
         else:  # normal
             normal_sym = {
                 "symbol_id": matched_sym.get("symbol_id"),
