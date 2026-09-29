@@ -47,7 +47,12 @@ from token_context_mcp.retrieve.token_budget import (
     estimate_tokens,
     pack_by_budget,
 )
-from token_context_mcp.security.content_policy import is_hard_denied, redact_text
+from token_context_mcp.security.content_policy import (
+    MAX_INJECTION_HITS,
+    injection_hits,
+    is_hard_denied,
+    redact_text,
+)
 from token_context_mcp.security.path_policy import (
     PathPolicyError,
     relative_posix,
@@ -435,6 +440,9 @@ class RetrievalService:
             limit = _profile_int(profile_settings, "limit", 20)
         if max_tokens is None and "budget_tokens" in profile_settings:
             max_tokens = _profile_int(profile_settings, "budget_tokens", 2048)
+        snippet_lines = _profile_int(profile_settings, "snippet_lines", 2)
+        if not 1 <= snippet_lines <= 2:
+            raise RetrievalError("profile field 'snippet_lines' must be 1 or 2")
         effective_max_tokens = (
             min(2048, self.config.server.max_result_tokens) if max_tokens is None else max_tokens
         )
@@ -592,7 +600,7 @@ class RetrievalService:
                 best_line_num, best_snippet, _ = scored_lines[0]
                 total_redacted = 0
                 selected_lines_payload: list[list[Any]] = []
-                for ln, raw_snip, _ in scored_lines[:2]:
+                for ln, raw_snip, _ in scored_lines[:snippet_lines]:
                     clean_snip, redacted = redact_text(raw_snip)
                     total_redacted += redacted
                     selected_lines_payload.append([ln, clean_snip])
@@ -764,6 +772,13 @@ class RetrievalService:
                 truncated=omitted_count > 0,
                 evidence=[],
                 data=data,
+                untrusted=True,
+                injection_hits=injection_hits(
+                    (str(item["path"]), int(line[0]), str(line[1]))
+                    for item in selected_items
+                    for line in item.get("lines", [])
+                    if isinstance(line, list) and len(line) == 2
+                ),
             )
 
         chosen, omitted, used = self._pack_to_budget(
@@ -967,6 +982,10 @@ class RetrievalService:
                     "omitted_count": len(omitted_items),
                     "estimator_version": ESTIMATOR_VERSION,
                 },
+                untrusted=True,
+                injection_hits=injection_hits(
+                    (relative, int(item.get("start_line") or 1), item.get("content")) for item in selected_items
+                ),
             )
 
         chosen, omitted, used = self._pack_to_budget(parts, lambda item: _json(item), packing_budget, build_response)
@@ -1273,6 +1292,15 @@ class RetrievalService:
                     "estimator_version": ESTIMATOR_VERSION,
                     **extra_data,
                 },
+                untrusted=True,
+                injection_hits=injection_hits(
+                    (
+                        str(item["symbol"]["path"]),
+                        int(item["symbol"].get("start_line") or 1),
+                        item.get("content"),
+                    )
+                    for item in selected_symbols
+                ),
             )
 
         root_packet = self._symbol_packet(
@@ -1827,8 +1855,13 @@ class RetrievalService:
         completeness: dict[str, Any] | None = None,
         truncated: bool | None = None,
         edge_precision: dict[str, Any] | None = None,
+        untrusted: bool = False,
+        injection_hits: list[str] | None = None,
     ) -> dict[str, Any]:
         effective_warnings = list(warnings)
+        if injection_hits:
+            effective_warnings.append("possible_prompt_injection")
+            data = {**data, "injection_hits": list(injection_hits[:MAX_INJECTION_HITS])}
         idx_ver = metadata.get("index_schema_version")
         if idx_ver is not None and version_tuple(idx_ver) < version_tuple(INDEX_SCHEMA_VERSION):
             if "index_schema_outdated_reindex_recommended" not in effective_warnings:
@@ -1856,6 +1889,8 @@ class RetrievalService:
         }
         if edge_precision is not None:
             envelope["edge_precision"] = edge_precision
+        if untrusted:
+            envelope["untrusted_repository_content"] = True
         return envelope
 
     def _validate_budget(self, value: int, *, field_name: str) -> None:

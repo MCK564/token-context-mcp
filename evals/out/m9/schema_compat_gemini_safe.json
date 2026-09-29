@@ -1,0 +1,31 @@
+{
+  "tools_scanned": 20,
+  "static_schemas_scanned": 0,
+  "total_issues": 0,
+  "issues_by_type": {},
+  "tool_issue_counts": {
+    "list_repositories": 0,
+    "get_repo_map": 0,
+    "find_symbols": 0,
+    "get_module_dependents": 0,
+    "search_source": 0,
+    "get_file_skeleton": 0,
+    "get_symbol_context": 0,
+    "get_impact_slice": 0,
+    "get_index_status": 0,
+    "inspect_symbol": 0,
+    "list_available_tools": 0,
+    "search_tools": 0,
+    "get_tool_schema": 0,
+    "memory_put": 0,
+    "memory_get": 0,
+    "memory_search": 0,
+    "memory_lock": 0,
+    "memory_unlock": 0,
+    "memory_consolidate": 0,
+    "sample_summarize": 0
+  },
+  "static_schema_counts": {},
+  "issues": [],
+  "schema_profile": "gemini_safe"
+}

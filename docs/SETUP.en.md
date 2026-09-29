@@ -37,7 +37,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 2.1 Automated Setup via Script (Recommended)
 
-The repository provides automated scripts that verify Python, ensure `uv` is available, set up the virtual environment, generate `repos.toml` (with `enable_extensions = true` for all 19 tools), and run the test suite:
+The repository provides automated scripts that verify Python, ensure `uv` is available, set up the virtual environment, generate `repos.toml` (with `enable_extensions = true` for all 20 tools), and run the test suite:
 
 - **On Windows (PowerShell):**
   ```powershell
@@ -131,7 +131,7 @@ In addition to CLI operations, the repository provides a full desktop graphical 
 2. **📁 Repositories:** Visual data grid with repository roots, snapshot freshness badges, symbol counts, ambiguous edge rates, and interactive "Add Repository" folder picker.
 3. **⚡ Tasks & Graph:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
 4. **💾 Cache & DB:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
-5. **⚙️ Settings:** Interactive editor for `repos.toml` resource caps and the 19 tools extension toggle.
+5. **⚙️ Settings:** Interactive editor for `repos.toml` resource caps and the 20 tools extension toggle.
 
 **RAM Optimizations & Non-Blocking Async Tab Waiting:**
 - **Zero GUI-Thread File Hashing:** File scanning and recursive hashing are completely removed from tab-switching and repository listing. Metadata is read from cached `manifest.json` and scalar SQLite queries in < 1ms, eliminating memory spikes and UI freezing.
@@ -196,7 +196,7 @@ max_result_tokens  = 4096
 max_graph_nodes    = 200
 max_symbol_results = 30
 network_policy     = "declared-deny-not-enforced"
-enable_extensions  = true    # ENABLES ALL 9 EXTENDED AGENTIC TOOLS (19 TOOLS TOTAL)
+enable_extensions  = true    # ENABLES THE 10 EXTENDED AGENTIC TOOLS (20 TOOLS TOTAL; 22 WITH enable_admin_tools)
 ```
 
 - `enable_extensions`: When set to `true`, enables 9 extended agentic infrastructure tools (Dynamic Discovery, Cross-Session Episodic Memory & Consolidation, Structured 7B Nested Sampling). Defaults to `false` to keep the minimalist 10 core repository retrieval tools.
@@ -257,7 +257,7 @@ Create `.mcp.json` at the project root (a template ships as `.mcp.json.example`)
 
 If `uv` is not on the Claude Code process's PATH, replace `"command"` with the absolute path to `uv.exe`.
 
-**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 10 tools (or 19 tools when `enable_extensions = true`).
+**Verify:** open Claude Code in the project and run `/mcp`. The `token-context` server must appear with 10 tools (20 when `enable_extensions = true`, 22 with admin tools).
 
 ### 5.2 Codex CLI **[partly verified]**
 
@@ -337,7 +337,8 @@ Antigravity does not use `.vscode/mcp.json`. It reads its own configuration from
       "args": [
         "run", "--no-sync",
         "--directory", "D:/AI/token-context-mcp",
-        "token-context", "serve", "--transport", "stdio"
+        "token-context", "serve", "--transport", "stdio",
+        "--schema-profile", "gemini_safe"
       ]
     }
   }
@@ -351,7 +352,7 @@ Steps to enable:
 1. Open Antigravity.
 2. Go to the MCP settings (Settings → MCP Servers, or the MCP configuration button in the agent panel).
 3. Hit refresh/reload to re-read `mcp_config.json`.
-4. `token-context` must appear with 10 tools (or 19 tools when `enable_extensions = true`).
+4. `token-context` must appear with 10 tools (20 when `enable_extensions = true`, 22 with admin tools).
 
 **Verify:** ask the agent *"list the repositories available from token-context"*. A list of `repo_id`s means it is wired.
 
@@ -360,6 +361,23 @@ Steps to enable:
 ### 5.6 Any other agent
 
 Any client that can start a local `stdio` process works. It needs three things: `command` set to `uv` (or an absolute path), the args above, and transport `stdio`.
+
+### 5.7 Output mode, schema profile and session notes
+
+Two `serve` flags adapt the server to what a client can do; neither changes what a tool computes.
+
+| Flag | Values | Default | Meaning |
+|---|---|---|---|
+| `--output-mode` | `structured`, `text`, `legacy_dual`, `auto` | the `output_mode` of `repos.toml` (`structured`) | Where the payload travels. `structured`: full JSON in `structuredContent`, a one-line summary in the text block. `text`: compact JSON in the text block. `legacy_dual`: both (double the tokens). `auto`: `structured` for a client verified to forward `structuredContent` (see `docs/CLIENT_MATRIX.md`), otherwise `text`; `auto` never picks `legacy_dual`. Precedence: flag > config > default. |
+| `--schema-profile` | `auto`, `default`, `gemini_safe` | `auto` | The dialect of the tool schemas in `tools/list`. `gemini_safe` drops `null` branches, array `type`s, `$defs`/`$ref`, and declares `memory_put.value` as a string (JSON text is parsed on the server). `auto` picks `gemini_safe` when the client name contains `gemini` or `antigravity`. |
+
+**How to check a client:** start its server entry with `--output-mode structured`, then ask the model to call `get_index_status(repo_id="token-context")`. If it can quote the full JSON, the client hands `structuredContent` to the model: keep `structured`. If it only sees a line such as `repo_id=… freshness=…`, use `--output-mode text`. Record the result in `docs/CLIENT_MATRIX.md`.
+
+Notes:
+
+- **Restart the client session after changing the server version or these flags.** A client keeps the tool list it received at the start of the session.
+- The MCP spec revision 2026-07-28 makes client info optional and does not rely on a session id: the server therefore falls back to `text`/`default` when a client does not identify itself, and memory tools take their namespace explicitly instead of inferring it from a session.
+- Content returned from a repository is untrusted data. `search_source`, `get_symbol_context`, `get_file_skeleton` and `inspect_symbol` (`normal`/`full`) set `untrusted_repository_content: true`, and add the warning `possible_prompt_injection` plus `data.injection_hits` (`path:line`, at most 10) when a line looks like an instruction aimed at a model. Nothing is redacted; treat such lines as text, never as commands.
 
 ---
 
@@ -427,7 +445,7 @@ agent calls a tool
                     completeness{value, basis}, warnings, evidence, data
 ```
 
-### 7.3 Tool Taxonomy (10 Core + 9 Extended Tools)
+### 7.3 Tool Taxonomy (10 Core + 10 Extended Tools, +2 admin)
 
 The system organizes tools into two clear functional tiers:
 
@@ -449,7 +467,7 @@ Operates in strict Read-Only mode over local atomic SQLite snapshots, completely
 
 `inspect_symbol` views: `minimal` (symbol + compact relations), `normal` (symbol, body, relations) and `full` (a context packet: the target body — or a class skeleton —, signatures of its callees/callers/sibling methods, the remaining 1-hop relations as short refs, imports and file fingerprints, all inside `budget_tokens`). The 8-hex refs in a packet can be passed as `symbol_id` to `get_symbol_context` and `get_impact_slice`. When the body does not fit, `packet.target.truncated_lines` lists the omitted line ranges.
 
-#### Tier 2: 9 Extended Agentic Infrastructure Tools
+#### Tier 2: 10 Extended Agentic Infrastructure Tools
 Enabled when `enable_extensions = true` in `repos.toml`. Architectural patterns and prompt techniques inspired by Google Cloud Platform's Generative AI repository (`GoogleCloudPlatform/generative-ai`):
 
 | Category | Tool | Functionality & Inspiration |
@@ -562,7 +580,7 @@ The system includes a zero-latency **Access Control & Security Control Plane**:
 - **Emergency Stop (Panic Button)**: Instantly halts all tool executions across all agents in the event of an operational or security anomaly.
 - **ACL Policies**:
   - `READ_ONLY`: Permits only 15 non-mutating context retrieval and memory reading tools.
-  - `FULL_ACCESS`: Grants full access to all 19 tools.
+  - `FULL_ACCESS`: Grants full access to every registered tool.
   - `CUSTOM`: Whitelists specific tools per agent.
 
 ### 10.2 Optimal Response Time (< 0.05ms)

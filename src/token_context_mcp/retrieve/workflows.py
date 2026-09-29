@@ -13,6 +13,7 @@ from token_context_mcp.retrieve.packet import (
 from token_context_mcp.retrieve.projection import OutputProjector
 from token_context_mcp.retrieve.service import RetrievalError, RetrievalService
 from token_context_mcp.retrieve.token_budget import estimate_tokens
+from token_context_mcp.security.content_policy import injection_hits
 
 # M6, E14: edges below this confidence, or produced by a non-"lexical" backend
 # (ambiguous status, or a virtual_stub external-call guess), never surface as an
@@ -44,6 +45,34 @@ def _edge_normal_dict(edge: Dict[str, Any]) -> Dict[str, Any]:
         "kind": edge.get("edge_kind"),
         "confidence": edge.get("confidence"),
     }
+
+
+def _packet_injection_hits(packet: Dict[str, Any], symbol_path: str) -> List[str]:
+    """Prompt-injection markers in what a context packet carries from the repository (target body, signatures)."""
+    blocks: List[Tuple[str, int, Optional[str]]] = []
+    target = packet.get("target") or {}
+    content = target.get("content")
+    span = str(target.get("span") or "")
+    if content:
+        first = 1
+        _, _, tail = span.rpartition(":")
+        head = tail.split("-", 1)[0]
+        if head.isdigit():
+            first = int(head)
+        symbol_path = span.rpartition(":")[0] or symbol_path
+        if target.get("truncated_lines"):
+            # kept lines are prefixed "<line>: " (M6.2), so each one is scanned with its own number
+            for row in str(content).splitlines():
+                head, sep, rest = row.partition(": ")
+                blocks.append((symbol_path, int(head) if sep and head.isdigit() else first, rest if sep and head.isdigit() else row))
+        else:
+            blocks.append((symbol_path, first, str(content)))
+    for key in ("callees", "callers"):
+        for row in packet.get(key) or []:
+            if isinstance(row, list) and len(row) >= 3 and isinstance(row[1], str) and ":" in row[1]:
+                path, _, line = row[1].rpartition(":")
+                blocks.append((path, int(line) if line.isdigit() else 1, str(row[2])))
+    return injection_hits(blocks)
 
 
 def _pack_rows_to_budget(rows: List[Any], budget_tokens: int) -> Tuple[List[Any], int]:
@@ -111,6 +140,18 @@ class CompositeWorkflowEngine:
         relationships_filtered = max(0, inputs.raw_edge_count - inputs.retained_edge_count)
 
         def make(packet: Dict[str, Any], estimated: int) -> Dict[str, Any]:
+            hits = _packet_injection_hits(packet, str(symbol_payload.get("path") or ""))
+            data: Dict[str, Any] = {
+                "status": "resolved",
+                "query": query,
+                "target_symbol_id": symbol_id,
+                "symbol": symbol_payload,
+                "packet": packet,
+                "relationship_count": relationship_count,
+                "relationships_filtered": relationships_filtered,
+            }
+            if hits:
+                data["injection_hits"] = hits
             return {
                 "schema_version": "1.0",
                 "repo_id": repo_id,
@@ -118,17 +159,10 @@ class CompositeWorkflowEngine:
                 "freshness": find_res.get("freshness"),
                 "budget": {"requested_tokens": budget_tokens, "estimated_tokens": estimated},
                 "truncated": packet_is_truncated(packet),
-                "warnings": sorted(base_warnings),
+                "warnings": sorted([*base_warnings, "possible_prompt_injection"] if hits else base_warnings),
                 "evidence": [],
-                "data": {
-                    "status": "resolved",
-                    "query": query,
-                    "target_symbol_id": symbol_id,
-                    "symbol": symbol_payload,
-                    "packet": packet,
-                    "relationship_count": relationship_count,
-                    "relationships_filtered": relationships_filtered,
-                },
+                "untrusted_repository_content": True,
+                "data": data,
             }
 
         overhead = payload_tokens(make(build_context_packet(inputs, 0), 0))
@@ -295,6 +329,15 @@ class CompositeWorkflowEngine:
             candidate_rows: list = [_edge_compact_tuple(e, symbol_id) for e in all_edges]
         else:
             candidate_rows = [_edge_normal_dict(e) for e in all_edges]
+        # M9.6: the flag and the hits live inside this response, so they come out of the relationship share.
+        content_hits: List[str] = []
+        if view != "minimal" and matched_content:
+            content_hits = injection_hits(
+                [(str(matched_sym.get("path") or ""), int(matched_sym.get("start_line") or 1), matched_content)]
+            )
+        untrusted_cost = estimate_tokens(json.dumps({"untrusted_repository_content": True, "injection_hits": content_hits}))
+        if view != "minimal":
+            edge_budget = max(64, edge_budget - untrusted_cost)
         rel_rows, omitted_edge_count = _pack_rows_to_budget(candidate_rows, edge_budget)
 
         if omitted_edge_count > 0 and "relationships_truncated" not in warnings:
@@ -344,6 +387,10 @@ class CompositeWorkflowEngine:
         # M6 contract: distinct from relationships_omitted (budget-driven, below) --
         # this counts edges the resolved/lexical/confidence>=0.5 quality filter excluded.
         composite_data["relationships_filtered"] = relationships_filtered
+        if content_hits:
+            composite_data["injection_hits"] = content_hits
+            if "possible_prompt_injection" not in warnings:
+                warnings.append("possible_prompt_injection")
 
         if omitted_edge_count > 0:
             composite_data["relationships_omitted"] = omitted_edge_count
@@ -352,6 +399,15 @@ class CompositeWorkflowEngine:
             composite_data["retry_hint"] = retry_hint
 
         ctx_est = ctx_res.get("budget", {}).get("estimated_tokens", 0)
+        if view == "minimal":
+            # the minimal view carries no repository text, so symbol_context's untrusted flag is not part of it
+            bare = {k: v for k, v in ctx_res.items() if k != "untrusted_repository_content"}
+            for _ in range(4):  # estimated_tokens is part of the measured response: iterate to its fixed point
+                bare["budget"] = {**bare.get("budget", {}), "estimated_tokens": ctx_est}
+                measured = payload_tokens(bare)
+                if measured == ctx_est:
+                    break
+                ctx_est = measured
         rel_est = estimate_tokens(json.dumps(rel_rows))
         total_estimated = min(budget_tokens, ctx_est + rel_est)
         is_truncated = bool(ctx_res.get("truncated")) or ("content_omitted_budget" in warnings) or (omitted_edge_count > 0)
@@ -370,4 +426,6 @@ class CompositeWorkflowEngine:
             "evidence": evidence,
             "data": composite_data,
         }
+        if view != "minimal":
+            composite_envelope["untrusted_repository_content"] = True
         return composite_envelope

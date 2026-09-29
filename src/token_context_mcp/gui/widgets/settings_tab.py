@@ -72,7 +72,7 @@ class SettingsTab(QWidget):
         # 5. output_mode
         grid.addWidget(QLabel("Output Mode:"), 4, 0)
         self.combo_output = QComboBox()
-        self.combo_output.addItems(["structured", "text", "legacy_dual"])
+        self.combo_output.addItems(["structured", "auto", "text", "legacy_dual"])
         grid.addWidget(self.combo_output, 4, 1)
 
         # 6. default_view

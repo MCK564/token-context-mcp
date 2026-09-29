@@ -33,7 +33,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 ### 2.1 Cài đặt tự động qua Script (Khuyến nghị)
 
-Repo cung cấp sẵn các script tự động kiểm tra Python, cài đặt `uv`, tạo môi trường ảo, đồng bộ cấu hình `repos.toml` (bật sẵn `enable_extensions = true` để hỗ trợ 19 tools) và chạy test:
+Repo cung cấp sẵn các script tự động kiểm tra Python, cài đặt `uv`, tạo môi trường ảo, đồng bộ cấu hình `repos.toml` (bật sẵn `enable_extensions = true` để hỗ trợ 20 tools) và chạy test:
 
 - **Trên Windows (PowerShell):**
   ```powershell
@@ -127,7 +127,7 @@ Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI 
 2. **📁 Repositories:** Quản lý danh sách repo, độ tươi, tỷ lệ mơ hồ, nút Add Repo (kèm Folder Picker), Re-index và thanh tiến trình bóc tách AST.
 3. **⚡ Tasks & Graph:** Log console thời gian thực, biểu đồ phân bố ngôn ngữ, tỷ lệ giải quyết cạnh và danh sách Top Entry Points.
 4. **💾 Cache & DB:** Thống kê dung lượng SQLite, nút Clean Stale Snapshots, nút VACUUM tối ưu đĩa, và nút Purge Cache.
-5. **⚙️ Settings:** Sửa trực tiếp cấu hình `repos.toml` (`max_result_tokens`, `enable_extensions` bật 19 tools).
+5. **⚙️ Settings:** Sửa trực tiếp cấu hình `repos.toml` (`max_result_tokens`, `enable_extensions` bật 20 tools).
 
 **Cơ chế Tối ưu hóa RAM & Chuyển Tab Bất đồng bộ (Async Waiting):**
 - **Tránh nghẽn RAM & Đơ UI:** Loại bỏ hoàn toàn việc quét đĩa và hash lại toàn bộ file trên luồng giao diện chính. Danh sách repo được nạp từ bộ nhớ đệm `manifest.json` và câu lệnh truy vấn SQLite chỉ mục trực tiếp trong < 1ms thay vì deserializing hàng chục ngàn object dataclass vào RAM.
@@ -192,7 +192,7 @@ max_result_tokens  = 4096
 max_graph_nodes    = 200
 max_symbol_results = 30
 network_policy     = "declared-deny-not-enforced"
-enable_extensions  = true    # BẬT 9 EXTENDED AGENTIC TOOLS (TỔNG 19 TOOLS)
+enable_extensions  = true    # BẬT 10 EXTENDED AGENTIC TOOLS (TỔNG 20 TOOLS; 22 KHI BẬT enable_admin_tools)
 ```
 
 - `enable_extensions`: Khi đặt `true`, server kích hoạt thêm 9 công cụ hạ tầng agent nâng cao (Dynamic Tool Discovery, Cross-Session Episodic Memory & Consolidation, Structured Nested Sampling 7B). Mặc định là `false` để giữ trọn vẹn bề mặt công cụ tối giản 10 tools nếu người dùng chỉ muốn truy xuất kho mã nguồn thuần túy.
@@ -253,7 +253,7 @@ Tạo `.mcp.json` ở gốc dự án (mẫu có sẵn tại `.mcp.json.example`)
 
 Nếu `uv` không nằm trên PATH của tiến trình Claude Code, thay `"command"` bằng đường dẫn tuyệt đối tới `uv.exe`.
 
-**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 10 tool (hoặc 19 tool khi cấu hình `enable_extensions = true`).
+**Xác minh:** mở Claude Code trong dự án, chạy `/mcp`. Server `token-context` phải hiện với 10 tool (20 khi cấu hình `enable_extensions = true`, 22 khi bật thêm admin).
 
 ### 5.2 Codex CLI **[đã kiểm chứng một phần]**
 
@@ -333,7 +333,8 @@ Antigravity không dùng `.vscode/mcp.json`. Nó đọc cấu hình riêng ở *
       "args": [
         "run", "--no-sync",
         "--directory", "D:/AI/token-context-mcp",
-        "token-context", "serve", "--transport", "stdio"
+        "token-context", "serve", "--transport", "stdio",
+        "--schema-profile", "gemini_safe"
       ]
     }
   }
@@ -347,7 +348,7 @@ Các bước bật:
 1. Mở Antigravity.
 2. Vào cài đặt MCP (Settings → MCP Servers, hoặc nút cấu hình MCP trong panel agent).
 3. Bấm refresh/reload để nạp lại `mcp_config.json`.
-4. `token-context` phải xuất hiện kèm 10 tool (hoặc 19 tool khi bật `enable_extensions = true`).
+4. `token-context` phải xuất hiện kèm 10 tool (20 khi bật `enable_extensions = true`).
 
 **Cách xác minh:** hỏi agent *"liệt kê các repository có từ token-context"*. Ra được danh sách `repo_id` là đã thông.
 
@@ -356,6 +357,23 @@ Các bước bật:
 ### 5.6 Agent khác
 
 Bất kỳ client nào khởi động được tiến trình `stdio` cục bộ đều dùng được. Chỉ cần ba thứ: `command` là `uv` (hoặc đường dẫn tuyệt đối), `args` như trên, transport `stdio`.
+
+### 5.7 Output mode, schema profile và ghi chú phiên
+
+Hai cờ của `serve` giúp server hợp với khả năng của từng client; cả hai không đổi kết quả tính toán của tool.
+
+| Cờ | Giá trị | Mặc định | Ý nghĩa |
+|---|---|---|---|
+| `--output-mode` | `structured`, `text`, `legacy_dual`, `auto` | `output_mode` trong `repos.toml` (`structured`) | Payload đi đường nào. `structured`: JSON đầy đủ trong `structuredContent`, khối text chỉ có một dòng tóm tắt. `text`: JSON gọn trong khối text. `legacy_dual`: cả hai (tốn gấp đôi token). `auto`: `structured` nếu client đã được kiểm chứng là chuyển `structuredContent` cho model (xem `docs/CLIENT_MATRIX.md`), còn lại dùng `text`; `auto` không bao giờ chọn `legacy_dual`. Thứ tự ưu tiên: cờ > config > mặc định. |
+| `--schema-profile` | `auto`, `default`, `gemini_safe` | `auto` | Dạng schema của tool trong `tools/list`. `gemini_safe` bỏ nhánh `null`, `type` dạng mảng, `$defs`/`$ref`, và khai `memory_put.value` là chuỗi (server tự parse nếu là JSON). `auto` chọn `gemini_safe` khi tên client chứa `gemini` hoặc `antigravity`. |
+
+**Cách kiểm một client:** chạy server của client đó với `--output-mode structured`, bảo model gọi `get_index_status(repo_id="token-context")`. Model trích được JSON đầy đủ nghĩa là client đưa `structuredContent` tới model: giữ `structured`. Chỉ thấy một dòng như `repo_id=… freshness=…` thì dùng `--output-mode text`. Ghi kết quả vào `docs/CLIENT_MATRIX.md`.
+
+Ghi chú:
+
+- **Mở phiên client mới sau khi đổi phiên bản server hoặc các cờ này.** Client giữ danh sách tool nhận lúc đầu phiên tới hết phiên.
+- Spec MCP 2026-07-28 cho phép client không khai thông tin và không dựa vào session id: vì vậy khi client không tự giới thiệu, server dùng `text`/`default`; các tool memory nhận namespace tường minh chứ không suy từ session.
+- Nội dung lấy từ repository là dữ liệu không tin cậy. `search_source`, `get_symbol_context`, `get_file_skeleton` và `inspect_symbol` (`normal`/`full`) luôn đặt `untrusted_repository_content: true`, và thêm cảnh báo `possible_prompt_injection` cùng `data.injection_hits` (`path:line`, tối đa 10) khi có dòng giống chỉ thị nhắm vào model. Không có gì bị che; hãy coi các dòng đó là văn bản, không phải lệnh.
 
 ---
 
@@ -423,7 +441,7 @@ agent gọi tool
                       completeness{value, basis}, warnings, evidence, data
 ```
 
-### 7.3 Hệ thống 19 Tool (10 Lõi + 9 Mở rộng)
+### 7.3 Hệ thống Tool (10 Lõi + 10 Mở rộng, +2 admin)
 
 Hệ thống phân tách thành hai tầng công cụ rành mạch:
 
@@ -558,7 +576,7 @@ Hệ thống tích hợp một tầng **Access Control & Security Plane** tối 
 - **Nút Dừng Khẩn Cấp (Emergency Stop / Panic Button)**: Ngắt toàn bộ lời gọi tool trên tất cả agent trong hệ thống ngay lập tức khi phát hiện sự cố bảo mật.
 - **Phân quyền chính sách (ACL Policies)**:
   - `READ_ONLY`: Chỉ cho phép 15 công cụ tra cứu ngữ cảnh và đọc bộ nhớ. Ngăn cản ghi đè memory hoặc thu thập lock.
-  - `FULL_ACCESS`: Toàn quyền 19 công cụ.
+  - `FULL_ACCESS`: Toàn quyền mọi công cụ đã đăng ký.
   - `CUSTOM`: Giới hạn danh sách tool cụ thể theo từng agent.
 
 ### 10.2 Hiệu Năng Phản Hồi Tối Ưu (< 0.05ms)

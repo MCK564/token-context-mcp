@@ -1,0 +1,912 @@
+{
+ "agent_control": {
+  "properties": {
+   "action": {
+    "enum": [
+     "status",
+     "pause",
+     "resume",
+     "block",
+     "unblock",
+     "revoke_locks",
+     "emergency_halt",
+     "emergency_resume"
+    ],
+    "title": "Action",
+    "type": "string"
+   },
+   "admin_token": {
+    "default": "",
+    "title": "Admin Token",
+    "type": "string"
+   },
+   "agent_id": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Agent Id"
+   },
+   "policy": {
+    "anyOf": [
+     {
+      "enum": [
+       "FULL_ACCESS",
+       "READ_ONLY",
+       "CUSTOM"
+      ],
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Policy"
+   },
+   "reason": {
+    "default": "",
+    "title": "Reason",
+    "type": "string"
+   }
+  },
+  "required": [
+   "action"
+  ],
+  "title": "agent_controlArguments",
+  "type": "object"
+ },
+ "audit_logs": {
+  "properties": {
+   "agent_id": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Agent Id"
+   },
+   "limit": {
+    "default": 50,
+    "title": "Limit",
+    "type": "integer"
+   },
+   "status": {
+    "anyOf": [
+     {
+      "enum": [
+       "SUCCESS",
+       "DENIED",
+       "ERROR"
+      ],
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Status"
+   }
+  },
+  "title": "audit_logsArguments",
+  "type": "object"
+ },
+ "find_symbols": {
+  "properties": {
+   "kind": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Kind"
+   },
+   "limit": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Limit"
+   },
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "pattern": {
+    "title": "Pattern",
+    "type": "string"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "pattern"
+  ],
+  "title": "find_symbolsArguments",
+  "type": "object"
+ },
+ "get_file_skeleton": {
+  "properties": {
+   "include_private": {
+    "default": false,
+    "title": "Include Private",
+    "type": "boolean"
+   },
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "path": {
+    "title": "Path",
+    "type": "string"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "path"
+  ],
+  "title": "get_file_skeletonArguments",
+  "type": "object"
+ },
+ "get_impact_slice": {
+  "properties": {
+   "depth": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Depth"
+   },
+   "direction": {
+    "default": "both",
+    "enum": [
+     "callers",
+     "callees",
+     "both"
+    ],
+    "title": "Direction",
+    "type": "string"
+   },
+   "filter_ambiguous": {
+    "default": true,
+    "title": "Filter Ambiguous",
+    "type": "boolean"
+   },
+   "max_nodes": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Nodes"
+   },
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "min_confidence": {
+    "anyOf": [
+     {
+      "type": "number"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Min Confidence"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   },
+   "symbol_id": {
+    "title": "Symbol Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "symbol_id"
+  ],
+  "title": "get_impact_sliceArguments",
+  "type": "object"
+ },
+ "get_index_status": {
+  "properties": {
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id"
+  ],
+  "title": "get_index_statusArguments",
+  "type": "object"
+ },
+ "get_module_dependents": {
+  "properties": {
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "module": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Module"
+   },
+   "path": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Path"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id"
+  ],
+  "title": "get_module_dependentsArguments",
+  "type": "object"
+ },
+ "get_repo_map": {
+  "properties": {
+   "budget_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Budget Tokens"
+   },
+   "format": {
+    "anyOf": [
+     {
+      "enum": [
+       "compact",
+       "full"
+      ],
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Format"
+   },
+   "include_omitted_ids": {
+    "default": false,
+    "title": "Include Omitted Ids",
+    "type": "boolean"
+   },
+   "include_tests": {
+    "default": false,
+    "title": "Include Tests",
+    "type": "boolean"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "query": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Query"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id"
+  ],
+  "title": "get_repo_mapArguments",
+  "type": "object"
+ },
+ "get_symbol_context": {
+  "properties": {
+   "depth": {
+    "default": 1,
+    "title": "Depth",
+    "type": "integer"
+   },
+   "include_body": {
+    "anyOf": [
+     {
+      "type": "boolean"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Include Body"
+   },
+   "include_omitted_ids": {
+    "default": false,
+    "title": "Include Omitted Ids",
+    "type": "boolean"
+   },
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   },
+   "symbol_id": {
+    "title": "Symbol Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "symbol_id"
+  ],
+  "title": "get_symbol_contextArguments",
+  "type": "object"
+ },
+ "get_tool_schema": {
+  "properties": {
+   "tool_name": {
+    "title": "Tool Name",
+    "type": "string"
+   }
+  },
+  "required": [
+   "tool_name"
+  ],
+  "title": "get_tool_schemaArguments",
+  "type": "object"
+ },
+ "inspect_symbol": {
+  "properties": {
+   "budget_tokens": {
+    "default": 2048,
+    "title": "Budget Tokens",
+    "type": "integer"
+   },
+   "query": {
+    "title": "Query",
+    "type": "string"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   },
+   "view": {
+    "default": "normal",
+    "enum": [
+     "minimal",
+     "normal",
+     "full"
+    ],
+    "title": "View",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "query"
+  ],
+  "title": "inspect_symbolArguments",
+  "type": "object"
+ },
+ "list_available_tools": {
+  "properties": {
+   "category": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Category"
+   }
+  },
+  "title": "list_available_toolsArguments",
+  "type": "object"
+ },
+ "list_repositories": {
+  "properties": {},
+  "title": "list_repositoriesArguments",
+  "type": "object"
+ },
+ "memory_consolidate": {
+  "properties": {
+   "prune_transient": {
+    "default": false,
+    "title": "Prune Transient",
+    "type": "boolean"
+   },
+   "scope": {
+    "default": "session",
+    "title": "Scope",
+    "type": "string"
+   },
+   "target_key": {
+    "default": "project_architectural_insights",
+    "title": "Target Key",
+    "type": "string"
+   }
+  },
+  "title": "memory_consolidateArguments",
+  "type": "object"
+ },
+ "memory_get": {
+  "properties": {
+   "key": {
+    "title": "Key",
+    "type": "string"
+   },
+   "namespace": {
+    "default": "",
+    "title": "Namespace",
+    "type": "string"
+   },
+   "scope": {
+    "default": "session",
+    "title": "Scope",
+    "type": "string"
+   }
+  },
+  "required": [
+   "key"
+  ],
+  "title": "memory_getArguments",
+  "type": "object"
+ },
+ "memory_lock": {
+  "properties": {
+   "agent_id": {
+    "title": "Agent Id",
+    "type": "string"
+   },
+   "resource_key": {
+    "title": "Resource Key",
+    "type": "string"
+   },
+   "timeout_sec": {
+    "default": 60,
+    "title": "Timeout Sec",
+    "type": "integer"
+   }
+  },
+  "required": [
+   "resource_key",
+   "agent_id"
+  ],
+  "title": "memory_lockArguments",
+  "type": "object"
+ },
+ "memory_put": {
+  "properties": {
+   "key": {
+    "title": "Key",
+    "type": "string"
+   },
+   "namespace": {
+    "default": "",
+    "title": "Namespace",
+    "type": "string"
+   },
+   "scope": {
+    "default": "session",
+    "title": "Scope",
+    "type": "string"
+   },
+   "session_id": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Session Id"
+   },
+   "ttl": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": 86400,
+    "title": "Ttl"
+   },
+   "value": {
+    "title": "Value"
+   }
+  },
+  "required": [
+   "key",
+   "value"
+  ],
+  "title": "memory_putArguments",
+  "type": "object"
+ },
+ "memory_search": {
+  "properties": {
+   "limit": {
+    "default": 5,
+    "title": "Limit",
+    "type": "integer"
+   },
+   "namespace": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Namespace"
+   },
+   "query": {
+    "title": "Query",
+    "type": "string"
+   },
+   "scope": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Scope"
+   }
+  },
+  "required": [
+   "query"
+  ],
+  "title": "memory_searchArguments",
+  "type": "object"
+ },
+ "memory_unlock": {
+  "properties": {
+   "agent_id": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Agent Id"
+   },
+   "resource_key": {
+    "title": "Resource Key",
+    "type": "string"
+   }
+  },
+  "required": [
+   "resource_key"
+  ],
+  "title": "memory_unlockArguments",
+  "type": "object"
+ },
+ "sample_summarize": {
+  "properties": {
+   "intent": {
+    "default": "general_code_summary",
+    "title": "Intent",
+    "type": "string"
+   },
+   "max_tokens": {
+    "default": 512,
+    "title": "Max Tokens",
+    "type": "integer"
+   },
+   "target_symbols": {
+    "anyOf": [
+     {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Target Symbols"
+   },
+   "text": {
+    "title": "Text",
+    "type": "string"
+   }
+  },
+  "required": [
+   "text"
+  ],
+  "title": "sample_summarizeArguments",
+  "type": "object"
+ },
+ "search_source": {
+  "properties": {
+   "expand": {
+    "default": "auto",
+    "enum": [
+     "auto",
+     "none",
+     "graph"
+    ],
+    "title": "Expand",
+    "type": "string"
+   },
+   "expand_hops": {
+    "default": 1,
+    "title": "Expand Hops",
+    "type": "integer"
+   },
+   "expand_k": {
+    "default": 3,
+    "title": "Expand K",
+    "type": "integer"
+   },
+   "limit": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Limit"
+   },
+   "max_tokens": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Max Tokens"
+   },
+   "min_confidence": {
+    "default": 0.6,
+    "title": "Min Confidence",
+    "type": "number"
+   },
+   "profile": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Profile"
+   },
+   "query": {
+    "title": "Query",
+    "type": "string"
+   },
+   "repo_id": {
+    "title": "Repo Id",
+    "type": "string"
+   }
+  },
+  "required": [
+   "repo_id",
+   "query"
+  ],
+  "title": "search_sourceArguments",
+  "type": "object"
+ },
+ "search_tools": {
+  "properties": {
+   "limit": {
+    "default": 3,
+    "title": "Limit",
+    "type": "integer"
+   },
+   "query": {
+    "title": "Query",
+    "type": "string"
+   }
+  },
+  "required": [
+   "query"
+  ],
+  "title": "search_toolsArguments",
+  "type": "object"
+ }
+}

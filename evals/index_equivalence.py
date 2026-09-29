@@ -11,6 +11,7 @@ every step compares "incremental on top of the previous snapshot" with "full bui
 from __future__ import annotations
 
 import argparse
+import contextlib
 import ast
 import json
 import os
@@ -22,6 +23,7 @@ import sys
 import tempfile
 import time
 from collections import Counter
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +66,15 @@ _METADATA_KEYS = (
 
 # The per-file circuit breaker of edge resolution is wall-clock based, so two builds of the same tree can differ
 # on a loaded machine.  I1 is about the incremental logic, not about timing: switch the breaker off here.
-lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS = math.inf
+@contextlib.contextmanager
+def deterministic_edges() -> Iterator[None]:
+    """Switch the breaker off for the duration of the block and restore it (never at import time)."""
+    previous = lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS
+    lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS = math.inf
+    try:
+        yield
+    finally:
+        lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS = previous
 
 
 def dump_snapshot(db_path: Path) -> dict[str, Any]:
@@ -278,7 +288,7 @@ def op_change_import(root: Path, rng: random.Random) -> dict[str, Any]:
 CHAIN = (op_edit_body, op_rename, op_add_file, op_delete_file, op_change_import)
 
 
-def run_chain(
+def _run_chain(
     root: Path,
     repo_id: str,
     work_dir: Path,
@@ -340,6 +350,12 @@ def run_chain(
         ok = ok and not problems
     return {"repo_id": repo_id, "setup": {"touched": [p.relative_to(tree).as_posix() for p in setup["touched"]]}, "steps": steps, "all_equivalent": ok}
 
+
+
+def run_chain(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """``_run_chain`` with the wall-clock circuit breaker disabled (see ``deterministic_edges``)."""
+    with deterministic_edges():
+        return _run_chain(*args, **kwargs)
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)

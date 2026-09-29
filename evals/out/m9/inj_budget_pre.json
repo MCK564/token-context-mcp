@@ -1,0 +1,19 @@
+{
+  "code": "/sessions/rcw-01wjxsmkpkkhykqwuyrfcgou/pre_m9/src/token_context_mcp",
+  "max_tokens": 2048,
+  "dev_tasks": 10,
+  "matches_mean": 13.2,
+  "matches": [
+    14,
+    13,
+    13,
+    13,
+    12,
+    15,
+    13,
+    13,
+    13,
+    13
+  ],
+  "tokens_mean": 1894
+}

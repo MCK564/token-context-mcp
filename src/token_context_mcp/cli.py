@@ -76,6 +76,19 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--config", type=Path, default=default_config_path())
     serve.add_argument("--transport", choices=["stdio"], default="stdio")
     serve.add_argument("--network-policy", default="declared-deny-not-enforced")
+    serve.add_argument(
+        "--output-mode",
+        choices=["auto", "structured", "text", "legacy_dual"],
+        default=None,
+        help="Where tool payloads travel; overrides server.output_mode in the config (auto: structured only for "
+        "clients verified to forward structuredContent, otherwise text)",
+    )
+    serve.add_argument(
+        "--schema-profile",
+        choices=["auto", "default", "gemini_safe"],
+        default="auto",
+        help="Tool schema dialect advertised in tools/list (auto: gemini_safe for Gemini/Antigravity clients)",
+    )
     serve.add_argument("--enable-admin-tools", action="store_true", default=False, help="Enable admin tools (agent_control, audit_logs)")
     report = subparsers.add_parser("benchmark-report", help="Summarize an instrumented benchmark JSONL")
     report.add_argument("--input", type=Path, required=True)
@@ -107,7 +120,12 @@ def main(argv: list[str] | None = None) -> int:
             service = RetrievalService(load_config(args.config), args.config)
             _emit(service.status(args.repo_id))
         elif args.command == "serve":
-            run_stdio(args.config, enable_admin_tools=args.enable_admin_tools)
+            run_stdio(
+                args.config,
+                enable_admin_tools=args.enable_admin_tools,
+                output_mode=args.output_mode,
+                schema_profile=args.schema_profile,
+            )
         elif args.command == "benchmark-report":
             report = summarize(load_runs(args.input), baseline=args.baseline)
             if args.output:
@@ -133,11 +151,14 @@ class _NdjsonProgress:
         self._last = 0.0
 
     def __call__(self, message: str, current: int, total: int) -> None:
+        stage = stage_of_message(message)
+        if stage == "done":  # the one "done" line carries the manifest and is written by done()
+            return
         now = time.monotonic()
         if now - self._last < self.MIN_INTERVAL:
             return
         self._last = now
-        self._write({"stage": stage_of_message(message), "current": current, "total": total})
+        self._write({"stage": stage, "current": current, "total": total})
 
     def done(self, manifest: dict[str, object]) -> None:
         self._write({"stage": "done", "manifest": manifest})

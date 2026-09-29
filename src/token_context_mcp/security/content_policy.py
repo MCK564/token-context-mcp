@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from pathlib import Path
 
 from token_context_mcp.constants import HARD_DENY_DIRECTORIES, HARD_DENY_FILE_NAMES, HARD_DENY_SUFFIXES
@@ -37,3 +38,39 @@ def redact_text(text: str) -> tuple[str, int]:
 
 def is_probably_binary(raw: bytes) -> bool:
     return b"\x00" in raw[:8192]
+
+
+# M9.6: repository text is data, never instructions. These phrases are the usual "ignore the above" hooks; a hit only
+# raises a warning (nothing is redacted or dropped), so a false positive costs a few tokens, a miss costs nothing new.
+_INJECTION_RE = re.compile(
+    r"ignore\s+(?:all\s+)?(?:previous|prior|above)\s+instructions"
+    r"|disregard\s+(?:all\s+)?(?:previous|prior|above)"
+    r"|you\s+are\s+now"
+    r"|new\s+system\s+prompt"
+    r"|<\s*/?\s*system\s*>"
+    r"|BEGIN\s+SYSTEM\s+PROMPT",
+    re.IGNORECASE,
+)
+MAX_INJECTION_HITS = 10
+
+
+def scan_prompt_injection(text: str) -> list[int]:
+    """1-based numbers of the lines of ``text`` that contain a prompt-injection marker."""
+    if not text:
+        return []
+    return [number for number, line in enumerate(text.splitlines(), start=1) if _INJECTION_RE.search(line)]
+
+
+def injection_hits(blocks: Iterable[tuple[str, int, str | None]], limit: int = MAX_INJECTION_HITS) -> list[str]:
+    """``path:line`` for every marker in the blocks ``(path, first_line_number, text)``; de-duplicated, capped."""
+    hits: list[str] = []
+    for path, first_line, text in blocks:
+        if not text:
+            continue
+        for offset in scan_prompt_injection(text):
+            hit = f"{path}:{first_line + offset - 1}"
+            if hit not in hits:
+                hits.append(hit)
+                if len(hits) >= limit:
+                    return hits
+    return hits

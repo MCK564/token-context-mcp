@@ -78,6 +78,20 @@ class GovernanceStore:
         conn.execute("PRAGMA busy_timeout = 5000;")
         return conn
 
+    _HEARTBEAT_EXTRA_COLUMNS = ("client_name", "client_version", "output_mode", "schema_profile")
+
+    @classmethod
+    def _migrate_heartbeat_columns(cls, conn: sqlite3.Connection) -> None:
+        """M9.8: nullable client columns, added with a guard so old databases and old readers keep working."""
+        existing = {row[1] for row in conn.execute("PRAGMA table_info(server_heartbeats);")}
+        for column in cls._HEARTBEAT_EXTRA_COLUMNS:
+            if column not in existing:
+                try:
+                    conn.execute(f"ALTER TABLE server_heartbeats ADD COLUMN {column} TEXT;")
+                except sqlite3.OperationalError:  # another process added it first
+                    pass
+        conn.commit()
+
     def _init_db(self) -> None:
         with self._connection() as conn:
             conn.executescript(
@@ -105,6 +119,7 @@ class GovernanceStore:
                 );
                 """
             )
+            self._migrate_heartbeat_columns(conn)
             # Ensure policy and custom_tools_json columns exist if migrating existing DB
             try:
                 cols = [r[1] for r in conn.execute("PRAGMA table_info(agents);")]
@@ -198,19 +213,32 @@ class GovernanceStore:
             )
             conn.commit()
 
-    def record_heartbeat(self, server_id: str, pid: int) -> None:
+    def record_heartbeat(
+        self,
+        server_id: str,
+        pid: int,
+        client_name: str | None = None,
+        client_version: str | None = None,
+        output_mode: str | None = None,
+        schema_profile: str | None = None,
+    ) -> None:
         now = _utc_now_iso()
         with self._connection() as conn:
             conn.execute(
                 """
-                INSERT INTO server_heartbeats (server_id, pid, last_seen, status)
-                VALUES (?, ?, ?, 'running')
+                INSERT INTO server_heartbeats
+                    (server_id, pid, last_seen, status, client_name, client_version, output_mode, schema_profile)
+                VALUES (?, ?, ?, 'running', ?, ?, ?, ?)
                 ON CONFLICT(server_id) DO UPDATE SET
                     pid = excluded.pid,
                     last_seen = excluded.last_seen,
-                    status = 'running'
+                    status = 'running',
+                    client_name = COALESCE(excluded.client_name, client_name),
+                    client_version = COALESCE(excluded.client_version, client_version),
+                    output_mode = COALESCE(excluded.output_mode, output_mode),
+                    schema_profile = COALESCE(excluded.schema_profile, schema_profile)
                 """,
-                (server_id, pid, now),
+                (server_id, pid, now, client_name, client_version, output_mode, schema_profile),
             )
             conn.commit()
 
@@ -218,7 +246,10 @@ class GovernanceStore:
         now_dt = datetime.now(timezone.utc)
         active: list[dict[str, Any]] = []
         with self._connection() as conn:
-            cur = conn.execute("SELECT server_id, pid, last_seen, status FROM server_heartbeats")
+            cur = conn.execute(
+                "SELECT server_id, pid, last_seen, status, client_name, client_version, output_mode, schema_profile "
+                "FROM server_heartbeats"
+            )
             for row in cur.fetchall():
                 data = dict(row)
                 try:
