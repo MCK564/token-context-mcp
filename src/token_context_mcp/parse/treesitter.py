@@ -12,6 +12,14 @@ from tree_sitter import Language, Parser, Query, QueryCursor
 
 from token_context_mcp.models import SymbolRecord
 
+# Version of everything a snapshot caches per file (M7 `file_parse_artifacts`): symbols, imports, calls,
+# inheritance, warnings and parse status as produced by parse_source().  BUMP IT whenever the output of
+# parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
+# tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
+# with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
+PARSER_ARTIFACT_VERSION = 1
+
+
 try:
     import token_context_fast_ast as _fast_ast  # type: ignore[import-not-found]
     _HAS_FAST_AST = True

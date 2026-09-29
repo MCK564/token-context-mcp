@@ -24,7 +24,10 @@ from token_context_mcp.constants import (
     SCHEMA_VERSION,
 )
 from token_context_mcp.index.hashing import sha256_file
+from token_context_mcp.index.gitinfo import cached_git_head
 from token_context_mcp.index.runner import current_pointer_path, database_path
+from token_context_mcp.retrieve.edge_stats import edge_precision as _edge_precision
+from token_context_mcp.retrieve.edge_stats import version_tuple
 from token_context_mcp.index.sqlite_store import ReadConnectionPool, SQLiteStore, StoreError
 from token_context_mcp.models import (
     EdgeRecord,
@@ -183,11 +186,17 @@ class RetrievalService:
         store = self._store(repository.repo_id)
         metadata = store.metadata()
         files = store.files()
-        symbols = store.symbols()
-        role_counts: dict[str, int] = {}
-        for symbol in symbols:
-            for role in symbol.roles:
-                role_counts[role] = role_counts.get(role, 0) + 1
+        # Schema 2.4 stores these aggregates in the manifest; older snapshots are summarised from their rows.
+        if "symbols_with_roles" in metadata and "role_counts" in metadata:
+            symbols_with_roles = int(metadata["symbols_with_roles"])
+            role_counts = dict(metadata["role_counts"])
+        else:
+            symbols = store.symbols()
+            role_counts = {}
+            for symbol in symbols:
+                for role in symbol.roles:
+                    role_counts[role] = role_counts.get(role, 0) + 1
+            symbols_with_roles = sum(bool(symbol.roles) for symbol in symbols)
         snapshot = self._freshness_cache.get_snapshot(
             repository.repo_id,
             str(metadata.get("index_run_id", "")),
@@ -197,7 +206,9 @@ class RetrievalService:
             allow_symlinks=repository.allow_symlinks,
         )
         pending = snapshot.stale_paths
-        edge_precision = _edge_precision(store.edges())
+        edge_precision = (
+            metadata["edge_precision"] if isinstance(metadata.get("edge_precision"), dict) else _edge_precision(store.edges())
+        )
         warnings: list[str] = []
         if metadata.get("network_policy"):
             warnings.append("network_policy_not_enforced_by_process")
@@ -216,12 +227,13 @@ class RetrievalService:
             edge_precision=edge_precision,
             data={
                 "commit_sha": metadata.get("commit_sha"),
+                "head_changed_since_index": _head_changed(metadata.get("commit_sha"), repository.root),
                 "generated_at": metadata.get("generated_at"),
                 "files_indexed": metadata.get("files_indexed"),
                 "symbols_indexed": metadata.get("symbols_indexed"),
                 "edges_indexed": metadata.get("edges_indexed"),
                 "index_schema_version": metadata.get("index_schema_version"),
-                "symbols_with_roles": sum(bool(symbol.roles) for symbol in symbols),
+                "symbols_with_roles": symbols_with_roles,
                 "role_counts": metadata.get("role_counts", role_counts),
                 "entry_points": metadata.get("entry_points", []),
                 **(
@@ -229,8 +241,8 @@ class RetrievalService:
                     if self.config.server.max_result_tokens >= 512
                     else {}
                 ),
-                "imports": store.import_count(),
-                "imported_by": store.importer_count(),
+                "imports": metadata["import_count"] if "import_count" in metadata else store.import_count(),
+                "imported_by": metadata["importer_count"] if "importer_count" in metadata else store.importer_count(),
                 "pending_paths": pending[:100],
                 "pending_path_count": len(pending),
                 "added_paths": snapshot.added_paths[:100],
@@ -435,7 +447,7 @@ class RetrievalService:
             raise ArgumentOutOfRangeError("limit", limit, 1, 100)
         repository, store, metadata = self._repository_store(repo_id)
         use_symbol_fts = (
-            float(metadata.get("index_schema_version", "0")) >= 2.3
+            version_tuple(metadata.get("index_schema_version", "0")) >= (2, 3)
             if metadata and "index_schema_version" in metadata
             else store.has_symbol_fts()
         )
@@ -1818,7 +1830,7 @@ class RetrievalService:
     ) -> dict[str, Any]:
         effective_warnings = list(warnings)
         idx_ver = metadata.get("index_schema_version")
-        if idx_ver is not None and str(idx_ver) < INDEX_SCHEMA_VERSION:
+        if idx_ver is not None and version_tuple(idx_ver) < version_tuple(INDEX_SCHEMA_VERSION):
             if "index_schema_outdated_reindex_recommended" not in effective_warnings:
                 effective_warnings.append("index_schema_outdated_reindex_recommended")
 
@@ -2291,19 +2303,12 @@ def _completeness(edges: list[EdgeRecord]) -> dict[str, Any]:
     return {"value": round(resolved / len(edges), 3), "basis": "resolved_edges / observed_edges"}
 
 
-def _edge_precision(edges: list[EdgeRecord]) -> dict[str, Any]:
-    if not edges:
-        return {
-            "ambiguous_rate": None,
-            "resolved_rate": None,
-            "basis": "no_edges_observed",
-        }
-    total = len(edges)
-    return {
-        "ambiguous_rate": round(sum(edge.status == "ambiguous" for edge in edges) / total, 3),
-        "resolved_rate": round(sum(edge.status == "resolved" for edge in edges) / total, 3),
-        "basis": "edge_status / observed_edges",
-    }
+def _head_changed(indexed_sha: object, root: Path) -> bool | None:
+    """Has the repository's HEAD moved since the snapshot was built?  ``None`` when either side is unknown."""
+    if not indexed_sha:
+        return None
+    head = cached_git_head(root)
+    return None if head is None else head != indexed_sha
 
 
 def _json(value: Any) -> str:

@@ -1,0 +1,129 @@
+{
+  "all_equivalent": true,
+  "repo_id": "synthetic-1k",
+  "setup": {
+    "touched": [
+      "pkg_16/mod_13.py",
+      "pkg_33/mod_06.py"
+    ]
+  },
+  "steps": [
+    {
+      "equivalent": true,
+      "files_reparsed": 1050,
+      "parse_source_calls": 1050,
+      "step": "base"
+    },
+    {
+      "edge_resolution": {
+        "changed_names": 0,
+        "files_resolved": 1,
+        "files_reused": 1049,
+        "mode": "scoped"
+      },
+      "equivalent": true,
+      "expected_parse_source_calls": 1,
+      "files_reparsed": 1,
+      "files_stat_skipped": 1050,
+      "full_manifest_symbols": 8002,
+      "incremental_manifest_symbols": 8002,
+      "incremental_seconds": 0.8,
+      "parse_source_calls": 1,
+      "problems": {},
+      "removed": [],
+      "step": "1:edit_body",
+      "touched": [
+        "pkg_43/mod_18.py"
+      ]
+    },
+    {
+      "edge_resolution": {
+        "changed_names": 2,
+        "files_resolved": 2,
+        "files_reused": 1048,
+        "mode": "scoped"
+      },
+      "equivalent": true,
+      "expected_parse_source_calls": 2,
+      "files_reparsed": 2,
+      "files_stat_skipped": 1048,
+      "full_manifest_symbols": 8002,
+      "incremental_manifest_symbols": 8002,
+      "incremental_seconds": 0.76,
+      "parse_source_calls": 2,
+      "problems": {},
+      "removed": [],
+      "step": "2:rename_function",
+      "touched": [
+        "pkg_16/mod_13.py",
+        "pkg_33/mod_06.py"
+      ]
+    },
+    {
+      "edge_resolution": {
+        "changed_names": 3,
+        "files_resolved": 1001,
+        "files_reused": 50,
+        "mode": "scoped"
+      },
+      "equivalent": true,
+      "expected_parse_source_calls": 1,
+      "files_reparsed": 1,
+      "files_stat_skipped": 1049,
+      "full_manifest_symbols": 8005,
+      "incremental_manifest_symbols": 8005,
+      "incremental_seconds": 1.95,
+      "parse_source_calls": 1,
+      "problems": {},
+      "removed": [],
+      "step": "3:add_file",
+      "touched": [
+        "pkg_25/m7_added_module.py"
+      ]
+    },
+    {
+      "edge_resolution": {
+        "changed_names": 7,
+        "files_resolved": 1000,
+        "files_reused": 50,
+        "mode": "scoped"
+      },
+      "equivalent": true,
+      "expected_parse_source_calls": 0,
+      "files_reparsed": 0,
+      "files_stat_skipped": 1050,
+      "full_manifest_symbols": 7997,
+      "incremental_manifest_symbols": 7997,
+      "incremental_seconds": 2.033,
+      "parse_source_calls": 0,
+      "problems": {},
+      "removed": [
+        "pkg_12/mod_10.py"
+      ],
+      "step": "4:delete_file",
+      "touched": []
+    },
+    {
+      "edge_resolution": {
+        "changed_names": 0,
+        "files_resolved": 1,
+        "files_reused": 1049,
+        "mode": "scoped"
+      },
+      "equivalent": true,
+      "expected_parse_source_calls": 1,
+      "files_reparsed": 1,
+      "files_stat_skipped": 1050,
+      "full_manifest_symbols": 7997,
+      "incremental_manifest_symbols": 7997,
+      "incremental_seconds": 0.83,
+      "parse_source_calls": 1,
+      "problems": {},
+      "removed": [],
+      "step": "5:change_import",
+      "touched": [
+        "pkg_10/mod_00.py"
+      ]
+    }
+  ]
+}

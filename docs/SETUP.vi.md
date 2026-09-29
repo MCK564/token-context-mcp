@@ -162,6 +162,23 @@ Registry mặc định nằm ở `%APPDATA%\token-context-mcp\repos.toml` (Windo
 
 **Chạy lại `index` sau mỗi lần code đổi đáng kể.** Server báo `freshness: "stale"` khi file trên đĩa khác với lúc index, nhưng nó **không tự index lại**.
 
+### 3.1 Index tăng dần, tiến độ và chế độ watch
+
+`index` chạy tăng dần: so `(size, mtime_ns)` của từng file với snapshot đang dùng và chỉ parse lại file đổi (lần chạy không đổi gì không đọc file nào). Lần đầu sau khi nâng lên schema 2.4 sẽ parse lại toàn bộ.
+
+```powershell
+uv run python -m token_context_mcp index --all                          # mọi repository đã đăng ký, in JSON tóm tắt
+uv run python -m token_context_mcp index --repo-id myrepo --progress-format ndjson   # mỗi sự kiện tiến độ một dòng JSON
+uv run python -m token_context_mcp index --repo-id myrepo --watch --debounce 1.5     # index lại khi cây file yên tĩnh
+uv run python -m token_context_mcp index --repo-id myrepo --verify-hashes            # băm mọi file, bỏ qua mtime
+uv run python -m token_context_mcp index --repo-id myrepo --full --workers 4         # làm lại từ đầu, 4 tiến trình parse
+```
+
+- **Giới hạn**: một chỉnh sửa giữ nguyên cả kích thước lẫn mtime, và cũ hơn 2 giây so với lúc bắt đầu lần quét trước, không thể phát hiện bằng kiểm tra stat; dùng `--verify-hashes` (hoặc `--full`) sau các công cụ khôi phục mtime.
+- Tiến trình parse (`--workers`, `TOKEN_CONTEXT_INDEX_WORKERS`) chỉ khởi động khi có ít nhất 32 file đổi và 1 MB mã nguồn; cập nhật nhỏ hơn chạy ngay trong tiến trình chính.
+- `--watch` kiểm tra cây file mỗi `--poll-interval` giây; cài extra tuỳ chọn (`pip install token-context-mcp[watch]`) để dùng sự kiện `watchdog`.
+- `get_index_status` trả `commit_sha` (HEAD lúc index) và `head_changed_since_index`.
+
 ---
 
 ## 4. Chỉnh giới hạn tài nguyên & Tiện ích mở rộng (Extensions)

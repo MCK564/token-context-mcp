@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import time
 from collections import defaultdict
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from token_context_mcp.models import EdgeRecord, ExternalStubRecord, SymbolRecord
@@ -11,6 +12,10 @@ if TYPE_CHECKING:
     from token_context_mcp.parse.treesitter import CallRecord
 
 _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
+
+# Per-file wall-clock budget of edge resolution (a guard against pathological files).  Time-based, hence
+# machine-dependent: evals/index_equivalence.py sets it to infinity so that "incremental == full" (I1) is exact.
+FILE_CIRCUIT_BREAKER_SECONDS = 0.030
 
 # Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
@@ -119,7 +124,7 @@ def build_lexical_edges(
                 source = min(enclosing, key=lambda s: s.end_byte - s.start_byte)
 
                 # 30ms circuit breaker per file
-                if not file_timed_out and (time.perf_counter() - file_start > 0.030):
+                if not file_timed_out and (time.perf_counter() - file_start > FILE_CIRCUIT_BREAKER_SECONDS):
                     file_timed_out = True
 
                 if file_timed_out:
@@ -280,12 +285,27 @@ _GENERIC_METHOD_NAMES = {
 }
 
 
+@lru_cache(maxsize=65536)
 def _path_segments(path_str: str) -> list[str]:
+    # cached (M7): called once per (import, candidate) pair, i.e. up to millions of times per index run;
+    # the returned list is shared and must not be mutated by callers.
     p = path_str.replace("\\", "/")
     filename = p.rsplit("/", 1)[-1]
     if "." in filename:
         p = p[: -(len(filename) - filename.rfind("."))]
     return [s for s in p.split("/") if s]
+
+
+@lru_cache(maxsize=16384)
+def _import_parts(imp: str) -> tuple[str | None, list[str] | None, list[str]]:
+    """(member name, module segments of ``a.b.Name``, segments of the whole import); shared, read-only."""
+    member_part: str | None = None
+    mod_segs: list[str] | None = None
+    if "." in imp:
+        mod_part, member_part = imp.rsplit(".", 1)
+        mod_segs = [s for s in mod_part.replace(".", "/").split("/") if s]
+    imp_segs = [s for s in imp.replace(".", "/").split("/") if s]
+    return member_part, mod_segs, imp_segs
 
 
 def _import_matches_candidate(imp: str, candidate: SymbolRecord) -> bool:
@@ -298,17 +318,15 @@ def _import_matches_candidate(imp: str, candidate: SymbolRecord) -> bool:
         return False
 
     # 1. from a.b import CandidateName -> imp is "a.b.CandidateName"
-    if "." in imp:
-        mod_part, member_part = imp.rsplit(".", 1)
+    member_part, mod_segs, imp_segs = _import_parts(imp)
+    if mod_segs is not None:
         if member_part == candidate.name:
-            mod_segs = [s for s in mod_part.replace(".", "/").split("/") if s]
             if len(cand_segs) >= len(mod_segs) and cand_segs[-len(mod_segs) :] == mod_segs:
                 return True
     elif imp == candidate.name:
         return True
 
     # 2. Module import matches candidate file path exactly (as segment suffix)
-    imp_segs = [s for s in imp.replace(".", "/").split("/") if s]
     if not imp_segs:
         return False
 

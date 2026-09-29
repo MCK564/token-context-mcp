@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
+import time
 from pathlib import Path
+from typing import TextIO
 
 from token_context_mcp import __version__
 from token_context_mcp.config import (
@@ -16,7 +19,7 @@ from token_context_mcp.config import (
     unregister_repository,
     update_repository,
 )
-from token_context_mcp.index.runner import build_index
+from token_context_mcp.index.runner import build_index, stage_of_message
 from token_context_mcp.release import write_release_materials
 from token_context_mcp.retrieve.service import RetrievalService
 from token_context_mcp.security.local_privacy import harden_registry
@@ -41,9 +44,28 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument("--force", action="store_true", help="Acknowledge that the registered root will change")
     update.add_argument("--config", type=Path, default=default_config_path())
     index = subparsers.add_parser("index", help="Build a local immutable snapshot (admin-only)")
-    index.add_argument("--repo-id", required=True)
+    target = index.add_mutually_exclusive_group(required=True)
+    target.add_argument("--repo-id", help="Index one registered repository")
+    target.add_argument("--all", action="store_true", help="Index every registered repository (JSON summary)")
     index.add_argument("--config", type=Path, default=default_config_path())
     index.add_argument("--network-policy", default="declared-deny-not-enforced")
+    index.add_argument(
+        "--progress-format",
+        choices=["none", "ndjson"],
+        default="none",
+        help='"ndjson": one JSON object per line on stdout ({"stage","current","total","ts"}, at most 10 per second), '
+        'the last one {"stage":"done","manifest":{...}}; logs stay on stderr',
+    )
+    index.add_argument("--workers", type=int, default=None, help="Parser worker processes (default: min(8, CPUs - 1))")
+    index.add_argument(
+        "--verify-hashes",
+        action="store_true",
+        help="Read and hash every file instead of trusting (size, mtime_ns) of unchanged files",
+    )
+    index.add_argument("--full", action="store_true", help="Ignore the active snapshot and index from scratch")
+    index.add_argument("--watch", action="store_true", help="Keep running: re-index after the working tree settles")
+    index.add_argument("--debounce", type=float, default=1.5, help="--watch: quiet time before re-indexing (seconds)")
+    index.add_argument("--poll-interval", type=float, default=2.0, help="--watch without watchdog: poll period (seconds)")
     harden = subparsers.add_parser("harden", help="Restrict the registry and snapshots to the owning account")
     harden.add_argument("--config", type=Path, default=default_config_path())
     harden.add_argument("--check", action="store_true", help="Report current permissions without changing them")
@@ -78,9 +100,7 @@ def main(argv: list[str] | None = None) -> int:
             repository = update_repository(args.config, args.repo_id, args.root, force=args.force)
             _emit({"repo_id": repository.repo_id, "root": repository.root.as_posix(), "config": str(args.config)})
         elif args.command == "index":
-            config = load_config(args.config)
-            repository = get_repository(config, args.repo_id)
-            _emit(build_index(repository, index_directory(args.config), network_policy=args.network_policy))
+            return _run_index(args)
         elif args.command == "harden":
             _emit(harden_registry(args.config, check_only=args.check))
         elif args.command == "status":
@@ -100,6 +120,130 @@ def main(argv: list[str] | None = None) -> int:
     except (ConfigError, ValueError, RuntimeError, OSError) as error:
         logging.getLogger("token_context_mcp").error("%s", error)
         return 2
+
+
+class _NdjsonProgress:
+    """Progress lines for ``index --progress-format ndjson``: at most ten per second, ``done`` always goes out."""
+
+    MIN_INTERVAL = 0.1
+
+    def __init__(self, stream: TextIO | None = None, repo_id: str | None = None) -> None:
+        self._stream = stream or sys.stdout
+        self._repo_id = repo_id
+        self._last = 0.0
+
+    def __call__(self, message: str, current: int, total: int) -> None:
+        now = time.monotonic()
+        if now - self._last < self.MIN_INTERVAL:
+            return
+        self._last = now
+        self._write({"stage": stage_of_message(message), "current": current, "total": total})
+
+    def done(self, manifest: dict[str, object]) -> None:
+        self._write({"stage": "done", "manifest": manifest})
+
+    def _write(self, payload: dict[str, object]) -> None:
+        line = {**payload, "ts": round(time.time(), 3)}
+        if self._repo_id is not None:
+            line["repo_id"] = self._repo_id
+        self._stream.write(json.dumps(line, sort_keys=True, default=str) + "\n")
+        self._stream.flush()
+
+
+def _index_kwargs(args: argparse.Namespace) -> dict[str, object]:
+    kwargs: dict[str, object] = {"verify_hashes": args.verify_hashes, "full_rebuild": args.full}
+    if args.workers is not None:
+        kwargs["workers"] = max(1, args.workers)
+    return kwargs
+
+
+def _run_index(args: argparse.Namespace) -> int:
+    config = load_config(args.config)
+    directory = index_directory(args.config)
+    ndjson = args.progress_format == "ndjson"
+    if args.all:
+        return _index_all(config, directory, args, ndjson)
+    repository = get_repository(config, args.repo_id)
+    progress = _NdjsonProgress(repo_id=None) if ndjson else None
+    kwargs = _index_kwargs(args)
+    if args.watch:
+        from token_context_mcp.index.watch import watch_index
+
+        def show(manifest: dict[str, object]) -> None:
+            if progress is not None:
+                progress.done(manifest)
+            else:
+                _emit(manifest)
+
+        # each run gets a fresh progress callback so the rate limiter starts clean
+        watch_index(
+            repository,
+            directory,
+            network_policy=args.network_policy,
+            debounce_seconds=args.debounce,
+            poll_seconds=args.poll_interval,
+            on_index=show,
+            index_kwargs={**kwargs, **({"progress_callback": progress} if progress is not None else {})},
+        )
+        return 0
+    manifest = build_index(
+        repository,
+        directory,
+        network_policy=args.network_policy,
+        progress_callback=progress,
+        **kwargs,
+    )
+    if progress is not None:
+        progress.done(manifest)
+    else:
+        _emit(manifest)
+    return 0
+
+
+def _index_all(config: object, directory: Path, args: argparse.Namespace, ndjson: bool) -> int:
+    repositories = getattr(config, "repositories")
+    if args.watch:
+        raise ValueError("--watch works on one repository; use --repo-id")
+    kwargs = _index_kwargs(args)
+    results: list[dict[str, object]] = []
+    for repo_id in sorted(repositories):
+        started = time.perf_counter()
+        progress = _NdjsonProgress(repo_id=repo_id) if ndjson else None
+        try:
+            manifest = build_index(
+                repositories[repo_id],
+                directory,
+                network_policy=args.network_policy,
+                progress_callback=progress,
+                **kwargs,
+            )
+        except (ValueError, RuntimeError, OSError) as error:
+            logging.getLogger("token_context_mcp").error("index %s failed: %s", repo_id, error)
+            results.append({"repo_id": repo_id, "ok": False, "error": f"{type(error).__name__}: {error}"})
+            continue
+        if progress is not None:
+            progress.done(manifest)
+        results.append(
+            {
+                "repo_id": repo_id,
+                "ok": True,
+                "seconds": round(time.perf_counter() - started, 3),
+                "incremental": manifest.get("incremental"),
+                "files_indexed": manifest.get("files_indexed"),
+                "files_reparsed": manifest.get("files_reparsed"),
+                "symbols_indexed": manifest.get("symbols_indexed"),
+                "edges_indexed": manifest.get("edges_indexed"),
+                "index_run_id": manifest.get("index_run_id"),
+            }
+        )
+    failed = [item for item in results if not item["ok"]]
+    summary = {"repositories": results, "indexed": len(results) - len(failed), "failed": len(failed)}
+    if ndjson:
+        sys.stdout.write(json.dumps({"stage": "all_done", "summary": summary, "ts": round(time.time(), 3)}, sort_keys=True) + "\n")
+        sys.stdout.flush()
+    else:
+        _emit(summary)
+    return 1 if failed else 0
 
 
 def _emit(value: object) -> None:

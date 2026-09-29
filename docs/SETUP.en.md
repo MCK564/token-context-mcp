@@ -166,6 +166,23 @@ The default registry is `%APPDATA%\token-context-mcp\repos.toml` on Windows, `$X
 
 **Re-run `index` after meaningful code changes.** The server reports `freshness: "stale"` when files on disk differ from the snapshot, but it does **not** re-index itself.
 
+### 3.1 Incremental indexing, progress and watch mode
+
+`index` is incremental: it compares `(size, mtime_ns)` of every file with the active snapshot and re-parses only what changed (a no-op run reads nothing). The first run after upgrading to schema 2.4 re-parses everything.
+
+```powershell
+uv run python -m token_context_mcp index --all                          # every registered repository, JSON summary
+uv run python -m token_context_mcp index --repo-id myrepo --progress-format ndjson   # one JSON line per progress event
+uv run python -m token_context_mcp index --repo-id myrepo --watch --debounce 1.5     # re-index after the tree settles
+uv run python -m token_context_mcp index --repo-id myrepo --verify-hashes            # hash every file, ignore mtime
+uv run python -m token_context_mcp index --repo-id myrepo --full --workers 4         # from scratch, 4 parser processes
+```
+
+- **Limitation**: an edit that keeps both the file size and the mtime, and is older than 2 s before the previous scan, cannot be seen by the stat check; use `--verify-hashes` (or `--full`) after tools that restore mtimes.
+- Parser processes (`--workers`, `TOKEN_CONTEXT_INDEX_WORKERS`) are only started for at least 32 changed files and 1 MB of source; smaller updates run in-process.
+- `--watch` polls the tree every `--poll-interval` seconds; install the optional extra (`pip install token-context-mcp[watch]`) to use `watchdog` events instead.
+- `get_index_status` reports `commit_sha` (HEAD at index time) and `head_changed_since_index`.
+
 ---
 
 ## 4. Resource limits & Server Extensions

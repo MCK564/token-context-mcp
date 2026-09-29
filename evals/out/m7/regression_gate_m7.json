@@ -1,0 +1,97 @@
+{
+  "identical": true,
+  "results": [
+    {
+      "base_file": "evals/out/m6/pinned_base_loc_A1final_heldout_8192.json",
+      "differences": [],
+      "info": {
+        "base_overall": {
+          "file_acc_at_5": 1.0,
+          "file_mrr": 0.8892,
+          "file_recall_at_5": 1.0,
+          "latency_p50_ms": 71.94,
+          "latency_p95_ms": 125.44,
+          "mean_neighbor_count": 0.0,
+          "mean_test_ratio_top_10": 0.0,
+          "mean_wire_tokens": 2786.9,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.7,
+          "sym_mrr": 0.5955,
+          "sym_recall_at_10": 0.725,
+          "sym_recall_in_response": 0.725,
+          "task_count": 20
+        },
+        "mean_wire_tokens_base": 2786.9,
+        "mean_wire_tokens_new": 2786.9,
+        "new_overall": {
+          "file_acc_at_5": 1.0,
+          "file_mrr": 0.8892,
+          "file_recall_at_5": 1.0,
+          "latency_p50_ms": 54.52,
+          "latency_p95_ms": 70.94,
+          "mean_neighbor_count": 0.0,
+          "mean_test_ratio_top_10": 0.0,
+          "mean_wire_tokens": 2786.9,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.7,
+          "sym_mrr": 0.5955,
+          "sym_recall_at_10": 0.725,
+          "sym_recall_in_response": 0.725,
+          "task_count": 20
+        }
+      },
+      "kind": "loc",
+      "new_file": "evals/out/m7/loc_A1final_heldout_8192_m7.json",
+      "tasks_compared": 20
+    },
+    {
+      "base_file": "evals/out/m6/pinned_base_loc_A2_heldout_8192.json",
+      "differences": [],
+      "info": {
+        "base_overall": {
+          "file_acc_at_5": 0.9,
+          "file_mrr": 0.8801,
+          "file_recall_at_5": 0.875,
+          "latency_p50_ms": 86.35,
+          "latency_p95_ms": 178.82,
+          "mean_neighbor_count": 9.6,
+          "mean_test_ratio_top_10": 0.135,
+          "mean_wire_tokens": 3485.2,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.65,
+          "sym_mrr": 0.6072,
+          "sym_recall_at_10": 0.75,
+          "sym_recall_in_response": 0.85,
+          "task_count": 20
+        },
+        "mean_wire_tokens_base": 3485.2,
+        "mean_wire_tokens_new": 3485.2,
+        "new_overall": {
+          "file_acc_at_5": 0.9,
+          "file_mrr": 0.8801,
+          "file_recall_at_5": 0.875,
+          "latency_p50_ms": 67.86,
+          "latency_p95_ms": 90.06,
+          "mean_neighbor_count": 9.6,
+          "mean_test_ratio_top_10": 0.135,
+          "mean_wire_tokens": 3485.2,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.65,
+          "sym_mrr": 0.6072,
+          "sym_recall_at_10": 0.75,
+          "sym_recall_in_response": 0.85,
+          "task_count": 20
+        }
+      },
+      "kind": "loc",
+      "new_file": "evals/out/m7/loc_A2_heldout_8192_m7.json",
+      "tasks_compared": 20
+    },
+    {
+      "base_file": "evals/out/m6/pinned_base_edge_eval.json",
+      "differences": [],
+      "kind": "edge",
+      "new_file": "evals/out/m7/edge_eval_m7.json"
+    }
+  ]
+}

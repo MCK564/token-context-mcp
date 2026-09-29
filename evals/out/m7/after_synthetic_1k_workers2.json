@@ -1,0 +1,178 @@
+{
+  "changed_file": "pkg_23/mod_15.py",
+  "environment": {
+    "cpu_count": 2,
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "python": "3.12.14"
+  },
+  "files_indexed": 1051,
+  "raw": {
+    "full": [
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T063952Z_baaa6287",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "spawn-pool",
+            "workers": 2
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1810.8,
+            "finalize": 20.7,
+            "fts_prep": 0.0,
+            "inventory": 81.4,
+            "parse": 2268.4,
+            "ranks": 113.7,
+            "read_hash": 53.0,
+            "roles": 12.7,
+            "write": 481.8
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 123.8,
+        "wall_s": 4.948
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T063958Z_44b84ae6",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "spawn-pool",
+            "workers": 2
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1682.5,
+            "finalize": 29.3,
+            "fts_prep": 0.0,
+            "inventory": 81.6,
+            "parse": 2442.5,
+            "ranks": 121.5,
+            "read_hash": 57.2,
+            "roles": 12.8,
+            "write": 504.5
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 126.3,
+        "wall_s": 5.044
+      },
+      {
+        "manifest": {
+          "edge_resolution": {
+            "files_resolved": 1050,
+            "mode": "full"
+          },
+          "edges_indexed": 5000,
+          "files_indexed": 1051,
+          "files_reparsed": 1050,
+          "files_reused": 0,
+          "files_seen": 1051,
+          "files_skipped": 0,
+          "files_stat_skipped": 0,
+          "incremental": false,
+          "index_run_id": "run_20260929T064004Z_57cafa2c",
+          "index_schema_version": "2.4",
+          "parse_mode": {
+            "fallback": null,
+            "mode": "spawn-pool",
+            "workers": 2
+          },
+          "parse_source_calls": 1050,
+          "symbols_indexed": 8000,
+          "timings_ms": {
+            "edges": 1721.9,
+            "finalize": 24.2,
+            "fts_prep": 0.0,
+            "inventory": 72.3,
+            "parse": 2440.3,
+            "ranks": 118.6,
+            "read_hash": 53.4,
+            "roles": 18.7,
+            "write": 481.1
+          },
+          "warnings": [],
+          "write_mode": "rewrite"
+        },
+        "rss_peak_mb": 125.2,
+        "wall_s": 5.06
+      }
+    ]
+  },
+  "repo_id": "synthetic-1k",
+  "runs": 3,
+  "summary": {
+    "full": {
+      "edge_resolution": {
+        "files_resolved": 1050,
+        "mode": "full"
+      },
+      "files_reparsed": [
+        1050,
+        1050,
+        1050
+      ],
+      "median_rss_peak_mb": 125.2,
+      "median_timings_ms": {
+        "edges": 1721.9,
+        "finalize": 24.2,
+        "fts_prep": 0.0,
+        "inventory": 81.4,
+        "parse": 2440.3,
+        "ranks": 118.6,
+        "read_hash": 53.4,
+        "roles": 12.8,
+        "write": 481.8
+      },
+      "median_wall_s": 5.044,
+      "parse_source_calls": [
+        1050,
+        1050,
+        1050
+      ],
+      "wall_s_runs": [
+        4.948,
+        5.044,
+        5.06
+      ],
+      "write_mode": [
+        "rewrite",
+        "rewrite",
+        "rewrite"
+      ]
+    }
+  },
+  "symbols_indexed": 8000,
+  "tracemalloc_peak_mb": {}
+}
