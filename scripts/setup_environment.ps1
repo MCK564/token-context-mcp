@@ -56,11 +56,11 @@ if (-not $uvCmd) {
 # 3. Synchronize dependencies
 Write-Host "`n[3/6] Synchronizing project dependencies..." -ForegroundColor Yellow
 if (Get-Command uv -ErrorAction SilentlyContinue) {
-    Write-Host "  Running 'uv sync --extra dev'..." -ForegroundColor DarkGray
-    & uv sync --extra dev
+    Write-Host "  Running 'uv sync --all-extras'..." -ForegroundColor DarkGray
+    & uv sync --all-extras
 } else {
-    Write-Host "  'uv' unavailable; falling back to 'python -m pip install -e .[dev]'..." -ForegroundColor DarkYellow
-    & python -m pip install -e ".[dev]"
+    Write-Host "  'uv' unavailable; falling back to 'python -m pip install -e .[dev,gui,watch]'..." -ForegroundColor DarkYellow
+    & python -m pip install -e ".[dev,gui,watch]"
 }
 Write-Host "  Dependencies synchronized successfully." -ForegroundColor Green
 

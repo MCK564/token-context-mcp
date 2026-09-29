@@ -131,10 +131,63 @@ The figures above come from the earlier pilot and the X1 measurements. Version 0
 
 This server does not edit files, execute shell commands, listen on HTTP, call network APIs, or accept arbitrary repository paths. `stdio` is not an OS sandbox: deploy with a no-egress/least-privilege policy if an enforced network boundary is required. Tool results may still be placed in the MCP host's LLM context.
 
+## Prerequisites and installation
+
+Everything below is needed only for the part you use. The MCP server alone needs Python and `uv`; the GUI, the `.exe` build, the file watcher and the local 7B summariser are optional add-ons.
+
+| Component | Needed for | How to get it |
+| --- | --- | --- |
+| Git | cloning the repository | <https://git-scm.com/downloads> |
+| Python 3.12 or newer | everything | <https://www.python.org/downloads/> or, once `uv` is installed, `uv python install 3.12` |
+| `uv` | environment and dependency management | Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"`; Linux/macOS: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Python libraries | see below | `uv sync --all-extras` |
+| Ollama + a coder model (optional) | `sample_summarize` with a local 7B model | see [Local model](#local-model-optional) |
+
+### Python libraries
+
+`uv sync` installs the exact versions in `uv.lock` into `.venv/`. The libraries are grouped:
+
+| Group | Contents | Install |
+| --- | --- | --- |
+| core (always) | `mcp`, `mcp-types`, `pydantic`, `pathspec`, `tree-sitter` and the grammars for Python, JavaScript, TypeScript/TSX, Java, C#, HTML, CSS and Go | `uv sync` |
+| `dev` | `pytest`, `pytest-cov`, `jsonschema`, `psutil` | `uv sync --extra dev` |
+| `gui` | `PySide6`, `psutil`, `pyinstaller` (desktop GUI and the `.exe` build) | `uv sync --extra gui` |
+| `watch` | `watchdog` (event-based `index --watch`; without it the watcher polls) | `uv sync --extra watch` |
+
+**Recommended for a full development machine:**
+
+```powershell
+uv sync --all-extras
+```
+
+> `uv sync` is exact: it *removes* packages that are not in the extras you list. Running only `uv sync --extra dev` therefore leaves PySide6 out (or uninstalls it if it was there), and `uv run token-context-gui` then fails with `No module named 'PySide6'`. Always pass every extra you need in the same command (or use `--all-extras`).
+
+Run project tools through `uv run` (`uv run token-context-gui`, `uv run python scripts/build_desktop_exe.py`), not with a bare `python`, so that they use `.venv` and not the system Python.
+
+### Local model (optional)
+
+`sample_summarize` can compress text with a local model served by [Ollama](https://ollama.com/download). Without Ollama, or on a machine with too little memory, it falls back to a deterministic heuristic on the CPU; no other feature depends on a model, and no embedding model is used.
+
+1. Install Ollama from <https://ollama.com/download> and make sure it is running (`ollama serve`; the desktop app starts it for you). The server probes `http://localhost:11434`.
+2. Download the model, either with the helper script or by hand:
+
+   ```powershell
+   .\scripts\download_models.ps1              # qwen2.5-coder:7b-instruct-q4_K_M (recommended)
+   .\scripts\download_models.ps1 -Lightweight # qwen2.5-coder:1.5b, for small machines
+   # or directly:
+   ollama pull qwen2.5-coder:7b-instruct-q4_K_M
+   ollama pull qwen2.5-coder:1.5b
+   ```
+
+   On Linux/macOS: `./scripts/download_models.sh` (`--lightweight` for the 1.5B model).
+3. Check it: `ollama list` should show the model, and `uv run python -c "from token_context_mcp.sampling.router import SamplingRouter; print(SamplingRouter().summarize('def f(x): return x+1', intent='describe'))"` reports the `backend` used (`ollama_gpu`, `ollama_cpu` or `heuristic_fallback`).
+
+The Ollama backend is chosen only when Ollama is reachable and the host has a CUDA GPU with at least 6 GB of VRAM (`ollama_gpu`) or at least 6 GB of RAM (`ollama_cpu`); otherwise the heuristic fallback is used.
+
 ## Quick start
 
 ```powershell
-uv sync --extra dev
+uv sync --all-extras          # see Prerequisites; plain `uv sync` is enough for the server alone
 uv run token-context register --repo-id demo --root D:\AI\some-repo
 uv run token-context index --repo-id demo      # or: index --all
 uv run token-context status --repo-id demo
@@ -147,6 +200,8 @@ Useful `index` options: `--all` (every registered repository, JSON summary), `--
 
 In addition to the CLI, `token-context-mcp` includes a modern desktop graphical user interface with hardware telemetry, visual repository management, live indexing progress, log streaming, and cache controls:
 
+Requires the `gui` extra (`uv sync --all-extras`); without it the command stops with an install hint.
+
 ```powershell
 # Launch Desktop GUI
 uv run token-context-gui
@@ -155,8 +210,8 @@ uv run token-context-gui
 .\scripts\launch_desktop_gui.bat    # Windows Batch
 .\scripts\launch_desktop_gui.ps1    # PowerShell
 
-# Build a standalone portable .exe:
-python scripts/build_desktop_exe.py
+# Build a standalone portable .exe (needs PyInstaller from the gui extra):
+uv run python scripts/build_desktop_exe.py --clean   # -> dist\desktop\TokenContextDesktop\TokenContextDesktop.exe
 ```
 
 Key GUI Capabilities:
@@ -518,7 +573,7 @@ git fetch origin
 git pull origin main
 
 # 3. Re-sync the environment / dependencies with uv
-uv sync --extra dev
+uv sync --all-extras
 
 # 4. (Optional) run the tests to confirm the update
 uv run pytest
@@ -538,7 +593,7 @@ git fetch origin
 git pull origin main
 
 # 3. Re-sync the environment / dependencies with uv
-uv sync --extra dev
+uv sync --all-extras
 
 # 4. (Optional) run the tests
 uv run pytest

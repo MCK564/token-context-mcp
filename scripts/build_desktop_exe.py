@@ -34,7 +34,25 @@ def create_default_icon(icon_path: Path) -> None:
         print(f"Could not generate icon with PIL ({e}), building without icon.")
 
 
+def missing_build_dependencies() -> list[str]:
+    """Names of build/runtime packages that the *current* interpreter cannot import."""
+    import importlib.util
+
+    needed = {"PyInstaller": "pyinstaller", "PySide6": "PySide6", "psutil": "psutil"}
+    return [pkg for mod, pkg in needed.items() if importlib.util.find_spec(mod) is None]
+
+
 def build_executable(onefile: bool = False, clean: bool = False, output_name: str = "TokenContextDesktop") -> Path:
+    missing = missing_build_dependencies()
+    if missing:
+        raise SystemExit(
+            f"Missing packages in this Python ({sys.executable}): {', '.join(missing)}.\n"
+            "Run the build inside the project environment so the 'gui' extra is used:\n"
+            "    uv sync --all-extras\n"
+            "    uv run python scripts/build_desktop_exe.py --clean\n"
+            "(a plain `python scripts/build_desktop_exe.py` uses the system Python, which has no PyInstaller)."
+        )
+
     repo_root = Path(__file__).resolve().parent.parent
     main_script = repo_root / "src" / "token_context_mcp" / "gui" / "main.py"
     icon_file = repo_root / "assets" / "icon.ico"
@@ -86,6 +104,7 @@ def build_executable(onefile: bool = False, clean: bool = False, output_name: st
         "tree_sitter_c_sharp",
         "tree_sitter_html",
         "tree_sitter_css",
+        "tree_sitter_go",
         "pydantic",
         "pydantic_core",
         "psutil",

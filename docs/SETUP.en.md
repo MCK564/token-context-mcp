@@ -54,10 +54,10 @@ The repository provides automated scripts that verify Python, ensure `uv` is ava
 ```powershell
 git clone https://github.com/MCK564/token-context-mcp.git
 cd token-context-mcp
-uv sync --extra dev
+uv sync --all-extras
 ```
 
-`uv sync` creates `.venv/` and installs the exact versions pinned in `uv.lock`. There is no separate `python -m venv` step.
+`uv sync` creates `.venv/` and installs the exact versions pinned in `uv.lock`. There is no separate `python -m venv` step. `--all-extras` installs the `dev`, `gui` and `watch` groups (2.5); plain `uv sync` installs the server only. `uv sync` is exact: it removes packages outside the extras you pass, so always pass every extra you need in one command. The full list of prerequisites and the model download is in the README section "Prerequisites and installation".
 
 ### 2.3 Air-Gapped / Offline Installation (Manual ZIP Bundle)
 
@@ -78,6 +78,7 @@ pip install --no-index --find-links=wheels -e .[dev]
 
 To enable local 7B AI-driven code summarization and constraint extraction, run the automated model downloader:
 - **Windows:** `.\scripts\download_models.ps1` (or add `-Lightweight` for the 1.5B model)
+- **By hand:** install Ollama from <https://ollama.com/download>, then `ollama pull qwen2.5-coder:7b-instruct-q4_K_M` (or `qwen2.5-coder:1.5b`) and check with `ollama list`. The 7B model is selected only with a CUDA GPU of at least 6 GB VRAM or at least 6 GB RAM.
 - **Linux/macOS:** `./scripts/download_models.sh` (or add `--lightweight`)
 *(Note: If Ollama or GPU is unavailable, the server seamlessly falls back 100% to the Deterministic Heuristic Engine on CPU).*
 
@@ -95,7 +96,7 @@ tree-sitter-javascript>=0.23.1
 tree-sitter-typescript>=0.23.2
 ```
 
-The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`. The `gui` extra adds `PySide6`, `psutil`, `pyinstaller`.
+The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`, `psutil`. The `gui` extra adds `PySide6`, `psutil`, `pyinstaller`. The `watch` extra adds `watchdog`. Also core: `mcp-types`, and the Java, C#, HTML, CSS and Go grammars.
 
 **Verify the install:**
 
@@ -103,7 +104,7 @@ The `dev` extra adds `pytest`, `pytest-cov`, `jsonschema`. The `gui` extra adds 
 uv run --extra dev pytest
 ```
 
-Expect **101 passed, 4 skipped** (including 7 unit tests covering the GUI bridge, widgets, and LoadingOverlay running in offscreen headless mode).
+All tests should pass; a few are skipped when optional pieces (for example a GUI display or a language server) are absent. The GUI tests run headless (`QT_QPA_PLATFORM=offscreen`) and need the `gui` extra.
 
 If `uv run` fails with a locked `token-context.exe` on Windows, an MCP process is holding the console script. Use the module entry point instead — **every administrative command in this document is given in module form**:
 
@@ -117,13 +118,16 @@ In addition to CLI operations, the repository provides a full desktop graphical 
 - **Fast CLI Launch:**
   ```powershell
   uv run token-context-gui
-  # Or: python -m token_context_mcp.gui.main
+  # Or: uv run python -m token_context_mcp.gui.main
   ```
+  This needs the `gui` extra (`uv sync --all-extras`). Without it the command exits with an install hint instead of a traceback.
 - **1-Click Launchers:** Double-click `scripts\launch_desktop_gui.bat` or run `scripts\launch_desktop_gui.ps1`.
 - **Package Standalone Portable .EXE:**
   ```powershell
-  python scripts/build_desktop_exe.py --clean
+  uv sync --all-extras
+  uv run python scripts/build_desktop_exe.py --clean
   ```
+  Use `uv run` so the build uses `.venv` (a bare `python` is the system Python, which has no PyInstaller and stops with a message).
   Generates a standalone portable bundle at `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` that runs on any Windows machine without requiring Python.
 
 **Key GUI Features across the 5 Tabs:**

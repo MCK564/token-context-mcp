@@ -32,9 +32,9 @@ fi
 # 3. Synchronize dependencies
 echo -e "\n[3/6] Synchronizing project dependencies..."
 if command -v uv &> /dev/null; then
-    uv sync --extra dev
+    uv sync --all-extras
 else
-    python3 -m pip install -e ".[dev]"
+    python3 -m pip install -e ".[dev,gui,watch]"
 fi
 echo "  Dependencies synchronized successfully."
 

@@ -50,10 +50,10 @@ Repo cung cấp sẵn các script tự động kiểm tra Python, cài đặt `u
 ```powershell
 git clone https://github.com/MCK564/token-context-mcp.git
 cd token-context-mcp
-uv sync --extra dev
+uv sync --all-extras
 ```
 
-`uv sync` tự tạo `.venv/` và cài đúng phiên bản trong `uv.lock`. Không cần `python -m venv` thủ công.
+`uv sync` tự tạo `.venv/` và cài đúng phiên bản trong `uv.lock`. Không cần `python -m venv` thủ công. `--all-extras` cài cả nhóm `dev`, `gui` và `watch` (mục 2.5); `uv sync` trơn chỉ cài phần server. Lưu ý `uv sync` là "exact": nó **gỡ** các gói không thuộc extra bạn truyền, nên luôn truyền đủ mọi extra cần dùng trong cùng một lệnh. Danh sách điều kiện tiên quyết đầy đủ và cách tải model nằm ở mục "Prerequisites and installation" của README.
 
 ### 2.3 Cài đặt trong Môi trường Air-Gapped / Không có mạng (Tải ZIP thủ công)
 
@@ -75,6 +75,7 @@ pip install --no-index --find-links=wheels -e .[dev]
 Để sử dụng tính năng nén và phân tích cấu trúc mã nguồn thông minh (7B Coder Model), hãy chạy script tải mô hình tự động:
 - **Windows:** `.\scripts\download_models.ps1` (hoặc thêm `-Lightweight` để tải bản 1.5B)
 - **Linux/macOS:** `./scripts/download_models.sh` (hoặc thêm `--lightweight`)
+- **Làm thủ công:** cài Ollama từ <https://ollama.com/download>, rồi `ollama pull qwen2.5-coder:7b-instruct-q4_K_M` (hoặc `qwen2.5-coder:1.5b`) và kiểm tra bằng `ollama list`. Model 7B chỉ được chọn khi có GPU CUDA từ 6 GB VRAM hoặc RAM từ 6 GB.
 *(Lưu ý: Nếu không có Ollama hoặc GPU, hệ thống tự động kích hoạt Deterministic Heuristic Engine hoạt động mượt mà 100% trên CPU).*
 
 ### 2.5 Danh sách Thư viện Phụ thuộc
@@ -91,7 +92,7 @@ tree-sitter-javascript>=0.23.1
 tree-sitter-typescript>=0.23.2
 ```
 
-Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`. Nhóm `gui` thêm `PySide6`, `psutil`, `pyinstaller`.
+Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`, `psutil`. Nhóm `gui` thêm `PySide6`, `psutil`, `pyinstaller`. Nhóm `watch` thêm `watchdog`. Thư viện lõi còn có `mcp-types` và grammar Java, C#, HTML, CSS, Go.
 
 **Xác minh cài đặt:**
 
@@ -99,7 +100,7 @@ Nhóm `dev` thêm `pytest`, `pytest-cov`, `jsonschema`. Nhóm `gui` thêm `PySid
 uv run --extra dev pytest
 ```
 
-Kỳ vọng: **101 passed, 4 skipped** (bao gồm 7 unit test cho GUI Bridge, Widgets, và LoadingOverlay chạy ở chế độ offscreen headless).
+Kỳ vọng: toàn bộ test đạt; một vài test bị skip khi thiếu thành phần tuỳ chọn. Test GUI chạy headless (`QT_QPA_PLATFORM=offscreen`) và cần nhóm `gui`.
 
 Nếu `uv run` báo lỗi khóa file `token-context.exe` trên Windows: đó là do một tiến trình MCP đang giữ console script. Dùng đường module thay thế — **mọi lệnh quản trị trong tài liệu này đều có dạng module**:
 
@@ -113,13 +114,16 @@ Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI 
 - **Khởi chạy nhanh qua CLI:**
   ```powershell
   uv run token-context-gui
-  # Hoặc: python -m token_context_mcp.gui.main
+  # Hoặc: uv run python -m token_context_mcp.gui.main
   ```
+  Cần nhóm `gui` (`uv sync --all-extras`). Nếu thiếu, lệnh dừng kèm hướng dẫn cài đặt thay vì in traceback.
 - **Khởi chạy 1-click:** Nhấp đúp vào `scripts\launch_desktop_gui.bat` hoặc chạy `scripts\launch_desktop_gui.ps1`.
 - **Đóng gói file .exe độc lập (Portable):**
   ```powershell
-  python scripts/build_desktop_exe.py --clean
+  uv sync --all-extras
+  uv run python scripts/build_desktop_exe.py --clean
   ```
+  Dùng `uv run` để build chạy trong `.venv`; `python` trơn là Python hệ thống, không có PyInstaller nên script sẽ dừng và báo thiếu gói.
   Tạo ra bộ chạy độc lập tại `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` có thể chạy trên bất kỳ máy Windows nào mà không cần cài Python.
 
 **Các tính năng trên 5 Tab của GUI:**
@@ -589,7 +593,7 @@ Hệ thống tích hợp một tầng **Access Control & Security Plane** tối 
 - Cơ chế ghi bất đồng bộ trên SQLite WAL không gây khóa dữ liệu (non-blocking).
 
 ### 10.4 Giao Diện Quản Trị Trực Quan
-- Mở tab **🛡️ Agents** trên giao diện desktop controller (`uv run token-context gui`) để:
+- Mở tab **🛡️ Agents** trên giao diện desktop controller (`uv run token-context-gui`) để:
   - Xem bảng Live Agents, phân loại trạng thái (`ACTIVE`, `PAUSED`, `BLOCKED`).
   - Quản lý tài nguyên đang bị khóa (Active Mutex Locks) và mở khóa thủ công.
   - Theo dõi nhật ký kiểm toán (Security Audit Stream) kèm bộ lọc theo kết quả thực thi.
