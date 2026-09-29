@@ -25,7 +25,7 @@ class UnknownRepositoryError(ConfigError):
 DEFAULT_BUDGET_PROFILES: dict[str, dict[str, object]] = {
     "locate": {
         "tools": ["find_symbols", "search_source"],
-        "budget_tokens": 1024,
+        "budget_tokens": 2048,
         "limit": 30,
     },
     "orient": {
@@ -280,7 +280,7 @@ def _validate_server(server: ServerConfig) -> None:
         raise ConfigError("server.max_graph_nodes must be between 1 and 500")
     if not 1 <= server.max_symbol_results <= 100:
         raise ConfigError("server.max_symbol_results must be between 1 and 100")
-    if server.output_mode not in ("structured", "text", "legacy_dual"):
-        raise ConfigError("server.output_mode must be one of: structured, text, legacy_dual")
+    if server.output_mode not in ("auto", "structured", "text", "legacy_dual"):
+        raise ConfigError("server.output_mode must be one of: auto, structured, text, legacy_dual")
     if server.default_view not in ("minimal", "normal", "full"):
         raise ConfigError("server.default_view must be one of: minimal, normal, full")

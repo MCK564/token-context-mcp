@@ -56,13 +56,13 @@ EXTENDED_TOOLS = CORE_TOOLS | {
 }
 
 
-async def _run() -> None:
+async def _run(output_mode: str) -> None:
     command = _console_script()
     with tempfile.TemporaryDirectory(prefix="token-context-smoke-") as directory:
         config = Path(directory) / "repos.toml"
         parameters = StdioServerParameters(
             command=command,
-            args=["serve", "--transport", "stdio", "--config", str(config)],
+            args=["serve", "--transport", "stdio", "--config", str(config), "--output-mode", output_mode],
         )
         async with Client(stdio_client(parameters)) as client:
             tools = await client.list_tools()
@@ -102,6 +102,8 @@ async def _run() -> None:
                 if res.is_error:
                     raise AssertionError(f"search_source returned error: {res.content}")
                 payload = getattr(res, "structured_content", None)
+                if (payload is not None) != (output_mode == "structured"):
+                    raise AssertionError(f"output_mode={output_mode}: unexpected structured_content={payload is not None}")
                 if not payload and res.content and hasattr(res.content[0], "text"):
                     try:
                         payload = json.loads(res.content[0].text)
@@ -126,7 +128,10 @@ async def _run() -> None:
 
 
 def main() -> None:
-    asyncio.run(_run())
+    # M9.2: the payload must arrive whether the server sends it as structuredContent or as JSON text.
+    for output_mode in ("structured", "text"):
+        asyncio.run(_run(output_mode))
+        print(f"stdio_smoke ok: output_mode={output_mode}")
 
 
 if __name__ == "__main__":

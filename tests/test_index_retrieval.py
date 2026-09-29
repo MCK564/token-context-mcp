@@ -137,7 +137,7 @@ def test_profiles_are_discoverable_and_equivalent_to_explicit_arguments(indexed_
     assert profiled["budget"]["envelope_reserve"] == 96
 
     profiled_find = service.find_symbols("demo", pattern="alpha", profile="locate")
-    explicit_find = service.find_symbols("demo", pattern="alpha", limit=30, max_tokens=1024)
+    explicit_find = service.find_symbols("demo", pattern="alpha", limit=30, max_tokens=2048)  # M9.7: locate is 2.048
     assert profiled_find == explicit_find
 
 

@@ -16,6 +16,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from token_context_mcp.client_profile import apply_schema_profile
 from token_context_mcp.config import default_config_path
 from token_context_mcp.server import build_server
 
@@ -125,6 +126,7 @@ def inspect_all_schemas(
     config_path: Path | None = None,
     enable_extensions: bool = True,
     schemas_dir: Path | None = None,
+    schema_profile: str = "default",
 ) -> dict[str, Any]:
     issues: list[SchemaIssue] = []
     cfg_p = config_path or default_config_path()
@@ -137,6 +139,7 @@ def inspect_all_schemas(
     for tool in tools:
         t_dict = tool.model_dump(mode="json", by_alias=True)
         input_schema = t_dict.get("inputSchema") or t_dict.get("parameters") or {}
+        input_schema = apply_schema_profile(input_schema, schema_profile, tool.name)
         tool_issues = check_schema_node(input_schema, source="mcp_tool", name=tool.name)
         tool_counts[tool.name] = len(tool_issues)
         issues.extend(tool_issues)
@@ -144,7 +147,8 @@ def inspect_all_schemas(
     # 2. Inspect static schema files in schemas/
     static_counts: dict[str, int] = {}
     s_dir = schemas_dir or (Path(__file__).parent.parent / "schemas")
-    if s_dir.exists():
+    # Static files are documentation of what the server returns, never sent to a client: a profile audit skips them.
+    if s_dir.exists() and schema_profile == "default":
         for json_file in sorted(s_dir.glob("*.json")):
             try:
                 with json_file.open("r", encoding="utf-8") as f:
@@ -176,13 +180,17 @@ def inspect_all_schemas(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Audit MCP tool schemas and static schemas for LLM client compatibility.")
     parser.add_argument("--config", default=None, help="Path to repos.toml configuration")
+    parser.add_argument("--schema-profile", choices=["default", "gemini_safe"], default="default", help="Apply this tools/list schema profile before auditing")
     parser.add_argument("--no-extensions", action="store_true", help="Exclude extended tools")
     parser.add_argument("--output", default=None, help="Path to save JSON compatibility report")
 
     args = parser.parse_args()
     cfg_p = Path(args.config).expanduser().resolve() if args.config else None
 
-    report = inspect_all_schemas(config_path=cfg_p, enable_extensions=not args.no_extensions)
+    report = inspect_all_schemas(
+        config_path=cfg_p, enable_extensions=not args.no_extensions, schema_profile=args.schema_profile
+    )
+    report["schema_profile"] = args.schema_profile
 
     print("=== MCP Schema Compatibility Audit ===")
     print(f"Scanned {report['tools_scanned']} tools and {report['static_schemas_scanned']} schema files.")

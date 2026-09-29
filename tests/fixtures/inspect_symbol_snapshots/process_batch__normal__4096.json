@@ -1,6 +1,6 @@
 {
  "budget": {
-  "estimated_tokens": 1914,
+  "estimated_tokens": 1924,
   "requested_tokens": 4096
  },
  "data": {
@@ -54,5 +54,6 @@
  "repo_id": "packet-repo",
  "schema_version": "1.0",
  "truncated": false,
+ "untrusted_repository_content": true,
  "warnings": []
 }

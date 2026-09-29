@@ -87,6 +87,13 @@ def db_rows(out: Path, sql: str, repo_id: str = "demo"):
         connection.close()
 
 
+@pytest.fixture(autouse=True)
+def _deterministic_edges():
+    """The per-file circuit breaker is wall-clock based; equivalence checks must not depend on machine load."""
+    with ie.deterministic_edges():
+        yield
+
+
 @pytest.fixture()
 def tree(tmp_path: Path) -> Path:
     root = make_tree(tmp_path / "tree")

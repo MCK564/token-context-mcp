@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from typing import Any, Literal
-from mcp.types import CallToolResult, TextContent
 
-OutputMode = Literal["structured", "text", "legacy_dual"]
+from token_context_mcp.mcp_compat import CallToolResult, TextContent
+
+OutputMode = Literal["auto", "structured", "text", "legacy_dual"]
 
 
 def serialize_compact(payload: dict[str, Any]) -> str:
@@ -51,13 +53,30 @@ def normalize_line_endings(data: Any) -> Any:
 class ResultFinalizer:
     """Formats CallToolResult according to configured output mode without duplicate payloads."""
 
-    def __init__(self, output_mode: OutputMode = "structured", max_wire_bytes: int = 1048576) -> None:
+    def __init__(
+        self,
+        output_mode: OutputMode = "structured",
+        max_wire_bytes: int = 1048576,
+        client_name: Callable[[], str | None] | None = None,
+    ) -> None:
         self.output_mode = output_mode
         self.max_wire_bytes = max_wire_bytes
+        self._client_name = client_name
+
+    @property
+    def effective_mode(self) -> str:
+        """The mode used right now: ``auto`` resolved against the client seen so far."""
+        from token_context_mcp.client_profile import resolve_output_mode
+
+        name = self._client_name() if self._client_name is not None else None
+        return resolve_output_mode(self.output_mode, name)
 
     def finalize(self, payload: dict[str, Any], output_mode: OutputMode | None = None) -> CallToolResult:
         payload = normalize_line_endings(payload)
-        mode = output_mode or self.output_mode
+        if output_mode is not None and output_mode != "auto":
+            mode = output_mode
+        else:
+            mode = self.effective_mode
 
         if mode == "structured":
             # Primary mode: summary in text (< 200 chars) and full payload in structured_content

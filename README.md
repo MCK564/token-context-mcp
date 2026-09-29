@@ -143,7 +143,7 @@ Key GUI Capabilities:
 - **📁 Repository Management:** Visual data grid with repository roots, snapshot freshness badges, symbol counts, ambiguous edge rates, and interactive "Add Repository" folder picker.
 - **⚡ Tasks & Graph Visualizer:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
 - **💾 Cache & Storage Controller:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
-- **⚙️ Server Settings:** Interactive editor for `repos.toml` resource caps and the 19 tools extension toggle.
+- **⚙️ Server Settings:** Interactive editor for `repos.toml` resource caps and the 20 tools extension toggle.
 
 By default the registry is global for the current user at `%APPDATA%\token-context-mcp\repos.toml` on Windows and `~/.config/token-context-mcp/repos.toml` on Linux and macOS; it is independent of the current working directory. Set `TOKEN_CONTEXT_CONFIG` to use an explicit shared/portable TOML path — on a multi-user host, read [Keeping the registry and snapshots private](#keeping-the-registry-and-snapshots-private) before pointing several accounts at one file. For Codex, launch the package through a configured `stdio` MCP command. Use only the read-only tools listed by the server.
 
@@ -562,7 +562,7 @@ Dự án `token-context-mcp` trân trọng ghi nhận các nguyên lý kiến tr
 
 ## Tool contract
 
-The server exposes **19 tools** when `enable_extensions = true` (or 10 core tools when extensions are disabled). `list_repositories` is the primary entry point for code retrieval: it returns the registered `repo_id` values and the budget profiles, and never exposes a repository root.
+The server exposes **20 tools** when `enable_extensions = true` (22 with `enable_admin_tools`; 10 core tools when extensions are disabled). `list_repositories` is the primary entry point for code retrieval: it returns the registered `repo_id` values and the budget profiles, and never exposes a repository root.
 
 ### 1. Core Code-Context Retrieval Tools (10 tools)
 

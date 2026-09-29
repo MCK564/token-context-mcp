@@ -9,9 +9,16 @@ from pathlib import Path
 from typing import Any, Literal
 
 from mcp.server import MCPServer
-from mcp_types import CallToolResult, TextContent
 
 from token_context_mcp import __version__
+from token_context_mcp.client_profile import (
+    ClientState,
+    apply_schema_profile,
+    coerce_memory_value,
+    resolve_output_mode,
+    resolve_schema_profile,
+)
+from token_context_mcp.mcp_compat import CallToolResult
 from token_context_mcp.config import ConfigError, UnknownRepositoryError, load_config
 from token_context_mcp.retrieve.serialization import ResultFinalizer, summarize_payload
 from token_context_mcp.retrieve.service import (
@@ -39,11 +46,18 @@ def build_server(
     config_path: Path,
     enable_extensions: bool | None = None,
     enable_admin_tools: bool | None = None,
+    output_mode: str | None = None,
+    schema_profile: str = "auto",
 ) -> MCPServer:
     config = load_config(config_path)
     service = RetrievalService(config, config_path)
     workflow_engine = CompositeWorkflowEngine(service)
-    finalizer = ResultFinalizer(output_mode=config.server.output_mode)
+    requested_output_mode = output_mode or config.server.output_mode
+    client_state = ClientState()
+    finalizer = ResultFinalizer(output_mode=requested_output_mode, client_name=lambda: client_state.name)  # type: ignore[arg-type]
+
+    def _schema_profile() -> str:
+        return resolve_schema_profile(schema_profile, client_state.name)
     extensions_enabled = (
         enable_extensions if enable_extensions is not None else getattr(config.server, "enable_extensions", False)
     )
@@ -62,8 +76,23 @@ def build_server(
     audit_logger = AuditLogger(config_path.parent / "audit.sqlite")
 
     server_id = f"server-{os.getpid()}-{int(time.time())}"
-    gov_store.record_heartbeat(server_id, os.getpid())
     last_heartbeat_time = [time.monotonic()]
+
+    def _heartbeat() -> None:
+        gov_store.record_heartbeat(
+            server_id,
+            os.getpid(),
+            client_name=client_state.name,
+            client_version=client_state.version,
+            output_mode=finalizer.effective_mode,
+            schema_profile=_schema_profile(),
+        )
+
+    _heartbeat()
+    logger.info(
+        "token-context serve: output_mode=%s (requested %s) schema_profile=%s (requested %s)",
+        finalizer.effective_mode, requested_output_mode, _schema_profile(), schema_profile,
+    )
 
     registered_tool_names: set[str] = {
         "list_repositories",
@@ -96,6 +125,22 @@ def build_server(
             "audit_logs",
         })
 
+    def _profile_tools_list(result: Any, profile: str) -> Any:
+        if profile == "default":
+            return result
+        if isinstance(result, dict):
+            tools = [
+                {**t, "inputSchema": apply_schema_profile(t["inputSchema"], profile, t.get("name", ""))}
+                if isinstance(t, dict) and "inputSchema" in t else t
+                for t in result.get("tools", [])
+            ]
+            return {**result, "tools": tools}
+        tools = [
+            t.model_copy(update={"input_schema": apply_schema_profile(t.input_schema, profile, t.name)})
+            for t in result.tools
+        ]
+        return result.model_copy(update={"tools": tools})
+
     def _wrap(payload: dict[str, Any]) -> CallToolResult:
         return finalizer.finalize(payload)
 
@@ -107,7 +152,7 @@ def build_server(
     ) -> dict[str, Any]:
         now_mono = time.monotonic()
         if now_mono - last_heartbeat_time[0] >= 15.0:
-            gov_store.record_heartbeat(server_id, os.getpid())
+            _heartbeat()
             last_heartbeat_time[0] = now_mono
 
         return _dispatch_invoke(
@@ -132,11 +177,34 @@ def build_server(
             "Respect freshness, ambiguity and truncation warnings. Lexical edges are not complete semantic analysis."
         ),
     )
+    server.client_state = client_state      # type: ignore[attr-defined]
+    server.finalizer = finalizer            # type: ignore[attr-defined]
     server.governance_store = gov_store     # type: ignore[attr-defined]
     server.access_control = access_control  # type: ignore[attr-defined]
     server.audit_logger = audit_logger      # type: ignore[attr-defined]
     server.memory_service = memory_service  # type: ignore[attr-defined]
     server.sampling_router = sampling_router  # type: ignore[attr-defined]
+
+    class _ClientMiddleware:
+        """Learns the client's name/version and rewrites ``tools/list`` for the active schema profile."""
+
+        async def __call__(self, ctx: Any, call_next: Any) -> Any:
+            first_time = client_state.name is None
+            params = getattr(ctx.session, "client_params", None)
+            info = getattr(params, "client_info", None)
+            if info is not None:
+                client_state.update(getattr(info, "name", None), getattr(info, "version", None))
+                if first_time and client_state.name:
+                    try:
+                        _heartbeat()
+                    except Exception:  # pragma: no cover - governance DB must never break a request
+                        logger.exception("heartbeat update failed")
+            result = await call_next(ctx)
+            if ctx.method == "tools/list":
+                result = _profile_tools_list(result, _schema_profile())
+            return result
+
+    server.middleware.append(_ClientMiddleware())
 
     @server.tool(
         title="Registered repositories",
@@ -347,7 +415,7 @@ def build_server(
 
     @server.tool(
         title="Inspect symbol (composite)",
-        description="Single-turn symbol resolution, context, and immediate impact graph.",
+        description="Resolve a symbol and its immediate graph in one call. view='full' returns a context packet: body, callee/caller signatures, related tests. Use before editing a symbol.",
     )
     def inspect_symbol(
         repo_id: str,
@@ -390,9 +458,20 @@ def build_server(
             title="Get tool schema",
             description="Retrieve detailed parameter schema for a specific tool on demand.",
         )
-        def get_tool_schema(tool_name: str) -> CallToolResult:
+        async def get_tool_schema(tool_name: str) -> CallToolResult:
             from token_context_mcp.discovery.tools import get_tool_schema as _get_schema
-            return _wrap(_invoke(lambda: _get_schema(tool_name=tool_name, enabled=registered_tool_names), tool_name="get_tool_schema"))
+
+            profile = _schema_profile()
+            schemas = {
+                tool.name: apply_schema_profile(tool.input_schema, profile, tool.name)
+                for tool in await server.list_tools()
+            }
+            return _wrap(
+                _invoke(
+                    lambda: _get_schema(tool_name=tool_name, schema_dict=schemas, enabled=registered_tool_names),
+                    tool_name="get_tool_schema",
+                )
+            )
 
         # --- Shared State & Long-term Memory ---
 
@@ -410,7 +489,7 @@ def build_server(
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
-                    lambda: memory_service.memory_put(key=key, value=value, scope=scope, namespace=namespace, ttl=ttl, session_id=session_id),
+                    lambda: memory_service.memory_put(key=key, value=coerce_memory_value(value, _schema_profile()), scope=scope, namespace=namespace, ttl=ttl, session_id=session_id),
                     tool_name="memory_put",
                     agent_id=session_id,
                 )
@@ -459,7 +538,7 @@ def build_server(
 
         @server.tool(
             title="Consolidate memory",
-            description="Consolidate and synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent).",
+            description="Consolidate scattered memory checkpoints into one summary entry; optionally prune transient entries.",
         )
         def memory_consolidate(
             scope: str = "session",
@@ -481,7 +560,7 @@ def build_server(
 
         @server.tool(
             title="Sample and summarize",
-            description="Hardware-aware context compressor/summarizer: compresses large outputs into concise JSON.",
+            description="Compress large text into concise JSON with a local model when available, otherwise deterministic extraction.",
         )
         def sample_summarize(
             text: str,
@@ -602,9 +681,19 @@ def build_server(
     return server
 
 
-def run_stdio(config_path: Path, enable_admin_tools: bool | None = None) -> None:
+def run_stdio(
+    config_path: Path,
+    enable_admin_tools: bool | None = None,
+    output_mode: str | None = None,
+    schema_profile: str = "auto",
+) -> None:
     logging.basicConfig(level=logging.INFO)
-    build_server(config_path, enable_admin_tools=enable_admin_tools).run(transport="stdio")
+    build_server(
+        config_path,
+        enable_admin_tools=enable_admin_tools,
+        output_mode=output_mode,
+        schema_profile=schema_profile,
+    ).run(transport="stdio")
 
 
 def _dispatch_invoke(

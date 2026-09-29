@@ -1,0 +1,55 @@
+{
+  "split": "dev",
+  "tasks": 10,
+  "variants": {
+    "base": {
+      "profile": {
+        "tools": [
+          "find_symbols",
+          "search_source"
+        ],
+        "budget_tokens": 1024,
+        "limit": 30
+      },
+      "matches_mean": 3.6,
+      "matches_median": 4.0,
+      "matches_min": 3,
+      "file_acc_at_5": 0.9,
+      "tokens_mean": 862.2,
+      "tokens_max": 928
+    },
+    "a_one_line": {
+      "profile": {
+        "tools": [
+          "find_symbols",
+          "search_source"
+        ],
+        "budget_tokens": 1024,
+        "limit": 30,
+        "snippet_lines": 1
+      },
+      "matches_mean": 3.9,
+      "matches_median": 4.0,
+      "matches_min": 3,
+      "file_acc_at_5": 0.9,
+      "tokens_mean": 845.5,
+      "tokens_max": 895
+    },
+    "b_2048": {
+      "profile": {
+        "tools": [
+          "find_symbols",
+          "search_source"
+        ],
+        "budget_tokens": 2048,
+        "limit": 30
+      },
+      "matches_mean": 9.4,
+      "matches_median": 9.0,
+      "matches_min": 9,
+      "file_acc_at_5": 0.9,
+      "tokens_mean": 1886.1,
+      "tokens_max": 1932
+    }
+  }
+}

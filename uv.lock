@@ -960,6 +960,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },
+    { name = "mcp-types" },
     { name = "pathspec" },
     { name = "pydantic" },
     { name = "tree-sitter" },
@@ -991,7 +992,8 @@ watch = [
 [package.metadata]
 requires-dist = [
     { name = "jsonschema", marker = "extra == 'dev'", specifier = ">=4.25.0" },
-    { name = "mcp", specifier = ">=2.0.0" },
+    { name = "mcp", specifier = ">=2.0,<3" },
+    { name = "mcp-types", specifier = ">=2.0,<3" },
     { name = "pathspec", specifier = ">=0.12.1" },
     { name = "psutil", marker = "extra == 'dev'", specifier = ">=5.9.0" },
     { name = "psutil", marker = "extra == 'gui'", specifier = ">=5.9.0" },
