@@ -1,6 +1,6 @@
 # Token Context MCP
 
-> English edition: [`README.en.md`](README.en.md) (all sections in English).
+> English edition. The main [`README.md`](README.md) is kept in sync and still contains a few Vietnamese passages.
 
 `token-context-mcp` is a read-only local MCP server that indexes registered repositories and returns small, source-hashed code-context packets. It is designed to reduce broad repository crawling without pretending that syntax analysis is a complete semantic model.
 
@@ -503,73 +503,73 @@ the 96-token reserve keeps the emitted response within the requested cap.
 The C3 protocol is recorded in [`evals/c3_protocol.md`](evals/c3_protocol.md);
 the full provider-run matrix remains a separate runtime step.
 
-## Updating existing installations / Hướng dẫn cập nhật phiên bản mới
+## Updating existing installations
 
-When updating `token-context-mcp` on a machine or remote VM where it has already been set up (Codex, Claude Code, Claude Desktop, Antigravity, VS Code Remote-SSH), follow these manual steps:
+When updating `token-context-mcp` on a machine or remote VM where it is already set up (Codex, Claude Code, Claude Desktop, Antigravity, VS Code Remote-SSH), follow these steps:
 
 ### Windows (PowerShell)
 
 ```powershell
-# 1. Di chuyển vào thư mục repo token-context-mcp
-Set-Location D:\AI\token-context-mcp   # Thay bằng đường dẫn local thực tế
+# 1. Go to the token-context-mcp repository
+Set-Location D:\AI\token-context-mcp   # replace with your local path
 
-# 2. Kéo code mới nhất từ remote Git
+# 2. Pull the latest code
 git fetch origin
 git pull origin main
 
-# 3. Đồng bộ lại môi trường ảo / dependencies với uv
+# 3. Re-sync the environment / dependencies with uv
 uv sync --extra dev
 
-# 4. (Tùy chọn) Chạy kiểm thử để xác nhận cập nhật thành công
+# 4. (Optional) run the tests to confirm the update
 uv run pytest
 
-# 5. Khởi động lại MCP client (Codex CLI/IDE, Claude Code/Desktop, Antigravity)
-# Không cần sửa lại file config của client; client sẽ tự động gọi code mới.
+# 5. Restart the MCP client (Codex CLI/IDE, Claude Code/Desktop, Antigravity)
+# The client configuration does not need to change; the client starts the new code.
 ```
 
 ### Linux & macOS (Bash)
 
 ```bash
-# 1. Di chuyển vào thư mục repo token-context-mcp
+# 1. Go to the token-context-mcp repository
 cd /path/to/token-context-mcp
 
-# 2. Kéo code mới nhất từ remote Git
+# 2. Pull the latest code
 git fetch origin
 git pull origin main
 
-# 3. Đồng bộ lại môi trường ảo / dependencies với uv
+# 3. Re-sync the environment / dependencies with uv
 uv sync --extra dev
 
-# 4. (Tùy chọn) Chạy kiểm thử
+# 4. (Optional) run the tests
 uv run pytest
 
-# 5. Khởi động lại MCP client
+# 5. Restart the MCP client
 ```
 
-> **Nâng cấp lên 0.2.0:** schema index đổi sang 2.4 và parser artifact version đổi (thêm Go), nên lần index đầu tiên sau khi nâng cấp sẽ parse lại toàn bộ file. Chạy `uv run token-context index --all` một lần; snapshot cũ vẫn đọc được nhưng `get_index_status` sẽ cảnh báo cần index lại.
+> **Upgrading to 0.2.0:** the index schema changes to 2.4 and the parser artifact version changes (Go was added), so the first index run after the upgrade re-parses every file. Run `uv run token-context index --all` once. Older snapshots can still be read, but `get_index_status` warns that they need re-indexing.
 >
-> **Lưu ý về danh sách repo và index:**
-> - Toàn bộ cấu hình repo đã đăng ký (`repos.toml`) và cơ sở dữ liệu index (`indexes/`) được giữ nguyên hoàn toàn, không cần đăng ký lại (`register`).
-> - Nếu mã nguồn của repository mục tiêu có thay đổi, chỉ cần chạy lại lệnh index để cập nhật snapshot:
+> **About registered repositories and indexes:**
+> - Your registry (`repos.toml`) and the index databases (`indexes/`) are kept as they are; you do not need to `register` again.
+> - When the source of a repository changes, re-run the index command to refresh its snapshot:
 >   `uv run token-context index --repo-id <repo-id>`
 
 ---
 
-## Acknowledgments & Architecture Lineage (Ghi nhận nguồn cảm hứng & Đóng góp kiến trúc)
+## Acknowledgments & Architecture Lineage
 
-Dự án `token-context-mcp` trân trọng ghi nhận các nguyên lý kiến trúc và kỹ thuật prompt nâng cao được học hỏi, kế thừa và phát triển dựa trên kho mã nguồn mở [**Google Cloud Platform Generative AI Repository** (`GoogleCloudPlatform/generative-ai`)](https://github.com/GoogleCloudPlatform/generative-ai):
+This project acknowledges architectural principles and advanced prompting techniques learned from, adopted and adapted out of the open-source [**Google Cloud Platform Generative AI Repository** (`GoogleCloudPlatform/generative-ai`)](https://github.com/GoogleCloudPlatform/generative-ai):
 
-1. **Kiến trúc Bộ nhớ không dùng Vector DB (Vectorless Structured Memory) & Memory Consolidation:**
-   - **Nguồn cảm hứng:** Dự án [`gemini/agents/always-on-memory-agent`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/agents/always-on-memory-agent).
-   - **Ứng dụng vào `token-context-mcp`:** Triết lý nói không với Vector DB cồng kềnh cho bộ nhớ Agent, chuyển sang dùng SQLite-first có cấu trúc với giao thức đồng bộ WAL. Đặc biệt, công cụ `memory_consolidate` được xây dựng dựa trên nguyên lý hoạt động của `ConsolidateAgent` của Google để hợp nhất các mảnh ký ức vụn vặt thành insight cấp cao và giải quyết triệt để lỗi phình to liên kết trùng lặp (tránh lỗi Issue #2945 của Google).
+1. **Vectorless structured memory and memory consolidation:**
+   - **Inspiration:** [`gemini/agents/always-on-memory-agent`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/agents/always-on-memory-agent).
+   - **Applied in `token-context-mcp`:** no heavyweight vector database for agent memory; a structured SQLite-first store with WAL. The `memory_consolidate` tool follows the idea of Google's `ConsolidateAgent`: merging fragmented memories into higher-level insights and avoiding duplicate-link growth (Google Issue #2945).
 
-2. **Kỹ thuật Delimited Context Envelopes & Quote-before-Synthesize Fact Grounding:**
-   - **Nguồn cảm hứng:** Thư viện [`gemini/prompts/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/prompts/) và các ví dụ Text Extraction / Safety Guardrails của Google Cloud.
-   - **Ứng dụng vào `token-context-mcp`:** Bọc source code trong các thẻ an toàn `<<<SOURCE_CODE_START>>>` và `<<<SOURCE_CODE_END>>>` kèm chỉ thị cách ly dữ liệu không tin cậy (chống Prompt Injection từ comment trong code). Đồng thời áp dụng nguyên tắc bắt buộc mô hình 7B trích xuất nguyên văn câu lệnh (`verbatim_quote`) trước khi kết luận ràng buộc `critical_constraints`.
+2. **Delimited context envelopes and quote-before-synthesize fact grounding:**
+   - **Inspiration:** the [`gemini/prompts/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/gemini/prompts/) library and Google Cloud's text-extraction and safety-guardrail examples.
+   - **Applied in `token-context-mcp`:** source code is wrapped in `<<<SOURCE_CODE_START>>>` / `<<<SOURCE_CODE_END>>>` with an instruction to treat it as untrusted data (protection against prompt injection from code comments). The 7B model must also extract a verbatim quote (`verbatim_quote`) before stating a `critical_constraints` conclusion.
 
-3. **Giao thức Thẻ Công cụ & Khuyến nghị Tool Chaining (A2A Tool Chaining Cards):**
-   - **Nguồn cảm hứng:** Giao thức Agent-to-Agent (A2A) và Agent Engine Toolbox trong [`agents/agent_engine/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/agents/agent_engine/).
-   - **Ứng dụng vào `token-context-mcp`:** Bổ sung metadata `recommended_followups` (công cụ kế tiếp nên gọi) và `prerequisites` (công cụ tiên quyết) vào `TOOL_CATALOG` và các công cụ `search_tools`, `get_tool_schema`, giúp các Agent tự động hóa chuỗi hành động mà không cần suy đoán.
+3. **Tool-chaining cards (A2A):**
+   - **Inspiration:** the Agent-to-Agent (A2A) protocol and the Agent Engine toolbox in [`agents/agent_engine/`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/agents/agent_engine/).
+   - **Applied in `token-context-mcp`:** `recommended_followups` (which tool to call next) and `prerequisites` metadata in `TOOL_CATALOG` and in `search_tools` / `get_tool_schema`, so agents can chain actions without guessing.
 
 ---
 
@@ -641,27 +641,27 @@ rejected. Explicit per-tool arguments override a profile.
 
 ---
 
-## Extended Capabilities & Guide for New Tools (Hướng dẫn sử dụng các Tool mới)
+## Extended Capabilities & Guide for the Newer Tools
 
-Bản cập nhật mới bổ sung 4 nhóm tính năng quan trọng nhằm giải quyết hai vấn đề nhức nhối nhất của các Coding Agent: **cạn kiệt Token Context Window** và **thiếu cơ chế phối hợp / ghi nhớ giữa các phiên làm việc (Multi-Agent State & Memory)**.
+These features address the two biggest problems of coding agents: **running out of token context window** and **no coordination or memory between sessions (multi-agent state and memory)**.
 
 ---
 
-### 1. Triệt tiêu cạnh mơ hồ trong Code Graph (AST Call Extraction)
+### 1. Removing ambiguous edges from the code graph (AST call extraction)
 
-- **Vấn đề trước đây:** Phương pháp regex quét identifier cũ match bừa bãi các chuỗi ký tự phổ biến (`run`, `build`, `name`, `status`), khiến tỷ lệ cạnh quan hệ mơ hồ (`ambiguous_rate`) lên tới 15–22%. Điều này khiến Agent phân vân và phải gọi đi gọi lại các lệnh đọc file tốn kém ("trả tiền 2 lần").
-- **Cơ chế cải tiến:**
-  - Sử dụng AST Query của Tree-sitter để nhận diện chính xác `call_expression` trong Python, TypeScript/JS, Java, C#.
-  - Nhận diện đối tượng gọi (receiver): `self.method()`, `cls.method()`, `this.method()`, hoặc `ClassName.method()`.
-  - Đối chiếu với bảng `imports` trong SQLite để xác định chính xác file nguồn và định nghĩa gốc.
-  - Phân loại độ tin cậy thành 5 cấp bậc (`0.95`, `0.85`, `0.70`, `0.40`, `0.10`).
-  - Kết quả: **Tỷ lệ ambiguous giảm từ 10.5% xuống 2.4%** (độ phân giải cạnh chính xác đạt **97.6%**).
-- **Cách sử dụng với `get_impact_slice`:**
-  - `min_confidence`: Ngưỡng độ tin cậy tối thiểu (mặc định `0.5`). Các cạnh phỏng đoán mờ nhạt sẽ tự động bị loại bỏ.
-  - `filter_ambiguous`: Mặc định `true` — tự động lọc sạch các cạnh mơ hồ để Agent chỉ nhận các quan hệ chắc chắn.
+- **The old problem:** the earlier regex identifier scan matched common strings (`run`, `build`, `name`, `status`) indiscriminately, pushing the ambiguous-edge rate (`ambiguous_rate`) to 15–22%. Agents then hesitated and repeated expensive file reads ("paying twice").
+- **The mechanism:**
+  - A Tree-sitter AST query recognises `call_expression` precisely in Python, TypeScript/JS, Java and C# (Go edges are name based).
+  - The receiver is recognised: `self.method()`, `cls.method()`, `this.method()` or `ClassName.method()`.
+  - Calls are matched against the `imports` table in SQLite to find the exact source file and original definition.
+  - Confidence has five levels (`0.95`, `0.85`, `0.70`, `0.40`, `0.10`).
+  - Result: the **ambiguous rate fell from 10.5% to 2.4%** (edge resolution of **97.6%**).
+- **Using it with `get_impact_slice`:**
+  - `min_confidence`: minimum confidence (default `0.5`); weak guessed edges are dropped automatically.
+  - `filter_ambiguous`: default `true`; ambiguous edges are filtered out so the agent only receives well-evidenced relations.
 
 ```python
-# Ví dụ gọi get_impact_slice với bộ lọc tự động:
+# Example call with the automatic filter:
 get_impact_slice(
     repo_id="token-context",
     symbol_id="src/token_context_mcp/server.py:build_server",
@@ -673,97 +673,92 @@ get_impact_slice(
 
 ---
 
-### 2. Dynamic Tool Discovery — Khám phá công cụ động (Tiết kiệm Token)
+### 2. Dynamic Tool Discovery (saves tokens)
 
-- **Tại sao cần?** Khi server có 20 tools, nếu nạp toàn bộ JSON schema vào system prompt mỗi lượt, Agent sẽ tiêu tốn 3,000–5,000 tokens ("Tool Definition Tax") cho mỗi turn ngay cả khi chỉ cần dùng 1 tool.
-- **Giải pháp 3 bước thông minh:**
-  1. `list_available_tools(category="retrieval" | "memory" | "sampling" | "discovery")`:
-     - Trả về danh mục ngắn gọn với tên tool, danh mục và số token ước tính (~100 tokens thay vì 4,000 tokens).
-  2. `search_tools(query="tìm hàm gọi và phân tích tác động", limit=3)`:
-     - Dùng thuật toán BM25 và tag matching tìm nhanh đúng công cụ phù hợp với ý định (intent) của Agent.
-  3. `get_tool_schema(tool_name="get_impact_slice")`:
-     - Lazy Schema Loading: Chỉ khi Agent quyết định dùng tool nào, schema chi tiết mới được tải vào context.
+- **Why:** if all tool JSON schemas are loaded into the system prompt on every turn, an agent spends 3,000–5,000 tokens (the "tool definition tax") per turn even when it needs one tool.
+- **The three-step solution:**
+  1. `list_available_tools(category="retrieval" | "memory" | "sampling" | "discovery")`: a short catalog with tool name, category and estimated tokens (~100 tokens instead of ~4,000).
+  2. `search_tools(query="find callers and impact analysis", limit=3)`: BM25 plus tag matching finds the tool that fits the agent's intent.
+  3. `get_tool_schema(tool_name="get_impact_slice")`: lazy schema loading; the detailed schema enters the context only for the tool the agent chose.
 
-#### Kịch bản Agent tự tìm tool:
+#### Example: an agent finding its own tool
 ```text
-Bước 1: Agent tìm tool để khóa tài nguyên
+Step 1: the agent looks for a tool to lock a resource
 > search_tools(query="lock shared resource mutex", limit=2)
-< Kết quả: {"tools": [{"name": "memory_lock", "score": 8.5, "description": "Acquire a timed mutex lock..."}]}
+< {"tools": [{"name": "memory_lock", "score": 8.5, "description": "Acquire a timed mutex lock..."}]}
 
-Bước 2: Agent lấy schema chi tiết của memory_lock
+Step 2: the agent fetches the schema of memory_lock
 > get_tool_schema(tool_name="memory_lock")
-< Kết quả: Schema JSON đầy đủ với các tham số resource_key, agent_id, timeout_sec
+< full JSON schema with resource_key, agent_id, timeout_sec
 
-Bước 3: Agent gọi tool chính xác mà không tốn token thừa trước đó
+Step 3: the agent calls the tool without having spent extra tokens earlier
 > memory_lock(resource_key="auth_module", agent_id="agent_1", timeout_sec=120)
 ```
 
 ---
 
-### 3. Shared State & Long-term Memory — Bộ nhớ dài hạn & Phối hợp Multi-Agent
+### 3. Shared state & long-term memory (multi-agent coordination)
 
-- **Kiến trúc SQLite-First:** Hoạt động hoàn toàn cục bộ thông qua file `memory.sqlite` (lưu tại cùng thư mục cấu hình `repos.toml`). Không cần cài đặt hay chạy ngầm Redis, ChromaDB hay Docker.
-- **Bền vững và an toàn:** Sử dụng SQLite WAL mode, bảng tìm kiếm toàn văn FTS5, và tự động dọn dẹp các bản ghi hết hạn theo TTL.
+- **SQLite-first architecture:** runs entirely locally through a `memory.sqlite` file (in the same directory as `repos.toml`). No Redis, ChromaDB or Docker to install or run.
+- **Durable and safe:** SQLite WAL mode, FTS5 full-text search, and automatic cleanup of records past their TTL.
 
-#### Chi tiết các công cụ bộ nhớ:
+#### The memory tools
 1. `memory_put`:
-   - Lưu trữ trạng thái thực thi, kế hoạch kiến trúc, hoặc bản tóm tắt phân tích để dùng lại giữa các phiên chat hoặc giữa các Agent.
-   - Tham số:
-     - `key` (bắt buộc): Khóa định danh (vd: `"plan:refactor_auth"`, `"benchmark_baseline"`).
-     - `value` (bắt buộc): Chuỗi text, JSON, hoặc đối tượng cấu trúc.
-     - `scope`: `"session"` (phiên hiện tại) hoặc `"global"` (dùng chung cho mọi phiên làm việc).
-     - `ttl`: Thời gian sống tính bằng giây (mặc định: 86400s = 24 giờ; đặt `null` nếu muốn lưu vĩnh viễn).
-     - `session_id`: Nhãn phân nhóm phiên làm việc (tùy chọn).
-2. `memory_get`:
-   - Lấy lại dữ liệu đã lưu theo `key` và `scope` trong 1 turn với chi phí token tối thiểu.
-3. `memory_search`:
-   - Tìm kiếm toàn văn FTS5 trong bộ nhớ chia sẻ theo từ khóa, giúp Agent tìm lại các kết luận, ghi chú phân tích từ các phiên trước mà không cần đọc lại toàn bộ code.
+   - Stores execution state, architecture plans or analysis summaries for reuse across chat sessions or between agents.
+   - Parameters:
+     - `key` (required): identifier (e.g. `"plan:refactor_auth"`, `"benchmark_baseline"`).
+     - `value` (required): text, JSON or a structured object.
+     - `scope`: `"session"` (current session) or `"global"` (shared by every session).
+     - `ttl`: lifetime in seconds (default 86400 s = 24 h; `null` to keep forever).
+     - `session_id`: optional session grouping label.
+2. `memory_get`: retrieves stored data by `key` and `scope` in one turn at minimal token cost.
+3. `memory_search`: FTS5 full-text search of the shared memory by keyword, so an agent can find conclusions and analysis notes from earlier sessions without re-reading the code.
 4. `memory_lock`:
-   - **Soft-mutex lock** có thời hạn (timed lease) giúp điều phối nhiều Agent cùng làm việc song song trên cùng một codebase mà không ghi đè lẫn nhau hoặc tạo race condition.
-   - Khi hết hạn `timeout_sec` (mặc định 60s), khóa tự động giải phóng để chống deadlock nếu Agent gặp sự cố.
-5. `memory_consolidate` *(Học hỏi từ Google Cloud GenAI Always-On Memory Agent)*:
-   - **Cơ chế nén và hợp nhất trí nhớ:** Tương tự như cơ chế "giấc ngủ" của con người hay `ConsolidateAgent` của Google, tool này quét toàn bộ các checkpoint phân mảnh được lưu trong phiên, tổng hợp thành một bản tóm tắt kiến trúc hoàn chỉnh (`project_architectural_insights`), đồng thời tự động loại bỏ các liên kết trùng lặp và dọn dẹp các ghi chú vụn vặt (`prune_transient=True`).
+   - A timed **soft-mutex lease** that coordinates several agents working on one codebase without overwriting each other or creating race conditions.
+   - After `timeout_sec` (default 60 s) the lock is released automatically, which prevents deadlock if an agent crashes.
+5. `memory_consolidate` *(inspired by the Google Cloud GenAI Always-On Memory Agent)*:
+   - **Compress and merge memory:** like human sleep or Google's `ConsolidateAgent`, it scans the fragmented checkpoints saved in a session, synthesises them into a complete architectural summary (`project_architectural_insights`), removes duplicate links and cleans up transient notes (`prune_transient=True`).
 
-#### Ví dụ Multi-Agent phối hợp qua Memory:
+#### Example: agents coordinating through memory
 ```python
-# Agent 1 (Kiến trúc sư) lập kế hoạch và lưu vào bộ nhớ
+# Agent 1 (architect) plans and stores the plan
 memory_put(
     key="refactor_plan",
     value='{"target": "auth.py", "steps": ["extract JWT", "add middleware"]}',
     scope="global"
 )
 
-# Agent 2 (Lập trình viên) nhận việc, lấy khóa tài nguyên trước khi sửa
+# Agent 2 (developer) takes the job and acquires the lock before editing
 lock = memory_lock(resource_key="file:auth.py", agent_id="coder_subagent", timeout_sec=180)
 if lock["acquired"]:
     plan = memory_get(key="refactor_plan", scope="global")
-    # Tiến hành refactor theo plan...
+    # refactor according to the plan...
 ```
 
 ---
 
-### 4. Hardware-Aware 7B Sampling & Guardrail Engine — Suy luận nén ngữ cảnh thích ứng phần cứng
+### 4. Hardware-aware 7B sampling & guardrail engine
 
-- **Mục tiêu:** Nâng cấp khả năng nén context lên mô hình **7B** (`qwen2.5-coder:7b-instruct-q4_K_M`), bảo toàn 100% ngữ cảnh logic và điều kiện biên, đồng thời bảo đảm vận hành trơn tru trên máy không có GPU (CPU-Only Guarantee).
-- **Cơ chế 4 tầng bảo vệ:**
-  1. **Bảo tồn mỏ neo ngữ nghĩa & Skeleton Hybrid (Không Blind Truncation):**
-     - Dùng Tree-sitter bóc tách sẵn các symbol mỏ neo (`verified_symbol_names`).
-     - Khi văn bản vượt ngưỡng context (> 3,000 ký tự), hệ thống giữ nguyên bộ khung `file_skeleton` (imports, class, method signatures) và chỉ nhúng toàn bộ thân hàm của các symbol liên quan trực tiếp đến `user_raw_intent`, loại bỏ nguy cơ cắt cụt mù quáng.
-  2. **Tối ưu hóa CPU thuần (CPU-Only Guarantee):**
-     - Luồng xử lý: Cấu hình `num_thread = max(1, os.cpu_count() - 1)` (giữ lại 1 core giúp tiến trình MCP stdio luôn mượt, không đơ lag).
-     - Adaptive Dynamic Timeout: Tính toán timeout linh hoạt theo độ dài context:
+- **Goal:** compress context with a **7B** model (`qwen2.5-coder:7b-instruct-q4_K_M`) while preserving logic and edge conditions, and keep it running smoothly on machines without a GPU (CPU-only guarantee).
+- **Four layers of protection:**
+  1. **Semantic anchors and hybrid skeleton (no blind truncation):**
+     - Tree-sitter extracts the anchor symbols (`verified_symbol_names`) first.
+     - When the text exceeds the context threshold (> 3,000 characters), the system keeps the `file_skeleton` (imports, classes, method signatures) and embeds only the full bodies of symbols directly related to `user_raw_intent`, removing the risk of blind cut-off.
+  2. **Pure-CPU optimisation:**
+     - Threads: `num_thread = max(1, os.cpu_count() - 1)` (one core is left free so the MCP stdio process stays responsive).
+     - Adaptive dynamic timeout, scaled to the context length:
        $$\text{Timeout (seconds)} = \text{base\_timeout (5s)} + \left(\frac{\text{input\_tokens}}{100} \times \text{sec\_per\_100\_tok}\right)$$
-       Tránh timeout tĩnh gây ngắt kết nối giữa chừng trên CPU.
-  3. **Pydantic v2 Constrained JSON Decoding (Chống vỡ JSON):**
-     - Ép buộc mô hình sinh output tuân thủ nghiêm ngặt schema `CodeSummaryPayload` gồm:
-       - `intent_alignment`: Phân tích mức độ đáp ứng mục đích của user.
-       - `analyzed_symbols`: Danh sách symbol gồm `name`, `responsibility`, `critical_constraints` (điều kiện `if-else`, ngoại lệ `raise`), `calls_external`.
-       - `technical_caveats`: Các lưu ý kỹ thuật, giả định, timeout.
-  4. **Verification Guardrail (Triệt tiêu Hallucination):**
-     - Đối chiếu trực tiếp danh sách symbol do model sinh ra với mỏ neo Tree-sitter. Tự động loại bỏ (strip) các symbol ảo không tồn tại trong source.
-     - Đính kèm metadata: `backend` (`ollama_gpu` | `ollama_cpu` | `heuristic_fallback`), `engine`, `latency_ms`, `symbol_coverage_rate`, `context_retention_rate`.
+       This avoids static timeouts that drop the connection midway on a CPU.
+  3. **Pydantic v2 constrained JSON decoding (no broken JSON):**
+     - The model output must follow the `CodeSummaryPayload` schema:
+       - `intent_alignment`: how well the text answers the user's intent.
+       - `analyzed_symbols`: symbols with `name`, `responsibility`, `critical_constraints` (`if-else` conditions, `raise` exceptions) and `calls_external`.
+       - `technical_caveats`: technical notes, assumptions, timeouts.
+  4. **Verification guardrail (against hallucination):**
+     - The symbols generated by the model are checked against the Tree-sitter anchors; symbols that do not exist in the source are stripped.
+     - Metadata is attached: `backend` (`ollama_gpu` | `ollama_cpu` | `heuristic_fallback`), `engine`, `latency_ms`, `symbol_coverage_rate`, `context_retention_rate`.
 
-#### Cách gọi `sample_summarize`:
+#### Calling `sample_summarize`
 ```python
 sample_summarize(
     text=very_long_analysis_output,
@@ -775,33 +770,33 @@ sample_summarize(
 
 ---
 
-### 5. Kịch bản thực tế kết hợp toàn diện (End-to-End Workflow)
+### 5. End-to-end workflow
 
-Dưới đây là chu trình làm việc mẫu kết hợp toàn bộ sức mạnh của 20 tools:
+A sample workflow that combines all 20 tools:
 
 ```
-[Agent khởi động]
-       │
-       ▼
-1. list_available_tools(category="retrieval") ──► Chỉ tốn ~100 tokens để định hướng
-       │
-       ▼
-2. get_repo_map(repo_id="my-repo", profile="orient") ──► Nắm bắt kiến trúc tổng thể
-       │
-       ▼
-3. inspect_symbol(repo_id="my-repo", symbol_name="AuthService") ──► Gói gọn 3 bước trong 1 turn
-       │
-       ▼
-4. get_impact_slice(..., filter_ambiguous=True) ──► Chỉ nhận các cạnh có bằng chứng rõ ràng (2.4% ambiguous)
-       │
-       ▼
-5. sample_summarize(text=impact_data, max_tokens=200) ──► Nén kết quả qua Local Ollama (0đ)
-       │
-       ▼
-6. memory_put(key="auth_impact_summary", value=compressed_data) ──► Lưu vào bộ nhớ SQLite
-       │
-       ▼
-[Các Agent khác truy cập memory_get("auth_impact_summary") ngay lập tức mà không cần phân tích lại!]
+[Agent starts]
+       |
+       v
+1. list_available_tools(category="retrieval") --> ~100 tokens to get oriented
+       |
+       v
+2. get_repo_map(repo_id="my-repo", profile="orient") --> overall architecture
+       |
+       v
+3. inspect_symbol(repo_id="my-repo", symbol_name="AuthService") --> three steps in one turn
+       |
+       v
+4. get_impact_slice(..., filter_ambiguous=True) --> only well-evidenced edges (2.4% ambiguous)
+       |
+       v
+5. sample_summarize(text=impact_data, max_tokens=200) --> compressed by a local Ollama model (no cost)
+       |
+       v
+6. memory_put(key="auth_impact_summary", value=compressed_data) --> stored in SQLite memory
+       |
+       v
+[Other agents call memory_get("auth_impact_summary") immediately, without re-analysing]
 ```
 
 `get_repo_map` defaults to a compact `symbols` array. Each entry is
