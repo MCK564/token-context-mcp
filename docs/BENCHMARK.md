@@ -81,7 +81,7 @@ Positioning: **evidence-first, local-first code context.** This benchmark answer
 
 **Repository (pinned).** `Textualize/rich` v15.0.0, commit `6ac483cbea39cab124dfd3483bba70ffafb71050`, MIT, 532 files in the index (`bench-rich`, of which the Python sources form the search corpus). It is public, was never used to tune token-context, and is chosen for its size (Python sources within the 80–600 file window). No JS/TS repository was benchmarked.
 
-**Tasks.** `evals/tasks/bench_rich.json`: 30 locate tasks (10 `a_keyword`, 10 `b_hidden_dep` whose query avoids the target name, 10 `c_multi_file`) and 10 packet tasks. Every task is a test task: nothing is tuned on them. Every gold item was found in the index and its body read (`evals/out/m10/bench_rich_gold_verification.json`). The set was written by one Claude session and must be reviewed by the repo owner or by a different Claude session before any number is produced: `bench_retrieval.py` refuses to run while `reviewed` is not `true`.
+**Tasks.** `evals/tasks/bench_rich.json`: 30 locate tasks (10 `a_keyword`, 10 `b_hidden_dep` whose query avoids the target name, 10 `c_multi_file`) and 10 packet tasks. Every task is a test task: nothing is tuned on them. Every gold item was found in the index and its body read (`evals/out/m10/bench_rich_gold_verification.json`). The set was written by one Claude session and reviewed by the repository owner before any number was produced (`bench_retrieval.py` refuses to run while `reviewed` is not `true`).
 
 **Arms** (same machine, same index, same queries; corpus = files of the index with `parse_status` starting with `parsed`):
 
@@ -98,12 +98,68 @@ Positioning: **evidence-first, local-first code context.** This benchmark answer
 
 **Pre-registered KPIs (soft; the numbers are reported whether or not they are met).** R2 − R0-grep@R2 File Acc@5 ≥ +10 points with a CI95 that excludes 0; R2 within 5 points of unbounded R0-grep; R3 `sig_coverage` ≥ 0.60, `ref_coverage` ≥ 0.80, `savings_vs_read` ≥ 0.70. R2 vs R1 is reported without a threshold.
 
-**Status: waiting for review of the task set.** No benchmark number exists yet, by design. After review:
+**Status: results produced (owner-reviewed task set).** The owner confirmed the review on 2026-09-29; the task file was not changed (`reviewed: true`, `tasks_file_sha256 accd46af12eb…`). Run on the 2-core dev VM at `git_head` 86bef29 with the harness frozen at `m10-freeze`; raw records and summary: `evals/out/m10/bench_rich_*.jsonl`, `bench_rich_summary.json`. Index run `run_20260929T075303Z_51e099b5`, schema 2.4, 213 corpus files, 30 locate tasks and 10 packet tasks, tokens = `utf8-bytes-div-4-v1`.
+
+### Locate tasks (30)
+
+| Arm | File Acc@5 (CI95) | Symbol Recall@10 (CI95) | Mean wire tokens | Latency p50 (ms) |
+|---|---|---|---:|---:|
+| `R0-grep` (unbounded grep simulation) | 0.93 [0.83, 1.00] | 0.22 [0.09, 0.38] | 17,553 | 180 |
+| `R0-grep@R2` (grep cut to R2's tokens) | 0.57 [0.40, 0.73] | 0.10 [0.00, 0.20] | 1,878 | 180 |
+| `R0-read` (5 files read whole) | 0.93 [0.83, 1.00] | 0.22 [0.09, 0.38] | 48,243 | 180 |
+| `R1` `search_source(expand="none")` | 0.97 [0.90, 1.00] | 0.52 [0.34, 0.69] | 1,897 | 22 |
+| `R2` `search_source(profile="locate")` | 0.90 [0.80, 1.00] | 0.54 [0.37, 0.71] | 1,886 | 24 |
+
+By group (means only; 10 tasks per group, so the intervals are wide, see the summary file):
+
+| Group | Arm | File Acc@5 | Symbol Recall@10 | Mean wire tokens |
+|---|---|---|---|---:|
+| a_keyword | R0-grep | 1.00 | 0.60 | 16,252 |
+| a_keyword | R0-grep@R2 | 0.70 | 0.30 | 1,888 |
+| a_keyword | R1 | 1.00 | 0.90 | 1,890 |
+| a_keyword | R2 | 1.00 | 0.80 | 1,895 |
+| b_hidden_dep | R0-grep | 0.80 | 0.00 | 16,311 |
+| b_hidden_dep | R0-grep@R2 | 0.30 | 0.00 | 1,875 |
+| b_hidden_dep | R1 | 0.90 | 0.50 | 1,907 |
+| b_hidden_dep | R2 | 0.90 | 0.50 | 1,885 |
+| c_multi_file | R0-grep | 1.00 | 0.07 | 20,096 |
+| c_multi_file | R0-grep@R2 | 0.70 | 0.00 | 1,871 |
+| c_multi_file | R1 | 1.00 | 0.17 | 1,893 |
+| c_multi_file | R2 | 0.80 | 0.33 | 1,878 |
+
+### Packet tasks (10), `inspect_symbol(view="full", budget_tokens=4096)` versus reading the files (R3)
+
+`sig_coverage` 0.983 [0.95, 1.00], `ref_coverage` 0.983 [0.95, 1.00], `reach_ceiling` 1.00, `savings_vs_read` 0.915 [0.89, 0.93] (2,204 wire tokens against 26,644 to read the files), `body_coverage` 0.00 (by design: a packet carries signatures of neighbours, not their bodies). 0 errors.
+
+### Pre-registered KPIs
+
+| KPI | Result | Threshold | Met |
+|---|---|---|---|
+| R2 − `R0-grep@R2` File Acc@5 (same cost) | +0.333 [0.13, 0.53] | ≥ +0.10, CI excludes 0 | yes |
+| R2 − unbounded `R0-grep` File Acc@5 | -0.033 [-0.17, 0.07] | ≥ −0.05 | yes on the mean; the CI reaches −0.167 |
+| R3 `sig_coverage` | 0.983 | ≥ 0.60 | yes |
+| R3 `ref_coverage` | 0.983 | ≥ 0.80 | yes |
+| R3 `savings_vs_read` | 0.915 | ≥ 0.70 | yes |
+| R2 vs R1 (no threshold) | File Acc@5 -0.067 [-0.17, 0.00]; Symbol Recall@10 +0.022 [-0.10, 0.14] | report only | n/a |
+
+R2 puts 0.107 of the tokens of unbounded `R0-grep` in front of the agent (about 89 % fewer) for a File Acc@5 that is 3 points lower on the mean.
+
+### How to read this
+
+- At equal cost (about 1.9k tokens) token-context finds the right file far more often than grep cut to the same size (0.90 against 0.57), and it returns the right *symbol* (Recall@10 0.54 against 0.10), which grep cannot name.
+- Unbounded grep has the highest File Acc@5 on the `c_multi_file` group (1.00 against 0.80 for R2) and reads 9 times more tokens (17.6k against 1.9k on average). `b_hidden_dep` (query without the target's name) is where lexical grep fails at symbol level (Recall@10 0.00 against 0.50).
+- **The graph expansion of R2 did not beat plain FTS (R1) on this set**: File Acc@5 0.90 against 0.97 (paired difference −0.067, CI [−0.167, 0.000]), Symbol Recall@10 about equal. The expansion costs nothing in tokens but did not help here.
+- The packet (R3) gives about 92 % fewer tokens than reading the files while covering 98 % of the gold neighbour signatures and references.
+
+### Limits
+
+One Python repository (`rich`), 30 + 10 tasks written by one Claude session and reviewed by the owner, so the intervals are wide and group-level differences are indicative only. `R0` is a Python simulation of `rg -n -C 2` (its latency is not that of `rg`) that takes the symbol of its best line from the index, which favours R0. Locate tasks measure retrieval, not task success; end-to-end savings are measured only by the C3 matrix (not run for `bench-rich`). No third-party figures are used (`benchmark_sources.json` stays empty). No JS/TS or Go repository was benchmarked.
+
+Reproduce with:
 
 ```
-uv run python evals/bench_retrieval.py --tasks <reviewed bench_rich.json> --config <dev repos.toml> --name rich
+uv run python evals/bench_retrieval.py --tasks evals/tasks/bench_rich.json --config <dev repos.toml> --name rich
 ```
 
-writes `evals/out/m10/bench_rich_<arm>.jsonl` and `bench_rich_summary.json`. The harness and `src/` are frozen at the local tag `m10-freeze` (`git diff m10-freeze -- src evals/bench_retrieval.py` is empty).
+The harness and the retrieval code in `src/` are frozen at the local tag `m10-freeze` (after it only `gui/main.py` changed, for the GUI install hint).
 
-**Limits.** `R0` is a simulated baseline, not a real agent: it takes the symbol of its best line from the index (an advantage for R0) and has no reading strategy. Locate tasks measure retrieval, not task success; end-to-end token savings are measured by the C3 matrix above (prepared for `bench-rich`, 45 runs, not executed: it spends provider money). Third-party figures must be listed in [`benchmark_sources.json`](benchmark_sources.json); there are none yet.

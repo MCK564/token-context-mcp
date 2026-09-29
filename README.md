@@ -13,7 +13,7 @@ Full details: [`CHANGELOG.md`](CHANGELOG.md), report [`docs/reports/M6_M10_REPOR
 - **Client compatibility** — `serve --output-mode {auto,structured,text,legacy_dual}` and `serve --schema-profile {auto,default,gemini_safe}`; `get_tool_schema` returns the real schema; repository text is flagged as untrusted and scanned for prompt-injection patterns (warning only, nothing is redacted).
 - **Desktop GUI that does not block** — no I/O on the UI thread, indexing in a child process with a Cancel that kills the whole tree, honest status badges, a running-servers panel instead of Start/Stop, VACUUM only for the mutable databases.
 - **Go** is now parsed (`.go`, tree-sitter-go). Go call edges are name based, so Go graphs are more ambiguous than Python's.
-- **Single version source** (`token_context_mcp.__version__`) and a deterministic retrieval-benchmark harness, `evals/bench_retrieval.py` (see [Benchmark status](#benchmark-status-020)).
+- **Single version source** (`token_context_mcp.__version__`) and a deterministic retrieval benchmark, `evals/bench_retrieval.py`, with results on a public repository (see [Benchmark status](#benchmark-status-020)).
 
 ## What is implemented
 
@@ -125,7 +125,18 @@ Two figures worth reading before interpreting any of the above: `cached_input_to
 
 ### Benchmark status (0.2.0)
 
-The figures above come from the earlier pilot and the X1 measurements. Version 0.2.0 adds `evals/bench_retrieval.py` (arms R0-grep, R0-grep@R2, R0-read, R1, R2, R3; bootstrap CI95) and the public protocol in [`docs/BENCHMARK.md`](docs/BENCHMARK.md), but **no new benchmark number is published yet**: the task set for `bench-rich` still awaits owner review, the harness refuses to run unreviewed tasks, and `docs/benchmark_sources.json` is empty. The full C3 matrix has not been run. Measured M7/M8 results, including the targets that were missed, are in the [changelog](CHANGELOG.md) and the [M6–M10 report](docs/reports/M6_M10_REPORT.vi.md).
+The figures above come from the earlier pilot and the X1 measurements. Version 0.2.0 adds a deterministic retrieval benchmark (`evals/bench_retrieval.py`, protocol and full tables in [`docs/BENCHMARK.md`](docs/BENCHMARK.md)). It ran on the public `Textualize/rich` v15.0.0 (30 locate tasks and 10 packet tasks, task set reviewed by the repository owner, no model in the loop, CI95 by bootstrap):
+
+| Locate, 30 tasks | File Acc@5 | Symbol Recall@10 | Mean tokens |
+| --- | ---: | ---: | ---: |
+| grep simulation, unbounded | 0.93 | 0.22 | 17,553 |
+| grep simulation, cut to the same size as R2 | 0.57 | 0.10 | 1,878 |
+| `search_source` (FTS) | 0.97 | 0.52 | 1,897 |
+| `search_source(profile="locate")` (with graph expansion) | 0.90 | 0.54 | 1,886 |
+
+At equal cost token-context finds the right file far more often than grep (0.90 against 0.57, paired difference +0.33, CI95 +0.13 to +0.53) and names the right symbol. Unbounded grep reads about 9 times more tokens for a File Acc@5 only about 3 points higher (the difference is not significant, CI95 −0.17 to +0.07), and it wins on the multi-file group (1.00 against 0.80). The graph expansion did not beat plain FTS on this set (0.90 against 0.97). For `inspect_symbol(view="full")` packets, 98% of the gold neighbour signatures and references were covered with 91% fewer tokens than reading the files (`savings_vs_read` 0.915, CI95 0.89 to 0.93).
+
+Limits: one Python repository, wide intervals, a simulated grep baseline, and retrieval quality only, not agent task success. The end-to-end C3 matrix has not been run, so there is still no claim about total tokens spent by an agent. Measured M7/M8 results, including the targets that were missed, are in the [changelog](CHANGELOG.md) and the [M6–M10 report](docs/reports/M6_M10_REPORT.vi.md).
 
 ## Non-goals and security boundary
 
