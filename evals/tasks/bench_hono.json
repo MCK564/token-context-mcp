@@ -1,0 +1,979 @@
+{
+  "repo_id": "bench-hono",
+  "repo_url": "https://github.com/honojs/hono",
+  "tag": "v4.9.9",
+  "commit_sha": "16eb88269ffb0ae68590ad55ac9ac58807850f26",
+  "license": "MIT",
+  "reviewed": true,
+  "review_note": "Drafted by one Claude session and reviewed by a different Claude session (8 of 40 tasks changed, none dropped; see docs/BENCHMARK.md). All tasks are TEST tasks; no retrieval tool was run to write or review them, so nothing is tuned. The repository owner has not reviewed this set.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "middleware that checks the Basic Authorization header against a configured username and password and answers 401 with a realm",
+      "gold_files": [
+        "src/middleware/basic-auth/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/basic-auth/index.ts",
+          "qualified_name": "basicAuth"
+        }
+      ],
+      "note": "basicAuth builds the middleware that compares decoded Basic credentials (or a verifyUser callback) and returns 401 with a WWW-Authenticate realm otherwise."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "map a request filename to a file path, appending index.html when it ends with a slash or has no extension",
+      "gold_files": [
+        "src/utils/filepath.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/filepath.ts",
+          "qualified_name": "getFilePath"
+        }
+      ],
+      "note": "getFilePath appends the default document for directory-like names and then resolves the path under the root."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "parse an Accept header string into a list of media types with parameters sorted by quality value",
+      "gold_files": [
+        "src/utils/accept.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/accept.ts",
+          "qualified_name": "parseAccept"
+        }
+      ],
+      "note": "parseAccept splits the header, parses each value and sorts by q and index."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "compare two strings safely against timing attacks by hashing both before comparing them",
+      "gold_files": [
+        "src/utils/buffer.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/buffer.ts",
+          "qualified_name": "timingSafeEqual"
+        }
+      ],
+      "note": "timingSafeEqual hashes both inputs (sha256 by default) and compares the digests plus the originals."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "CORS middleware that sets Access-Control-Allow-Origin, allowed methods and headers and answers preflight OPTIONS requests",
+      "gold_files": [
+        "src/middleware/cors/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/cors/index.ts",
+          "qualified_name": "cors"
+        }
+      ],
+      "note": "cors resolves the allowed origin/methods/headers and returns a 204 response for preflight requests."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "forward a request to another origin with fetch and strip hop-by-hop headers from the response",
+      "gold_files": [
+        "src/helper/proxy/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/proxy/index.ts",
+          "qualified_name": "proxy"
+        }
+      ],
+      "note": "proxy builds a Request, fetches it and deletes hop-by-hop and content-encoding headers from the response."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "look up the MIME type for a filename extension and add charset utf-8 for text types",
+      "gold_files": [
+        "src/utils/mime.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/mime.ts",
+          "qualified_name": "getMimeType"
+        }
+      ],
+      "note": "getMimeType matches the extension, looks it up in the mime table and appends the utf-8 charset for text/* types."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "escape ampersand, angle brackets and quotes in a string and append the result to a string buffer",
+      "gold_files": [
+        "src/utils/html.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/html.ts",
+          "qualified_name": "escapeToBuffer"
+        }
+      ],
+      "note": "escapeToBuffer replaces &, <, >, \" and ' with entities and appends the result to buffer[0]."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "return the Response of an HTTP exception, built from its message and status when no custom response was supplied",
+      "gold_files": [
+        "src/http-exception.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException.getResponse"
+        }
+      ],
+      "note": "getResponse returns a copy of the custom res with the status, or a new Response from the message."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "generate static HTML files from the routes of an app and write them to the file system with before and after hooks",
+      "gold_files": [
+        "src/helper/ssg/ssg.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/ssg/ssg.ts",
+          "qualified_name": "toSSG"
+        }
+      ],
+      "note": "toSSG requests every static route of the app, applies hooks and saves the content via the provided fs module."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "runs an ordered list of handlers where each can call the following one, throws if that continuation is invoked twice, and routes failures to an error callback",
+      "gold_files": [
+        "src/compose.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/compose.ts",
+          "qualified_name": "compose"
+        }
+      ],
+      "note": "compose returns a function whose dispatch(i) runs middleware[i] with a next that calls dispatch(i+1), guarding against repeated next() and using onError/onNotFound."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "figure out which JavaScript platform the code is executing on, such as workerd, deno, bun, node, fastly or edge-light",
+      "gold_files": [
+        "src/helper/adapter/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/adapter/index.ts",
+          "qualified_name": "getRuntimeKey"
+        }
+      ],
+      "note": "getRuntimeKey checks navigator.userAgent, EdgeRuntime, fastly and process.release to return the platform name."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "sets browser hardening fields on responses such as CSP, HSTS, frame options and permissions policy, with an optional per-request nonce",
+      "gold_files": [
+        "src/middleware/secure-headers/secure-headers.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/secure-headers/secure-headers.ts",
+          "qualified_name": "secureHeaders"
+        }
+      ],
+      "note": "secureHeaders assembles the default and custom security header list (CSP, Permissions-Policy, reporting) and sets them on the response after next()."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "reject uploads bigger than a configured byte count with status 413, counting streamed chunks when no length is declared",
+      "gold_files": [
+        "src/middleware/body-limit/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/body-limit/index.ts",
+          "qualified_name": "bodyLimit"
+        }
+      ],
+      "note": "bodyLimit trusts content-length when present, otherwise wraps the stream to count bytes, and calls onError (413) over maxSize."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "given a route pattern whose last named segment ends with a question mark, return the paths with and without that segment",
+      "gold_files": [
+        "src/utils/url.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "checkOptionalParameter"
+        }
+      ],
+      "note": "checkOptionalParameter expands /api/animals/:type? into [/api/animals, /api/animals/:type] and returns null otherwise."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "wrap a function component so its previous output is reused unless a comparison of old and new props says they differ",
+      "gold_files": [
+        "src/jsx/base.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/jsx/base.ts",
+          "qualified_name": "memo"
+        }
+      ],
+      "note": "memo caches the computed element and recomputes only when propsAreEqual (default shallowEqual) returns false."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "walk the segment tree for a request path and collect matching handler sets with captured params, handling wildcards and regex segments",
+      "gold_files": [
+        "src/router/trie-router/node.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.search"
+        }
+      ],
+      "note": "Node.search iterates over path parts through children and patterns, pushing handler sets with params for wildcard and named matches."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "attach a foreign fetch-style application under a path prefix, stripping the prefix from the URL and forwarding env and execution context",
+      "gold_files": [
+        "src/hono-base.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.mount"
+        }
+      ],
+      "note": "Hono.mount rewrites the request URL by the prefix length, calls the external handler with env and executionCtx, and registers it for all methods on path/*."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "limit how many async tasks run at the same time, queueing extra ones until slots free up, optionally holding a slot for an interval",
+      "gold_files": [
+        "src/utils/concurrent.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/concurrent.ts",
+          "qualified_name": "createPool"
+        }
+      ],
+      "note": "createPool returns run(fn) that defers via setTimeout while the pool size is at concurrency and releases markers (optionally after interval)."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "prints one line when a request arrives and another when the response is ready, showing method, path, status and elapsed time",
+      "gold_files": [
+        "src/middleware/logger/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/logger/index.ts",
+          "qualified_name": "logger"
+        }
+      ],
+      "note": "logger wraps next(), printing an incoming line and an outgoing line with status and elapsed time through the print function."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "add a Set-Cookie header whose value carries an HMAC signature, supporting the secure and host name prefixes",
+      "gold_files": [
+        "src/helper/cookie/index.ts",
+        "src/utils/cookie.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "setSignedCookie"
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "generateSignedCookie"
+        },
+        {
+          "path": "src/utils/cookie.ts",
+          "qualified_name": "serializeSigned"
+        },
+        {
+          "path": "src/utils/cookie.ts",
+          "qualified_name": "makeSignature"
+        }
+      ],
+      "note": "setSignedCookie appends the header built by generateSignedCookie (prefix handling), which calls serializeSigned that signs the value with makeSignature."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "protect routes by reading a token from the Authorization header or a cookie, checking its signature against a shared secret key plus its expiry and not-before claims, and storing the payload on the context",
+      "gold_files": [
+        "src/middleware/jwt/jwt.ts",
+        "src/utils/jwt/jwt.ts",
+        "src/utils/jwt/jws.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/jwt/jwt.ts",
+          "qualified_name": "jwt"
+        },
+        {
+          "path": "src/utils/jwt/jwt.ts",
+          "qualified_name": "verify"
+        },
+        {
+          "path": "src/utils/jwt/jws.ts",
+          "qualified_name": "verifying"
+        }
+      ],
+      "note": "the jwt middleware (shared-secret variant; the jwk middleware uses key sets and is excluded by the query) extracts the token and calls verify, which checks claims and then the signature through jws verifying."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "serve static files from a Workers KV asset namespace, using the asset manifest to find the storage key of each path",
+      "gold_files": [
+        "src/adapter/cloudflare-workers/serve-static.ts",
+        "src/adapter/cloudflare-workers/utils.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/adapter/cloudflare-workers/serve-static.ts",
+          "qualified_name": "serveStatic"
+        },
+        {
+          "path": "src/adapter/cloudflare-workers/utils.ts",
+          "qualified_name": "getContentFromKVAsset"
+        }
+      ],
+      "note": "the adapter serveStatic supplies getContent that looks up the KV asset through getContentFromKVAsset (manifest -> storage key)."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "stream server-sent events to the client, formatting event, data, id and retry lines and writing them to an encoded stream",
+      "gold_files": [
+        "src/helper/streaming/sse.ts",
+        "src/utils/stream.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "streamSSE"
+        },
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "SSEStreamingApi.writeSSE"
+        },
+        {
+          "path": "src/utils/stream.ts",
+          "qualified_name": "StreamingApi.write"
+        }
+      ],
+      "note": "streamSSE sets the event-stream headers and runs the callback; writeSSE formats the message and StreamingApi.write encodes and writes it."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "typed RPC client that turns chained property access into fetch calls, filling path params, query string and JSON or form body",
+      "gold_files": [
+        "src/client/client.ts",
+        "src/client/utils.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "hc"
+        },
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "ClientRequestImpl"
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "buildSearchParams"
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "replaceUrlParam"
+        }
+      ],
+      "note": "hc creates the proxy, ClientRequestImpl builds and sends the request, and utils build the query string and substitute path params."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "validate request input from json, form, query, header or cookie targets and keep the validated result available to later handlers",
+      "gold_files": [
+        "src/validator/validator.ts",
+        "src/request.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/validator/validator.ts",
+          "qualified_name": "validator"
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.addValidatedData"
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.valid"
+        }
+      ],
+      "note": "validator reads the target value, runs the user function and stores the result with addValidatedData; HonoRequest.valid returns it to later handlers."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "add an ETag to responses by hashing the body stream and reply with 304 when If-None-Match matches",
+      "gold_files": [
+        "src/middleware/etag/index.ts",
+        "src/middleware/etag/digest.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "etag"
+        },
+        {
+          "path": "src/middleware/etag/digest.ts",
+          "qualified_name": "generateDigest"
+        }
+      ],
+      "note": "etag calls generateDigest on the cloned body stream (hash via the configured generator, SHA-1 default) and answers 304 when If-None-Match matches."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "print the routes registered in an app to the console, coloring the method unless NO_COLOR is set",
+      "gold_files": [
+        "src/helper/dev/index.ts",
+        "src/utils/color.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/dev/index.ts",
+          "qualified_name": "showRoutes"
+        },
+        {
+          "path": "src/helper/dev/index.ts",
+          "qualified_name": "inspectRoutes"
+        },
+        {
+          "path": "src/utils/color.ts",
+          "qualified_name": "getColorEnabled"
+        }
+      ],
+      "note": "showRoutes lists routes from inspectRoutes and decides on coloring via getColorEnabled."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "allow or deny clients by IPv4 or IPv6 address including CIDR ranges, converting addresses to binary numbers for comparison",
+      "gold_files": [
+        "src/middleware/ip-restriction/index.ts",
+        "src/utils/ipaddr.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "ipRestriction"
+        },
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "buildMatcher"
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv4ToBinary"
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6ToBinary"
+        }
+      ],
+      "note": "ipRestriction applies deny and allow matchers from buildMatcher, which converts CIDR rules with the ipaddr binary conversion helpers."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "provide a value to descendant JSX components, implemented for both server string rendering and browser DOM rendering",
+      "gold_files": [
+        "src/jsx/context.ts",
+        "src/jsx/dom/context.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/jsx/context.ts",
+          "qualified_name": "createContext"
+        },
+        {
+          "path": "src/jsx/dom/context.ts",
+          "qualified_name": "createContextProviderFunction"
+        },
+        {
+          "path": "src/jsx/dom/context.ts",
+          "qualified_name": "createContext"
+        }
+      ],
+      "note": "src/jsx/context.ts createContext builds the string-render provider and registers the DOM renderer made by createContextProviderFunction; src/jsx/dom/context.ts has its own createContext for the DOM renderer."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "src/hono-base.ts",
+        "qualified_name": "Hono.mount"
+      },
+      "gold_context": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.#addRoute",
+          "need": "body",
+          "why": "mount registers its wrapper handler through addRoute for the ALL method, which merges the base path."
+        },
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "mergePath",
+          "need": "body",
+          "why": "mount uses mergePath both to compute the prefix length to strip and to build the path/* route."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.basePath",
+          "need": "signature",
+          "why": "the _basePath that mount reads is set through basePath, so mount's prefix computation depends on it."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.route",
+          "need": "signature",
+          "why": "sibling method that also grafts other handlers under a path; behaviour must stay consistent."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "MountOptions",
+          "need": "signature",
+          "why": "option type accepted by mount (function or object with optionHandler/replaceRequest)."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "src/compose.ts",
+        "qualified_name": "compose"
+      },
+      "gold_context": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.#dispatch",
+          "need": "body",
+          "why": "the caller that builds the matched handler list and invokes compose, including the single-handler shortcut that bypasses it."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "errorHandler",
+          "need": "signature",
+          "why": "default onError passed into compose; its contract decides how thrown errors become responses."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "notFoundHandler",
+          "need": "signature",
+          "why": "default onNotFound passed into compose when no handler finalizes the context."
+        },
+        {
+          "path": "src/context.ts",
+          "qualified_name": "Context",
+          "need": "signature",
+          "why": "compose sets context.error, reads finalized and assigns res on this class."
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.route",
+          "need": "body",
+          "why": "second in-file caller: wraps a sub-app's routes with compose([], app.errorHandler), so it depends on compose's onError semantics."
+        },
+        {
+          "path": "src/middleware/combine/index.ts",
+          "qualified_name": "every",
+          "need": "body",
+          "why": "caller in another module: builds a middleware list for compose and relies on next/throw semantics of the composed chain."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "src/middleware/serve-static/index.ts",
+        "qualified_name": "serveStatic"
+      },
+      "gold_context": [
+        {
+          "path": "src/utils/mime.ts",
+          "qualified_name": "getMimeType",
+          "need": "body",
+          "why": "provides the Content-Type value; its (possibly undefined) result also feeds the precompressed compressibility check."
+        },
+        {
+          "path": "src/middleware/serve-static/path.ts",
+          "qualified_name": "defaultJoin",
+          "need": "body",
+          "why": "default join used to build the file path from root and filename."
+        },
+        {
+          "path": "src/adapter/cloudflare-workers/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "need": "body",
+          "why": "third runtime caller that supplies a KV-backed getContent to this generic middleware."
+        },
+        {
+          "path": "src/adapter/bun/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "need": "body",
+          "why": "caller that supplies getContent, join and isDir to the generic middleware; option contract must stay compatible."
+        },
+        {
+          "path": "src/adapter/deno/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "need": "body",
+          "why": "second runtime caller supplying getContent, join and isDir; changes to the option contract affect it."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "src/router/trie-router/node.ts",
+        "qualified_name": "Node.search"
+      },
+      "gold_context": [
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.#getHandlerSets",
+          "need": "body",
+          "why": "called for every matching node to collect handlers and params."
+        },
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.insert",
+          "need": "body",
+          "why": "builds the children/patterns structure that search walks."
+        },
+        {
+          "path": "src/router/trie-router/router.ts",
+          "qualified_name": "TrieRouter.match",
+          "need": "signature",
+          "why": "only caller of search; defines the return type Result<T>."
+        },
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "splitPath",
+          "need": "signature",
+          "why": "splits the incoming path into the parts iterated by search."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "src/middleware/jwt/jwt.ts",
+        "qualified_name": "jwt"
+      },
+      "gold_context": [
+        {
+          "path": "src/middleware/jwt/jwt.ts",
+          "qualified_name": "unauthorizedResponse",
+          "need": "body",
+          "why": "builds the 401 response with WWW-Authenticate used in every failure branch."
+        },
+        {
+          "path": "src/utils/jwt/jwt.ts",
+          "qualified_name": "verify",
+          "need": "signature",
+          "why": "verification call whose options and error types the middleware relies on."
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getCookie",
+          "need": "signature",
+          "why": "cookie fallback for reading the token."
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getSignedCookie",
+          "need": "signature",
+          "why": "signed-cookie variant used when cookie.secret is configured."
+        },
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException",
+          "need": "signature",
+          "why": "thrown for each failure with a prebuilt 401 response."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "src/helper/streaming/sse.ts",
+        "qualified_name": "streamSSE"
+      },
+      "gold_context": [
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "SSEStreamingApi.writeSSE",
+          "need": "signature",
+          "why": "the stream API handed to the user callback."
+        },
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "run",
+          "need": "body",
+          "why": "runs the callback, handles errors and closes the stream."
+        },
+        {
+          "path": "src/helper/streaming/utils.ts",
+          "qualified_name": "isOldBunVersion",
+          "need": "body",
+          "why": "decides whether to install the abort listener workaround."
+        },
+        {
+          "path": "src/utils/stream.ts",
+          "qualified_name": "StreamingApi",
+          "need": "signature",
+          "why": "base class providing abort, close and the readable used for the Response."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "src/client/client.ts",
+        "qualified_name": "hc"
+      },
+      "gold_context": [
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "createProxy",
+          "need": "body",
+          "why": "hc is a callback for this proxy that receives the accumulated path and args."
+        },
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "ClientRequestImpl",
+          "need": "signature",
+          "why": "class instantiated by hc to build and send the request."
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "mergePath",
+          "need": "body",
+          "why": "joins the base url and the proxy path."
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "replaceUrlParam",
+          "need": "body",
+          "why": "used for the $url method to fill path params."
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "buildSearchParams",
+          "need": "signature",
+          "why": "builds the query string for the $url method."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "src/validator/validator.ts",
+        "qualified_name": "validator"
+      },
+      "gold_context": [
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.addValidatedData",
+          "need": "body",
+          "why": "stores the validation result that valid() later returns."
+        },
+        {
+          "path": "src/utils/buffer.ts",
+          "qualified_name": "bufferToFormData",
+          "need": "body",
+          "why": "used to parse form bodies once and cache them in bodyCache."
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getCookie",
+          "need": "signature",
+          "why": "provides the value for the cookie target."
+        },
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException",
+          "need": "signature",
+          "why": "thrown with 400 for malformed JSON or form data."
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.queries",
+          "need": "signature",
+          "why": "source of the query target value."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "src/middleware/etag/index.ts",
+        "qualified_name": "etag"
+      },
+      "gold_context": [
+        {
+          "path": "src/middleware/etag/digest.ts",
+          "qualified_name": "generateDigest",
+          "need": "body",
+          "why": "hashes the response stream and returns the hex string used as the tag."
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "initializeGenerator",
+          "need": "body",
+          "why": "selects the default SHA-1 digest generator when none is configured."
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "etagMatches",
+          "need": "body",
+          "why": "weak-aware comparison that decides the 304 branch."
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "ETagOptions",
+          "need": "signature",
+          "why": "option type (retainedHeaders, weak, generateDigest) that etag reads; the generateDigest signature must match what digest.ts expects."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "src/middleware/ip-restriction/index.ts",
+        "qualified_name": "buildMatcher"
+      },
+      "gold_context": [
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "distinctRemoteAddr",
+          "need": "signature",
+          "why": "classifies each rule as IPv4 or IPv6 and rejects invalid ones."
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv4ToBinary",
+          "need": "signature",
+          "why": "turns IPv4 rules into bigint for CIDR masks."
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6ToBinary",
+          "need": "signature",
+          "why": "turns IPv6 rules into bigint for CIDR masks."
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6BinaryToString",
+          "need": "signature",
+          "why": "normalizes static IPv6 rules."
+        },
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "ipRestriction",
+          "need": "body",
+          "why": "only consumer of the matchers built here (deny and allow lists)."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude review session (not the author); edits logged in the review log; owner review pending",
+  "reviewed_at": "2026-09-29",
+  "split_seed": null
+}

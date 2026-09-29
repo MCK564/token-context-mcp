@@ -1,0 +1,2431 @@
+{
+  "tasks_file": "tmp/hono_draft/bench_hono.json",
+  "repo_id": "bench-hono",
+  "loc": [
+    {
+      "id": "t01",
+      "gold": [
+        {
+          "path": "src/middleware/basic-auth/index.ts",
+          "qualified_name": "basicAuth",
+          "found": true,
+          "kind": "function",
+          "span": "61-128",
+          "lines": 68,
+          "body_returned": true,
+          "body_chars": 2052,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t02",
+      "gold": [
+        {
+          "path": "src/utils/filepath.ts",
+          "qualified_name": "getFilePath",
+          "found": true,
+          "kind": "function",
+          "span": "12-30",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 518,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t03",
+      "gold": [
+        {
+          "path": "src/utils/accept.ts",
+          "qualified_name": "parseAccept",
+          "found": true,
+          "kind": "function",
+          "span": "12-24",
+          "lines": 13,
+          "body_returned": true,
+          "body_chars": 383,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t04",
+      "gold": [
+        {
+          "path": "src/utils/buffer.ts",
+          "qualified_name": "timingSafeEqual",
+          "found": true,
+          "kind": "function",
+          "span": "29-45",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 324,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t05",
+      "gold": [
+        {
+          "path": "src/middleware/cors/index.ts",
+          "qualified_name": "cors",
+          "found": true,
+          "kind": "function",
+          "span": "63-162",
+          "lines": 100,
+          "body_returned": true,
+          "body_chars": 2931,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t06",
+      "gold": [
+        {
+          "path": "src/helper/proxy/index.ts",
+          "qualified_name": "proxy",
+          "found": true,
+          "kind": "function",
+          "span": "113-139",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 849,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t07",
+      "gold": [
+        {
+          "path": "src/utils/mime.ts",
+          "qualified_name": "getMimeType",
+          "found": true,
+          "kind": "function",
+          "span": "6-20",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 340,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t08",
+      "gold": [
+        {
+          "path": "src/utils/html.ts",
+          "qualified_name": "escapeToBuffer",
+          "found": true,
+          "kind": "function",
+          "span": "90-127",
+          "lines": 38,
+          "body_returned": true,
+          "body_chars": 749,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t09",
+      "gold": [
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException.getResponse",
+          "found": true,
+          "kind": "method",
+          "span": "66-77",
+          "lines": 12,
+          "body_returned": true,
+          "body_chars": 283,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "gold": [
+        {
+          "path": "src/helper/ssg/ssg.ts",
+          "qualified_name": "toSSG",
+          "found": true,
+          "kind": "function",
+          "span": "356-458",
+          "lines": 103,
+          "body_returned": true,
+          "body_chars": 3338,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t11",
+      "gold": [
+        {
+          "path": "src/compose.ts",
+          "qualified_name": "compose",
+          "found": true,
+          "kind": "function",
+          "span": "15-73",
+          "lines": 59,
+          "body_returned": true,
+          "body_chars": 1516,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t12",
+      "gold": [
+        {
+          "path": "src/helper/adapter/index.ts",
+          "qualified_name": "getRuntimeKey",
+          "found": true,
+          "kind": "function",
+          "span": "50-84",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 952,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t13",
+      "gold": [
+        {
+          "path": "src/middleware/secure-headers/secure-headers.ts",
+          "qualified_name": "secureHeaders",
+          "found": true,
+          "kind": "function",
+          "span": "176-226",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 1678,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t14",
+      "gold": [
+        {
+          "path": "src/middleware/body-limit/index.ts",
+          "qualified_name": "bodyLimit",
+          "found": true,
+          "kind": "function",
+          "span": "57-125",
+          "lines": 69,
+          "body_returned": true,
+          "body_chars": 2074,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t15",
+      "gold": [
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "checkOptionalParameter",
+          "found": true,
+          "kind": "function",
+          "span": "162-197",
+          "lines": 36,
+          "body_returned": true,
+          "body_chars": 947,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t16",
+      "gold": [
+        {
+          "path": "src/jsx/base.ts",
+          "qualified_name": "memo",
+          "found": true,
+          "kind": "function",
+          "span": "379-400",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 752,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t17",
+      "gold": [
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.search",
+          "found": true,
+          "kind": "method",
+          "span": "108-212",
+          "lines": 105,
+          "body_returned": true,
+          "body_chars": 3465,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t18",
+      "gold": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.mount",
+          "found": true,
+          "kind": "method",
+          "span": "320-375",
+          "lines": 56,
+          "body_returned": true,
+          "body_chars": 1781,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "gold": [
+        {
+          "path": "src/utils/concurrent.ts",
+          "qualified_name": "createPool",
+          "found": true,
+          "kind": "function",
+          "span": "12-55",
+          "lines": 44,
+          "body_returned": true,
+          "body_chars": 908,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t20",
+      "gold": [
+        {
+          "path": "src/middleware/logger/index.ts",
+          "qualified_name": "logger",
+          "found": true,
+          "kind": "function",
+          "span": "81-95",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 365,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t21",
+      "gold": [
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "setSignedCookie",
+          "found": true,
+          "kind": "function",
+          "span": "130-139",
+          "lines": 10,
+          "body_returned": true,
+          "body_chars": 250,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "generateSignedCookie",
+          "found": true,
+          "kind": "function",
+          "span": "104-128",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 596,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/cookie.ts",
+          "qualified_name": "serializeSigned",
+          "found": true,
+          "kind": "function",
+          "span": "233-243",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 284,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/cookie.ts",
+          "qualified_name": "makeSignature",
+          "found": true,
+          "kind": "function",
+          "span": "44-49",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 348,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t22",
+      "gold": [
+        {
+          "path": "src/middleware/jwt/jwt.ts",
+          "qualified_name": "jwt",
+          "found": true,
+          "kind": "function",
+          "span": "52-153",
+          "lines": 102,
+          "body_returned": true,
+          "body_chars": 2631,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/jwt/jwt.ts",
+          "qualified_name": "verify",
+          "found": true,
+          "kind": "function",
+          "span": "99-156",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1664,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/jwt/jws.ts",
+          "qualified_name": "verifying",
+          "found": true,
+          "kind": "function",
+          "span": "39-48",
+          "lines": 10,
+          "body_returned": true,
+          "body_chars": 331,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t23",
+      "gold": [
+        {
+          "path": "src/adapter/cloudflare-workers/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "found": true,
+          "kind": "function",
+          "span": "21-42",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 593,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/adapter/cloudflare-workers/utils.ts",
+          "qualified_name": "getContentFromKVAsset",
+          "found": true,
+          "kind": "function",
+          "span": "11-50",
+          "lines": 40,
+          "body_returned": true,
+          "body_chars": 1043,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t24",
+      "gold": [
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "streamSSE",
+          "found": true,
+          "kind": "function",
+          "span": "66-94",
+          "lines": 29,
+          "body_returned": true,
+          "body_chars": 917,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "SSEStreamingApi.writeSSE",
+          "found": true,
+          "kind": "method",
+          "span": "18-38",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 568,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/stream.ts",
+          "qualified_name": "StreamingApi.write",
+          "found": true,
+          "kind": "method",
+          "span": "46-56",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 321,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "gold": [
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "hc",
+          "found": true,
+          "kind": "function",
+          "span": "122-206",
+          "lines": 85,
+          "body_returned": true,
+          "body_chars": 2678,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "ClientRequestImpl",
+          "found": true,
+          "kind": "class",
+          "span": "33-119",
+          "lines": 87,
+          "body_returned": true,
+          "body_chars": 2314,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "buildSearchParams",
+          "found": true,
+          "kind": "function",
+          "span": "26-44",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 366,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "replaceUrlParam",
+          "found": true,
+          "kind": "function",
+          "span": "18-24",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 257,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t26",
+      "gold": [
+        {
+          "path": "src/validator/validator.ts",
+          "qualified_name": "validator",
+          "found": true,
+          "kind": "function",
+          "span": "30-151",
+          "lines": 122,
+          "body_returned": true,
+          "body_chars": 3415,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.addValidatedData",
+          "found": true,
+          "kind": "method",
+          "span": "315-317",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 104,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.valid",
+          "found": true,
+          "kind": "method",
+          "span": "328-330",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 94,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t27",
+      "gold": [
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "etag",
+          "found": true,
+          "kind": "function",
+          "span": "79-124",
+          "lines": 46,
+          "body_returned": true,
+          "body_chars": 1215,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/middleware/etag/digest.ts",
+          "qualified_name": "generateDigest",
+          "found": true,
+          "kind": "function",
+          "span": "16-43",
+          "lines": 28,
+          "body_returned": true,
+          "body_chars": 620,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t28",
+      "gold": [
+        {
+          "path": "src/helper/dev/index.ts",
+          "qualified_name": "showRoutes",
+          "found": true,
+          "kind": "function",
+          "span": "39-74",
+          "lines": 36,
+          "body_returned": true,
+          "body_chars": 1167,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/helper/dev/index.ts",
+          "qualified_name": "inspectRoutes",
+          "found": true,
+          "kind": "function",
+          "span": "27-37",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 313,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/color.ts",
+          "qualified_name": "getColorEnabled",
+          "found": true,
+          "kind": "function",
+          "span": "14-27",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 408,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t29",
+      "gold": [
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "ipRestriction",
+          "found": true,
+          "kind": "function",
+          "span": "128-178",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 1283,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "buildMatcher",
+          "found": true,
+          "kind": "function",
+          "span": "37-113",
+          "lines": 77,
+          "body_returned": true,
+          "body_chars": 2338,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv4ToBinary",
+          "found": true,
+          "kind": "function",
+          "span": "57-65",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 180,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6ToBinary",
+          "found": true,
+          "kind": "function",
+          "span": "72-80",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 213,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "id": "t30",
+      "gold": [
+        {
+          "path": "src/jsx/context.ts",
+          "qualified_name": "createContext",
+          "found": true,
+          "kind": "function",
+          "span": "15-46",
+          "lines": 32,
+          "body_returned": true,
+          "body_chars": 918,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/jsx/dom/context.ts",
+          "qualified_name": "createContextProviderFunction",
+          "found": true,
+          "kind": "function",
+          "span": "8-43",
+          "lines": 36,
+          "body_returned": true,
+          "body_chars": 896,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        },
+        {
+          "path": "src/jsx/dom/context.ts",
+          "qualified_name": "createContext",
+          "found": true,
+          "kind": "function",
+          "span": "45-52",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 276,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ],
+  "packet": [
+    {
+      "id": "p01",
+      "target": {
+        "path": "src/hono-base.ts",
+        "qualified_name": "Hono.mount",
+        "found": true,
+        "kind": "method",
+        "span": "320-375",
+        "lines": 56,
+        "body_returned": true,
+        "body_chars": 1781,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.#addRoute",
+          "found": true,
+          "kind": "method",
+          "span": "377-383",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 285,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "mergePath",
+          "found": true,
+          "kind": "function",
+          "span": "149-160",
+          "lines": 12,
+          "body_returned": true,
+          "body_chars": 318,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.basePath",
+          "found": true,
+          "kind": "method",
+          "span": "241-245",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 201,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.route",
+          "found": true,
+          "kind": "method",
+          "span": "203-226",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 726,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "MountOptions",
+          "found": true,
+          "kind": "type",
+          "span": "91-96",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 146,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "target": {
+        "path": "src/compose.ts",
+        "qualified_name": "compose",
+        "found": true,
+        "kind": "function",
+        "span": "15-73",
+        "lines": 59,
+        "body_returned": true,
+        "body_chars": 1516,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.#dispatch",
+          "found": true,
+          "kind": "method",
+          "span": "392-452",
+          "lines": 61,
+          "body_returned": true,
+          "body_chars": 1713,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "errorHandler",
+          "found": true,
+          "kind": "function",
+          "span": "35-42",
+          "lines": 8,
+          "body_returned": true,
+          "body_chars": 190,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "notFoundHandler",
+          "found": true,
+          "kind": "function",
+          "span": "31-33",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 48,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/context.ts",
+          "qualified_name": "Context",
+          "found": true,
+          "kind": "class",
+          "span": "276-763",
+          "lines": 488,
+          "body_returned": true,
+          "body_chars": 13199,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/hono-base.ts",
+          "qualified_name": "Hono.route",
+          "found": true,
+          "kind": "method",
+          "span": "203-226",
+          "lines": 24,
+          "body_returned": true,
+          "body_chars": 726,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/combine/index.ts",
+          "qualified_name": "every",
+          "found": true,
+          "kind": "function",
+          "span": "99-117",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 569,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "target": {
+        "path": "src/middleware/serve-static/index.ts",
+        "qualified_name": "serveStatic",
+        "found": true,
+        "kind": "function",
+        "span": "34-125",
+        "lines": 92,
+        "body_returned": true,
+        "body_chars": 2717,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/utils/mime.ts",
+          "qualified_name": "getMimeType",
+          "found": true,
+          "kind": "function",
+          "span": "6-20",
+          "lines": 15,
+          "body_returned": true,
+          "body_chars": 340,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/serve-static/path.ts",
+          "qualified_name": "defaultJoin",
+          "found": true,
+          "kind": "function",
+          "span": "5-25",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 564,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/adapter/cloudflare-workers/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "found": true,
+          "kind": "function",
+          "span": "21-42",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 593,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/adapter/bun/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "found": true,
+          "kind": "function",
+          "span": "8-32",
+          "lines": 25,
+          "body_returned": true,
+          "body_chars": 587,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/adapter/deno/serve-static.ts",
+          "qualified_name": "serveStatic",
+          "found": true,
+          "kind": "function",
+          "span": "8-42",
+          "lines": 35,
+          "body_returned": true,
+          "body_chars": 748,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "target": {
+        "path": "src/router/trie-router/node.ts",
+        "qualified_name": "Node.search",
+        "found": true,
+        "kind": "method",
+        "span": "108-212",
+        "lines": 105,
+        "body_returned": true,
+        "body_chars": 3465,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.#getHandlerSets",
+          "found": true,
+          "kind": "method",
+          "span": "80-106",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 1080,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/router/trie-router/node.ts",
+          "qualified_name": "Node.insert",
+          "found": true,
+          "kind": "method",
+          "span": "37-78",
+          "lines": 42,
+          "body_returned": true,
+          "body_chars": 1075,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": true,
+          "reachable": true
+        },
+        {
+          "path": "src/router/trie-router/router.ts",
+          "qualified_name": "TrieRouter.match",
+          "found": true,
+          "kind": "method",
+          "span": "25-27",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 95,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/url.ts",
+          "qualified_name": "splitPath",
+          "found": true,
+          "kind": "function",
+          "span": "8-14",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 125,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "target": {
+        "path": "src/middleware/jwt/jwt.ts",
+        "qualified_name": "jwt",
+        "found": true,
+        "kind": "function",
+        "span": "52-153",
+        "lines": 102,
+        "body_returned": true,
+        "body_chars": 2631,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/middleware/jwt/jwt.ts",
+          "qualified_name": "unauthorizedResponse",
+          "found": true,
+          "kind": "function",
+          "span": "155-168",
+          "lines": 14,
+          "body_returned": true,
+          "body_chars": 368,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/jwt/jwt.ts",
+          "qualified_name": "verify",
+          "found": true,
+          "kind": "function",
+          "span": "99-156",
+          "lines": 58,
+          "body_returned": true,
+          "body_chars": 1664,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getCookie",
+          "found": true,
+          "kind": "function",
+          "span": "27-48",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 557,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getSignedCookie",
+          "found": true,
+          "kind": "function",
+          "span": "50-76",
+          "lines": 27,
+          "body_returned": true,
+          "body_chars": 621,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException",
+          "found": true,
+          "kind": "class",
+          "span": "46-78",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 998,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "target": {
+        "path": "src/helper/streaming/sse.ts",
+        "qualified_name": "streamSSE",
+        "found": true,
+        "kind": "function",
+        "span": "66-94",
+        "lines": 29,
+        "body_returned": true,
+        "body_chars": 917,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "SSEStreamingApi.writeSSE",
+          "found": true,
+          "kind": "method",
+          "span": "18-38",
+          "lines": 21,
+          "body_returned": true,
+          "body_chars": 568,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "run",
+          "found": true,
+          "kind": "function",
+          "span": "41-62",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 458,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/helper/streaming/utils.ts",
+          "qualified_name": "isOldBunVersion",
+          "found": true,
+          "kind": "function",
+          "span": "1-11",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 392,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/stream.ts",
+          "qualified_name": "StreamingApi",
+          "found": true,
+          "kind": "class",
+          "span": "6-96",
+          "lines": 91,
+          "body_returned": true,
+          "body_chars": 2407,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "target": {
+        "path": "src/client/client.ts",
+        "qualified_name": "hc",
+        "found": true,
+        "kind": "function",
+        "span": "122-206",
+        "lines": 85,
+        "body_returned": true,
+        "body_chars": 2678,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "createProxy",
+          "found": true,
+          "kind": "function",
+          "span": "15-31",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 371,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/client/client.ts",
+          "qualified_name": "ClientRequestImpl",
+          "found": true,
+          "kind": "class",
+          "span": "33-119",
+          "lines": 87,
+          "body_returned": true,
+          "body_chars": 2314,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "mergePath",
+          "found": true,
+          "kind": "function",
+          "span": "11-16",
+          "lines": 6,
+          "body_returned": true,
+          "body_chars": 144,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "replaceUrlParam",
+          "found": true,
+          "kind": "function",
+          "span": "18-24",
+          "lines": 7,
+          "body_returned": true,
+          "body_chars": 257,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/client/utils.ts",
+          "qualified_name": "buildSearchParams",
+          "found": true,
+          "kind": "function",
+          "span": "26-44",
+          "lines": 19,
+          "body_returned": true,
+          "body_chars": 366,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "target": {
+        "path": "src/validator/validator.ts",
+        "qualified_name": "validator",
+        "found": true,
+        "kind": "function",
+        "span": "30-151",
+        "lines": 122,
+        "body_returned": true,
+        "body_chars": 3415,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.addValidatedData",
+          "found": true,
+          "kind": "method",
+          "span": "315-317",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 104,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/utils/buffer.ts",
+          "qualified_name": "bufferToFormData",
+          "found": true,
+          "kind": "function",
+          "span": "55-65",
+          "lines": 11,
+          "body_returned": true,
+          "body_chars": 217,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/helper/cookie/index.ts",
+          "qualified_name": "getCookie",
+          "found": true,
+          "kind": "function",
+          "span": "27-48",
+          "lines": 22,
+          "body_returned": true,
+          "body_chars": 557,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/http-exception.ts",
+          "qualified_name": "HTTPException",
+          "found": true,
+          "kind": "class",
+          "span": "46-78",
+          "lines": 33,
+          "body_returned": true,
+          "body_chars": 998,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/request.ts",
+          "qualified_name": "HonoRequest.queries",
+          "found": true,
+          "kind": "method",
+          "span": "161-163",
+          "lines": 3,
+          "body_returned": true,
+          "body_chars": 68,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "target": {
+        "path": "src/middleware/etag/index.ts",
+        "qualified_name": "etag",
+        "found": true,
+        "kind": "function",
+        "span": "79-124",
+        "lines": 46,
+        "body_returned": true,
+        "body_chars": 1215,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/middleware/etag/digest.ts",
+          "qualified_name": "generateDigest",
+          "found": true,
+          "kind": "function",
+          "span": "16-43",
+          "lines": 28,
+          "body_returned": true,
+          "body_chars": 620,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "initializeGenerator",
+          "found": true,
+          "kind": "function",
+          "span": "38-54",
+          "lines": 17,
+          "body_returned": true,
+          "body_chars": 367,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "etagMatches",
+          "found": true,
+          "kind": "function",
+          "span": "32-36",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 180,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/etag/index.ts",
+          "qualified_name": "ETagOptions",
+          "found": true,
+          "kind": "type",
+          "span": "9-13",
+          "lines": 5,
+          "body_returned": true,
+          "body_chars": 157,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "target": {
+        "path": "src/middleware/ip-restriction/index.ts",
+        "qualified_name": "buildMatcher",
+        "found": true,
+        "kind": "function",
+        "span": "37-113",
+        "lines": 77,
+        "body_returned": true,
+        "body_chars": 2338,
+        "data_keys": [
+          "edges",
+          "estimator_version",
+          "omitted_count",
+          "omitted_edge_count",
+          "root_symbol_id",
+          "symbols"
+        ],
+        "warnings": []
+      },
+      "gold": [
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "distinctRemoteAddr",
+          "found": true,
+          "kind": "function",
+          "span": "42-50",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 187,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv4ToBinary",
+          "found": true,
+          "kind": "function",
+          "span": "57-65",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 180,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": false,
+          "same_class": false,
+          "reachable": false
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6ToBinary",
+          "found": true,
+          "kind": "function",
+          "span": "72-80",
+          "lines": 9,
+          "body_returned": true,
+          "body_chars": 213,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/utils/ipaddr.ts",
+          "qualified_name": "convertIPv6BinaryToString",
+          "found": true,
+          "kind": "function",
+          "span": "100-140",
+          "lines": 41,
+          "body_returned": true,
+          "body_chars": 1060,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        },
+        {
+          "path": "src/middleware/ip-restriction/index.ts",
+          "qualified_name": "ipRestriction",
+          "found": true,
+          "kind": "function",
+          "span": "128-178",
+          "lines": 51,
+          "body_returned": true,
+          "body_chars": 1283,
+          "data_keys": [
+            "edges",
+            "estimator_version",
+            "omitted_count",
+            "omitted_edge_count",
+            "root_symbol_id",
+            "symbols"
+          ],
+          "warnings": [],
+          "within_one_hop": true,
+          "same_class": false,
+          "reachable": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "loc_tasks": 30,
+    "packet_tasks": 10,
+    "missing_gold": 0,
+    "packet_reach_items": 48,
+    "packet_reach_hit": 27,
+    "packet_reach_ceiling": 0.5625
+  }
+}
