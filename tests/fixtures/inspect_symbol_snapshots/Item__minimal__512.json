@@ -1,0 +1,36 @@
+{
+ "budget": {
+  "estimated_tokens": 181,
+  "requested_tokens": 512
+ },
+ "data": {
+  "query": "Item",
+  "relationship_count": 1,
+  "relationships": [
+   [
+    "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "caller",
+    0.9
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "class",
+   "name": "Item",
+   "path": "pkg/model.py",
+   "signature": "class Item(Base)",
+   "start_line": 12,
+   "symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+  },
+  "target_symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+ },
+ "evidence": [],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_omitted_budget"
+ ]
+}

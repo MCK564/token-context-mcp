@@ -152,14 +152,14 @@ def test_composite_inspect_symbol_workflow(indexed_config: Path) -> None:
     assert "content" not in res_min["data"]
     assert "qualified_name" not in res_min["data"]["symbol"]
 
-    # Test full view (has content, all symbol metadata, envelope evidence/budget)
+    # Test full view (M6 D9: symbol like normal, body inside data.packet, no data.content / data.relationships)
     res_full = engine.inspect_symbol(repo_id="demo", query="alpha", view="full")
     assert res_full["data"]["status"] == "resolved"
-    assert "content" in res_full["data"]
-    assert "def alpha" in res_full["data"]["content"]
-    assert "is_private" in res_full["data"]["symbol"]
-    assert "role_evidence" in res_full["data"]["symbol"]
-    assert "role_evidence" not in res["data"]["symbol"]
+    assert "content" not in res_full["data"]
+    assert "relationships" not in res_full["data"]
+    assert "def alpha" in res_full["data"]["packet"]["target"]["content"]
+    assert res_full["data"]["symbol"]["name"] == "alpha"
+    assert "qualified_name" in res_full["data"]["symbol"]
     assert "budget" in res_full
 
     # Test not found

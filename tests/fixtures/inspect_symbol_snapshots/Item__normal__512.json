@@ -1,0 +1,50 @@
+{
+ "budget": {
+  "estimated_tokens": 217,
+  "requested_tokens": 512
+ },
+ "data": {
+  "content": null,
+  "query": "Item",
+  "relationship_count": 1,
+  "relationships": [
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "target": "python:pkg/model.py:Item:db12e205680de411"
+   }
+  ],
+  "relationships_filtered": 0,
+  "retry_hint": {
+   "depth": 0,
+   "include_body": true,
+   "max_tokens": 4096,
+   "symbol_id": "python:pkg/model.py:Item:db12e205680de411",
+   "tool": "get_symbol_context"
+  },
+  "status": "resolved",
+  "symbol": {
+   "end_line": 23,
+   "kind": "class",
+   "name": "Item",
+   "path": "pkg/model.py",
+   "qualified_name": "Item",
+   "roles": [],
+   "signature": "class Item(Base)",
+   "start_line": 12,
+   "symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+  },
+  "target_symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+ },
+ "evidence": [],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_body_omitted_budget",
+  "root_omitted_budget",
+  "content_omitted_budget"
+ ]
+}

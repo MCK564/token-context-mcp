@@ -1,0 +1,56 @@
+{
+ "budget": {
+  "estimated_tokens": 266,
+  "requested_tokens": 512
+ },
+ "data": {
+  "content": null,
+  "query": "make_service",
+  "relationship_count": 2,
+  "relationships": [
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/service.py:make_service:14520375cebead13",
+    "target": "python:pkg/service.py:Service:71dd8842c987031a"
+   },
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:tests/test_service.py:test_add_counts:38464f606f09aa25",
+    "target": "python:pkg/service.py:make_service:14520375cebead13"
+   }
+  ],
+  "relationships_filtered": 0,
+  "retry_hint": {
+   "depth": 0,
+   "include_body": true,
+   "max_tokens": 4096,
+   "symbol_id": "python:pkg/service.py:make_service:14520375cebead13",
+   "tool": "get_symbol_context"
+  },
+  "status": "resolved",
+  "symbol": {
+   "end_line": 38,
+   "kind": "function",
+   "name": "make_service",
+   "path": "pkg/service.py",
+   "qualified_name": "make_service",
+   "roles": [],
+   "signature": "def make_service() -> Service",
+   "start_line": 37,
+   "symbol_id": "python:pkg/service.py:make_service:14520375cebead13"
+  },
+  "target_symbol_id": "python:pkg/service.py:make_service:14520375cebead13"
+ },
+ "evidence": [],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_body_omitted_budget",
+  "root_omitted_budget",
+  "content_omitted_budget"
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "budget": {
+  "estimated_tokens": 455,
+  "requested_tokens": 1024
+ },
+ "data": {
+  "content": "def process_batch(values: list[int], flag: bool = False) -> int:",
+  "query": "process_batch",
+  "relationship_count": 3,
+  "relationships": [
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/batch.py:process_batch:a04905682bf19c54",
+    "target": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+   },
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/batch.py:process_batch:a04905682bf19c54",
+    "target": "python:pkg/util.py:helper_two:9b7ac48c5207ed32"
+   },
+   {
+    "confidence": 0.9,
+    "kind": "call",
+    "source": "python:pkg/batch.py:process_batch:a04905682bf19c54",
+    "target": "python:pkg/util.py:helper_three:7b97b32e57dc8f69"
+   }
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "end_line": 135,
+   "kind": "function",
+   "name": "process_batch",
+   "path": "pkg/batch.py",
+   "qualified_name": "process_batch",
+   "roles": [],
+   "signature": "def process_batch(values: list[int], flag: bool = False) -> int",
+   "start_line": 9,
+   "symbol_id": "python:pkg/batch.py:process_batch:a04905682bf19c54"
+  },
+  "target_symbol_id": "python:pkg/batch.py:process_batch:a04905682bf19c54"
+ },
+ "evidence": [
+  {
+   "end_line": 135,
+   "path": "pkg/batch.py",
+   "sha256": "d8a2eff5ad1a",
+   "start_line": 9
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_body_omitted_budget"
+ ]
+}

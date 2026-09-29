@@ -70,8 +70,9 @@ def test_retrieval_normalizes_crlf_to_lf(crlf_repo_config: Path) -> None:
     # 4. inspect_symbol workflow
     workflow = CompositeWorkflowEngine(service)
     inspected = workflow.inspect_symbol("test-crlf", query="greet", view="full")
-    assert inspected["data"]["content"] is not None
-    assert "\r" not in inspected["data"]["content"]
+    packet_content = inspected["data"]["packet"]["target"]["content"]
+    assert packet_content is not None
+    assert "\r" not in packet_content
 
     # 5. ResultFinalizer
     finalizer = ResultFinalizer(output_mode="structured")

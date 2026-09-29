@@ -34,6 +34,11 @@ class CallRecord:
     receiver_type: str | None = None
     is_tainted: bool = False
     assigned_from_fn: str | None = None
+    # "attr_param" when receiver_type was inferred from a typed constructor/method
+    # parameter assigned onto self/cls (M6.0); None for every other inference path
+    # (annotation, constructor call, local var, etc.), which keeps the existing
+    # "attr_type" scope label in lexical_edges.py.
+    receiver_type_source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -932,17 +937,60 @@ def _extract_file_return_types(root: object, raw: bytes, language_name: str) -> 
     return return_types
 
 
+def _python_param_types(fn_node: object, raw: bytes) -> dict[str, str]:
+    """Map a Python function's own parameter names to their cleaned type annotations.
+
+    Handles both ``typed_parameter`` (``x: T``, whose Tree-sitter node exposes no
+    ``name``/``type`` fields, only positional named children) and
+    ``typed_default_parameter`` (``x: T = default``, which does expose ``name``/``type``
+    fields). Untyped, *args/**kwargs, and positional-only markers are skipped.
+    """
+    param_types: dict[str, str] = {}
+    params = _field(fn_node, "parameters")
+    if params is None:
+        return param_types
+    for p_node in getattr(params, "named_children", []):
+        c_type = getattr(p_node, "type", "")
+        if c_type == "typed_parameter":
+            children = getattr(p_node, "named_children", [])
+            n = children[0] if children else None
+            t = children[1] if len(children) > 1 else None
+        elif c_type == "typed_default_parameter":
+            n = _field(p_node, "name")
+            t = _field(p_node, "type")
+        else:
+            continue
+        if n is not None and t is not None:
+            p_name = _node_text(n, raw).strip()
+            p_type = _clean_type_name(_node_text(t, raw))
+            if p_name and p_type:
+                param_types[p_name] = p_type
+    return param_types
+
+
 def _extract_class_attributes(
     root: object,
     raw: bytes,
     language_name: str,
     fn_return_types: dict[str, str],
-) -> tuple[dict[tuple[str, str], str], set[tuple[str, str]]]:
-    class_attr_assigned: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+) -> tuple[dict[tuple[str, str], str], set[tuple[str, str]], dict[tuple[str, str], str]]:
+    # Each entry is a list of (inferred_type, source) pairs, where source is
+    # "attr_param" (M6.0: self.x = <typed parameter>) or "attr_type" (pre-existing:
+    # self.x: T = ... / self.x = Cls(...) / this.x = new Cls() / field declarations).
+    class_attr_assigned: dict[str, dict[str, list[tuple[str, str]]]] = defaultdict(lambda: defaultdict(list))
 
-    def visit(current: object, current_class: str | None = None) -> None:
+    def visit(
+        current: object,
+        current_class: str | None = None,
+        param_type_map: dict[str, str] | None = None,
+    ) -> None:
+        param_type_map = param_type_map or {}
         c_type = getattr(current, "type", "")
         next_class = current_class
+        if language_name == "python" and c_type == "function_definition":
+            # Each method gets its own fresh parameter-type map: a parameter named
+            # the same thing in a different method has no bearing here.
+            param_type_map = _python_param_types(current, raw)
         if language_name == "python" and c_type == "class_definition":
             name_node = _field(current, "name")
             if name_node is not None:
@@ -973,6 +1021,7 @@ def _extract_class_attributes(
                             if obj_text in {"self", "cls"}:
                                 t_node = _field(current, "type")
                                 inferred_t = None
+                                inferred_source = "attr_type"
                                 if t_node is not None:
                                     inferred_t = _clean_type_name(_node_text(t_node, raw))
                                 else:
@@ -992,8 +1041,17 @@ def _extract_class_attributes(
                                                     a_name = _node_text(fn_attr, raw).strip()
                                                     if a_name in fn_return_types:
                                                         inferred_t = fn_return_types[a_name]
+                                    elif right is not None and getattr(right, "type", "") == "identifier":
+                                        # M6.0: self.x = <name>, where <name> is a typed parameter
+                                        # of the enclosing method (most common DI pattern in
+                                        # __init__). Tagged "attr_param" so its confidence can be
+                                        # calibrated independently of the other attr_type sources.
+                                        ident_name = _node_text(right, raw).strip()
+                                        if ident_name in param_type_map:
+                                            inferred_t = param_type_map[ident_name]
+                                            inferred_source = "attr_param"
                                 if inferred_t and inferred_t not in _BUILTIN_RECEIVERS and inferred_t not in {"None", "Any"}:
-                                    class_attr_assigned[next_class][attr_text].append(inferred_t)
+                                    class_attr_assigned[next_class][attr_text].append((inferred_t, inferred_source))
             elif language_name in {"javascript", "typescript", "tsx"}:
                 if c_type in {"public_field_definition", "field_definition", "property_definition"}:
                     name_node = _field(current, "property") or _field(current, "name")
@@ -1002,7 +1060,7 @@ def _extract_class_attributes(
                         attr_text = _node_text(name_node, raw).strip()
                         inferred_t = _clean_type_name(_node_text(t_node, raw))
                         if inferred_t and inferred_t not in _BUILTIN_RECEIVERS:
-                            class_attr_assigned[next_class][attr_text].append(inferred_t)
+                            class_attr_assigned[next_class][attr_text].append((inferred_t, "attr_type"))
                 elif c_type in {"assignment_expression", "augmented_assignment_expression"}:
                     left = _field(current, "left")
                     if left is not None and getattr(left, "type", "") == "member_expression":
@@ -1017,7 +1075,7 @@ def _extract_class_attributes(
                                 if ctor is not None and getattr(ctor, "type", "") == "identifier":
                                     inferred_t = _node_text(ctor, raw).strip()
                             if inferred_t:
-                                class_attr_assigned[next_class][attr_text].append(inferred_t)
+                                class_attr_assigned[next_class][attr_text].append((inferred_t, "attr_type"))
             elif language_name in {"java", "c_sharp"}:
                 if c_type == "field_declaration":
                     t_node = _field(current, "type")
@@ -1028,24 +1086,28 @@ def _extract_class_attributes(
                                 n_node = _field(child, "name") or (child.named_children[0] if getattr(child, "named_children", None) else None)
                                 if n_node is not None:
                                     attr_text = _node_text(n_node, raw).strip()
-                                    class_attr_assigned[next_class][attr_text].append(t_text)
+                                    class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
 
         for child in getattr(current, "named_children", []):
-            visit(child, next_class)
+            visit(child, next_class, param_type_map)
 
     visit(root)
 
     resolved_attrs: dict[tuple[str, str], str] = {}
+    resolved_attrs_source: dict[tuple[str, str], str] = {}
     tainted_attrs: set[tuple[str, str]] = set()
     for cls_name, attrs in class_attr_assigned.items():
-        for attr, types in attrs.items():
-            unique_types = set(types)
+        for attr, entries in attrs.items():
+            unique_types = {t for t, _ in entries}
             if len(unique_types) == 1:
-                resolved_attrs[(cls_name, attr)] = list(unique_types)[0]
+                resolved_attrs[(cls_name, attr)] = next(iter(unique_types))
+                sources = {s for _, s in entries}
+                if sources == {"attr_param"}:
+                    resolved_attrs_source[(cls_name, attr)] = "attr_param"
             else:
                 tainted_attrs.add((cls_name, attr))
 
-    return resolved_attrs, tainted_attrs
+    return resolved_attrs, tainted_attrs, resolved_attrs_source
 
 
 def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallRecord]:
@@ -1054,7 +1116,9 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
     class_stack: list[str] = []
 
     fn_return_types = _extract_file_return_types(root, raw, language_name)
-    class_attr_types, class_attr_tainted = _extract_class_attributes(root, raw, language_name, fn_return_types)
+    class_attr_types, class_attr_tainted, class_attr_param_source = _extract_class_attributes(
+        root, raw, language_name, fn_return_types
+    )
 
     fn_node_types = {
         "python": {"function_definition"},
@@ -1074,26 +1138,27 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
         "c_sharp": {"class_declaration", "struct_declaration", "record_declaration"},
     }.get(language_name, set())
 
-    def resolve_receiver_meta(receiver: str | None) -> tuple[str | None, bool, str | None]:
+    def resolve_receiver_meta(receiver: str | None) -> tuple[str | None, bool, str | None, str | None]:
         if not receiver or receiver in {"self", "cls", "this"}:
-            return None, False, None
+            return None, False, None, None
         for types, tainted, fn_assigns in reversed(scope_stack):
             if receiver in types:
-                return types[receiver], False, None
+                return types[receiver], False, None, None
             if receiver in tainted:
-                return None, True, None
+                return None, True, None, None
             if receiver in fn_assigns:
-                return None, False, fn_assigns[receiver]
+                return None, False, fn_assigns[receiver], None
         if receiver and any(receiver.startswith(p) for p in ("self.", "this.", "cls.")):
             parts = receiver.split(".", 1)
             if len(parts) == 2 and "." not in parts[1] and class_stack and class_stack[-1]:
                 curr_cls = class_stack[-1]
                 attr_name = parts[1]
                 if (curr_cls, attr_name) in class_attr_tainted:
-                    return None, True, None
+                    return None, True, None, None
                 if (curr_cls, attr_name) in class_attr_types:
-                    return class_attr_types[(curr_cls, attr_name)], False, None
-        return None, False, None
+                    attr_source = class_attr_param_source.get((curr_cls, attr_name))
+                    return class_attr_types[(curr_cls, attr_name)], False, None, attr_source
+        return None, False, None, None
 
     def visit(current: object) -> None:
         c_type = getattr(current, "type", "")
@@ -1147,7 +1212,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     attr = _field(func, "attribute")
                     if attr is not None:
                         rec = _node_text(obj, raw) if obj is not None else None
-                        r_type, is_t, fn_src = resolve_receiver_meta(rec)
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(attr, raw),
@@ -1158,6 +1223,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 receiver_type=r_type,
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
                             )
                         )
                 elif func.type == "identifier":
@@ -1178,7 +1244,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     prop = _field(func, "property")
                     if prop is not None:
                         rec = _node_text(obj, raw) if obj is not None else None
-                        r_type, is_t, fn_src = resolve_receiver_meta(rec)
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(prop, raw),
@@ -1189,6 +1255,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 receiver_type=r_type,
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
                             )
                         )
                 elif func.type == "identifier":
@@ -1206,7 +1273,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
             name = _field(current, "name")
             if name is not None:
                 rec = _node_text(obj, raw) if obj is not None else None
-                r_type, is_t, fn_src = resolve_receiver_meta(rec)
+                r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
                 calls.append(
                     CallRecord(
                         name=_node_text(name, raw),
@@ -1217,6 +1284,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                         receiver_type=r_type,
                         is_tainted=is_t,
                         assigned_from_fn=fn_src,
+                        receiver_type_source=r_src,
                     )
                 )
         elif language_name == "c_sharp" and c_type == "invocation_expression":
@@ -1229,7 +1297,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     expr_name = _field(expr, "name")
                     if expr_name is not None:
                         rec = _node_text(expr_obj, raw) if expr_obj is not None else None
-                        r_type, is_t, fn_src = resolve_receiver_meta(rec)
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
                         calls.append(
                             CallRecord(
                                 name=_node_text(expr_name, raw),
@@ -1240,6 +1308,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 receiver_type=r_type,
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
                             )
                         )
                 elif expr.type == "identifier":

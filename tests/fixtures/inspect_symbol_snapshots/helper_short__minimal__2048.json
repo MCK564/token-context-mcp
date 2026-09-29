@@ -1,0 +1,46 @@
+{
+ "budget": {
+  "estimated_tokens": 337,
+  "requested_tokens": 2048
+ },
+ "data": {
+  "query": "helper_short",
+  "relationship_count": 2,
+  "relationships": [
+   [
+    "python:pkg/batch.py:process_batch:a04905682bf19c54",
+    "caller",
+    0.9
+   ],
+   [
+    "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "caller",
+    0.9
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "function",
+   "name": "helper_short",
+   "path": "pkg/util.py",
+   "signature": "def helper_short(value: int) -> int",
+   "start_line": 7,
+   "symbol_id": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+  },
+  "target_symbol_id": "python:pkg/util.py:helper_short:ba3a37df461cd82f"
+ },
+ "evidence": [
+  {
+   "end_line": 9,
+   "path": "pkg/util.py",
+   "sha256": "3bea173802c5",
+   "start_line": 7
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": false,
+ "warnings": []
+}

@@ -1,0 +1,41 @@
+{
+ "budget": {
+  "estimated_tokens": 304,
+  "requested_tokens": 4096
+ },
+ "data": {
+  "query": "Item",
+  "relationship_count": 1,
+  "relationships": [
+   [
+    "python:pkg/service.py:Service.add:b5eeda55585d92ce",
+    "caller",
+    0.9
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "class",
+   "name": "Item",
+   "path": "pkg/model.py",
+   "signature": "class Item(Base)",
+   "start_line": 12,
+   "symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+  },
+  "target_symbol_id": "python:pkg/model.py:Item:db12e205680de411"
+ },
+ "evidence": [
+  {
+   "end_line": 23,
+   "path": "pkg/model.py",
+   "sha256": "f920134d0f32",
+   "start_line": 12
+  }
+ ],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": false,
+ "warnings": []
+}

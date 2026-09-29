@@ -1,0 +1,408 @@
+{
+  "repo_id": "token-context",
+  "index_run_id": "run_20260927T103903Z_671166c3",
+  "scope": "attr_param",
+  "count": 25,
+  "edges": [
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 166,
+      "source_symbol": "AgentsTab._do_refresh",
+      "target_symbol": "AgentSecurityController.refresh_data",
+      "target_name": "refresh_data",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 225,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.set_agent_policy",
+      "target_name": "set_agent_policy",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 240,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.resume_agent",
+      "target_name": "resume_agent",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 243,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.pause_agent",
+      "target_name": "pause_agent",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 247,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.revoke_agent_locks",
+      "target_name": "revoke_agent_locks",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 252,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.unblock_agent",
+      "target_name": "unblock_agent",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 255,
+      "source_symbol": "AgentsTab._render_agents",
+      "target_symbol": "AgentSecurityController.block_agent",
+      "target_name": "block_agent",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 276,
+      "source_symbol": "AgentsTab._render_locks",
+      "target_symbol": "AgentSecurityController.revoke_agent_locks",
+      "target_name": "revoke_agent_locks",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 320,
+      "source_symbol": "AgentsTab._on_panic_emergency_stop",
+      "target_symbol": "AgentSecurityController.emergency_halt",
+      "target_name": "emergency_halt",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 323,
+      "source_symbol": "AgentsTab._on_resume_system",
+      "target_symbol": "AgentSecurityController.emergency_resume",
+      "target_name": "emergency_resume",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/agents_tab.py",
+      "source_line": 326,
+      "source_symbol": "AgentsTab._on_revoke_all_locks",
+      "target_symbol": "AgentSecurityController.revoke_all_locks",
+      "target_name": "revoke_all_locks",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.security_ctrl",
+        "type:AgentSecurityController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/dashboard_tab.py",
+      "source_line": 81,
+      "source_symbol": "CopyConfigDialog._update_json",
+      "target_symbol": "ServerController.get_client_config",
+      "target_name": "get_client_config",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.server_ctrl",
+        "type:ServerController"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/dashboard_tab.py",
+      "source_line": 248,
+      "source_symbol": "DashboardTab.refresh_stats",
+      "target_symbol": "RepoManager.list_repositories",
+      "target_name": "list_repositories",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/repositories_tab.py",
+      "source_line": 106,
+      "source_symbol": "AddRepoDialog._validate_and_save",
+      "target_symbol": "RepoManager.add_repository",
+      "target_name": "add_repository",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/repositories_tab.py",
+      "source_line": 182,
+      "source_symbol": "RepositoriesTab.load_repositories",
+      "target_symbol": "RepoManager.list_repositories",
+      "target_name": "list_repositories",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/repositories_tab.py",
+      "source_line": 263,
+      "source_symbol": "RepositoriesTab._confirm_delete",
+      "target_symbol": "RepoManager.delete_repository",
+      "target_name": "delete_repository",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/settings_tab.py",
+      "source_line": 113,
+      "source_symbol": "SettingsTab.load_settings",
+      "target_symbol": "RepoManager.get_server_config",
+      "target_name": "get_server_config",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/settings_tab.py",
+      "source_line": 142,
+      "source_symbol": "SettingsTab._save_settings",
+      "target_symbol": "RepoManager.update_server_config",
+      "target_name": "update_server_config",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/tasks_tab.py",
+      "source_line": 123,
+      "source_symbol": "TasksTab.refresh_repositories",
+      "target_symbol": "RepoManager.list_repositories",
+      "target_name": "list_repositories",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/gui/widgets/tasks_tab.py",
+      "source_line": 144,
+      "source_symbol": "TasksTab._on_repo_selected",
+      "target_symbol": "RepoManager.get_index_dir",
+      "target_name": "get_index_dir",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.repo_mgr",
+        "type:RepoManager"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/index/sqlite_store.py",
+      "source_line": 203,
+      "source_symbol": "SQLiteStore.connection",
+      "target_symbol": "ReadConnectionPool.get_connection",
+      "target_name": "get_connection",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.pool",
+        "type:ReadConnectionPool"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/retrieve/workflows.py",
+      "source_line": 72,
+      "source_symbol": "CompositeWorkflowEngine.inspect_symbol",
+      "target_symbol": "RetrievalService.request_scope",
+      "target_name": "request_scope",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.service",
+        "type:RetrievalService"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/retrieve/workflows.py",
+      "source_line": 93,
+      "source_symbol": "CompositeWorkflowEngine._inspect_symbol_scoped",
+      "target_symbol": "RetrievalService.find_symbols",
+      "target_name": "find_symbols",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.service",
+        "type:RetrievalService"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/retrieve/workflows.py",
+      "source_line": 157,
+      "source_symbol": "CompositeWorkflowEngine._inspect_symbol_scoped",
+      "target_symbol": "RetrievalService.symbol_context",
+      "target_name": "symbol_context",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.service",
+        "type:RetrievalService"
+      ]
+    },
+    {
+      "source_path": "src/token_context_mcp/retrieve/workflows.py",
+      "source_line": 178,
+      "source_symbol": "CompositeWorkflowEngine._inspect_symbol_scoped",
+      "target_symbol": "RetrievalService.symbol_relationships",
+      "target_name": "symbol_relationships",
+      "status": "resolved",
+      "backend": "lexical",
+      "confidence": 0.9,
+      "evidence": [
+        "ast_call",
+        "scope:attr_param",
+        "receiver:self.service",
+        "type:RetrievalService"
+      ]
+    }
+  ]
+}

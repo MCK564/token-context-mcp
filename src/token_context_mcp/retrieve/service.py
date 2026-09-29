@@ -35,7 +35,7 @@ from token_context_mcp.models import (
     symbol_as_dict,
 )
 from token_context_mcp.retrieve.code_tokens import split_identifier
-from token_context_mcp.retrieve.expansion import communities_for, expand_anchors
+from token_context_mcp.retrieve.expansion import communities_for, edge_is_traversable, expand_anchors
 from token_context_mcp.retrieve.freshness import FreshnessCache
 from token_context_mcp.retrieve.graph_cache import GraphCache, RepoGraph
 from token_context_mcp.retrieve.ranking import rank_symbols
@@ -1329,6 +1329,80 @@ class RetrievalService:
 
         chosen, omitted, used = self._pack_to_budget(entries, lambda item: _json(item[1]), packing_budget, build_response)
         return build_response(chosen, omitted, used)
+
+    def symbol_relationships(
+        self,
+        repo_id: str,
+        *,
+        symbol_id: str,
+        min_confidence: float = 0.5,
+    ) -> dict[str, Any]:
+        """Direct (one-hop) resolved, non-ambiguous, non-stub edges for a symbol (M6, E14).
+
+        Unlike ``impact_slice``, this reads straight from the cached ``RepoGraph``
+        adjacency and never raises on a small budget: it exists for callers (namely
+        ``inspect_symbol``) that need the true relationship set first, so *they* can
+        decide how much fits in whatever budget remains, instead of losing every
+        relationship whenever an internal packing budget happens to be exhausted (see
+        docs/BACKLOG.md E14).
+
+        Returns ``{"edges": [...], "raw_count": int, "filtered_out_count": int,
+        "index_run_id": str}``. Each edge dict is ``edge_as_dict(EdgeRecord)`` plus a
+        ``"relation"`` key (``"callee"`` when this symbol is the edge's source, else
+        ``"caller"``). ``filtered_out_count`` is edges dropped by the quality filter
+        (ambiguous / stub / low-confidence) -- a distinct concept from budget-driven
+        omission, which the caller computes itself from how many of ``edges`` it packs.
+        Edges are sorted deterministically: callees before callers, then confidence
+        descending, then (source_path, source_line, other_symbol_id).
+        """
+        repository, store, metadata = self._repository_store(repo_id)
+        index_run_id = str(metadata.get("index_run_id", ""))
+        graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
+        canonical_symbol_id = self._resolve_symbol_id(store, symbol_id, graph=graph)
+        if canonical_symbol_id is None:
+            return {"edges": [], "raw_count": 0, "filtered_out_count": 0, "index_run_id": index_run_id}
+
+        raw_out = graph.out_edges.get(canonical_symbol_id, [])
+        raw_in = graph.in_edges.get(canonical_symbol_id, [])
+
+        kept: list[dict[str, Any]] = []
+        for edge in raw_out:
+            if edge_is_traversable(edge, min_confidence):
+                d = edge_as_dict(edge)
+                d["relation"] = "callee"
+                kept.append(d)
+        for edge in raw_in:
+            if edge_is_traversable(edge, min_confidence):
+                d = edge_as_dict(edge)
+                d["relation"] = "caller"
+                kept.append(d)
+
+        def _other_id(d: dict[str, Any]) -> str:
+            if d["relation"] == "callee":
+                return d.get("target_symbol_id") or ""
+            return d.get("source_symbol_id") or ""
+
+        kept.sort(
+            key=lambda d: (
+                0 if d["relation"] == "callee" else 1,
+                -(d.get("confidence") or 0.0),
+                d.get("source_path") or "",
+                d.get("source_line") or 0,
+                _other_id(d),
+            )
+        )
+        return {
+            "edges": kept,
+            "raw_count": len(raw_out) + len(raw_in),
+            "filtered_out_count": len(raw_out) + len(raw_in) - len(kept),
+            "index_run_id": index_run_id,
+        }
+
+    def packet_inputs(self, repo_id: str, *, symbol_id: str) -> Any:
+        """Raw material for ``inspect_symbol(view="full")``'s context packet (M6.2); not budget-limited."""
+        from token_context_mcp.retrieve.packet_inputs import gather_packet_inputs
+
+        return gather_packet_inputs(self, repo_id, symbol_id=symbol_id)
 
     def impact_slice(
         self,

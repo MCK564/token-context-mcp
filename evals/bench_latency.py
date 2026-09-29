@@ -49,11 +49,57 @@ def percentile(data: list[float], pct: float) -> float:
     return d0 + d1
 
 
+def _pinned_inspect_calls(
+    service: RetrievalService,
+    workflow: CompositeWorkflowEngine,
+    repo_id: str,
+    tasks_path: Path,
+    view: str,
+    budget: int,
+) -> list[Callable[[], Any]]:
+    """One ``inspect_symbol`` call per packet-task target, resolved by (path, qualified_name).
+
+    ``find_symbols`` is wrapped per call (same trick as ``evals/packet_driver.py``) so a target that shares
+    its name with other symbols is still measured as a resolved call, not as a cheap "ambiguous" reply.
+    """
+    from token_context_mcp.models import symbol_as_dict
+
+    spec = json.loads(Path(tasks_path).read_text(encoding="utf-8"))
+    _repo, store, _meta = service._repository_store(repo_id)
+    by_key: dict[tuple[str, str], Any] = {}
+    for sym in sorted(store.symbols(), key=lambda x: (x.path, x.start_line, x.symbol_id)):
+        by_key.setdefault((sym.path, sym.qualified_name), sym)
+    original_find = service.find_symbols
+    calls: list[Callable[[], Any]] = []
+    for task in spec["tasks"]:
+        sym = by_key.get((task["target"]["path"], task["target"]["qualified_name"]))
+        if sym is None:
+            continue
+
+        def call(_sym: Any = sym) -> Any:
+            def pinned_find(rid: str, *, pattern: str, **kw: Any) -> dict[str, Any]:
+                res = original_find(rid, pattern=_sym.name, limit=1)
+                res["data"]["symbols"] = [symbol_as_dict(_sym)]
+                return res
+
+            service.find_symbols = pinned_find  # type: ignore[method-assign]
+            try:
+                return workflow.inspect_symbol(repo_id, query=_sym.name, view=view, budget_tokens=budget)
+            finally:
+                service.find_symbols = original_find  # type: ignore[method-assign]
+
+        calls.append(call)
+    return calls
+
+
 def run_single_benchmark_round(
     repo_id: str,
     config_path: Path | None = None,
     warmup_runs: int = 5,
     iterations: int = 20,
+    inspect_tasks: Path | None = None,
+    inspect_view: str = "full",
+    inspect_budget: int = 4096,
 ) -> dict[str, Any]:
     cfg_p = config_path or default_config_path()
     config = load_config(cfg_p)
@@ -92,6 +138,16 @@ def run_single_benchmark_round(
         tools.append(("get_module_dependents", lambda: service.module_dependents(repo_id, module_path=sample_module)))
 
     tools.append(("inspect_symbol", lambda: workflow.inspect_symbol(repo_id, query=sample_name)))
+
+    if inspect_tasks is not None:
+        pinned = _pinned_inspect_calls(service, workflow, repo_id, inspect_tasks, inspect_view, inspect_budget)
+        if pinned:
+            def run_all_targets() -> None:
+                for call in pinned:
+                    call()
+
+            # one iteration = every target of the task file once; per-call latency = p50 / len(pinned)
+            tools.append((f"inspect_symbol[{inspect_view}@{inspect_budget}]x{len(pinned)}", run_all_targets))
 
     sha256_calls = 0
     sha256_total_bytes = 0
@@ -207,6 +263,9 @@ def run_benchmark_protocol(
     rounds_count: int = 3,
     warmup_runs: int = 5,
     iterations: int = 20,
+    inspect_tasks: Path | None = None,
+    inspect_view: str = "full",
+    inspect_budget: int = 4096,
 ) -> dict[str, Any]:
     """Execute the full benchmark 3 times and aggregate medians and noisy flags."""
     rounds_data: list[dict[str, Any]] = []
@@ -217,6 +276,9 @@ def run_benchmark_protocol(
             config_path=config_path,
             warmup_runs=warmup_runs,
             iterations=iterations,
+            inspect_tasks=inspect_tasks,
+            inspect_view=inspect_view,
+            inspect_budget=inspect_budget,
         )
         r["round"] = round_idx
         rounds_data.append(r)
@@ -272,6 +334,9 @@ def main() -> None:
     parser.add_argument("--warmup", type=int, default=5, help="Number of warmup iterations (default 5)")
     parser.add_argument("--runs", type=int, default=3, help="Number of consecutive protocol rounds (default 3)")
     parser.add_argument("--output", default=None, help="Path to save JSON benchmark output")
+    parser.add_argument("--inspect-tasks", default=None, help="packet task file: also time inspect_symbol on every target")
+    parser.add_argument("--inspect-view", default="full", choices=["minimal", "normal", "full"])
+    parser.add_argument("--inspect-budget", type=int, default=4096)
 
     args = parser.parse_args()
     cfg_p = Path(args.config).expanduser().resolve() if args.config else None
@@ -282,6 +347,9 @@ def main() -> None:
         rounds_count=args.runs,
         warmup_runs=args.warmup,
         iterations=args.iterations,
+        inspect_tasks=Path(args.inspect_tasks).expanduser().resolve() if args.inspect_tasks else None,
+        inspect_view=args.inspect_view,
+        inspect_budget=args.inspect_budget,
     )
 
     print(f"==========================================================================================")

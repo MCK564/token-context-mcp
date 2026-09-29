@@ -37,7 +37,9 @@ def split_identifier_tokens(text: str) -> set[str]:
     return tokens
 
 
-def lint_task_data(data: dict[str, Any], store: SQLiteStore | None = None) -> list[str]:
+def lint_task_data(
+    data: dict[str, Any], store: SQLiteStore | None = None, *, check_split: bool = True
+) -> list[str]:
     errors: list[str] = []
 
     tasks = data.get("tasks", [])
@@ -147,7 +149,9 @@ def lint_task_data(data: dict[str, Any], store: SQLiteStore | None = None) -> li
         if len(grp_tasks) != 10:
             errors.append(f"Rule 5: Group '{grp_name}' must have exactly 10 tasks, found {len(grp_tasks)}")
 
-    # Check Rule 5: Split reproducibility from split_seed
+    # Check Rule 5: Split reproducibility from split_seed (skipped for all-test sets, e.g. M10 bench)
+    if not check_split:
+        return errors
     rnd = random.Random(split_seed)
     expected_dev_counts = {"a_keyword": 3, "b_hidden_dep": 3, "c_multi_file": 4}
     for grp_name, grp_tasks in group_counts.items():
@@ -172,6 +176,8 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=default_config_path())
     parser.add_argument("--repo-id", type=str, default="token-context")
     parser.add_argument("--skip-index-check", action="store_true", help="Skip index database checks")
+    parser.add_argument("--no-split-check", action="store_true",
+                        help="Do not validate the dev/heldout split (all-test sets such as the M10 benchmark)")
     args = parser.parse_args()
 
     if not args.tasks.exists():
@@ -194,7 +200,7 @@ def main() -> int:
         else:
             print(f"WARNING: Database not found at {db_p}. Skipping index symbol checks.", file=sys.stderr)
 
-    errors = lint_task_data(data, store=store)
+    errors = lint_task_data(data, store=store, check_split=not args.no_split_check)
 
     if errors:
         print(f"FAIL: Found {len(errors)} task lint errors:")

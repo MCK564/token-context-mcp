@@ -1,0 +1,142 @@
+{
+  "arm": "READ",
+  "budget": 2048,
+  "estimator": "utf8-bytes-div-4-v1",
+  "index_run_id": "run_20260929T050442Z_efb55d0d",
+  "overall": {
+    "errors": 0,
+    "mean_body_coverage": null,
+    "mean_reach_ceiling": 1.0,
+    "mean_read_tokens": 37193.8333,
+    "mean_ref_coverage": 1.0,
+    "mean_savings_vs_read": null,
+    "mean_sig_coverage": null,
+    "mean_wire_tokens": 37193.8333,
+    "tasks": 12
+  },
+  "repo_id": "tc-pinned",
+  "split": "heldout",
+  "tasks": [
+    {
+      "id": "p02",
+      "n_gold": 6,
+      "reach_ceiling": 1.0,
+      "read_tokens": 49806,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/index/runner.py::build_index",
+      "wire_tokens": 49806
+    },
+    {
+      "id": "p03",
+      "n_gold": 6,
+      "reach_ceiling": 1.0,
+      "read_tokens": 49609,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.search_source",
+      "wire_tokens": 49609
+    },
+    {
+      "id": "p05",
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 39197,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.repo_map",
+      "wire_tokens": 39197
+    },
+    {
+      "id": "p06",
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 41457,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.impact_slice",
+      "wire_tokens": 41457
+    },
+    {
+      "id": "p07",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 45638,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.find_symbols",
+      "wire_tokens": 45638
+    },
+    {
+      "id": "p08",
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 42791,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService.file_skeleton",
+      "wire_tokens": 42791
+    },
+    {
+      "id": "p11",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 29280,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/ranking.py::rank_symbols",
+      "wire_tokens": 29280
+    },
+    {
+      "id": "p13",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 19120,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/index/runner.py::database_path",
+      "wire_tokens": 19120
+    },
+    {
+      "id": "p15",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 36660,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/workflows.py::CompositeWorkflowEngine.inspect_symbol",
+      "wire_tokens": 36660
+    },
+    {
+      "id": "p16",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 35564,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/index/sqlite_store.py::SQLiteStore.symbols",
+      "wire_tokens": 35564
+    },
+    {
+      "id": "p17",
+      "n_gold": 5,
+      "reach_ceiling": 1.0,
+      "read_tokens": 26267,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/security/path_policy.py::safe_relative_path",
+      "wire_tokens": 26267
+    },
+    {
+      "id": "p18",
+      "n_gold": 4,
+      "reach_ceiling": 1.0,
+      "read_tokens": 30937,
+      "ref_coverage": 1.0,
+      "sig_coverage": null,
+      "target": "src/token_context_mcp/retrieve/service.py::RetrievalService._repository_store",
+      "wire_tokens": 30937
+    }
+  ],
+  "tasks_file": "/sessions/rcw-01wjxsmkpkkhykqwuyrfcgou/mnt/AI--token-context-mcp/tmp/run/evals/tasks/packet_token_context.json"
+}

@@ -19,6 +19,10 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     "cha_inherited": 0.90,
     "attr_type": 0.95,
     "attr_type_inherited": 0.90,
+    # M6.0: self.x = <typed constructor/method parameter>. Provisional; not yet
+    # calibrated against gold (n < 10 at introduction) — recalibrate per the M4
+    # methodology once evals/out/m6/edge_eval_attr_param.json has enough samples.
+    "attr_param": 0.90,
     "exact_receiver_type": 0.95,
     "same_file": 0.90,
     "receiver_match": 0.90,
@@ -187,6 +191,7 @@ def build_lexical_edges(
                     candidates,
                     receiver=call.receiver,
                     receiver_type=effective_receiver_type,
+                    receiver_type_source=getattr(call, "receiver_type_source", None),
                     is_tainted=getattr(call, "is_tainted", False),
                     imports=imports_map.get(path, []),
                     class_hierarchy=class_hierarchy,
@@ -325,6 +330,7 @@ def _resolve_candidate(
     candidates: list[SymbolRecord],
     receiver: str | None = None,
     receiver_type: str | None = None,
+    receiver_type_source: str | None = None,
     is_tainted: bool = False,
     imports: list[str] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
@@ -380,6 +386,11 @@ def _resolve_candidate(
     # 1b. Receiver is an instance attribute (self.x, this.x, cls.x)
     if receiver and any(receiver.startswith(prefix) for prefix in ("self.", "this.", "cls.")):
         if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
+            # M6.0: an attribute type inferred from a typed constructor/method parameter
+            # (self.x = <typed param>) is tracked under its own scope so its precision can
+            # be calibrated independently of the pre-existing attr_type sources
+            # (annotated assignment / constructor call).
+            attr_scope = "attr_param" if receiver_type_source == "attr_param" else "attr_type"
             type_matches = [
                 c for c in candidates
                 if c.qualified_name == f"{receiver_type}.{c.name}"
@@ -387,11 +398,11 @@ def _resolve_candidate(
                 or c.qualified_name.endswith(f".{receiver_type}.{c.name}")
             ]
             if len(type_matches) == 1:
-                return type_matches[0], "attr_type", SCOPE_CONFIDENCE.get("attr_type", 0.90)
+                return type_matches[0], attr_scope, SCOPE_CONFIDENCE.get(attr_scope, 0.90)
             if len(type_matches) > 1:
                 same_file_type = [c for c in type_matches if c.path == source.path]
                 if len(same_file_type) == 1:
-                    return same_file_type[0], "attr_type", SCOPE_CONFIDENCE.get("attr_type", 0.90)
+                    return same_file_type[0], attr_scope, SCOPE_CONFIDENCE.get(attr_scope, 0.90)
                 return None, "attr_type_ambiguous", 0.10
 
             # Try CHA on receiver_type

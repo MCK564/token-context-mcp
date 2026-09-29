@@ -312,13 +312,16 @@ def run_evaluation(
     limit: int = 20,
     max_tokens: int | None = None,
     profile: str | None = None,
+    repo_id_override: str | None = None,
 ) -> dict[str, Any]:
     cfg_p = config_path or default_config_path()
     config = load_config(cfg_p)
     service = RetrievalService(config, cfg_p)
 
     raw_data = json.loads(tasks_file.read_text(encoding="utf-8"))
-    repo_id = raw_data.get("repo_id", "token-context")
+    # --repo-id overrides the repo_id stored in the task file (used to point the eval
+    # at the pinned corpus `tc-pinned`); without it the old behaviour is unchanged.
+    repo_id = repo_id_override or raw_data.get("repo_id", "token-context")
     reviewed = raw_data.get("reviewed", False)
     all_tasks = raw_data.get("tasks", [])
 
@@ -433,6 +436,8 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--max-tokens", type=int, default=2048)
     parser.add_argument("--profile", type=str, default=None)
+    parser.add_argument("--repo-id", type=str, default=None,
+                        help="override the repo_id read from the task file")
 
     args = parser.parse_args()
 
@@ -452,6 +457,7 @@ def main() -> int:
         limit=args.limit,
         max_tokens=args.max_tokens,
         profile=args.profile,
+        repo_id_override=args.repo_id,
     )
 
     print(f"==========================================================================================================")

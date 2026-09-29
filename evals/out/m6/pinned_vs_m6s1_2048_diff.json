@@ -1,0 +1,213 @@
+{
+  "identical": false,
+  "results": [
+    {
+      "base_file": "evals/out/m6/loc_A1final_heldout_2048_post_m6.json",
+      "differences": [
+        {
+          "base": [
+            "src/token_context_mcp/gui/bridge.py",
+            "src/token_context_mcp/cli.py",
+            "src/token_context_mcp/server.py",
+            "src/token_context_mcp/security/governance_store.py",
+            "src/token_context_mcp/config.py"
+          ],
+          "field": "top_5_files",
+          "new": [
+            "src/token_context_mcp/gui/bridge.py",
+            "src/token_context_mcp/server.py",
+            "src/token_context_mcp/cli.py",
+            "src/token_context_mcp/security/governance_store.py",
+            "src/token_context_mcp/config.py"
+          ],
+          "task": "t18"
+        },
+        {
+          "base": [
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/cli.py::build_parser",
+            "src/token_context_mcp/server.py::_result",
+            "src/token_context_mcp/security/governance_store.py::merge_seen_agents",
+            "src/token_context_mcp/config.py::update_repository",
+            "src/token_context_mcp/gui/main_window.py::MainWindow._on_server_status",
+            "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat",
+            "src/token_context_mcp/memory/store.py::MemoryStore.put",
+            "src/token_context_mcp/security/audit.py::AuditLogger.query_logs",
+            "src/token_context_mcp/server.py::_action"
+          ],
+          "field": "top_10_symbols",
+          "new": [
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/server.py::_result",
+            "src/token_context_mcp/cli.py::build_parser",
+            "src/token_context_mcp/security/governance_store.py::merge_seen_agents",
+            "src/token_context_mcp/config.py::update_repository",
+            "src/token_context_mcp/gui/main_window.py::MainWindow._on_server_status",
+            "src/token_context_mcp/security/governance_store.py::GovernanceStore.record_heartbeat",
+            "src/token_context_mcp/memory/store.py::MemoryStore.put",
+            "src/token_context_mcp/security/audit.py::AuditLogger.query_logs",
+            "src/token_context_mcp/server.py::_action"
+          ],
+          "task": "t18"
+        }
+      ],
+      "info": {
+        "base_overall": {
+          "file_acc_at_5": 1.0,
+          "file_mrr": 0.8892,
+          "file_recall_at_5": 1.0,
+          "latency_p50_ms": 11.21,
+          "latency_p95_ms": 15.24,
+          "mean_neighbor_count": 0.0,
+          "mean_test_ratio_top_10": 0.0,
+          "mean_wire_tokens": 1875.8,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.7,
+          "sym_mrr": 0.5955,
+          "sym_recall_at_10": 0.725,
+          "sym_recall_in_response": 0.725,
+          "task_count": 20
+        },
+        "mean_wire_tokens_base": 1875.8,
+        "mean_wire_tokens_new": 1874.8,
+        "new_overall": {
+          "file_acc_at_5": 1.0,
+          "file_mrr": 0.8892,
+          "file_recall_at_5": 1.0,
+          "latency_p50_ms": 81.53,
+          "latency_p95_ms": 136.08,
+          "mean_neighbor_count": 0.0,
+          "mean_test_ratio_top_10": 0.0,
+          "mean_wire_tokens": 1874.8,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.7,
+          "sym_mrr": 0.5955,
+          "sym_recall_at_10": 0.725,
+          "sym_recall_in_response": 0.725,
+          "task_count": 20
+        }
+      },
+      "kind": "loc",
+      "new_file": "evals/out/m6/pinned_base_loc_A1final_heldout_2048.json",
+      "tasks_compared": 20
+    },
+    {
+      "base_file": "evals/out/m6/loc_A2_heldout_2048_post_m6.json",
+      "differences": [
+        {
+          "base": [
+            "src/token_context_mcp/memory/store.py::_redact_value",
+            "src/token_context_mcp/memory/store.py::MemoryStore._migrate_schema",
+            "src/token_context_mcp/memory/store.py::MemoryStore.put",
+            "src/token_context_mcp/security/content_policy.py::redact_text",
+            "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings",
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/gui/bridge.py::CacheManager.vacuum_database",
+            "src/token_context_mcp/gui/widgets/cache_tab.py::CacheTab._vacuum_db",
+            "src/token_context_mcp/index/runner.py::database_path",
+            "tests/test_gui_bridge.py::test_cache_manager"
+          ],
+          "field": "top_10_symbols",
+          "new": [
+            "src/token_context_mcp/memory/store.py::_redact_value",
+            "src/token_context_mcp/memory/store.py::MemoryStore._migrate_schema",
+            "src/token_context_mcp/memory/store.py::MemoryStore.put",
+            "src/token_context_mcp/security/content_policy.py::redact_text",
+            "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings",
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/gui/bridge.py::CacheManager.vacuum_database",
+            "src/token_context_mcp/gui/widgets/cache_tab.py::CacheTab._vacuum_db",
+            "tests/test_gui_bridge.py::test_cache_manager",
+            "src/token_context_mcp/config.py::index_directory"
+          ],
+          "task": "t17"
+        },
+        {
+          "base": [
+            "src/token_context_mcp/gui/bridge.py",
+            "src/token_context_mcp/gui/widgets/settings_tab.py",
+            "tests/test_gui_bridge.py",
+            "src/token_context_mcp/cli.py",
+            "src/token_context_mcp/config.py"
+          ],
+          "field": "top_5_files",
+          "new": [
+            "src/token_context_mcp/gui/bridge.py",
+            "src/token_context_mcp/gui/widgets/settings_tab.py",
+            "tests/test_gui_bridge.py",
+            "src/token_context_mcp/server.py",
+            "evals/measure_context_cost.py"
+          ],
+          "task": "t18"
+        },
+        {
+          "base": [
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/gui/bridge.py::RepoManager.invalidate_cache",
+            "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings",
+            "tests/test_gui_bridge.py::test_repo_manager_crud",
+            "src/token_context_mcp/cli.py::build_parser",
+            "src/token_context_mcp/cli.py::main",
+            "src/token_context_mcp/config.py::default_config_path",
+            "src/token_context_mcp/server.py::_result",
+            "evals/measure_context_cost.py::wire_tokens",
+            "src/token_context_mcp/security/governance_store.py::merge_seen_agents"
+          ],
+          "field": "top_10_symbols",
+          "new": [
+            "src/token_context_mcp/gui/bridge.py::RepoManager.update_server_config",
+            "src/token_context_mcp/gui/bridge.py::RepoManager.invalidate_cache",
+            "src/token_context_mcp/gui/widgets/settings_tab.py::SettingsTab._save_settings",
+            "tests/test_gui_bridge.py::test_repo_manager_crud",
+            "src/token_context_mcp/server.py::_result",
+            "evals/measure_context_cost.py::wire_tokens",
+            "src/token_context_mcp/cli.py::build_parser",
+            "src/token_context_mcp/cli.py::main",
+            "src/token_context_mcp/config.py::default_config_path",
+            "src/token_context_mcp/security/governance_store.py::merge_seen_agents"
+          ],
+          "task": "t18"
+        }
+      ],
+      "info": {
+        "base_overall": {
+          "file_acc_at_5": 0.9,
+          "file_mrr": 0.8729,
+          "file_recall_at_5": 0.875,
+          "latency_p50_ms": 12.89,
+          "latency_p95_ms": 17.18,
+          "mean_neighbor_count": 6.45,
+          "mean_test_ratio_top_10": 0.135,
+          "mean_wire_tokens": 1884.9,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.65,
+          "sym_mrr": 0.6054,
+          "sym_recall_at_10": 0.75,
+          "sym_recall_in_response": 0.8,
+          "task_count": 20
+        },
+        "mean_wire_tokens_base": 1884.9,
+        "mean_wire_tokens_new": 1883.8,
+        "new_overall": {
+          "file_acc_at_5": 0.9,
+          "file_mrr": 0.8729,
+          "file_recall_at_5": 0.875,
+          "latency_p50_ms": 91.47,
+          "latency_p95_ms": 167.04,
+          "mean_neighbor_count": 6.45,
+          "mean_test_ratio_top_10": 0.135,
+          "mean_wire_tokens": 1883.8,
+          "sym_acc_at_1": 0.5,
+          "sym_acc_at_3": 0.65,
+          "sym_mrr": 0.6054,
+          "sym_recall_at_10": 0.75,
+          "sym_recall_in_response": 0.8,
+          "task_count": 20
+        }
+      },
+      "kind": "loc",
+      "new_file": "evals/out/m6/pinned_base_loc_A2_heldout_2048.json",
+      "tasks_compared": 20
+    }
+  ]
+}

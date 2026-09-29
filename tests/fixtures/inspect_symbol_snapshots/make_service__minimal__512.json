@@ -1,0 +1,41 @@
+{
+ "budget": {
+  "estimated_tokens": 204,
+  "requested_tokens": 512
+ },
+ "data": {
+  "query": "make_service",
+  "relationship_count": 2,
+  "relationships": [
+   [
+    "python:pkg/service.py:Service:71dd8842c987031a",
+    "callee",
+    0.9
+   ],
+   [
+    "python:tests/test_service.py:test_add_counts:38464f606f09aa25",
+    "caller",
+    0.9
+   ]
+  ],
+  "relationships_filtered": 0,
+  "status": "resolved",
+  "symbol": {
+   "kind": "function",
+   "name": "make_service",
+   "path": "pkg/service.py",
+   "signature": "def make_service() -> Service",
+   "start_line": 37,
+   "symbol_id": "python:pkg/service.py:make_service:14520375cebead13"
+  },
+  "target_symbol_id": "python:pkg/service.py:make_service:14520375cebead13"
+ },
+ "evidence": [],
+ "freshness": "fresh",
+ "repo_id": "packet-repo",
+ "schema_version": "1.0",
+ "truncated": true,
+ "warnings": [
+  "root_omitted_budget"
+ ]
+}
