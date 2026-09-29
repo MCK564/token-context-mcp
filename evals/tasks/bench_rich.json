@@ -4,9 +4,9 @@
   "tag": "v15.0.0",
   "commit_sha": "6ac483cbea39cab124dfd3483bba70ffafb71050",
   "license": "MIT",
-  "reviewed": false,
+  "reviewed": true,
   "split_seed": null,
-  "review_note": "M10.1 draft by Claude (2026-09-29). All 30 tasks form the TEST set; nothing may be tuned against them. Every gold symbol was located in the index and its body read; queries in group b_hidden_dep avoid the target name, its qualified-name parts >= 4 chars and the file stem (lint Rule 3). Awaiting review by the repo owner or by a different Claude session: reviewer edits the copy in tmp/review/, sets reviewed=true and fills review_note.",
+  "review_note": "M10.1 draft by Claude (2026-09-29). All 30 tasks form the TEST set; nothing may be tuned against them. Every gold symbol was located in the index and its body read; queries in group b_hidden_dep avoid the target name, its qualified-name parts >= 4 chars and the file stem (lint Rule 3). Awaiting review by the repo owner or by a different Claude session: reviewer edits the copy in tmp/review/, sets reviewed=true and fills review_note. | Owner review confirmed on 2026-09-29 (statement in session); the task file was not edited during review (identical to the draft). Numbers produced after this commit.",
   "tasks": [
     {
       "id": "t01",
@@ -1004,5 +1004,7 @@
         }
       ]
     }
-  ]
+  ],
+  "reviewed_by": "repository owner (khamai05767@gmail.com), confirmed in the working session",
+  "reviewed_at": "2026-09-29"
 }
