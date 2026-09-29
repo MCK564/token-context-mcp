@@ -1,0 +1,14 @@
+{
+  "repo_id": "bench-rich",
+  "root": "tmp/bench/rich-frozen",
+  "repo_url": "https://github.com/Textualize/rich",
+  "tag": "v15.0.0",
+  "commit_sha": "6ac483cbea39cab124dfd3483bba70ffafb71050",
+  "tasks": {
+    "T1-orient": "Analyze the registered rich repository without editing files. If token-context is available, use it for orientation; otherwise use your native read-only tools. List at least five real top-level source modules under rich/ and briefly state each module's responsibility. Name source-backed symbols where useful, and do not invent modules.",
+    "T2-locate": "Analyze the registered rich repository without editing files. If token-context is available, use it first. Where is the replacement of emoji codes such as :smiley: with emoji characters implemented? Give the repository-relative file, the symbol name, and an approximate source line. Use source-backed evidence and say when a lexical result is ambiguous.",
+    "T3-impact": "Analyze the registered rich repository without editing files. If token-context is available, use it first. If the signature of Segment.split_and_crop_lines changes, which call sites must be updated? Name at least one true caller with a source-backed path and clearly label the result as a candidate lexical graph, not a complete semantic call graph.",
+    "T4-surface": "Analyze the registered rich repository without editing files. If token-context is available, use it first. What is the public interface of rich/measure.py? List every public definition in that module with signatures only; omit private definitions and function bodies.",
+    "T5-trace": "Analyze the registered rich repository without editing files. If token-context is available, use it first. Trace how a call to Console.print with a markup string such as \"[bold]hello[/bold]\" moves from the call to the text written on the output file. Name at least three real stages in source order and support them with repository-relative paths or indexed symbols. Distinguish evidence from inference."
+  }
+}
