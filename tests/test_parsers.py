@@ -113,4 +113,5 @@ def test_index_extension_mapping_covers_requested_language_families() -> None:
         ".html": "html",
         ".htm": "html",
         ".css": "css",
+        ".go": "go",
     }

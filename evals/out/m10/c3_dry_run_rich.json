@@ -1,0 +1,24 @@
+{
+  "manifest": "evals/c3_prompts_rich.json",
+  "runs": 45,
+  "arms": [
+    "B0",
+    "B1",
+    "B2"
+  ],
+  "tasks": [
+    "T1-orient",
+    "T2-locate",
+    "T3-impact",
+    "T4-surface",
+    "T5-trace"
+  ],
+  "seeds": [
+    "1",
+    "2",
+    "3"
+  ],
+  "unique": 45,
+  "executed": false,
+  "note": "dry run only (D6): no agent was launched"
+}
