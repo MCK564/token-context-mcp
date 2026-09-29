@@ -2,7 +2,7 @@
 
 ## 0.2.0 — M6–M10: context packets, incremental index, client compatibility, GUI, Go (2026-09-29)
 
-Not pushed and not tagged (D7). Details are in the milestone sections below; the run ledger is `docs/progress/RUN_LEDGER_M6_M10.md`, the report `docs/reports/M6_M10_REPORT.vi.md`.
+Pushed to `main` on the owner's instruction; not tagged. Details are in the milestone sections below; the run ledger is `docs/progress/RUN_LEDGER_M6_M10.md`, the report `docs/reports/M6_M10_REPORT.vi.md`.
 
 - **M6** `inspect_symbol(view="full")` returns a context packet (`data.packet`: target body or truncated lines, callee/caller signatures, `more` refs, imports, class methods, file hashes) inside the response budget; `attr_param` receiver typing. Held-out, packet vs pre-M6 `full`: `evals/out/m6/packet_CMP_heldout_{2048,4096}.json`.
 - **M7** Schema **2.4** (re-index every repository once: `token-context index --all`); incremental index by `(size, mtime_ns)`, per-file parse artifacts, spawn parse pool, scoped edge resolution, delta snapshot write; cheap `get_index_status`; `index --all/--watch/--progress-format ndjson/--workers/--verify-hashes/--full`; `commit_sha` and `head_changed_since_index`. Measured gains and misses: `evals/out/m7/`.
