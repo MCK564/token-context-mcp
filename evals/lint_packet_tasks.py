@@ -49,12 +49,19 @@ def bucket_for(qualified_name: str, length: int) -> str:
     return "medium_function"  # not expected to occur; see EXPECTED_BUCKET_SIZE check
 
 
-def lint_task_data(data: dict[str, Any], store: SQLiteStore | None = None) -> list[str]:
+def lint_task_data(
+    data: dict[str, Any],
+    store: SQLiteStore | None = None,
+    *,
+    tasks_key: str = "tasks",
+    check_split: bool = True,
+    expected_total: int = 20,
+) -> list[str]:
     errors: list[str] = []
 
-    tasks = data.get("tasks", [])
+    tasks = data.get(tasks_key, [])
     if not isinstance(tasks, list):
-        return ["'tasks' field must be a list"]
+        return [f"'{tasks_key}' field must be a list"]
 
     split_seed = data.get("split_seed", 20260927)
 
@@ -109,7 +116,7 @@ def lint_task_data(data: dict[str, Any], store: SQLiteStore | None = None) -> li
             bucket_task_ids.setdefault(bucket, []).append(tid)
 
     # Rule 3: split reproducibility (only meaningful once every target resolved above)
-    if store is not None:
+    if store is not None and check_split:
         for b in BUCKET_ORDER:
             got_size = len(bucket_task_ids.get(b, []))
             exp_size = EXPECTED_BUCKET_SIZE[b]
@@ -146,13 +153,14 @@ def lint_task_data(data: dict[str, Any], store: SQLiteStore | None = None) -> li
                         f"[{tid}] Rule 3: split mismatch. Expected '{expected}' (seed {split_seed}), got '{actual}'"
                     )
 
-    dev_count = sum(1 for t in tasks if t.get("split") == "dev")
-    heldout_count = sum(1 for t in tasks if t.get("split") == "heldout")
-    if dev_count != 8 or heldout_count != 12:
-        errors.append(f"Rule: expected exactly 8 dev / 12 heldout tasks, found {dev_count} dev / {heldout_count} heldout")
+    if check_split:
+        dev_count = sum(1 for t in tasks if t.get("split") == "dev")
+        heldout_count = sum(1 for t in tasks if t.get("split") == "heldout")
+        if dev_count != 8 or heldout_count != 12:
+            errors.append(f"Rule: expected exactly 8 dev / 12 heldout tasks, found {dev_count} dev / {heldout_count} heldout")
 
-    if len(tasks) != 20:
-        errors.append(f"Rule: expected exactly 20 tasks, found {len(tasks)}")
+    if len(tasks) != expected_total:
+        errors.append(f"Rule: expected exactly {expected_total} tasks, found {len(tasks)}")
 
     return errors
 
@@ -163,6 +171,10 @@ def main() -> int:
     parser.add_argument("--config", type=Path, default=default_config_path())
     parser.add_argument("--repo-id", type=str, default="token-context")
     parser.add_argument("--skip-index-check", action="store_true", help="Skip index database checks")
+    parser.add_argument("--tasks-key", type=str, default="tasks", help="top-level key holding the packet tasks")
+    parser.add_argument("--no-split-check", action="store_true",
+                        help="Do not validate the dev/heldout split (all-test sets such as the M10 benchmark)")
+    parser.add_argument("--expected-total", type=int, default=20)
     args = parser.parse_args()
 
     if not args.tasks.exists():
@@ -185,7 +197,10 @@ def main() -> int:
         else:
             print(f"WARNING: Database not found at {db_p}. Skipping index symbol checks.", file=sys.stderr)
 
-    errors = lint_task_data(data, store=store)
+    errors = lint_task_data(
+        data, store=store, tasks_key=args.tasks_key,
+        check_split=not args.no_split_check, expected_total=args.expected_total,
+    )
 
     if errors:
         print(f"FAIL: Found {len(errors)} task lint errors:")
@@ -193,7 +208,7 @@ def main() -> int:
             print(f"  - {err}")
         return 1
 
-    print(f"SUCCESS: All {len(data.get('tasks', []))} tasks passed all lint rules!")
+    print(f"SUCCESS: All {len(data.get(args.tasks_key, []))} tasks passed all lint rules!")
     return 0
 
 
