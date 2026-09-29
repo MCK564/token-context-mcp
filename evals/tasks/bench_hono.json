@@ -360,7 +360,7 @@
       "id": "t22",
       "group": "c_multi_file",
       "split": "test",
-      "query": "protect routes by reading a token from the Authorization header or a cookie, checking its signature against a shared secret key plus its expiry and not-before claims, and storing the payload on the context",
+      "query": "protect routes by reading a token from the Authorization header or a cookie, checking its signature against a shared secret plus expiry and not-before claims, and storing the payload on the context",
       "gold_files": [
         "src/middleware/jwt/jwt.ts",
         "src/utils/jwt/jwt.ts",

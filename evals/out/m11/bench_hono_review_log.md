@@ -13,3 +13,7 @@ Reviewed with no change (source read for every task): t01 (utils/basic-auth `aut
 Note: lint/verify were run after the edits; verify_bench_gold reports missing_gold 0. Its "unreachable packet gold" list is graph-reach information only and was not used to choose any edit.
 
 VERDICT: approved
+
+
+## Coordinator fix (before any result was seen)
+- t22: query shortened from 205 to under 200 characters (the search_source tool rejects queries over 200 characters and the first run aborted on it, before producing any output). Meaning unchanged: 'a shared secret key' -> 'a shared secret'.
