@@ -66,9 +66,9 @@ def test_cache_manager(temp_config_env):
     assert "databases" in stats
     assert stats["databases_count"] == 0
 
-    # Vacuum on empty should succeed
-    reclaimed = cache_mgr.vacuum_database()
-    assert reclaimed >= 0
+    # Vacuum on an empty config dir: nothing to vacuum, no crash
+    assert cache_mgr.vacuum_databases([]) == []
+    assert cache_mgr.vacuum_targets() == []
 
 
 def test_ai_hardware_detection():

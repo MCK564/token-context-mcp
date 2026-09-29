@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — M8: the desktop GUI stops blocking (2026-09-29, branch `feat/m8-gui-offload`)
+
+- **M8.1/M8.2 `gui/workers.py::run_async(fn, *args, on_ok, on_err)`** on `QThreadPool.globalInstance()` (max 4 threads); callbacks are delivered on the UI thread through queued signals. Every tab has a pure `fetch()` (worker: reads only) and a `render()` (UI thread). `MainWindow._refresh_tab` runs them, shows `LoadingOverlay` until render completes, drops results of superseded refreshes; tabs no longer read anything in their constructors and the first refresh starts after the first paint.
+- **M8.3 Indexing in a child process** — `IndexProcess` (`QProcess`) runs `python -m token_context_mcp index --repo-id X | --all --progress-format ndjson`; progress reaches the UI at most 10×/s; Cancel kills the whole tree (`psutil` children recursively, then the process). New "Re-index all" button. `IndexWorker` is gone.
+- **M8.4 Log** — `setMaximumBlockCount(5000)`, appends batched every 100 ms.
+- **M8.5 Honest status** — `RepoManager.list_repositories` runs in a worker and uses `RetrievalService.status` (manifest aggregates). Badges `FRESH`, `STALE`, `DOCS_CHANGED` (only `changed_non_indexed`), `SCHEMA_OUTDATED`, `NOT_INDEXED`; the ambiguous rate is a 0–1 ratio everywhere and becomes a percentage only when displayed.
+- **M8.6 Repository table** — `QTableView` + `RepoTableModel` (`gui/models.py`), no `setCellWidget`; actions in a toolbar and a context menu.
+- **M8.7 Server panel (D2)** — Start/Stop/Restart and `ServerController.start_server/stop_server/restart_server` are removed. The dashboard lists running servers from `get_active_servers` (refreshed every 5 s in a worker). "Copy client config" for claude, claude-code, vscode, antigravity, codex with the flags of `docs/CLIENT_MATRIX.md` (`--output-mode`, `--schema-profile gemini_safe`).
+- **M8.8** `detect_ai_hardware()` runs at the start of `SystemMonitor.run()`; no `waitForStarted` on the UI thread.
+- **M8.9 VACUUM** — only `memory.sqlite`, `governance.sqlite`, `audit.sqlite` (never index snapshots); the user ticks the databases, it runs in a worker, `database is locked` is retried 3× (0.5 s backoff steps), the result of each database is reported. "Clean old snapshots" uses `gc_snapshots`.
+- **M8.10** `gui/perf.py::EventLoopWatchdog` (50 ms tick; with `TOKEN_CONTEXT_GUI_DEBUG=1` logs stalls >100 ms with faulthandler stacks) and `evals/gui_perf.py` (50 repos, tab switching, indexing synthetic-1k; report in `evals/out/m8/gui_perf.json`).
+- **Tests** — `tests/test_gui_m8.py` (27): run_async threading and errors, no SQLite/manifest/hardware/config I/O on the UI thread during refresh, badges end to end, subprocess index (single and `--all`), Cancel kills a grandchild, VACUUM never touches snapshots and retries locks, log cap, no start/stop API, client-config flags, hardware probe thread, watchdog. `tests/test_gui_widgets.py`/`test_gui_bridge.py` adapted to `fetch`/`render`.
+- Regression gate (`tc-pinned`, loc A1final/A2 held-out @8192, `edge_eval`): identical, `evals/out/m8/regression_gate_m8.json`.
+- Measured offscreen on the 2-core VM (`evals/out/m8/gui_perf.json`): 0 event-loop stalls >100 ms while indexing synthetic-1k through the GUI and while switching tabs; first paint ≈0.4 s; click→rendered with 50 repositories: tasks/cache/agents/settings 25–40 ms, dashboard ≈90 ms, repositories ≈126 ms (the UI thread itself stays free; the time is the worker's status reads) — the "<100 ms" soft KPI is missed for those two tabs.
+
 ## Unreleased — M9: protocol and client compatibility (2026-09-29, branch `feat/m9-client-compat`)
 
 - **M9.1 SDK types** — `mcp_compat.py` is the only place that imports `CallToolResult`/`TextContent`; `serialization.py` and `server.py` use it (they imported from `mcp.types` and `mcp_types` respectively). `pyproject.toml`: `mcp>=2.0,<3`, `mcp-types>=2.0,<3`. Test: a result made by `ResultFinalizer` is an instance of the class the server returns.

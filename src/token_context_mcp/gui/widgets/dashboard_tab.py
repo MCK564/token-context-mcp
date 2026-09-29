@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -10,15 +10,19 @@ from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
 from token_context_mcp.gui.bridge import SystemTelemetry
+from token_context_mcp.gui.workers import run_async
 
 if TYPE_CHECKING:
     from token_context_mcp.gui.bridge import RepoManager, ServerController
@@ -42,7 +46,8 @@ class CopyConfigDialog(QDialog):
         client_row = QHBoxLayout()
         client_row.addWidget(QLabel("Target Client:"))
         self.client_combo = QComboBox()
-        self.client_combo.addItems(["Claude Desktop / Code", "VS Code (Copilot)", "Cursor", "Antigravity"])
+        # keys of ServerController.CLIENTS; the flags come from docs/CLIENT_MATRIX.md
+        self.client_combo.addItems(["claude", "claude-code", "vscode", "antigravity", "codex"])
         self.client_combo.currentTextChanged.connect(self._update_json)
         client_row.addWidget(self.client_combo, 1)
         layout.addLayout(client_row)
@@ -69,16 +74,7 @@ class CopyConfigDialog(QDialog):
         self._update_json()
 
     def _update_json(self) -> None:
-        client_text = self.client_combo.currentText().lower()
-        if "vs code" in client_text:
-            key = "vscode"
-        elif "antigravity" in client_text:
-            key = "antigravity"
-        elif "cursor" in client_text:
-            key = "cursor"
-        else:
-            key = "claude"
-        self.json_edit.setPlainText(self.server_ctrl.get_client_config(key))
+        self.json_edit.setPlainText(self.server_ctrl.get_client_config(self.client_combo.currentText()))
 
     def _copy_clipboard(self) -> None:
         clipboard = QApplication.clipboard()
@@ -141,49 +137,40 @@ class DashboardTab(QWidget):
         t_layout.addLayout(grid)
         layout.addWidget(telemetry_card)
 
-        # 2. MCP Server Status & Controls Card
+        # 2. Running MCP servers (M8.7): read from the heartbeats servers write themselves. The GUI does not
+        # start or stop servers: a stdio server belongs to the client that spawns it.
         server_card = QFrame()
         server_card.setProperty("class", "Card")
         s_layout = QVBoxLayout(server_card)
         s_layout.setSpacing(12)
 
         s_header_row = QHBoxLayout()
-        s_title = QLabel("MCP Server Controller")
+        s_title = QLabel("Running MCP Servers")
         s_title.setProperty("class", "CardHeader")
         s_header_row.addWidget(s_title)
         s_header_row.addStretch()
 
-        self.status_badge = QLabel("STOPPED")
-        self.status_badge.setProperty("class", "BadgeStopped")
-        s_header_row.addWidget(self.status_badge)
+        self.copy_config_btn = QPushButton("📋 Copy client config")
+        self.copy_config_btn.clicked.connect(self._open_copy_dialog)
+        s_header_row.addWidget(self.copy_config_btn)
         s_layout.addLayout(s_header_row)
 
-        ctrl_row = QHBoxLayout()
-        ctrl_row.setSpacing(10)
-
-        self.start_btn = QPushButton("Start Server")
-        self.start_btn.setProperty("class", "SuccessButton")
-        self.start_btn.clicked.connect(self.server_ctrl.start_server)
-        ctrl_row.addWidget(self.start_btn)
-
-        self.stop_btn = QPushButton("Stop Server")
-        self.stop_btn.setProperty("class", "DangerButton")
-        self.stop_btn.setEnabled(False)
-        self.stop_btn.clicked.connect(self.server_ctrl.stop_server)
-        ctrl_row.addWidget(self.stop_btn)
-
-        self.restart_btn = QPushButton("Restart")
-        self.restart_btn.clicked.connect(self.server_ctrl.restart_server)
-        ctrl_row.addWidget(self.restart_btn)
-
-        ctrl_row.addStretch()
-
-        self.copy_config_btn = QPushButton("📋 Copy MCP Config JSON")
-        self.copy_config_btn.clicked.connect(self._open_copy_dialog)
-        ctrl_row.addWidget(self.copy_config_btn)
-
-        s_layout.addLayout(ctrl_row)
+        self.servers_table = QTableWidget()
+        self.servers_table.setColumnCount(6)
+        self.servers_table.setHorizontalHeaderLabels(["Server", "PID", "Client", "Output mode", "Schema profile", "Last seen"])
+        self.servers_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.servers_table.verticalHeader().setVisible(False)
+        self.servers_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.servers_table.setMaximumHeight(150)
+        s_layout.addWidget(self.servers_table)
+        self.servers_hint = QLabel("No MCP server is running. Clients start their own server from their configuration.")
+        self.servers_hint.setStyleSheet("color: #6e738d; font-size: 11px;")
+        s_layout.addWidget(self.servers_hint)
         layout.addWidget(server_card)
+
+        self._servers_timer = QTimer(self)
+        self._servers_timer.setInterval(5000)
+        self._servers_timer.timeout.connect(self.refresh_servers)
 
         # 3. Quick Stats Card
         stats_card = QFrame()
@@ -231,9 +218,6 @@ class DashboardTab(QWidget):
 
         layout.addStretch()
 
-        # Connect signals
-        self.server_ctrl.status_changed.connect(self._on_server_status_changed)
-
     def update_telemetry(self, t: SystemTelemetry) -> None:
         self.cpu_label.setText(f"CPU Usage: {t.cpu_percent:.1f}% ({t.cpu_count_logical} threads)")
         self.cpu_bar.setValue(int(t.cpu_percent))
@@ -244,39 +228,54 @@ class DashboardTab(QWidget):
         self.hw_label.setText(f"AI Hardware: {t.ai_hardware}")
         self.disk_label.setText(f"Disk Free: {t.disk_free_gb:.1f} GB / {t.disk_total_gb:.1f} GB")
 
-    def refresh_stats(self) -> None:
-        repos = self.repo_mgr.list_repositories()
+    # -- fetch / render (M8.2) -----------------------------------------------------------------------------------
+    def fetch(self) -> dict:
+        """Worker-side: repository rows and server heartbeats. Touches no widget."""
+        return {"repos": self.repo_mgr.list_repositories(force_refresh=True), "servers": self.repo_mgr.fetch_active_servers()}
+
+    def render(self, data: dict) -> None:
+        repos = data["repos"]
         total_files = sum(r["files_count"] for r in repos)
         total_size = sum(r["db_size_mb"] for r in repos)
-
-        rates = [r["ambiguous_rate"] for r in repos if r["ambiguous_rate"] > 0]
+        rates = [r["ambiguous_rate"] for r in repos if r["ambiguous_rate"] > 0]  # ratios 0-1
         avg_rate = (sum(rates) / len(rates)) if rates else 0.0
 
         self.stat_repos.setText(str(len(repos)))
         self.stat_files.setText(f"{total_files:,}")
         self.stat_db_size.setText(f"{total_size:.1f} MB")
-        self.stat_ambig.setText(f"{avg_rate:.1f}%")
+        self.stat_ambig.setText(f"{avg_rate * 100:.1f}%")
+        self.render_servers(data["servers"])
 
-    def _on_server_status_changed(self, status: str, pid: int) -> None:
-        if status == "RUNNING":
-            self.status_badge.setText(f"RUNNING (PID: {pid})")
-            self.status_badge.setProperty("class", "BadgeRunning")
-            self.start_btn.setEnabled(False)
-            self.stop_btn.setEnabled(True)
-        elif status == "STARTING":
-            self.status_badge.setText("STARTING...")
-            self.status_badge.setProperty("class", "BadgeStale")
-            self.start_btn.setEnabled(False)
-            self.stop_btn.setEnabled(True)
-        else:
-            self.status_badge.setText("STOPPED")
-            self.status_badge.setProperty("class", "BadgeStopped")
-            self.start_btn.setEnabled(True)
-            self.stop_btn.setEnabled(False)
+    def refresh(self) -> None:
+        run_async(self.fetch, on_ok=self.render)
 
-        # Force style reload
-        self.status_badge.style().unpolish(self.status_badge)
-        self.status_badge.style().polish(self.status_badge)
+    refresh_stats = refresh  # name used by older callers
+
+    def refresh_servers(self) -> None:
+        run_async(self.repo_mgr.fetch_active_servers, on_ok=self.render_servers)
+
+    def render_servers(self, servers: list) -> None:
+        self.servers_table.setRowCount(len(servers))
+        for row, srv in enumerate(servers):
+            values = [
+                srv.get("server_id", ""),
+                str(srv.get("pid", "")),
+                " ".join(x for x in (srv.get("client_name"), srv.get("client_version")) if x) or "unknown",
+                srv.get("output_mode") or "-",
+                srv.get("schema_profile") or "-",
+                str(srv.get("last_seen", ""))[:19].replace("T", " "),
+            ]
+            for col, value in enumerate(values):
+                self.servers_table.setItem(row, col, QTableWidgetItem(value))
+        self.servers_hint.setVisible(not servers)
+
+    def showEvent(self, event) -> None:  # noqa: N802 - Qt override
+        super().showEvent(event)
+        self._servers_timer.start()
+
+    def hideEvent(self, event) -> None:  # noqa: N802 - Qt override
+        super().hideEvent(event)
+        self._servers_timer.stop()
 
     def _open_copy_dialog(self) -> None:
         dlg = CopyConfigDialog(self.server_ctrl, self)

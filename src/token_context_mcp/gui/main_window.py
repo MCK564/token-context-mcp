@@ -25,11 +25,13 @@ from token_context_mcp.gui.bridge import (
 )
 from token_context_mcp.gui.widgets.agents_tab import AgentsTab
 from token_context_mcp.gui.widgets.cache_tab import CacheTab
+from token_context_mcp.gui.perf import EventLoopWatchdog
 from token_context_mcp.gui.widgets.dashboard_tab import DashboardTab
 from token_context_mcp.gui.widgets.loading_overlay import LoadingOverlay
 from token_context_mcp.gui.widgets.repositories_tab import RepositoriesTab
 from token_context_mcp.gui.widgets.settings_tab import SettingsTab
 from token_context_mcp.gui.widgets.tasks_tab import TasksTab
+from token_context_mcp.gui.workers import run_async
 
 
 class MainWindow(QMainWindow):
@@ -44,6 +46,9 @@ class MainWindow(QMainWindow):
         self.server_ctrl = ServerController(config_path, self)
         self.security_ctrl = AgentSecurityController(config_path, self)
         self.sys_monitor = SystemMonitor(self, interval=2.5)
+        self.watchdog = EventLoopWatchdog(self)
+        self._refresh_seq = 0
+        self._refresh_pending: dict[int, int] = {}
 
         self._active_task_desc = "All tasks idle"
         self._is_task_running = False
@@ -71,7 +76,7 @@ class MainWindow(QMainWindow):
 
         title = QLabel("TOKEN-CONTEXT")
         title.setObjectName("AppTitle")
-        subtitle = QLabel("Desktop Controller v0.1.0")
+        subtitle = QLabel("Desktop Controller")
         subtitle.setObjectName("AppSubtitle")
         h_layout.addWidget(title)
         h_layout.addWidget(subtitle)
@@ -82,7 +87,7 @@ class MainWindow(QMainWindow):
         self.btn_group.setExclusive(True)
 
         self.tab_titles = [
-            ("Dashboard", "System Telemetry & Server Controls"),
+            ("Dashboard", "System Telemetry & Running Servers"),
             ("Repositories", "Allowlist & Snapshot Inventory"),
             ("Tasks & Graph", "Live Log Stream & Graph Precision"),
             ("Cache & Storage", "SQLite DB Breakdown & Defragmentation"),
@@ -112,7 +117,7 @@ class MainWindow(QMainWindow):
         s_layout.addStretch()
 
         # Version footer
-        footer = QLabel("SQLite Snapshot • 19 Tools Ready")
+        footer = QLabel("SQLite Snapshot • MCP Controller")
         footer.setStyleSheet("color: #6e738d; font-size: 10px; padding: 0 16px;")
         s_layout.addWidget(footer)
 
@@ -134,7 +139,7 @@ class MainWindow(QMainWindow):
         # View Title
         self.view_title_label = QLabel("Dashboard")
         self.view_title_label.setStyleSheet("font-size: 15px; font-weight: 700; color: #cad3f5;")
-        self.view_subtitle_label = QLabel("System Telemetry & Server Controls")
+        self.view_subtitle_label = QLabel("System Telemetry & Running Servers")
         self.view_subtitle_label.setStyleSheet("font-size: 11px; color: #a5adcb; margin-left: 6px;")
 
         top_header_layout.addWidget(self.view_title_label)
@@ -199,8 +204,7 @@ class MainWindow(QMainWindow):
         # Connect Signals
         self.btn_group.idClicked.connect(self._on_nav_clicked)
         self.sys_monitor.telemetry_updated.connect(self._on_telemetry_update)
-        self.server_ctrl.log_received.connect(self.tab_tasks.append_log)
-        self.server_ctrl.status_changed.connect(self._on_server_status)
+        self.tab_repos.indexing_log.connect(self.tab_tasks.append_log)
 
         # Connect Task & Indexing Tracking
         self.tab_repos.indexing_started.connect(self._on_indexing_started)
@@ -209,7 +213,9 @@ class MainWindow(QMainWindow):
 
         # Start background monitor
         self.sys_monitor.start()
-        self.tab_dashboard.refresh_stats()
+        self.watchdog.start()
+        # first paint happens before any data is read; the data arrives from a worker
+        QTimer.singleShot(0, lambda: self._refresh_tab(0))
 
     def _on_nav_clicked(self, idx: int) -> None:
         # 1. Switch tab immediately (0ms UI lag)
@@ -221,33 +227,47 @@ class MainWindow(QMainWindow):
             self.view_title_label.setText(title)
             self.view_subtitle_label.setText(subtitle)
 
-        # 3. Non-blocking asynchronous refresh using cached data
-        QTimer.singleShot(0, lambda: self._refresh_tab_async(idx))
+        # 3. Non-blocking refresh: fetch on a worker, render on the UI thread
+        QTimer.singleShot(0, lambda: self._refresh_tab(idx))
 
-    def _refresh_tab_async(self, idx: int) -> None:
-        if idx == 0:
-            self.tab_dashboard.refresh_stats()
-        elif idx == 1:
-            self.tab_repos.load_repositories()
-        elif idx == 2:
-            self.tab_tasks.refresh_repositories()
-        elif idx == 3:
-            self.tab_cache.refresh_stats()
-        elif idx == 4:
-            self.tab_agents.refresh()
-        elif idx == 5:
-            self.tab_settings.load_settings()
+    def _tab_at(self, idx: int) -> QWidget | None:
+        tabs = [self.tab_dashboard, self.tab_repos, self.tab_tasks, self.tab_cache, self.tab_agents, self.tab_settings]
+        return tabs[idx] if 0 <= idx < len(tabs) else None
+
+    def _refresh_tab(self, idx: int, *, notify: bool = False) -> None:
+        """fetch_* on the worker pool (no writes, no widgets), render_* on the UI thread when it returns."""
+        tab = self._tab_at(idx)
+        if tab is None:
+            return
+        self._refresh_seq += 1
+        seq = self._refresh_seq
+        self._refresh_pending[idx] = seq
+        self.overlay.show_loading("Loading...")
+
+        def _done() -> None:
+            if self._refresh_pending.get(idx) == seq:
+                self._refresh_pending.pop(idx, None)
+            if not self._refresh_pending:
+                self.overlay.hide_loading()
+
+        def _ok(data) -> None:
+            try:
+                if self._refresh_pending.get(idx) == seq:  # drop stale results of a superseded refresh
+                    tab.render(data)
+                    if notify:
+                        self.status_bar.showMessage("Refreshed data successfully.", 3000)
+            finally:
+                _done()
+
+        def _err(exc) -> None:
+            self.status_bar.showMessage(f"Refresh failed: {exc}", 5000)
+            _done()
+
+        run_async(tab.fetch, on_ok=_ok, on_err=_err)
 
     def _manual_refresh_current_tab(self) -> None:
         self.repo_mgr.invalidate_cache()
-        idx = self.stack.currentIndex()
-        self.overlay.show_loading("Refreshing data...")
-        QTimer.singleShot(150, lambda: self._do_refresh_and_hide(idx))
-
-    def _do_refresh_and_hide(self, idx: int) -> None:
-        self._refresh_tab_async(idx)
-        self.overlay.hide_loading()
-        self.status_bar.showMessage("Refreshed data successfully.", 3000)
+        self._refresh_tab(self.stack.currentIndex(), notify=True)
 
     def _on_telemetry_update(self, t: SystemTelemetry) -> None:
         self.tab_dashboard.update_telemetry(t)
@@ -274,17 +294,7 @@ class MainWindow(QMainWindow):
 
         self.status_bar.showMessage(f"Repository '{repo_id}' indexed successfully.", 5000)
         self.repo_mgr.invalidate_cache()
-        self.tab_dashboard.refresh_stats()
-        self.tab_tasks.refresh_repositories()
-        self.tab_cache.refresh_stats()
-
-    def _on_server_status(self, status: str, pid: int) -> None:
-        if status == "RUNNING":
-            self.status_bar.showMessage(f"MCP Server Active (PID: {pid}) - Stdio ready.")
-        elif status == "STOPPED":
-            self.status_bar.showMessage("MCP Server Stopped.")
-        else:
-            self.status_bar.showMessage(f"MCP Server: {status}...")
+        self._refresh_tab(self.stack.currentIndex())
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
@@ -294,8 +304,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         if self.sys_monitor.isRunning():
             self.sys_monitor.stop()
-        if self.server_ctrl.status == "RUNNING":
-            self.server_ctrl.stop_server()
+        self.watchdog.stop()
+        if self.tab_repos.isIndexing():
+            self.tab_repos.cancel_indexing()
         if hasattr(self, "security_ctrl"):
             self.security_ctrl.close()
         event.accept()
