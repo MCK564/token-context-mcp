@@ -21,6 +21,7 @@ SUPPORTED_EXTENSIONS = {
     ".html": "html",
     ".htm": "html",
     ".css": "css",
+    ".go": "go",
 }
 HARD_DENY_DIRECTORIES = {
     ".git", ".hg", ".svn", ".ssh", ".aws", ".gnupg", "__pycache__",

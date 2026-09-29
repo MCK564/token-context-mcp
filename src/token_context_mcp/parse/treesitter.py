@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 1
+PARSER_ARTIFACT_VERSION = 2  # 2: Go grammar added (M10.2); bump whenever parse output for the same bytes can change
 
 
 try:
@@ -112,6 +112,12 @@ _NODE_KINDS: dict[str, dict[str, str]] = {
         "script_element": "script",
         "style_element": "style",
     },
+    "go": {
+        "function_declaration": "function",
+        "method_declaration": "method",
+        "type_spec": "type",
+        "type_alias": "type",
+    },
     "css": {
         "rule_set": "rule",
         "media_statement": "media",
@@ -157,6 +163,7 @@ def _load_language(language_name: str) -> Language:
         "c_sharp": ("tree_sitter_c_sharp", "language"),
         "html": ("tree_sitter_html", "language"),
         "css": ("tree_sitter_css", "language"),
+        "go": ("tree_sitter_go", "language"),
     }.get(language_name, ("", ""))
     if not module_name:
         raise ParseError(f"unsupported language: {language_name}")
@@ -188,7 +195,11 @@ def _walk_symbols(
     node_kind = node.type
     mapping = _NODE_KINDS[language_name]
     next_parents = parents
-    if node_kind in mapping:
+    if language_name == "go" and node_kind in mapping:
+        record = _go_symbol(node, raw, path, parents)
+        if record is not None:
+            yield record
+    elif node_kind in mapping:
         name = _node_name(node, raw) or _anonymous_export_name(node, raw, path) or f"anonymous_{node.start_point[0] + 1}"
         yield _symbol_record(
             node,
@@ -213,6 +224,58 @@ def _walk_symbols(
             yield _symbol_record(declaration, raw, path, language_name, parents, name, "function")
     for child in node.named_children:
         yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets)
+
+
+def _go_receiver_type(node: object, raw: bytes) -> str | None:
+    """``(s *Server)`` / ``(s Server[T])`` -> ``Server`` (the type a method belongs to)."""
+    receiver = _field(node, "receiver")
+    if receiver is None:
+        return None
+    for parameter in receiver.named_children:
+        type_node = _field(parameter, "type")
+        if type_node is None:
+            continue
+        text = _node_text(type_node, raw).lstrip("*").strip()
+        text = re.split(r"[\[\s]", text, maxsplit=1)[0]
+        return text or None
+    return None
+
+
+def _go_symbol(node: object, raw: bytes, path: str, parents: list[str]) -> SymbolRecord | None:
+    """Go declarations (M10.2): functions, methods (qualified as ``Type.Method``), struct / interface / other types."""
+    name_node = _field(node, "name")
+    if name_node is None:
+        return None
+    name = _node_text(name_node, raw)
+    if not name or name == "_":
+        return None
+    kind = "type"
+    method_parents = parents
+    if node.type == "function_declaration":
+        kind = "function"
+    elif node.type == "method_declaration":
+        kind = "method"
+        receiver_type = _go_receiver_type(node, raw)
+        method_parents = [*parents, receiver_type] if receiver_type else parents
+    record = _symbol_record(node, raw, path, "go", method_parents, name, kind)
+    if kind == "type":
+        record = replace(record, signature=_signature(b"type " + raw[int(node.start_byte) : int(node.end_byte)]))
+    if node.type == "type_spec":
+        type_node = _field(node, "type")
+        type_kind = {"struct_type": "struct", "interface_type": "interface"}.get(getattr(type_node, "type", ""))
+        if type_node is not None and type_kind is not None:
+            brace = raw.find(b"{", int(type_node.start_byte), int(type_node.end_byte))
+            if brace >= 0:
+                record = replace(
+                    record,
+                    kind=type_kind,
+                    signature=_signature(b"type " + raw[int(node.start_byte) : brace]),
+                    body_start_byte=brace,
+                    body_end_byte=int(type_node.end_byte),
+                )
+            else:
+                record = replace(record, kind=type_kind)
+    return record
 
 
 def _symbol_record(
@@ -254,7 +317,7 @@ def _symbol_record(
         end_byte=end_byte,
         body_start_byte=body_start,
         body_end_byte=body_end,
-        is_private=name.startswith("_"),
+        is_private=(not name[:1].isupper()) if language_name == "go" else name.startswith("_"),
         roles=roles,
         role_evidence=role_evidence,
     )
@@ -407,6 +470,7 @@ _IMPORT_QUERY = {
     "tsx": "(import_statement) @import (export_statement) @export",
     "java": "(import_declaration) @import",
     "c_sharp": "(using_directive) @import",
+    "go": "(import_spec) @import",
 }
 
 
@@ -433,6 +497,11 @@ def _extract_imports(
                     module = _field(child, "name") if child.type == "aliased_import" else child
                     if module is not None:
                         imports.append(_node_text(module, raw))
+        elif language_name == "go":
+            path_node = _field(node, "path")
+            value = _node_text(path_node, raw).strip('"`') if path_node is not None else ""
+            if value:
+                imports.append(value)
         elif language_name in {"java", "c_sharp"}:
             value = _normalize_declared_import(node, raw, language_name)
             if value:
@@ -450,6 +519,8 @@ def _extract_imports(
 
     dynamic_detected = False
     for node in _descendants(root):
+        if language_name == "go":
+            break  # Go has no dynamic import or require(); a function named "require" is an ordinary call
         if node.type not in {"call", "call_expression"}:
             continue
         function = _field(node, "function")
@@ -1135,7 +1206,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
         "tsx": {"function_declaration", "method_definition", "arrow_function", "function_expression"},
         "java": {"method_declaration", "constructor_declaration"},
         "c_sharp": {"method_declaration", "constructor_declaration", "local_function_statement"},
-    }.get(language_name, set())
+    }.get(language_name, set())  # Go is handled by the receiver scope below (names only, no type inference)
 
     cls_node_types = {
         "python": {"class_definition"},
@@ -1178,6 +1249,18 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
         is_fn = c_type in fn_node_types
         if is_fn:
             scope_stack.append(_analyze_function_scope(current, raw, language_name, fn_return_types))
+        elif language_name == "go" and c_type == "method_declaration":
+            # the receiver variable (s in ``func (s *Server) Start()``) has the receiver's type: s.helper() -> Server.helper
+            is_fn = True
+            receiver_types: dict[str, str] = {}
+            receiver_node = _field(current, "receiver")
+            receiver_type = _go_receiver_type(current, raw)
+            if receiver_node is not None and receiver_type:
+                for parameter in receiver_node.named_children:
+                    variable = _field(parameter, "name")
+                    if variable is not None:
+                        receiver_types[_node_text(variable, raw)] = receiver_type
+            scope_stack.append((receiver_types, set(), {}))
 
         # Type Narrowing on if_statement (isinstance / instanceof)
         if c_type == "if_statement" and len(scope_stack) < 12:
@@ -1256,6 +1339,38 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                         calls.append(
                             CallRecord(
                                 name=_node_text(prop, raw),
+                                receiver=rec,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
+                                assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
+                            )
+                        )
+                elif func.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(func, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                        )
+                    )
+        elif language_name == "go" and c_type == "call_expression":
+            func = _field(current, "function")
+            if func is not None:
+                if func.type == "selector_expression":
+                    operand = _field(func, "operand")
+                    selected = _field(func, "field")
+                    if selected is not None:
+                        rec = _node_text(operand, raw) if operand is not None else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(selected, raw),
                                 receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
