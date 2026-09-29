@@ -426,6 +426,8 @@ Chạy ở chế độ Read-Only hoàn toàn trên snapshot SQLite cục bộ, k
 | `get_module_dependents` | "ai import module này" | — |
 | `inspect_symbol` | "lấy trọn vẹn context, skeleton, dependents của symbol trong 1 lượt" | `budget_tokens` |
 
+Các view của `inspect_symbol`: `minimal` (symbol + quan hệ gọn), `normal` (symbol, thân, quan hệ) và `full` (context packet: thân đích — hoặc skeleton nếu là class —, chữ ký callee/caller/method cùng class, các quan hệ 1-hop còn lại dạng ref ngắn, import và dấu vân tay file, tất cả nằm trong `budget_tokens`). Ref 8 ký tự hex trong packet dùng được làm `symbol_id` cho `get_symbol_context` và `get_impact_slice`. Khi thân không vừa budget, `packet.target.truncated_lines` liệt kê các đoạn dòng bị bỏ.
+
 #### Tầng 2: 9 Công cụ Hạ tầng Agent Mở rộng (Extended Infrastructure)
 Kích hoạt khi cấu hình `enable_extensions = true`. Lấy cảm hứng và kiến trúc từ kho mã nguồn mở `GoogleCloudPlatform/generative-ai`:
 

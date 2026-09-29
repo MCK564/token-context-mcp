@@ -430,6 +430,8 @@ Operates in strict Read-Only mode over local atomic SQLite snapshots, completely
 | `get_module_dependents` | "who imports this module" | — |
 | `inspect_symbol` | "single-turn composite lookup of context, skeleton, and dependents" | `budget_tokens` |
 
+`inspect_symbol` views: `minimal` (symbol + compact relations), `normal` (symbol, body, relations) and `full` (a context packet: the target body — or a class skeleton —, signatures of its callees/callers/sibling methods, the remaining 1-hop relations as short refs, imports and file fingerprints, all inside `budget_tokens`). The 8-hex refs in a packet can be passed as `symbol_id` to `get_symbol_context` and `get_impact_slice`. When the body does not fit, `packet.target.truncated_lines` lists the omitted line ranges.
+
 #### Tier 2: 9 Extended Agentic Infrastructure Tools
 Enabled when `enable_extensions = true` in `repos.toml`. Architectural patterns and prompt techniques inspired by Google Cloud Platform's Generative AI repository (`GoogleCloudPlatform/generative-ai`):
 
