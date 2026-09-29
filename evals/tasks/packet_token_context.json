@@ -1,8 +1,8 @@
 {
   "repo_id": "token-context",
-  "reviewed": false,
+  "reviewed": true,
   "split_seed": 20260927,
-  "review_note": "M6.3a draft (Session 1). 20 target symbols, moi gold_context da duoc xac minh ton tai qua truy van truc tiep index that (run_20260927T103903Z_671166c3, sau M6.0/E14): 9 method + callee/caller cua RetrievalService/CompositeWorkflowEngine, 6 ham module-level dai (>100 dong: build_server, build_index, local_push_ppr, rank_symbols, module_dependents, write_snapshot), 4 ham module-level ngan (<30 dong: database_path, parse_source, safe_relative_path, pack_by_budget), va 1 method ngan bo sung (_repository_store, 5 dong). >=5 target co caller o file khac (thuc te ca 20/20 deu co, xem 'cross' trong evals/out/m6/packet_candidate_scan.txt). Split 8 dev / 12 heldout, seed 20260927, phan tang theo 3 nhom: short_function (4, dev=2), long_function (4, dev=2), method (12, dev=4) -- xem evals/lint_packet_tasks.py cho thuat toan tai lap chinh xac. reviewed=false: chi chu repo hoac Claude duoc dat true (luat 22).",
+  "review_note": "Reviewed by Claude on 2026-09-28, before any M6.1 packet code existed. Approved by the repo owner by pasting NEXT_PROMPT_TOKEN_CONTEXT_M6S2_M10_VI. 92/92 gold items lie within one hop (callee conf >= 0.6, caller conf >= 0.5) or the same class as their target. Metric definitions were pre-registered before any packet measurement: sig_coverage over all items (primary), ref_coverage, body_coverage (report only, because HCP packets carry no neighbour bodies). Task content unchanged.",
   "tasks": [
     {
       "id": "p01",
