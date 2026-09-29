@@ -13,6 +13,7 @@ Pushed to `main` on the owner's instruction; not tagged. Details are in the mile
 ## Unreleased — M11: TypeScript benchmark (2026-09-29)
 
 - `evals/tasks/bench_hono.json` (hono v4.9.9, 30 locate + 10 packet tasks; authored by one Claude session, reviewed by another, not by the owner) and results in `evals/out/m11/`. Locate: R2 File Acc@5 0.80 against 0.23 for grep at equal cost (0.63 unbounded, 11x the tokens), Symbol Recall@10 0.66 against 0.13. Graph expansion beats plain FTS on symbols here (+0.11). **Packet KPIs missed on TypeScript**: sig/ref coverage 0.575 (targets 0.60/0.80), savings vs read 0.57 (target 0.70); coverage equals the reach ceiling, the index reports 45% ambiguous edges for hono. See `docs/BENCHMARK.md` (M11).
+- `evals/tasks/bench_fastify.json` (JavaScript) and `bench_csvhelper.json` (C#), 30 locate + 10 packet tasks each, authored and reviewed by separate Claude sessions (owner review pending); results in `evals/out/m11/`. File Acc@5 at equal cost: fastify R2 0.90 vs grep@R2 0.27 (unbounded grep 0.57); CsvHelper R2 0.60 vs 0.43 (unbounded grep 0.77, **R2 significantly worse**; behavioural queries ~0.1). Packet coverage 0.46 (JS) and 0.47 (C#), KPIs missed, tracking ambiguous edges (72 % / 90 %). JS indexer gap: prototype-assigned methods not indexed. Four-language table in `docs/BENCHMARK.md`.
 
 ## Unreleased — M10: Go grammar, single version source, public benchmark harness (2026-09-29, branch `feat/m10-public-benchmark`)
 

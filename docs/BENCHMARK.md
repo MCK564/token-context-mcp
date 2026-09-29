@@ -168,7 +168,7 @@ The harness and the retrieval code in `src/` are frozen at the local tag `m10-fr
 
 Same harness, same arms, same pre-registered KPIs as the `rich` benchmark above, run on a TypeScript repository so that the result does not rest on Python alone.
 
-**Repository (pinned).** `honojs/hono` v4.9.9, commit `16eb88269ffb0ae68590ad55ac9ac58807850f26`, MIT, 359 corpus files. The index reports an ambiguous-edge rate of 45 % for this repository (Python repositories: about 2–10 %), which matters for the packet result below.
+**Repository (pinned).** `honojs/hono` v4.9.9, commit `16eb88269ffb0ae68590ad55ac9ac58807850f26`, MIT, 359 corpus files. The index reports an ambiguous-edge rate of 45 % for this repository (`rich` (Python): 17 %), which matters for the packet result below.
 
 **Tasks.** `evals/tasks/bench_hono.json`: 30 locate tasks (10 per group) and 10 packet tasks. **Review status: written by one Claude session and reviewed by a different Claude session, not by the repository owner.** The reviewer read every gold symbol in the source and changed 8 of 40 tasks (log: `evals/out/m11/bench_hono_review_log.md`); no retrieval tool was used to write or review them. After the first run aborted on a 205-character query (the tool accepts at most 200), the coordinator shortened that one query before any result had been seen. The owner has not reviewed this set, so treat these numbers as one notch less firm than the `rich` ones.
 
@@ -225,3 +225,93 @@ By group (means only; 10 tasks per group):
 ### Limits
 
 One repository, 30 + 10 tasks, wide intervals, a simulated grep baseline (its latency is not that of `rg`), retrieval only. The task set was reviewed by another Claude session but not by the owner. There is still no end-to-end (C3) measurement.
+
+
+## M11 (continued) — JavaScript (`fastify`) and C# (`CsvHelper`), and a four-language comparison
+
+Same harness, arms and pre-registered KPIs. Both task sets follow the `hono` procedure: **written by one Claude session and reviewed by a different Claude session, not by the repository owner**; no retrieval tool was used to write or review them (review logs and gold verification in `evals/out/m11/`). Raw records and summaries: `evals/out/m11/bench_fastify_*`, `bench_csvhelper_*`. The `hono` benchmark above is TypeScript; the JavaScript result below is a separate, plain-JavaScript repository.
+
+### Cross-language summary
+
+| Repository (language) | Corpus files | Ambiguous edges in the index | R2 File Acc@5 | grep File Acc@5 | grep cut to R2's cost | R2 Symbol Recall@10 | grep Symbol Recall@10 | grep tokens ÷ R2 tokens | Packet coverage (sig / ref) | Packet saving vs reading |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `rich` (Python) | 213 | 17 % | 0.90 | 0.93 | 0.57 | 0.54 | 0.22 | 9× | 0.98 / 0.98 | 0.91 |
+| `hono` (TypeScript) | 359 | 45 % | 0.80 | 0.63 | 0.23 | 0.66 | 0.13 | 11× | 0.57 / 0.57 | 0.57 |
+| `fastify` (JavaScript) | 291 | 72 % | 0.90 | 0.57 | 0.27 | 0.69 | 0.27 | 14× | 0.46 / 0.46 | 0.88 |
+| `CsvHelper` (C#) | 446 | 90 % | 0.60 | 0.77 | 0.43 | 0.33 | 0.06 | 28× | 0.47 / 0.47 | 0.82 |
+
+Ambiguous edges are the index's own measure for that repository (`edge_precision.ambiguous_rate`), not a benchmark outcome. Each language is one repository with 30 locate and 10 packet tasks, so differences between languages mix language effects with repository effects.
+
+### JavaScript — `fastify/fastify` v5.8.5 (commit `3983cce8124714242099e8756a7a9a80a0ba0aea`, MIT)
+
+Plain CommonJS JavaScript, 291 corpus files (tests included; gold is in `lib/`). Task set: `evals/tasks/bench_fastify.json` (6 of 40 tasks changed in review).
+
+| Arm | File Acc@5 (CI95) | Symbol Recall@10 (CI95) | Mean wire tokens | Latency p50 (ms) |
+|---|---|---|---:|---:|
+| `R0-grep` (unbounded) | 0.57 [0.37, 0.73] | 0.27 [0.13, 0.44] | 26,241 | 571 |
+| `R0-grep@R2` (cut to R2's tokens) | 0.27 [0.13, 0.43] | 0.10 [0.00, 0.23] | 1,880 | 571 |
+| `R0-read` (5 files whole) | 0.57 [0.37, 0.73] | 0.23 [0.10, 0.40] | 41,638 | 571 |
+| `R1` `search_source(expand="none")` | 0.90 [0.80, 1.00] | 0.69 [0.53, 0.84] | 1,893 | 37 |
+| `R2` `search_source(profile="locate")` | 0.90 [0.80, 1.00] | 0.69 [0.53, 0.84] | 1,888 | 39 |
+
+| Group | grep | grep@R2 | R1 | R2 |
+|---|---|---|---|---|
+| a_keyword (File Acc@5) | 0.50 | 0.30 | 1.00 | 1.00 |
+| b_hidden_dep (File Acc@5) | 0.80 | 0.40 | 0.90 | 0.90 |
+| c_multi_file (File Acc@5) | 0.40 | 0.10 | 0.80 | 0.80 |
+
+Packet tasks (10): `sig_coverage` 0.463, `ref_coverage` 0.463, `reach_ceiling` 0.463, `savings_vs_read` 0.884 (972 wire tokens against 10,014 to read the files).
+
+| KPI | Result | Threshold | Met |
+|---|---|---|---|
+| R2 − `R0-grep@R2` File Acc@5 (same cost) | +0.633 [0.47, 0.80] | ≥ +0.10, CI excludes 0 | yes |
+| R2 − unbounded `R0-grep` File Acc@5 | +0.333 [0.17, 0.53] | ≥ −0.05 | yes |
+| R3 `sig_coverage` | 0.463 | ≥ 0.60 | **no** |
+| R3 `ref_coverage` | 0.463 | ≥ 0.80 | **no** |
+| R3 `savings_vs_read` | 0.884 [0.83, 0.92] | ≥ 0.70 | yes |
+| R2 vs R1 (no threshold) | File Acc@5 +0.000; Symbol Recall@10 +0.000 [-0.03, 0.03] | report only | n/a |
+
+**Reading.** Locating works best here of the four: R2 finds the right file in 90 % of tasks against 57 % for unbounded grep, which reads about 14 times more tokens, and 27 % for grep at equal cost. The packet's saving against reading is large (0.88) but its coverage is 0.46, below target: the packet returns what the call graph reaches (`reach_ceiling` equals coverage) and 71 % of the index's edges in this repository are ambiguous. **A finding about the indexer, not the benchmark:** methods that fastify assigns to prototypes (for example `Reply.prototype.send`, `Request` members, `ContentTypeParser.prototype.run`) are not indexed as symbols at all, so no task could target them and a user asking about them cannot find them by symbol.
+
+### C# — `JoshClose/CsvHelper` (commit `33970e5183383bdac1fbce3b3fbcdf46b318ca52`, MS-PL / Apache-2.0)
+
+446 corpus files; the generated `docs/` and `docs-src/` folders were removed from the working copy before indexing (vendored `bulma` CSS under `src/CsvHelper.Website` is still in the corpus). Task set: `evals/tasks/bench_csvhelper.json` (9 of 40 tasks changed in review).
+
+| Arm | File Acc@5 (CI95) | Symbol Recall@10 (CI95) | Mean wire tokens | Latency p50 (ms) |
+|---|---|---|---:|---:|
+| `R0-grep` (unbounded) | 0.77 [0.60, 0.90] | 0.06 [0.00, 0.14] | 52,880 | 573 |
+| `R0-grep@R2` (cut to R2's tokens) | 0.43 [0.27, 0.60] | 0.00 [0.00, 0.00] | 1,863 | 573 |
+| `R0-read` (5 files whole) | 0.77 [0.60, 0.90] | 0.06 [0.00, 0.14] | 48,527 | 573 |
+| `R1` `search_source(expand="none")` | 0.60 [0.43, 0.77] | 0.32 [0.17, 0.48] | 1,863 | 62 |
+| `R2` `search_source(profile="locate")` | 0.60 [0.43, 0.77] | 0.33 [0.18, 0.49] | 1,874 | 69 |
+
+| Group | grep | grep@R2 | R1 | R2 |
+|---|---|---|---|---|
+| a_keyword (File Acc@5) | 1.00 | 0.70 | 1.00 | 1.00 |
+| b_hidden_dep (File Acc@5) | 0.40 | 0.20 | 0.10 | 0.10 |
+| c_multi_file (File Acc@5) | 0.90 | 0.40 | 0.70 | 0.70 |
+
+Packet tasks (10): `sig_coverage` 0.473, `ref_coverage` 0.473, `reach_ceiling` 0.473, `savings_vs_read` 0.819 (1,690 wire tokens against 10,834 to read the files).
+
+| KPI | Result | Threshold | Met |
+|---|---|---|---|
+| R2 − `R0-grep@R2` File Acc@5 (same cost) | +0.167 [-0.07, 0.40] | ≥ +0.10, CI excludes 0 | **no** |
+| R2 − unbounded `R0-grep` File Acc@5 | -0.167 [-0.33, -0.03] | ≥ −0.05 | **no** |
+| R3 `sig_coverage` | 0.473 | ≥ 0.60 | **no** |
+| R3 `ref_coverage` | 0.473 | ≥ 0.80 | **no** |
+| R3 `savings_vs_read` | 0.819 [0.76, 0.87] | ≥ 0.70 | yes |
+| R2 vs R1 (no threshold) | File Acc@5 +0.000; Symbol Recall@10 +0.011 [0.00, 0.03] | report only | n/a |
+
+**Reading.** **C# is where token-context does worst, and the result is negative.** On keyword tasks R2 is perfect (File Acc@5 1.00), but on behavioural tasks whose query does not contain the name it finds the right file in only 1 of 10 cases, and overall it is significantly below unbounded grep (0.60 against 0.77, paired difference −0.17, CI95 −0.33 to −0.03) while using about 3.5 % of grep's tokens (52,880 against 1,874). At equal cost it is still ahead of grep (0.60 against 0.43) but the difference is not significant (+0.17, CI95 −0.07 to +0.40), so that KPI is not met. The packet's coverage is 0.47 and its saving against reading 0.82. Post-hoc look at the nine failed behavioural tasks (not used for any change): the results are dominated by attribute classes, interfaces, `MemberMap`/`MemberMapData` and, once, vendored CSS, rather than by the method that implements the behaviour; 90 % of the index's edges here are ambiguous. In other words the ranking favours declarations with long documentation over implementations, and does not use behaviour words that appear only in method bodies.
+
+### How to read the four languages together
+
+- **Python and JavaScript** are the languages where the tool clearly does what it is meant to do: at equal cost it beats grep by +0.33 (Python) and +0.63 (JavaScript) File Acc@5, with intervals that exclude 0.
+- **TypeScript** is in between: the locate result holds (+0.57 at equal cost) but the packet misses its targets.
+- **C#** is the weak spot: keyword queries work, behavioural queries do not, and unbounded grep is better on file accuracy.
+- **The packet is only as good as the call graph**: coverage equals the reach ceiling in every non-Python repository, and the ambiguous-edge rate rises from 17 % (Python) to 45 % (TypeScript), 72 % (JavaScript) and 90 % (C#). Packet coverage fell from 0.98 to 0.58, 0.46 and 0.47. With four repositories this is a correlation, not a proof.
+- **What would change the picture:** better call resolution for JS/TS/C#, indexing of prototype-assigned JavaScript methods, and a ranking that weighs method bodies for behavioural queries in C#. None of that has been done; this section only measures.
+
+### Limits
+
+One repository per language, wide intervals, task sets reviewed by another Claude session but not by the owner, a simulated grep baseline (its latency is not that of `rg`), retrieval only, no end-to-end (C3) run. The four repositories differ in size, test share and coding style, so language and repository effects cannot be separated.
