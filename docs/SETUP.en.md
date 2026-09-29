@@ -127,15 +127,16 @@ In addition to CLI operations, the repository provides a full desktop graphical 
   Generates a standalone portable bundle at `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` that runs on any Windows machine without requiring Python.
 
 **Key GUI Features across the 5 Tabs:**
-1. **📊 Dashboard:** Real-time CPU & RAM gauges, AI hardware detection (NVIDIA CUDA, Apple Silicon MPS, Ollama 7B, CPU Heuristic), MCP server controller (Start/Stop/Restart, PID tracking), and 1-click "Copy MCP Config JSON" for Claude Desktop, VS Code, Cursor, and Antigravity.
-2. **📁 Repositories:** Visual data grid with repository roots, snapshot freshness badges, symbol counts, ambiguous edge rates, and interactive "Add Repository" folder picker.
+1. **📊 Dashboard:** Real-time CPU & RAM gauges, AI hardware detection (probed on the monitor thread, never on the UI thread), the list of **running MCP servers** (server id, PID, client, output mode, schema profile, last seen; refreshed every 5 s from the heartbeat table) and "Copy client config" for `claude`, `claude-code`, `vscode`, `antigravity`, `codex` with the flags `docs/CLIENT_MATRIX.md` recommends. The GUI does **not** start or stop servers: a stdio server belongs to the client that spawns it.
+2. **📁 Repositories:** A table (`QTableView`) of repository roots, honest status badges — `FRESH`, `STALE` (indexed files changed or added), `DOCS_CHANGED` (only unindexed files changed; the index is still valid), `SCHEMA_OUTDATED`, `NOT_INDEXED` — symbol counts, ambiguous edge rate, DB size; toolbar/context-menu actions Add, Re-index, **Re-index all** (`index --all`), Cancel, Remove.
 3. **⚡ Tasks & Graph:** Live stdout/stderr log stream, language distribution breakdown, lexical edge confidence progress, and top architectural entry-point symbols.
-4. **💾 Cache & DB:** SQLite file breakdown, database size inspection, VACUUM defragmentation, stale snapshot cleaner, and cache purge.
+4. **💾 Cache & DB:** SQLite file breakdown; VACUUM on the mutable databases you tick (`memory.sqlite`, `governance.sqlite`, `audit.sqlite` — never an index snapshot; a locked database is retried 3 times and each result is reported); "Clean old snapshots" (`gc_snapshots`) and cache purge.
 5. **⚙️ Settings:** Interactive editor for `repos.toml` resource caps and the 20 tools extension toggle.
 
 **RAM Optimizations & Non-Blocking Async Tab Waiting:**
-- **Zero GUI-Thread File Hashing:** File scanning and recursive hashing are completely removed from tab-switching and repository listing. Metadata is read from cached `manifest.json` and scalar SQLite queries in < 1ms, eliminating memory spikes and UI freezing.
-- **Low-Priority Heavy Indexing Workers:** `IndexWorker` executes AST parsing and lexical graph construction at `LowPriority` on a background thread and triggers `gc.collect()` upon completion, ensuring the UI remains fluid at 60 FPS while promptly freeing RAM.
+- **Nothing blocks the event loop (M8):** every tab has a pure `fetch()` (runs on a 4-thread pool via `gui/workers.py::run_async`, no widgets, no writes) and a `render()` (UI thread). Repository status uses the cheap `RetrievalService.status` (manifest aggregates), never a table scan or file hashing.
+- **Indexing in a child process:** Re-index runs `python -m token_context_mcp index --progress-format ndjson` in a `QProcess`; the UI shows at most ten updates per second; **Cancel kills the whole process tree** (parse-pool workers included). The log console keeps at most 5,000 lines and appends every 100 ms.
+- **Stall watchdog:** `TOKEN_CONTEXT_GUI_DEBUG=1` logs every UI stall over 100 ms with the stacks of all threads to `%TEMP%\token-context-gui-stalls.log`; `uv run python evals/gui_perf.py` measures tab switching and stalls while indexing (report only).
 - **Global Task Status Banner (TaskStatusBanner):** An active task status badge in the header shows real-time progress (`⚡ Active Task: Indexing [XX%] - <stage>`), allowing users to freely navigate between tabs while long tasks proceed without interruption.
 - **Loading Overlay (LoadingOverlay):** Smooth, animated floating spinner appears during asynchronous data refreshes and automatically hides once data is ready.
 

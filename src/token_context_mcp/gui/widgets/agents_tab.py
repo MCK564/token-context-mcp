@@ -157,15 +157,29 @@ class AgentsTab(QWidget):
         # Loading overlay for smooth updates
         self.overlay = LoadingOverlay(self)
 
-    def refresh(self, force: bool = False) -> None:
-        self.overlay.show_loading("Updating Security & Agent Telemetry...")
-        QTimer.singleShot(0, self._do_refresh)
+    def fetch(self) -> dict[str, Any]:
+        """Worker-thread half: reads governance/memory/audit DBs, touches no widget."""
+        return self.security_ctrl.collect_snapshot()
 
-    def _do_refresh(self) -> None:
-        try:
-            self.security_ctrl.refresh_data()
-        finally:
+    def render(self, snapshot: dict[str, Any]) -> None:
+        """UI-thread half: emits the signals the tables render from."""
+        self.security_ctrl.apply_snapshot(snapshot)
+
+    def refresh(self, force: bool = False) -> None:
+        from token_context_mcp.gui.workers import run_async
+
+        self.overlay.show_loading("Updating Security & Agent Telemetry...")
+
+        def _ok(snapshot: dict[str, Any]) -> None:
+            try:
+                self.render(snapshot)
+            finally:
+                self.overlay.hide_loading()
+
+        def _err(_msg: str) -> None:
             self.overlay.hide_loading()
+
+        run_async(self.fetch, on_ok=_ok, on_err=_err)
 
     def _on_emergency_state_changed(self, is_halted: bool, reason: str) -> None:
         if is_halted:

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QCheckBox,
     QDialog,
     QFileDialog,
@@ -13,16 +15,18 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMenu,
     QMessageBox,
     QProgressBar,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
+    QTableView,
     QVBoxLayout,
     QWidget,
 )
 
-from token_context_mcp.gui.bridge import IndexWorker
+from token_context_mcp.gui.bridge import IndexProcess
+from token_context_mcp.gui.models import RepoTableModel
+from token_context_mcp.gui.workers import run_async
 
 if TYPE_CHECKING:
     from token_context_mcp.gui.bridge import RepoManager
@@ -113,23 +117,24 @@ class RepositoriesTab(QWidget):
     indexing_started = Signal(str)
     indexing_finished = Signal(str)
     indexing_progress = Signal(str, int, int)
+    indexing_log = Signal(str)
 
     def __init__(self, repo_mgr: RepoManager, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.repo_mgr = repo_mgr
-        self._current_worker: IndexWorker | None = None
+        self._current_job: IndexProcess | None = None
+        self.silent_errors = False  # tests: do not open modal boxes
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(14)
 
-        # Top Action Bar
+        # Toolbar: the actions of the selected row live here (and in the row's context menu), not in row widgets
         top_bar = QHBoxLayout()
         top_title = QLabel("Registered Repositories")
         top_title.setProperty("class", "CardHeader")
         top_title.setStyleSheet("font-size: 16px;")
         top_bar.addWidget(top_title)
-
         top_bar.addStretch()
 
         self.add_btn = QPushButton("➕ Add Repository")
@@ -137,22 +142,45 @@ class RepositoriesTab(QWidget):
         self.add_btn.clicked.connect(self._open_add_dialog)
         top_bar.addWidget(self.add_btn)
 
+        self.reindex_btn = QPushButton("⚡ Re-index selected")
+        self.reindex_btn.setEnabled(False)
+        self.reindex_btn.clicked.connect(self._reindex_selected)
+        top_bar.addWidget(self.reindex_btn)
+
+        self.reindex_all_btn = QPushButton("⚡ Re-index all")
+        self.reindex_all_btn.clicked.connect(self.start_indexing_all)
+        top_bar.addWidget(self.reindex_all_btn)
+
+        self.cancel_btn = QPushButton("⏹ Cancel")
+        self.cancel_btn.setProperty("class", "DangerButton")
+        self.cancel_btn.setEnabled(False)
+        self.cancel_btn.clicked.connect(self.cancel_indexing)
+        top_bar.addWidget(self.cancel_btn)
+
+        self.delete_btn = QPushButton("🗑️ Remove selected")
+        self.delete_btn.setProperty("class", "DangerButton")
+        self.delete_btn.setEnabled(False)
+        self.delete_btn.clicked.connect(self._delete_selected)
+        top_bar.addWidget(self.delete_btn)
+
         self.refresh_btn = QPushButton("🔄 Refresh")
-        self.refresh_btn.clicked.connect(self.load_repositories)
+        self.refresh_btn.clicked.connect(self.refresh)
         top_bar.addWidget(self.refresh_btn)
 
         layout.addLayout(top_bar)
 
-        # Table
-        self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(
-            ["Repo ID", "Root Path", "Freshness", "Symbols", "Ambiguous Rate", "DB Size", "Actions"]
-        )
+        # Table: QTableView + model (no setCellWidget)
+        self.model = RepoTableModel(self)
+        self.table = QTableView()
+        self.table.setModel(self.model)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._show_context_menu)
+        self.table.selectionModel().selectionChanged.connect(self._update_buttons)
         layout.addWidget(self.table, 1)
 
         # Indexing Progress Card
@@ -176,74 +204,73 @@ class RepositoriesTab(QWidget):
 
         layout.addWidget(self.progress_card)
 
-        self.load_repositories()
+    # -- fetch / render (M8.2) ------------------------------------------------------------------------------------
+    def fetch(self) -> list[dict[str, Any]]:
+        """Worker-side: rows for the table. Reads manifests and status only."""
+        return self.repo_mgr.list_repositories(force_refresh=True)
 
-    def load_repositories(self) -> None:
-        repos = self.repo_mgr.list_repositories()
-        self.table.setRowCount(len(repos))
+    def render(self, rows: list[dict[str, Any]]) -> None:
+        """UI-side: keeps the selection when the repository is still listed."""
+        selected = self.selected_repo_id()
+        self.model.set_rows(rows)
+        if selected:
+            for row in range(self.model.rowCount()):
+                if self.model.repo_id_at(row) == selected:
+                    self.table.selectRow(row)
+                    break
+        self._update_buttons()
 
-        for row, r in enumerate(repos):
-            repo_id = r["repo_id"]
+    def refresh(self) -> None:
+        run_async(self.fetch, on_ok=self.render, on_err=self._log_error)
 
-            # 0: Repo ID
-            id_item = QTableWidgetItem(repo_id)
-            id_item.setFont(self.font())
-            self.table.setItem(row, 0, id_item)
+    load_repositories = refresh  # name used by older callers
 
-            # 1: Root Path
-            self.table.setItem(row, 1, QTableWidgetItem(r["root"]))
+    def _log_error(self, error: BaseException) -> None:
+        self.indexing_log.emit(f"Could not read repositories: {error}")
 
-            # 2: Freshness Badge
-            freshness = r["freshness"]
-            badge = QLabel(freshness.upper())
-            badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            if freshness == "fresh":
-                badge.setProperty("class", "BadgeFresh")
-            elif freshness == "stale":
-                badge.setProperty("class", "BadgeStale")
-            else:
-                badge.setProperty("class", "BadgeNotIndexed")
-            self.table.setCellWidget(row, 2, badge)
+    # -- selection and actions --------------------------------------------------------------------------------------
+    def selected_repo_id(self) -> str | None:
+        rows = self.table.selectionModel().selectedRows()
+        return self.model.repo_id_at(rows[0].row()) if rows else None
 
-            # 3: Symbols Count
-            sym_item = QTableWidgetItem(f"{r['symbols_count']:,}")
-            sym_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            self.table.setItem(row, 3, sym_item)
+    def _update_buttons(self, *_: Any) -> None:
+        busy = self._current_job is not None and self._current_job.isRunning()
+        has_selection = self.selected_repo_id() is not None
+        self.reindex_btn.setEnabled(has_selection and not busy)
+        self.reindex_all_btn.setEnabled(not busy)
+        self.delete_btn.setEnabled(has_selection and not busy)
+        self.cancel_btn.setEnabled(busy)
 
-            # 4: Ambiguous Rate
-            ambig_item = QTableWidgetItem(f"{r['ambiguous_rate']:.1f}%")
-            ambig_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            self.table.setItem(row, 4, ambig_item)
+    def _show_context_menu(self, pos: QPoint) -> None:
+        index = self.table.indexAt(pos)
+        if index.isValid():
+            self.table.selectRow(index.row())
+        repo_id = self.selected_repo_id()
+        if repo_id is None:
+            return
+        menu = QMenu(self)
+        reindex = QAction(f"Re-index '{repo_id}'", menu)
+        reindex.triggered.connect(self._reindex_selected)
+        remove = QAction(f"Remove '{repo_id}'...", menu)
+        remove.triggered.connect(self._delete_selected)
+        menu.addAction(reindex)
+        menu.addAction(remove)
+        menu.exec(self.table.viewport().mapToGlobal(pos))
 
-            # 5: DB Size
-            size_item = QTableWidgetItem(f"{r['db_size_mb']:.1f} MB")
-            size_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-            self.table.setItem(row, 5, size_item)
+    def _reindex_selected(self) -> None:
+        repo_id = self.selected_repo_id()
+        if repo_id:
+            self.start_indexing(repo_id)
 
-            # 6: Action Buttons
-            action_widget = QWidget()
-            action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(4, 2, 4, 2)
-            action_layout.setSpacing(6)
-
-            reindex_btn = QPushButton("⚡ Re-index")
-            reindex_btn.setStyleSheet("padding: 3px 8px; font-size: 11px;")
-            reindex_btn.clicked.connect(lambda _, rid=repo_id: self.start_indexing(rid))
-            action_layout.addWidget(reindex_btn)
-
-            del_btn = QPushButton("🗑️")
-            del_btn.setProperty("class", "DangerButton")
-            del_btn.setStyleSheet("padding: 3px 6px; font-size: 11px;")
-            del_btn.setToolTip("Delete repository from registry")
-            del_btn.clicked.connect(lambda _, rid=repo_id: self._confirm_delete(rid))
-            action_layout.addWidget(del_btn)
-
-            self.table.setCellWidget(row, 6, action_widget)
+    def _delete_selected(self) -> None:
+        repo_id = self.selected_repo_id()
+        if repo_id:
+            self._confirm_delete(repo_id)
 
     def _open_add_dialog(self) -> None:
         dlg = AddRepoDialog(self.repo_mgr, self)
         if dlg.exec():
-            self.load_repositories()
+            self.refresh()
 
     def _confirm_delete(self, repo_id: str) -> None:
         box = QMessageBox(self)
@@ -259,41 +286,70 @@ class RepositoriesTab(QWidget):
         box.setDefaultButton(QMessageBox.StandardButton.No)
 
         if box.exec() == QMessageBox.StandardButton.Yes:
-            try:
-                self.repo_mgr.delete_repository(repo_id, purge_db=purge_cb.isChecked())
-                self.load_repositories()
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed deleting repository: {e}")
+            purge = purge_cb.isChecked()
+            run_async(
+                self.repo_mgr.delete_repository,
+                repo_id,
+                purge_db=purge,
+                on_ok=lambda _: self.refresh(),
+                on_err=lambda e: QMessageBox.critical(self, "Error", f"Failed deleting repository: {e}"),
+            )
+
+    # -- indexing (child process) -------------------------------------------------------------------------------------
+    def _begin(self, job: IndexProcess, label: str) -> None:
+        self.progress_label.setText(f"Starting index for {label}...")
+        self.progress_bar.setValue(0)
+        self.indexing_started.emit(job.repo_id)
+        self._current_job = job
+        job.progress_changed.connect(self._on_progress)
+        job.log_emitted.connect(self.indexing_log)
+        job.index_finished.connect(self._on_index_finished)
+        job.index_failed.connect(self._on_index_failed)
+        job.start()
+        self._update_buttons()
 
     def start_indexing(self, repo_id: str) -> None:
-        if self._current_worker and self._current_worker.isRunning():
-            QMessageBox.warning(self, "Indexing in Progress", "Another indexing task is already running. Please wait.")
+        if self._current_job is not None and self._current_job.isRunning():
+            if not self.silent_errors:
+                QMessageBox.warning(self, "Indexing in Progress", "Another indexing task is already running. Please wait.")
             return
+        self._begin(IndexProcess(repo_id, self.repo_mgr.config_path, self), f"'{repo_id}'")
 
-        self.progress_label.setText(f"Starting index for '{repo_id}'...")
-        self.progress_bar.setValue(0)
-        self.indexing_started.emit(repo_id)
+    def start_indexing_all(self) -> None:
+        if self._current_job is not None and self._current_job.isRunning():
+            return
+        self._begin(IndexProcess(None, self.repo_mgr.config_path, self, all_repos=True), "all repositories")
 
-        self._current_worker = IndexWorker(repo_id, self.repo_mgr.config_path, self)
-        self._current_worker.progress_changed.connect(self._on_progress)
-        self._current_worker.index_finished.connect(self._on_index_finished)
-        self._current_worker.index_failed.connect(self._on_index_failed)
-        self._current_worker.start()
+    def isIndexing(self) -> bool:
+        return self._current_job is not None and self._current_job.isRunning()
+
+    def cancel_indexing(self) -> None:
+        if self._current_job is not None:
+            self._current_job.cancel()
 
     def _on_progress(self, msg: str, current: int, total: int) -> None:
         self.progress_label.setText(msg)
         if total > 0:
-            pct = min(100, int((current / max(1, total)) * 100))
-            self.progress_bar.setValue(pct)
+            self.progress_bar.setValue(min(100, int((current / max(1, total)) * 100)))
         self.indexing_progress.emit(msg, current, total)
 
     def _on_index_finished(self, repo_id: str, manifest: dict) -> None:
-        self.progress_label.setText(f"Indexed '{repo_id}' successfully! ({manifest.get('symbols_indexed', 0)} symbols)")
+        if repo_id == "*":
+            self.progress_label.setText(f"Indexed {manifest.get('indexed', 0)} repositories, {manifest.get('failed', 0)} failed")
+        else:
+            self.progress_label.setText(f"Indexed '{repo_id}' successfully! ({manifest.get('symbols_indexed', 0)} symbols)")
         self.progress_bar.setValue(100)
-        self.load_repositories()
+        self._current_job = None
+        self.refresh()
+        self._update_buttons()
         self.indexing_finished.emit(repo_id)
 
     def _on_index_failed(self, repo_id: str, err: str) -> None:
-        self.progress_label.setText(f"Index error on '{repo_id}': {err}")
+        cancelled = self._current_job is not None and self._current_job.cancelled
+        self._current_job = None
         self.progress_bar.setValue(0)
-        QMessageBox.critical(self, "Indexing Failed", f"Failed building index for '{repo_id}':\n{err}")
+        self.progress_label.setText("Indexing cancelled" if cancelled else f"Index error on '{repo_id}': {err}")
+        self._update_buttons()
+        self.indexing_finished.emit(repo_id)
+        if not cancelled and not self.silent_errors:
+            QMessageBox.critical(self, "Indexing Failed", f"Failed building index for '{repo_id}':\n{err}")

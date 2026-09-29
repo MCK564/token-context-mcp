@@ -14,12 +14,11 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-from PySide6.QtCore import QObject, QProcess, QThread, Signal
+from PySide6.QtCore import QObject, QProcess, QThread, QTimer, Signal
 
 from token_context_mcp.config import (
     ConfigError,
     default_config_path,
-    get_repository,
     index_directory,
     load_config,
     register_repository,
@@ -27,13 +26,14 @@ from token_context_mcp.config import (
     unregister_repository,
     validate_repo_id,
 )
+from token_context_mcp.constants import INDEX_SCHEMA_VERSION
 from token_context_mcp.index.runner import (
-    build_index,
     current_pointer_path,
     database_path,
     gc_snapshots,
     manifest_path,
 )
+from token_context_mcp.retrieve.edge_stats import version_tuple
 from token_context_mcp.retrieve.service import RetrievalService
 from token_context_mcp.security.path_policy import canonical_repository_root
 
@@ -89,9 +89,16 @@ class SystemMonitor(QThread):
         super().__init__(parent)
         self.interval = interval
         self._running = True
-        self._ai_hardware = detect_ai_hardware()
+        self._ai_hardware = "Detecting hardware..."
 
     def run(self) -> None:
+        # M8.8: the hardware probe (nvidia-smi, an HTTP call to Ollama) may take seconds; it runs here, on the
+        # monitor thread, never on the UI thread.
+        try:
+            self._ai_hardware = detect_ai_hardware()
+        except Exception as e:  # pragma: no cover - probe is best effort
+            logger.debug("hardware probe failed: %s", e)
+            self._ai_hardware = "Unknown"
         # Prime psutil cpu measurement
         psutil.cpu_percent(interval=None)
         while self._running:
@@ -135,6 +142,23 @@ class SystemMonitor(QThread):
         self.wait(2000)
 
 
+def classify_repo(status: dict[str, Any] | None) -> str:
+    """The badge of a repository from its ``get_index_status`` data (M8.5).
+
+    NOT_INDEXED > SCHEMA_OUTDATED > STALE (indexed files changed) > DOCS_CHANGED (only unindexed files changed) > FRESH.
+    """
+    if not status:
+        return "NOT_INDEXED"
+    version = status.get("index_schema_version")
+    if version is not None and version_tuple(str(version)) < version_tuple(INDEX_SCHEMA_VERSION):
+        return "SCHEMA_OUTDATED"
+    if status.get("pending_path_count") or status.get("freshness") == "stale":
+        return "STALE"
+    if status.get("changed_non_indexed"):
+        return "DOCS_CHANGED"
+    return "FRESH"
+
+
 class RepoManager:
     def __init__(self, config_path: Path | None = None) -> None:
         self.config_path = config_path or default_config_path()
@@ -147,12 +171,18 @@ class RepoManager:
         self._cached_repos = None
 
     def list_repositories(self, force_refresh: bool = False) -> list[dict[str, Any]]:
+        """One row per registered repository. Pure I/O, meant to run in a worker (``run_async``).
+
+        ``status`` is the badge of ``classify_repo``; ``ambiguous_rate`` is a 0-1 ratio like everywhere else in
+        the MCP responses (the table model turns it into a percentage for display only).
+        """
         if self._cached_repos is not None and not force_refresh:
             return self._cached_repos
 
         config = load_config(self.config_path)
         idx_dir = self.get_index_dir()
         results: list[dict[str, Any]] = []
+        service: RetrievalService | None = None
 
         for repo_id in sorted(config.repositories):
             repo = config.repositories[repo_id]
@@ -163,39 +193,26 @@ class RepoManager:
             if db_path.exists():
                 db_size_mb = round(db_path.stat().st_size / (1024 * 1024), 2)
 
-            freshness = "not_indexed"
-            symbols_count = 0
-            files_count = 0
-            ambiguous_rate = 0.0
-            languages: list[str] = []
-
-            # Fast lightweight metadata extraction from manifest.json (zero file-hashing on GUI thread)
+            status_data: dict[str, Any] | None = None
+            manifest: dict[str, Any] = {}
+            edge_precision: dict[str, Any] = {}
             if db_path.exists() and mf_path.exists():
                 try:
-                    mf_data = json.loads(mf_path.read_text(encoding="utf-8"))
-                    symbols_count = int(mf_data.get("symbols_indexed", 0))
-                    files_count = int(mf_data.get("files_indexed", 0))
-                    parsers = mf_data.get("parser_versions", {})
-                    languages = parsers.get("languages", [])
-                    freshness = "fresh"
+                    manifest = json.loads(mf_path.read_text(encoding="utf-8"))
                 except Exception as e:
                     logger.debug("Failed reading manifest for %s: %s", repo_id, e)
-                    freshness = "indexed"
-
-                # Fast SQLite query for ambiguous rate (0.2ms, zero dataclass allocations)
                 try:
-                    con = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
-                    cur = con.cursor()
-                    cur.execute("SELECT count(*), count(CASE WHEN status='ambiguous' THEN 1 END) FROM edges;")
-                    row = cur.fetchone()
-                    con.close()
-                    if row and row[0] > 0:
-                        ambiguous_rate = round((row[1] / row[0]) * 100, 1)
-                except Exception:
-                    pass
-            elif db_path.exists():
-                freshness = "indexed"
+                    if service is None:
+                        service = RetrievalService(config, self.config_path)
+                    response = service.status(repo_id)  # M7.6 status: manifest aggregates, no table scans
+                    status_data = {**response.get("data", {}), "freshness": response.get("freshness")}
+                    edge_precision = response.get("edge_precision") or {}
+                except Exception as e:
+                    logger.debug("status failed for %s: %s", repo_id, e)
+                    status_data = {"index_schema_version": manifest.get("index_schema_version"), "freshness": "unknown"}
 
+            ambiguous_rate = float(edge_precision.get("ambiguous_rate") or 0.0)
+            parsers = manifest.get("parser_versions", {}) if isinstance(manifest, dict) else {}
             results.append(
                 {
                     "repo_id": repo_id,
@@ -203,17 +220,60 @@ class RepoManager:
                     "allow_symlinks": repo.allow_symlinks,
                     "max_file_bytes": repo.max_file_bytes,
                     "max_files": repo.max_files,
-                    "freshness": freshness,
-                    "symbols_count": symbols_count,
-                    "files_count": files_count,
+                    "status": classify_repo(status_data),
+                    "freshness": (status_data or {}).get("freshness") or "not_indexed",
+                    "index_schema_version": (status_data or {}).get("index_schema_version"),
+                    "pending_path_count": int((status_data or {}).get("pending_path_count") or 0),
+                    "symbols_count": int((status_data or {}).get("symbols_indexed") or manifest.get("symbols_indexed", 0) or 0),
+                    "files_count": int((status_data or {}).get("files_indexed") or manifest.get("files_indexed", 0) or 0),
                     "db_size_mb": db_size_mb,
                     "ambiguous_rate": ambiguous_rate,
-                    "languages": languages,
+                    "languages": parsers.get("languages", []) if isinstance(parsers, dict) else [],
                 }
             )
 
         self._cached_repos = results
         return results
+
+    def repo_detail(self, repo_id: str) -> dict[str, Any]:
+        """Languages, edge precision and entry points of one repository (worker-side, read only)."""
+        idx_dir = self.get_index_dir()
+        db_path = database_path(idx_dir, repo_id)
+        mf_path = manifest_path(idx_dir, repo_id)
+        if not db_path.exists() or not mf_path.exists():
+            return {"repo_id": repo_id, "indexed": False}
+        manifest = json.loads(mf_path.read_text(encoding="utf-8"))
+        parsers = manifest.get("parser_versions", {})
+        resolved_rate: float | None = None
+        precision = manifest.get("edge_precision")
+        if isinstance(precision, dict) and precision.get("resolved_rate") is not None:
+            resolved_rate = float(precision["resolved_rate"])
+        else:  # older snapshot: count once
+            try:
+                con = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
+                total, ambiguous = con.execute(
+                    "SELECT count(*), count(CASE WHEN status='ambiguous' THEN 1 END) FROM edges"
+                ).fetchone()
+                con.close()
+                resolved_rate = ((total - ambiguous) / total) if total else None
+            except Exception:
+                resolved_rate = None
+        return {
+            "repo_id": repo_id,
+            "indexed": True,
+            "languages": parsers.get("languages", []),
+            "resolved_rate": resolved_rate,
+            "entry_points": manifest.get("entry_points", []),
+        }
+
+    def fetch_active_servers(self) -> list[dict[str, Any]]:
+        """Heartbeats of the MCP servers currently running (read only, worker-side)."""
+        from token_context_mcp.security.governance_store import GovernanceStore
+
+        db = self.config_path.parent / "governance.sqlite"
+        if not db.exists():
+            return []
+        return GovernanceStore(db).get_active_servers(stale_threshold_sec=60)
 
     def add_repository(self, repo_id: str, root_path: str | Path) -> dict[str, Any]:
         repo_id = validate_repo_id(repo_id.strip())
@@ -259,193 +319,228 @@ class RepoManager:
         self.invalidate_cache()
 
 
-class IndexWorker(QThread):
-    progress_changed = Signal(str, int, int)  # stage_message, current, total
-    index_finished = Signal(str, dict)        # repo_id, manifest
-    index_failed = Signal(str, str)          # repo_id, error_message
+def kill_process_tree(pid: int, *, grace_seconds: float = 3.0) -> list[int]:
+    """Stop ``pid`` and everything below it (pool workers included); returns the pids that were signalled.
+
+    Children first (so no orphan keeps running once the parent is gone), then the parent; whatever ignores
+    SIGTERM within the grace period is killed.
+    """
+    try:
+        parent = psutil.Process(pid)
+        family = parent.children(recursive=True) + [parent]
+    except psutil.NoSuchProcess:
+        return []
+    for proc in family:
+        try:
+            proc.terminate()
+        except psutil.NoSuchProcess:
+            pass
+    _, alive = psutil.wait_procs(family, timeout=grace_seconds)
+    for proc in alive:
+        try:
+            proc.kill()
+        except psutil.NoSuchProcess:
+            pass
+    psutil.wait_procs(alive, timeout=grace_seconds)
+    return [proc.pid for proc in family]
+
+
+class IndexProcess(QObject):
+    """Indexing in a child process (M8.3): ``python -m token_context_mcp index ... --progress-format ndjson``.
+
+    The GUI parses the NDJSON lines and forwards at most ten progress updates per second; Cancel stops the whole
+    process tree. Signals keep the names of the old ``IndexWorker`` (``index_failed`` also reports a cancel, with
+    ``cancelled`` True).
+    """
+
+    progress_changed = Signal(str, int, int)  # stage message, current, total
+    index_finished = Signal(str, dict)        # repo_id ("*" for --all), manifest / summary
+    index_failed = Signal(str, str)           # repo_id, error message
     log_emitted = Signal(str)
 
-    def __init__(self, repo_id: str, config_path: Path | None = None, parent: QObject | None = None) -> None:
+    FLUSH_INTERVAL_MS = 100
+    STAGE_LABELS = {
+        "scan": "Scanning files",
+        "roles": "Assigning structural roles",
+        "edges": "Resolving lexical graph edges",
+        "ranks": "Computing global symbol PageRank",
+        "write": "Writing atomic SQLite snapshot",
+        "other": "Indexing",
+    }
+
+    def __init__(
+        self,
+        repo_id: str | None,
+        config_path: Path | None = None,
+        parent: QObject | None = None,
+        *,
+        all_repos: bool = False,
+        command: tuple[str, list[str]] | None = None,
+    ) -> None:
         super().__init__(parent)
-        self.repo_id = repo_id
+        self.repo_id = "*" if all_repos else (repo_id or "")
+        self.all_repos = all_repos
         self.config_path = config_path or default_config_path()
+        self._command = command
+        self._process: QProcess | None = None
+        self._out_buffer = ""
+        self._latest: tuple[str, int, int] | None = None
+        self._log: list[str] = []
+        self._stderr_tail: list[str] = []
+        self._result: dict[str, Any] | None = None
+        self.cancelled = False
+        self.killed_pids: list[int] = []
+        self._timer = QTimer(self)
+        self._timer.setInterval(self.FLUSH_INTERVAL_MS)
+        self._timer.timeout.connect(self._flush)
 
-    def run(self) -> None:
-        import gc
-        # Run heavy AST indexing at low priority to keep UI 60 FPS fluid
-        self.setPriority(QThread.Priority.LowPriority)
-        self.log_emitted.emit(f"Starting index build for '{self.repo_id}'...")
+    # -- control ------------------------------------------------------------------------------------------------
+    def build_command(self) -> tuple[str, list[str]]:
+        if self._command is not None:
+            return self._command
+        args = ["-m", "token_context_mcp", "index"]
+        args += ["--all"] if self.all_repos else ["--repo-id", self.repo_id]
+        args += ["--config", str(self.config_path), "--progress-format", "ndjson"]
+        return sys.executable, args
+
+    def start(self) -> None:
+        program, args = self.build_command()
+        self._process = QProcess(self)
+        self._process.setProgram(program)
+        self._process.setArguments(args)
+        self._process.readyReadStandardOutput.connect(self._on_stdout)
+        self._process.readyReadStandardError.connect(self._on_stderr)
+        self._process.finished.connect(self._on_finished)
+        self._process.errorOccurred.connect(self._on_error)
+        self._log.append(f"Starting index build for '{self.repo_id}' (child process)...")
+        self._process.start()  # asynchronous: no waitForStarted on the UI thread
+        self._timer.start()
+
+    def isRunning(self) -> bool:
+        return self._process is not None and self._process.state() != QProcess.ProcessState.NotRunning
+
+    def pid(self) -> int:
+        return int(self._process.processId()) if self._process is not None else 0
+
+    def cancel(self) -> None:
+        if not self.isRunning():
+            return
+        self.cancelled = True
+        pid = self.pid()
+        self._log.append(f"Cancelling index of '{self.repo_id}' (process tree of PID {pid})...")
+        if pid:
+            self.killed_pids = kill_process_tree(pid)
+        elif self._process is not None:
+            self._process.kill()
+
+    # -- output -------------------------------------------------------------------------------------------------
+    def _on_stdout(self) -> None:
+        if self._process is None:
+            return
+        self._out_buffer += self._process.readAllStandardOutput().data().decode("utf-8", errors="replace")
+        *lines, self._out_buffer = self._out_buffer.split("\n")
+        for line in lines:
+            self._handle_line(line.strip())
+
+    def _handle_line(self, line: str) -> None:
+        if not line:
+            return
         try:
-            config = load_config(self.config_path)
-            repo = get_repository(config, self.repo_id)
-            idx_dir = index_directory(self.config_path)
+            event = json.loads(line)
+        except ValueError:
+            self._log.append(line)
+            return
+        stage = event.get("stage")
+        if stage == "done":
+            self._result = event.get("manifest") or {}
+        elif stage == "all_done":
+            self._result = event.get("summary") or {}
+        elif stage is not None:
+            label = self.STAGE_LABELS.get(str(stage), str(stage))
+            repo = event.get("repo_id")
+            message = f"[{repo}] {label}" if repo else label
+            self._latest = (message, int(event.get("current") or 0), int(event.get("total") or 0))
 
-            def _progress_cb(msg: str, current: int, total: int) -> None:
-                self.progress_changed.emit(msg, current, total)
-                self.log_emitted.emit(f"[{self.repo_id}] {msg} ({current}/{total})")
+    def _on_stderr(self) -> None:
+        if self._process is None:
+            return
+        text = self._process.readAllStandardError().data().decode("utf-8", errors="replace")
+        for line in text.splitlines():
+            if line.strip():
+                self._log.append(f"[stderr] {line}")
+                self._stderr_tail = (self._stderr_tail + [line])[-8:]
 
-            manifest = build_index(
-                repo,
-                idx_dir,
-                network_policy=config.server.network_policy,
-                progress_callback=_progress_cb,
-            )
+    def _flush(self) -> None:
+        """Called every 100 ms: at most ten UI updates per second, whatever the child prints."""
+        if self._latest is not None:
+            message, current, total = self._latest
+            self._latest = None
+            self.progress_changed.emit(message, current, total)
+        if self._log:
+            chunk, self._log = "\n".join(self._log), []
+            self.log_emitted.emit(chunk)
+
+    def _on_error(self, error: Any) -> None:
+        if self._process is not None and self._process.state() == QProcess.ProcessState.NotRunning and not self.cancelled:
+            self._log.append(f"Index process error: {error}")
+
+    def _on_finished(self, exit_code: int, exit_status: Any) -> None:
+        self._timer.stop()
+        if self._process is not None:
+            self._on_stdout()
+            self._on_stderr()
+        if self._out_buffer.strip():
+            self._handle_line(self._out_buffer.strip())
+            self._out_buffer = ""
+        self._flush()
+        if self.cancelled:
+            self.index_failed.emit(self.repo_id, "Cancelled")
+        elif exit_code == 0 and self._result is not None:
             self.progress_changed.emit("Complete", 100, 100)
-            self.log_emitted.emit(f"Index successfully built for '{self.repo_id}'! Indexed {manifest.get('symbols_indexed')} symbols.")
-            self.index_finished.emit(self.repo_id, manifest)
-        except Exception as e:
-            err_msg = str(e)
-            self.log_emitted.emit(f"Index FAILED for '{self.repo_id}': {err_msg}")
-            self.index_failed.emit(self.repo_id, err_msg)
-        finally:
-            gc.collect()
+            self.index_finished.emit(self.repo_id, self._result)
+        else:
+            detail = " | ".join(self._stderr_tail) or f"exit code {exit_code}"
+            if self._result and self.all_repos and self._result.get("failed"):
+                detail = f"{self._result['failed']} repository(ies) failed"
+            self.index_failed.emit(self.repo_id, detail)
 
 
 class ServerController(QObject):
-    status_changed = Signal(str, int)  # status, pid
-    log_received = Signal(str)
+    """Client-configuration generator (M8.7, D2).
+
+    The GUI no longer starts, stops or restarts an MCP server: a stdio server belongs to the client that spawns it,
+    and a process started here never had a client. Running servers are listed from their heartbeats instead.
+    """
+
+    # flags per client, from docs/CLIENT_MATRIX.md (only what the matrix recommends)
+    CLIENTS: dict[str, dict[str, Any]] = {
+        "claude": {"style": "mcpServers", "flags": []},
+        "claude-code": {"style": "mcpServers", "flags": ["--output-mode", "structured"]},
+        "vscode": {"style": "servers", "flags": ["--output-mode", "text"]},
+        "antigravity": {"style": "mcpServers", "flags": ["--schema-profile", "gemini_safe", "--output-mode", "text"]},
+        "codex": {"style": "codex_toml", "flags": ["--output-mode", "text"]},
+        "cursor": {"style": "mcpServers", "flags": []},
+    }
 
     def __init__(self, config_path: Path | None = None, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self.config_path = config_path or default_config_path()
-        self._process: QProcess | None = None
-        self._status = "STOPPED"
-        self._pid = 0
-
-    @property
-    def status(self) -> str:
-        return self._status
-
-    @property
-    def pid(self) -> int:
-        return self._pid
-
-    def start_server(self) -> None:
-        if self._process and self._process.state() != QProcess.ProcessState.NotRunning:
-            return
-
-        self._status = "STARTING"
-        self.status_changed.emit(self._status, 0)
-        self.log_received.emit("Starting MCP Server process...")
-
-        self._process = QProcess(self)
-        self._process.setProgram(sys.executable)
-        self._process.setArguments(["-m", "token_context_mcp", "serve", "--transport", "stdio", "--config", str(self.config_path)])
-
-        self._process.readyReadStandardOutput.connect(self._on_stdout)
-        self._process.readyReadStandardError.connect(self._on_stderr)
-        self._process.finished.connect(self._on_finished)
-
-        self._process.start()
-        if self._process.waitForStarted(3000):
-            self._pid = int(self._process.processId())
-            self._status = "RUNNING"
-            self.status_changed.emit(self._status, self._pid)
-            self.log_received.emit(f"MCP Server RUNNING (PID: {self._pid}) on stdio transport.")
-        else:
-            self._status = "STOPPED"
-            self._pid = 0
-            self.status_changed.emit(self._status, 0)
-            self.log_received.emit("Failed to start MCP Server process.")
-
-    def stop_server(self) -> None:
-        if not self._process or self._process.state() == QProcess.ProcessState.NotRunning:
-            self._status = "STOPPED"
-            self._pid = 0
-            self.status_changed.emit(self._status, 0)
-            return
-
-        self.log_received.emit("Stopping MCP Server process...")
-        self._process.terminate()
-        if not self._process.waitForFinished(2000):
-            self._process.kill()
-        self._status = "STOPPED"
-        self._pid = 0
-        self.status_changed.emit(self._status, 0)
-        self.log_received.emit("MCP Server process stopped.")
-
-    def restart_server(self) -> None:
-        self.stop_server()
-        self.start_server()
-
-    def _on_stdout(self) -> None:
-        if self._process:
-            data = self._process.readAllStandardOutput().data().decode("utf-8", errors="replace")
-            for line in data.splitlines():
-                if line.strip():
-                    self.log_received.emit(f"[stdout] {line}")
-
-    def _on_stderr(self) -> None:
-        if self._process:
-            data = self._process.readAllStandardError().data().decode("utf-8", errors="replace")
-            for line in data.splitlines():
-                if line.strip():
-                    self.log_received.emit(f"[stderr] {line}")
-
-    def _on_finished(self, exit_code: int, exit_status: Any) -> None:
-        self._status = "STOPPED"
-        self._pid = 0
-        self.status_changed.emit(self._status, 0)
-        self.log_received.emit(f"MCP Server process exited with code {exit_code}.")
 
     def get_client_config(self, client: str = "claude") -> str:
-        """Generate ready-to-copy client configuration JSON."""
+        """Ready-to-paste configuration for ``client`` (unknown names get the ``mcpServers`` shape)."""
+        key = client.lower()
+        key = {"copilot": "vscode"}.get(key, key)
+        spec = self.CLIENTS.get(key, {"style": "mcpServers", "flags": []})
         python_exec = sys.executable.replace("\\", "/")
         config_path_posix = str(self.config_path).replace("\\", "/")
-
-        if client.lower() in ("claude", "cursor"):
-            cfg = {
-                "mcpServers": {
-                    "token-context": {
-                        "command": python_exec,
-                        "args": [
-                            "-m",
-                            "token_context_mcp",
-                            "serve",
-                            "--transport",
-                            "stdio",
-                            "--config",
-                            config_path_posix,
-                        ],
-                    }
-                }
-            }
-        elif client.lower() in ("vscode", "copilot"):
-            cfg = {
-                "servers": {
-                    "token-context": {
-                        "type": "stdio",
-                        "command": python_exec,
-                        "args": [
-                            "-m",
-                            "token_context_mcp",
-                            "serve",
-                            "--transport",
-                            "stdio",
-                            "--config",
-                            config_path_posix,
-                        ],
-                    }
-                }
-            }
-        else:  # Antigravity
-            cfg = {
-                "mcpServers": {
-                    "token-context": {
-                        "command": python_exec,
-                        "args": [
-                            "-m",
-                            "token_context_mcp",
-                            "serve",
-                            "--transport",
-                            "stdio",
-                            "--config",
-                            config_path_posix,
-                        ],
-                    }
-                }
-            }
-        return json.dumps(cfg, indent=2)
+        args = ["-m", "token_context_mcp", "serve", "--transport", "stdio", "--config", config_path_posix, *spec["flags"]]
+        if spec["style"] == "codex_toml":
+            rendered = ", ".join(json.dumps(a) for a in args)
+            return f'[mcp_servers.token-context]\ncommand = {json.dumps(python_exec)}\nargs = [{rendered}]\n'
+        entry: dict[str, Any] = {"command": python_exec, "args": args}
+        if spec["style"] == "servers":
+            return json.dumps({"servers": {"token-context": {"type": "stdio", **entry}}}, indent=2)
+        return json.dumps({"mcpServers": {"token-context": entry}}, indent=2)
 
 
 class CacheManager:
@@ -487,36 +582,55 @@ class CacheManager:
             "memory_db_size_mb": memory_size_mb,
         }
 
-    def vacuum_database(self, repo_id: str | None = None) -> int:
-        """Run VACUUM on database(s) and return reclaimed bytes."""
-        idx_dir = index_directory(self.config_path)
-        reclaimed = 0
+    # M8.9: only databases that are written in place may be vacuumed. Index snapshots are immutable (VACUUM would
+    # change their bytes and break artifact_sha256), so they are not even offered.
+    VACUUMABLE_DBS = ("memory.sqlite", "governance.sqlite", "audit.sqlite")
+    VACUUM_RETRIES = 3
+    VACUUM_BACKOFF_SECONDS = 0.5
 
-        targets: list[Path] = []
-        if repo_id:
-            targets.append(database_path(idx_dir, repo_id))
-        else:
-            if idx_dir.exists():
-                targets.extend(idx_dir.glob("*.sqlite"))
-            mem_db = self.config_path.parent / "memory.sqlite"
-            if mem_db.exists():
-                targets.append(mem_db)
+    def vacuum_targets(self) -> list[dict[str, Any]]:
+        """The databases the user may pick from: name, path, size in bytes (existing ones only)."""
+        found: list[dict[str, Any]] = []
+        for name in self.VACUUMABLE_DBS:
+            path = self.config_path.parent / name
+            if path.is_file():
+                found.append({"name": name, "path": str(path), "size_bytes": path.stat().st_size})
+        return found
 
-        for db_path in targets:
-            if not db_path.exists():
-                continue
-            before = db_path.stat().st_size
+    def vacuum_one(self, name: str) -> dict[str, Any]:
+        """VACUUM one mutable database; retries ``database is locked`` three times (0.5 s, 1 s, 1.5 s backoff).
+
+        Returns ``{"name", "status": "ok"|"error", "reclaimed_bytes", "error"}``; never raises for a database error.
+        """
+        if name not in self.VACUUMABLE_DBS:
+            raise ValueError(f"{name!r} cannot be vacuumed: only {', '.join(self.VACUUMABLE_DBS)} are mutable databases")
+        path = self.config_path.parent / name
+        if not path.is_file():
+            return {"name": name, "status": "error", "reclaimed_bytes": 0, "error": "database does not exist"}
+        before = path.stat().st_size
+        last_error = ""
+        for attempt in range(self.VACUUM_RETRIES + 1):
             try:
-                con = sqlite3.connect(str(db_path))
-                con.execute("VACUUM;")
-                con.close()
-                after = db_path.stat().st_size
-                if before > after:
-                    reclaimed += (before - after)
-            except Exception as e:
-                logger.debug("Failed vacuuming %s: %s", db_path, e)
+                con = sqlite3.connect(str(path), timeout=0.2)
+                try:
+                    con.execute("VACUUM;")
+                finally:
+                    con.close()
+                after = path.stat().st_size
+                return {"name": name, "status": "ok", "reclaimed_bytes": max(0, before - after), "error": ""}
+            except sqlite3.OperationalError as exc:
+                last_error = str(exc)
+                if "locked" not in last_error.lower() or attempt == self.VACUUM_RETRIES:
+                    break
+                time.sleep(self.VACUUM_BACKOFF_SECONDS * (attempt + 1))
+            except Exception as exc:  # noqa: BLE001 - reported per database
+                last_error = str(exc)
+                break
+        logger.warning("VACUUM of %s failed: %s", name, last_error)
+        return {"name": name, "status": "error", "reclaimed_bytes": 0, "error": last_error}
 
-        return reclaimed
+    def vacuum_databases(self, names: list[str]) -> list[dict[str, Any]]:
+        return [self.vacuum_one(name) for name in names]
 
     def clean_stale_snapshots(self) -> list[str]:
         """Remove SQLite files for repos no longer registered in repos.toml."""
@@ -682,6 +796,18 @@ class AgentSecurityController(QObject):
         return self._access_control.emergency_reason
 
     def refresh_data(self) -> None:
+        """Synchronous refresh (collect + apply). The GUI uses collect_snapshot() in a worker instead."""
+        self.apply_snapshot(self.collect_snapshot())
+
+    def apply_snapshot(self, snapshot: dict[str, Any]) -> None:
+        """UI-thread half of a refresh: only emits the signals the tab renders from."""
+        self.agents_updated.emit(snapshot["agents"])
+        self.locks_updated.emit(snapshot["locks"])
+        self.audit_logs_updated.emit(snapshot["logs"])
+        self.emergency_state_changed.emit(snapshot["halted"], snapshot["halt_reason"])
+
+    def collect_snapshot(self) -> dict[str, Any]:
+        """Worker-side half of a refresh: reads governance, memory and audit databases, touches no widget."""
         from token_context_mcp.security.governance_store import merge_seen_agents
 
         agents = self._access_control.list_agents()
@@ -704,10 +830,13 @@ class AgentSecurityController(QObject):
                 traces.append({"agent_id": srv_id, "role": "server_node"})
 
         merged = merge_seen_agents(agents, traces)
-        self.agents_updated.emit(merged)
-        self.locks_updated.emit(locks)
-        self.audit_logs_updated.emit(logs)
-        self.emergency_state_changed.emit(self._access_control.is_emergency_halted, self._access_control.emergency_reason)
+        return {
+            "agents": merged,
+            "locks": locks,
+            "logs": logs,
+            "halted": self._access_control.is_emergency_halted,
+            "halt_reason": self._access_control.emergency_reason,
+        }
 
 
     def pause_agent(self, agent_id: str, reason: str = "Paused by user via Desktop GUI") -> None:

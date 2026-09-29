@@ -21,6 +21,12 @@ from token_context_mcp.gui.widgets.dashboard_tab import DashboardTab
 from token_context_mcp.gui.widgets.repositories_tab import RepositoriesTab
 from token_context_mcp.gui.widgets.settings_tab import SettingsTab
 from token_context_mcp.gui.widgets.tasks_tab import TasksTab
+from token_context_mcp.gui.workers import wait_idle
+
+
+def sync_render(tab):
+    """Run a tab's worker half and its UI half inline (tests only)."""
+    tab.render(tab.fetch())
 
 
 @pytest.fixture(scope="session")
@@ -54,7 +60,9 @@ def test_main_window_instantiation(qapp, temp_gui_env):
     for idx in range(6):
         window._on_nav_clicked(idx)
         assert window.stack.currentIndex() == idx
+        wait_idle()
 
+    wait_idle()
     window.close()
 
 
@@ -67,20 +75,24 @@ def test_individual_widgets(qapp, temp_gui_env):
 
     # Dashboard tab
     dashboard = DashboardTab(repo_mgr, server_ctrl)
-    dashboard.refresh_stats()
+    sync_render(dashboard)
     assert dashboard.stat_repos.text() == "1"
 
     # Repositories tab
     repos_tab = RepositoriesTab(repo_mgr)
-    assert repos_tab.table.rowCount() == 1
+    sync_render(repos_tab)
+    assert repos_tab.model.rowCount() == 1
+    assert repos_tab.model.row_at(0)["status"] == "NOT_INDEXED"
 
     # Tasks tab
     tasks_tab = TasksTab(repo_mgr)
     tasks_tab.append_log("Test log entry")
+    tasks_tab.flush_logs()
     assert "Test log entry" in tasks_tab.console.toPlainText()
 
     # Cache tab
     cache_tab = CacheTab(repo_mgr)
+    sync_render(cache_tab)
     assert cache_tab.table is not None
 
     # Agents tab
@@ -102,6 +114,7 @@ def test_individual_widgets(qapp, temp_gui_env):
 
     # Settings tab
     settings_tab = SettingsTab(repo_mgr)
+    sync_render(settings_tab)
     assert settings_tab.spin_tokens.value() > 0
 
     security_ctrl.close()

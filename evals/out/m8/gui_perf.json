@@ -1,0 +1,55 @@
+{
+  "repos": 50,
+  "synthetic_files": 1000,
+  "platform": "linux",
+  "index_all_seconds": 6.6,
+  "first_paint_ms": 398.7,
+  "tab_switch_ms": {
+    "dashboard": {
+      "median": 90.0,
+      "max": 118.0
+    },
+    "repositories": {
+      "median": 126.2,
+      "max": 127.0
+    },
+    "tasks": {
+      "median": 27.4,
+      "max": 30.7
+    },
+    "cache": {
+      "median": 38.4,
+      "max": 41.4
+    },
+    "agents": {
+      "median": 25.0,
+      "max": 30.4
+    },
+    "settings": {
+      "median": 29.8,
+      "max": 37.0
+    }
+  },
+  "tab_click_blocking_ms": {
+    "dashboard": 0.97,
+    "repositories": 1.51,
+    "tasks": 0.86,
+    "cache": 1.06,
+    "agents": 0.89,
+    "settings": 1.22
+  },
+  "tab_switch_all_under_100ms": false,
+  "stalls_during_tab_switching": {
+    "count": 0,
+    "max_ms": 0
+  },
+  "repositories_rows": 50,
+  "synthetic_index_seconds": 7.0,
+  "synthetic_index_finished": true,
+  "stalls_during_indexing": {
+    "count": 0,
+    "max_ms": 0,
+    "all_ms": []
+  },
+  "pending_tasks_at_end": 0
+}

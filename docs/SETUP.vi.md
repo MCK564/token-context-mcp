@@ -123,15 +123,16 @@ Ngoài các lệnh dòng lệnh (CLI), repo cung cấp ứng dụng Desktop GUI 
   Tạo ra bộ chạy độc lập tại `dist\desktop\TokenContextDesktop\TokenContextDesktop.exe` có thể chạy trên bất kỳ máy Windows nào mà không cần cài Python.
 
 **Các tính năng trên 5 Tab của GUI:**
-1. **📊 Dashboard:** Theo dõi CPU/RAM thời gian thực, phát hiện GPU CUDA / Ollama / CPU Fallback, Start/Stop/Restart MCP Server, 1-click Copy MCP Configuration cho Claude Desktop, VS Code, Cursor, Antigravity.
-2. **📁 Repositories:** Quản lý danh sách repo, độ tươi, tỷ lệ mơ hồ, nút Add Repo (kèm Folder Picker), Re-index và thanh tiến trình bóc tách AST.
+1. **📊 Dashboard:** CPU/RAM thời gian thực, phát hiện phần cứng AI (thăm dò trên luồng monitor, không bao giờ trên luồng UI), danh sách **MCP server đang chạy** (server id, PID, client, output mode, schema profile, last seen; làm mới mỗi 5 giây từ bảng heartbeat) và "Copy client config" cho `claude`, `claude-code`, `vscode`, `antigravity`, `codex` kèm cờ theo `docs/CLIENT_MATRIX.md`. GUI **không** bật/tắt server: server stdio thuộc về client đã spawn nó.
+2. **📁 Repositories:** Bảng (`QTableView`) gồm root, huy hiệu trạng thái trung thực — `FRESH`, `STALE` (file được index đã đổi/thêm), `DOCS_CHANGED` (chỉ file không được index đổi; index vẫn đúng), `SCHEMA_OUTDATED`, `NOT_INDEXED` — số symbol, tỷ lệ cạnh mơ hồ, dung lượng DB; thao tác Add, Re-index, **Re-index all** (`index --all`), Cancel, Remove qua toolbar/menu chuột phải.
 3. **⚡ Tasks & Graph:** Log console thời gian thực, biểu đồ phân bố ngôn ngữ, tỷ lệ giải quyết cạnh và danh sách Top Entry Points.
-4. **💾 Cache & DB:** Thống kê dung lượng SQLite, nút Clean Stale Snapshots, nút VACUUM tối ưu đĩa, và nút Purge Cache.
+4. **💾 Cache & DB:** Thống kê dung lượng SQLite; VACUUM các DB có thể ghi mà bạn tích chọn (`memory.sqlite`, `governance.sqlite`, `audit.sqlite` — không bao giờ đụng snapshot index; DB bị khoá được thử lại 3 lần, báo kết quả từng DB); "Clean old snapshots" (`gc_snapshots`) và Purge Cache.
 5. **⚙️ Settings:** Sửa trực tiếp cấu hình `repos.toml` (`max_result_tokens`, `enable_extensions` bật 20 tools).
 
 **Cơ chế Tối ưu hóa RAM & Chuyển Tab Bất đồng bộ (Async Waiting):**
-- **Tránh nghẽn RAM & Đơ UI:** Loại bỏ hoàn toàn việc quét đĩa và hash lại toàn bộ file trên luồng giao diện chính. Danh sách repo được nạp từ bộ nhớ đệm `manifest.json` và câu lệnh truy vấn SQLite chỉ mục trực tiếp trong < 1ms thay vì deserializing hàng chục ngàn object dataclass vào RAM.
-- **Ưu tiên luồng tác vụ nặng:** Luồng `IndexWorker` bóc tách AST chạy ở chế độ `LowPriority` và tự động kích hoạt `gc.collect()` khi hoàn tất để giải phóng bộ nhớ ngay lập tức cho hệ điều hành.
+- **Không gì chặn vòng lặp sự kiện (M8):** mỗi tab có `fetch()` thuần (chạy trên pool 4 luồng qua `gui/workers.py::run_async`, không đụng widget, không ghi) và `render()` (luồng UI). Trạng thái repo dùng `RetrievalService.status` rẻ (tổng hợp từ manifest), không quét bảng hay hash file.
+- **Index trong tiến trình con:** Re-index chạy `python -m token_context_mcp index --progress-format ndjson` bằng `QProcess`; UI cập nhật tối đa 10 lần/giây; **Cancel giết cả cây tiến trình** (gồm worker của pool parse). Console log giữ tối đa 5.000 dòng và ghi mỗi 100 ms.
+- **Giám sát đơ UI:** `TOKEN_CONTEXT_GUI_DEBUG=1` ghi mọi lần UI đứng >100 ms cùng stack các luồng vào `%TEMP%\token-context-gui-stalls.log`; `uv run python evals/gui_perf.py` đo chuyển tab và số lần đơ khi index (chỉ báo cáo).
 - **Thanh trạng thái tác vụ toàn cục (TaskStatusBanner):** Khi đang chạy tác vụ nặng (như Re-index repo), thanh trạng thái phía trên hiển thị tiến trình thời gian thực (`⚡ Active Task: Indexing [XX%] - <bước>`). Người dùng có thể chuyển đổi mượt mà giữa các tab mà không bị khóa (non-blocking).
 - **Lớp phủ chờ tải dữ liệu (LoadingOverlay):** Khi thực hiện các tác vụ làm mới thủ công, ứng dụng hiển thị animation xoay nhẹ nhàng và ẩn đi ngay khi dữ liệu đã sẵn sàng.
 

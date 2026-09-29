@@ -107,10 +107,14 @@ class SettingsTab(QWidget):
         layout.addWidget(card)
 
         layout.addStretch()
-        self.load_settings()
+        self.silent = False
+        self.last_message = ""
 
-    def load_settings(self) -> None:
-        cfg = self.repo_mgr.get_server_config()
+    def fetch(self) -> dict:
+        """Worker-thread half: reads repos.toml."""
+        return self.repo_mgr.get_server_config()
+
+    def render(self, cfg: dict) -> None:
         self.spin_tokens.setValue(cfg.get("max_result_tokens", 4096))
         self.spin_request_bytes.setValue(cfg.get("max_request_bytes", 65536))
         self.spin_nodes.setValue(cfg.get("max_graph_nodes", 200))
@@ -128,6 +132,13 @@ class SettingsTab(QWidget):
 
         self.cb_extensions.setChecked(bool(cfg.get("enable_extensions", False)))
 
+    def load_settings(self) -> None:
+        from token_context_mcp.gui.workers import run_async
+
+        run_async(self.fetch, on_ok=self.render, on_err=lambda _m: None)
+
+    refresh = load_settings
+
     def _save_settings(self) -> None:
         new_settings = {
             "max_result_tokens": self.spin_tokens.value(),
@@ -138,8 +149,20 @@ class SettingsTab(QWidget):
             "default_view": self.combo_view.currentText(),
             "enable_extensions": self.cb_extensions.isChecked(),
         }
-        try:
-            self.repo_mgr.update_server_config(new_settings)
-            QMessageBox.information(self, "Settings Saved", "Server configuration updated successfully in repos.toml!")
-        except Exception as e:
-            QMessageBox.critical(self, "Save Error", f"Failed saving configuration: {e}")
+        from token_context_mcp.gui.workers import run_async
+
+        self.save_btn.setEnabled(False)
+
+        def _ok(_res) -> None:
+            self.save_btn.setEnabled(True)
+            self.last_message = "Server configuration updated successfully in repos.toml!"
+            if not self.silent:
+                QMessageBox.information(self, "Settings Saved", self.last_message)
+
+        def _err(msg: str) -> None:
+            self.save_btn.setEnabled(True)
+            self.last_message = f"Failed saving configuration: {msg}"
+            if not self.silent:
+                QMessageBox.critical(self, "Save Error", self.last_message)
+
+        run_async(self.repo_mgr.update_server_config, new_settings, on_ok=_ok, on_err=_err)
