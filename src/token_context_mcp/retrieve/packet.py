@@ -27,15 +27,16 @@ from typing import Any
 
 from token_context_mcp.retrieve.token_budget import estimate_tokens
 
-# Tunable on the dev split only (M6.2 step 6).  Final values are recorded in CHANGELOG.md.
+# Tuned on the 8 dev tasks only (M6.2 step 6, grid in evals/out/m6/packet_tuning_dev_grid.json) and frozen
+# by the "freeze packet constants" commit; the held-out split is measured once after that commit.
 DEFAULT_SHARES: dict[str, float] = {
-    "target": 0.45,
-    "callees": 0.20,
-    "callers": 0.12,
-    "more": 0.10,
-    "context": 0.13,
+    "target": 0.30,
+    "callees": 0.25,
+    "callers": 0.25,
+    "more": 0.08,
+    "context": 0.12,
 }
-CALLERS_K = 5
+CALLERS_K = 15
 SECTION_ORDER: tuple[str, ...] = ("target", "callees", "callers", "more", "context")
 
 # Shared edge filter (packet, reach_ceiling and every M6.4 metric).
