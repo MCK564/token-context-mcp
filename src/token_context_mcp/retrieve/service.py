@@ -16,6 +16,7 @@ from token_context_mcp.config import (
     AppConfig,
     get_repository,
     index_directory,
+    load_config,
 )
 from token_context_mcp.constants import (
     DEFAULT_MAX_GRAPH_NODES,
