@@ -36,6 +36,7 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     # methodology once evals/out/m6/edge_eval_attr_param.json has enough samples.
     "attr_param": 0.90,
     "exact_receiver_type": 0.95,
+    "field_type": 0.85,
     "same_file": 0.90,
     "receiver_match": 0.90,
     "import_match": 0.90,
@@ -566,8 +567,9 @@ def _resolve_candidate(
         # DO NOT fall back to global or generic methods!
         return None, "unresolved_receiver", 0.10
 
-    # 2. Inferred receiver type from parameter type hint or single-assignment
+    # 2. Inferred receiver type from parameter type hint, single-assignment, or class field
     if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
+        rec_scope = "field_type" if receiver_type_source == "field_type" else "exact_receiver_type"
         type_matches = [
             c for c in candidates
             if c.qualified_name == f"{receiver_type}.{c.name}"
@@ -575,15 +577,15 @@ def _resolve_candidate(
             or c.qualified_name.endswith(f".{receiver_type}.{c.name}")
         ]
         if len(type_matches) == 1:
-            return type_matches[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
+            return type_matches[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.90)
         if len(type_matches) > 1:
             same_file_type = [c for c in type_matches if c.path == source.path]
             if len(same_file_type) == 1:
-                return same_file_type[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
+                return same_file_type[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.90)
             ov = _try_resolve_overload(same_file_type or type_matches, source, call_arg_count)
             if ov is not None:
-                return ov
-            return None, "receiver_type_ambiguous", 0.10
+                return ov[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.85)
+            return None, f"{rec_scope}_ambiguous", 0.10
 
         # Try CHA on receiver_type
         if class_hierarchy:

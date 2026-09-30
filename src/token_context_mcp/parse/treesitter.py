@@ -1633,15 +1633,30 @@ def _extract_class_attributes(
                                 class_attr_assigned[next_class][attr_text].append((inferred_t, "attr_type"))
             elif language_name in {"java", "c_sharp"}:
                 if c_type == "field_declaration":
-                    t_node = _field(current, "type")
-                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
-                    if t_text and t_text not in _BUILTIN_RECEIVERS:
+                    var_decl = None
+                    if language_name == "c_sharp":
                         for child in getattr(current, "named_children", []):
+                            if getattr(child, "type", "") == "variable_declaration":
+                                var_decl = child
+                                break
+                    parent_decl = var_decl or current
+                    t_node = _field(parent_decl, "type")
+                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                    if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var":
+                        for child in getattr(parent_decl, "named_children", []):
                             if getattr(child, "type", "") in {"variable_declarator", "variable_declaration"}:
                                 n_node = _field(child, "name") or (child.named_children[0] if getattr(child, "named_children", None) else None)
                                 if n_node is not None:
                                     attr_text = _node_text(n_node, raw).strip()
                                     class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
+                elif language_name == "c_sharp" and c_type == "property_declaration":
+                    t_node = _field(current, "type")
+                    n_node = _field(current, "name")
+                    if t_node is not None and n_node is not None:
+                        t_text = _clean_type_name(_node_text(t_node, raw))
+                        attr_text = _node_text(n_node, raw).strip()
+                        if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var" and attr_text:
+                            class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
 
         for child in getattr(current, "named_children", []):
             visit(child, next_class, param_type_map)
@@ -1713,6 +1728,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 if (curr_cls, attr_name) in class_attr_types:
                     attr_source = class_attr_param_source.get((curr_cls, attr_name))
                     return class_attr_types[(curr_cls, attr_name)], False, None, attr_source
+        if language_name in {"c_sharp", "java"} and class_stack and class_stack[-1]:
+            curr_cls = class_stack[-1]
+            if (curr_cls, receiver) in class_attr_tainted:
+                return None, True, None, None
+            if (curr_cls, receiver) in class_attr_types:
+                return class_attr_types[(curr_cls, receiver)], False, None, "field_type"
         return None, False, None, None
 
     def visit(current: object) -> None:
