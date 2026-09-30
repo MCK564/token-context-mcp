@@ -315,3 +315,22 @@ Packet tasks (10): `sig_coverage` 0.473, `ref_coverage` 0.473, `reach_ceiling` 0
 ### Limits
 
 One repository per language, wide intervals, task sets reviewed by another Claude session but not by the owner, a simulated grep baseline (its latency is not that of `rg`), retrieval only, no end-to-end (C3) run. The four repositories differ in size, test share and coding style, so language and repository effects cannot be separated.
+
+## C3 v2 Multi-Agent Benchmark (M12.5)
+
+C3 v2 extends the end-to-end agent evaluation harness to support multi-agent benchmarking across three agent CLIs:
+1. **Claude Code (`claude`):** streaming via `claude -p --output-format stream-json --verbose` with `--strict-mcp-config`.
+2. **Gemini CLI (`gemini`):** streaming via `gemini -p ... --output-format stream-json` with `--allowed-mcp-server-names`.
+3. **Codex CLI (`codex`):** streaming via `codex exec --ephemeral --json --sandbox read-only`.
+
+### Benchmark Suite (`locate_v2`)
+- **Corpus:** 4 repositories across Python, TypeScript, JavaScript, and C#.
+- **Tasks:** 20 counted tasks (5 per repository: 1 `a_keyword`, 2 `b_hidden_dep`, 2 `c_multi_file`) + 1 uncounted probe task (`evals/c3/locate_v2_manifest.json`).
+- **Matrix:** 3 arms (`B0` native, `B1` hybrid, `B2` MCP-first) × 2 seeds = **120 runs per agent**.
+- **Deterministic arm order shuffling:** Seed `20261001` permutes arm order per `(task, seed)` to remove execution order bias.
+- **Automated Grading:** Answers are automatically parsed from fenced JSON (`files` and `symbols`) and graded against gold files (top 3 for group a/b; recall ≥ 0.50 in top 5 for group c).
+- **Harness Scripts:**
+  - `evals/run_c3.py`: single-run driver with health gate and protocol enforcement.
+  - `evals/run_c3_matrix.py`: matrix orchestrator supporting `--agent {codex,claude,gemini}`, `--suite {c3_v1,locate_v2}`, `--dry-run`, `--resume`.
+  - `evals/c3_report.py`: statistical aggregator reporting paired reductions and bootstrap CI95.
+

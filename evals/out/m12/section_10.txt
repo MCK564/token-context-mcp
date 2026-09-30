@@ -1,0 +1,151 @@
+## 10. M12.5 — C3 v2: đo agent bằng Claude Code và Gemini CLI
+
+**Hiện trạng:**
+- `evals/run_c3.py::run_command` (L64–186) chỉ đọc sự kiện của `codex exec --json`:
+  - `turn.completed` → `usage`;
+  - `item.completed` với `item.type` là `command_execution` (đếm lệnh native, cộng `aggregated_output`) hoặc `mcp_tool_call` (đếm lần gọi, cộng `result`).
+- **Luật arm:** `mcp-first` cấm lệnh native trước lần gọi MCP đầu tiên và cho tối đa 1 lệnh native; `max_mcp_calls`.
+- **Tiến trình con:** stdin là `DEVNULL`.
+- `main` (L224–294) ghi một bản ghi, trong đó `task_success` lấy từ cờ `--task-success` **chung cho cả ma trận**.
+- `evals/run_c3_matrix.py::main` (L22–115) ghi cứng `codex exec --ephemeral --json --sandbox read-only …`, chỉ nhận đúng 5 tác vụ T1–T5, và B0 tắt MCP bằng `-c mcp_servers.token-context.enabled=false`.
+- `telemetry/benchmark.py::summarize` ghép cặp theo (task_id, seed) với baseline `B0`, và kiểm `prompt_sha256` bằng nhau.
+
+**Định dạng đầu ra đã kiểm ngày 30/09** (phải probe lại lúc chạy thật, ở prompt C3):
+
+| | Claude Code | Gemini CLI |
+|---|---|---|
+| Lệnh | `claude -p --output-format stream-json --verbose …` | `gemini -p … --output-format stream-json` |
+| Khởi đầu | `{"type":"system","subtype":"init", "tools":[…], "mcp_servers":[{name,status}], "model":…}` | `{"type":"init","session_id","model"}` |
+| Gọi tool | `{"type":"assistant","message":{"content":[{"type":"tool_use","id","name","input"}]}}` | `{"type":"tool_use","tool_name","tool_id","parameters"}` |
+| Kết quả tool | `{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id","content","is_error"}]}}`; `content` là chuỗi hoặc list block `{type:"text",text}` | `{"type":"tool_result","tool_id","status":"success"\|"error","output","error"}` |
+| Văn bản | block `text` trong `assistant` | `{"type":"message","role":"assistant","content","delta"}` |
+| Kết thúc | `{"type":"result","subtype","is_error","result","num_turns","total_cost_usd","usage":{input_tokens, cache_creation_input_tokens, cache_read_input_tokens, output_tokens},"permission_denials"}` | `{"type":"result","status","stats":{total_tokens,input_tokens,output_tokens,cached,input,duration_ms,tool_calls,models}}` |
+| Tên tool MCP | `mcp__<server>__<tool>` | `mcp_<server>_<tool>` (bản mới); bản cũ `<server>__<tool>` hoặc tên trần |
+| Tool native đọc code | `Read`, `Grep`, `Glob`, `Bash`, `LS` | `read_file`, `read_many_files`, `glob`, `grep_search`, `search_file_content`, `list_directory`, `run_shell_command` |
+
+**Các bước** (không đụng `src/`; chỉ `evals/` và `tests/`):
+- **M12.5.1 `evals/c3_adapters.py`:**
+  - Interface `AgentAdapter`:
+    - `build(arm, prompt_text, workdir, mcp) -> (argv, stdin_text, env)`;
+    - `feed(obj) -> list[NormalizedEvent]`;
+    - `final() -> FinalRecord`.
+  - Sự kiện chuẩn hoá:
+    - `ToolCall(id, name, category ∈ {mcp, native_read, neutral, forbidden}, input)`;
+    - `ToolResult(id, bytes, is_error)`;
+    - `AssistantText(text)`;
+    - `Usage(input_total, input_uncached, cached, output, cost_usd|None, raw)`;
+    - `Init(model, tools, mcp_servers)`.
+  - Ba adapter:
+    - `CodexAdapter`: tách từ logic hiện tại. Hành vi cũ giữ nguyên; test cũ phải pass không sửa.
+    - `ClaudeAdapter`: `input_total = input_tokens + cache_creation_input_tokens + cache_read_input_tokens`, `cached = cache_read_input_tokens`.
+    - `GeminiAdapter`: `input_total = stats.input_tokens`, `cached = stats.cached`. Kiểm `input_tokens == input + cached`; không bằng thì ghi `usage_semantics_warning`.
+  - **Phân loại tool:**
+    - MCP nếu tên bắt đầu bằng `mcp__<server>__`, `mcp_<server>_`, hoặc `<server>__`, hoặc tên trần nằm trong danh sách tool của token-context (đọc từ catalog của repo);
+    - `forbidden`: sửa file, web, subagent (`Edit`, `Write`, `NotebookEdit`, `WebFetch`, `WebSearch`, `Agent`, `Task`, `write_file`, `replace`, `web_fetch`, `google_web_search`);
+    - `neutral`: ví dụ `TodoWrite`, `write_todos`;
+    - tên không nằm trong danh sách nào thì ghi `unknown_tool` và coi là `native_read` (bảo thủ).
+  - **Đếm byte:** byte UTF-8 của nội dung text trong kết quả tool, cùng cách đo với Codex (`len(json.dumps(result))` cho MCP của Codex giữ nguyên để tương thích).
+- **M12.5.2 Luật arm tổng quát** trong `run_c3.py`:
+  - "lệnh native" đổi thành **lượt đọc native** (`native_read`);
+  - B2 (`mcp-first`): lượt đầu tiên thuộc `mcp` hoặc `native_read` phải là `mcp`, tổng `native_read` ≤ 1;
+  - B1: `mcp` ≤ 12;
+  - B0: `mcp` = 0 (có thì là lỗi cấu hình: huỷ lượt, `infra_failure`);
+  - `forbidden` ở mọi arm → vi phạm.
+  - **Vi phạm:** dừng tiến trình (cả cây process), ghi bản ghi với `protocol_violation`, `task_success=false`, `usage_complete=false` nếu không có sự kiện kết thúc. **Không** loại khỏi mẫu.
+  - Giữ nguyên hành vi cũ khi `--agent codex`.
+- **M12.5.3 Health gate:**
+  - Claude: `init.mcp_servers` phải có server benchmark ở trạng thái `connected` (B1/B2).
+  - Gemini: lần gọi MCP đầu tiên thành công, hoặc tool MCP có trong danh sách tool.
+  - Lỗi hạ tầng (không kết nối được MCP, lỗi xác thực, rate limit hết lần thử) → `infra_failure`, không tính vào mẫu; harness thử lại 1 lần sau 60 s.
+- **M12.5.4 Bộ tác vụ `locate_v2`:**
+  - `evals/c3_locate_suite.py` sinh danh sách tác vụ từ các file `heldout_<name>.json`. Chọn tất định, seed `20261001`: mỗi repo 1 `a_keyword`, 2 `b_hidden_dep`, 2 `c_multi_file`, không lấy tác vụ `js_assigned_method`.
+  - Ghi `evals/c3/locate_v2_manifest.json` gồm id, repo, query, gold, `task_prompt_sha256`, `arm_preamble_sha256`.
+  - Manifest có thêm 1 tác vụ `probe` với `counted: false`, trên repo Python held-out. Câu hỏi: `Where does this project parse its command-line arguments or configuration? Give the main file.` Không có gold. `--dry-run` và `c3_report` bỏ qua tác vụ `counted: false`, trừ khi gọi `--only-tasks probe`.
+  - Commit manifest **trước** mọi lần chạy thật.
+  - **Prompt tác vụ** (giống hệt ở mọi arm; chép nguyên văn, chỉ thay `{…}`):
+
+    ````
+    You are working in a local checkout of the open-source repository "{repo_name}" ({language}). The current directory is its root. Do not create, modify or delete any file.
+
+    Question: {query}
+
+    Find where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:
+    ```json
+    {"files": ["<repo-relative path>", "..."], "symbols": [{"path": "<repo-relative path>", "name": "<Class.method or function name>"}]}
+    ```
+    List at most 5 files, most likely first, and at most 10 symbols.
+    ````
+
+  - **Đoạn mở đầu theo arm** (chép nguyên văn; nối trước prompt tác vụ, cách một dòng trống):
+    - B0: `Use your built-in tools to read and search the code.`
+    - B1: `You can use your built-in tools and the MCP server "tcbench" (repo_id "{repo_id}"). Use at most 12 tcbench calls.`
+    - B2: `Start with the MCP server "tcbench" (repo_id "{repo_id}"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls.`
+  - `prompt_sha256` trong bản ghi = sha256 của **prompt tác vụ**, để `summarize` ghép cặp được. Sha của đoạn mở đầu ghi ở trường riêng.
+- **M12.5.5 Chấm tự động (`evals/c3_grade.py`):**
+  - **Lấy câu trả lời:** khối ```` ```json ```` cuối cùng trong văn bản trả lời cuối. Claude: `result.result`; Gemini: nối các `message` của assistant.
+  - **Chuẩn hoá đường dẫn:** bỏ tiền tố thư mục làm việc tuyệt đối, bỏ `./`, đổi `\` thành `/`, so sánh không phân biệt hoa thường.
+  - **Điều kiện `task_success`:**
+    - nhóm a/b: có ít nhất 1 file gold trong 3 file đầu;
+    - nhóm c: recall file gold trong 5 file đầu ≥ 0,5;
+    - không đọc được JSON: thất bại, ghi `answer_parse_error`.
+  - Symbol recall chỉ để báo cáo.
+  - `run_c3.py` nhận `--grade-with <manifest> --task-id` để ghi `task_success` theo **từng lượt**. Cờ `--task-success` cũ chỉ còn dùng cho `--agent codex` với bộ T1–T5.
+  - `c3_grade.py` cũng chạy độc lập: `--manifest … --runs-dir … --agent … --output …`, đọc lại toàn bộ log thô bằng adapter rồi chấm lại. Kết quả phải giống bản ghi lúc chạy, nếu adapter không đổi.
+- **M12.5.6 `run_c3_matrix.py`:** thêm
+  - `--agent {codex,claude,gemini}`, `--suite {c3_v1,locate_v2}`, `--manifest`;
+  - `--run-config <file.json>`: mọi tham số phức tạp nằm trong file này, **không** truyền JSON qua argv (PowerShell 5.1 làm hỏng dấu `"` lồng nhau khi gọi chương trình native). File gồm:
+    - `agent_command`: mảng lệnh, ví dụ `["C:\\…\\claude.exe"]` hoặc `["node","C:\\…\\gemini-cli\\dist\\index.js"]`;
+    - `mcp_server_command`: mảng lệnh chạy server benchmark;
+    - `extra_args` theo arm;
+    - `gemini_settings`, `model`, `timeout_s`, `max_turns`, `max_budget_usd`;
+  - `--workdir-root`, `--seeds`, `--arms`, `--resume`, `--dry-run`, `--max-runs`, `--only-repo`, `--only-tasks`.
+  - **Quy tắc bắt buộc:**
+    - Prompt luôn đưa qua **stdin**, không đưa qua argv.
+    - Tiến trình con chạy không qua shell. Env của tiến trình con bỏ các biến đánh dấu phiên agent cha (ví dụ `CLAUDECODE`), để tránh lỗi "phiên lồng nhau".
+    - `--resume` bỏ qua lượt đã có bản ghi hợp lệ trong JSONL output.
+    - Mỗi lượt có giới hạn thời gian (`timeout_s`, mặc định 900). Hết giờ, chạm `max_turns` hoặc `max_budget_usd` đều ghi `limit_exceeded` và tính là thất bại.
+    - Thứ tự arm trong mỗi cặp (tác vụ, lần chạy) được xáo tất định (seed `20261001`), để độ trôi theo thời gian (rate limit, cache của nhà cung cấp) không dồn vào một arm. Thứ tự này ghi vào manifest lúc dry-run.
+  - **Lệnh cho Claude** (cờ sẽ kiểm bằng probe ở prompt C3):
+    - `-p --output-format stream-json --verbose --no-session-persistence --strict-mcp-config --mcp-config <file> --tools "Read,Grep,Glob" --allowedTools "Read,Grep,Glob" --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch,Agent,Task,Bash" --permission-mode dontAsk --disable-slash-commands`. B1/B2 thêm `mcp__tcbench` vào `--allowedTools`.
+    - Thêm `--restricted` nếu CLI có (≥ 2.1.248). Nếu không có thì thử `--safe-mode`, hoặc `--bare` khi có `ANTHROPIC_API_KEY`.
+    - B0 dùng file MCP config rỗng `{"mcpServers":{}}`.
+    - Có `--model` thì truyền.
+  - **Lệnh cho Gemini:**
+    - `-p " " --output-format stream-json --approval-mode <plan|default>`, prompt qua stdin.
+    - B1/B2: `--allowed-mcp-server-names tcbench`. B0: `--allowed-mcp-server-names __none__`.
+    - Server `tcbench` khai trong settings của Gemini với `"trust": true`. Cách đưa settings (file dự án, file người dùng, hay biến môi trường) do prompt C3 quyết sau probe; harness nhận đường dẫn qua khoá `gemini_settings` trong run-config và **không tự sửa** `~/.gemini/settings.json`.
+- **M12.5.7 Báo cáo C3 (`evals/c3_report.py`):**
+  - Input: `--graded <file…> --output-dir …` (các file do `c3_grade.py` sinh).
+  - Gọi `telemetry/benchmark.summarize()` riêng cho từng agent (lọc theo trường `agent`); không sửa `src/`.
+  - Bổ sung:
+    - tỉ lệ thành công theo arm và nhóm;
+    - bootstrap CI của chênh lệch thành công theo cặp;
+    - tỉ lệ vi phạm;
+    - `infra_failure`;
+    - token không cache;
+    - chi phí (Claude);
+    - số tool call theo loại.
+  - Ghi `evals/out/c3/<agent>_summary.json` và bảng markdown.
+- **M12.5.8 Test** (`tests/test_c3_v2.py`), dùng fixture JSONL **tổng hợp** theo đúng bảng định dạng ở trên:
+  - mỗi adapter: đếm đúng MCP/native, byte, usage;
+  - luật B2 bị vi phạm theo 3 cách;
+  - B0 có MCP → `infra_failure`;
+  - `forbidden`;
+  - chấm tự động: JSON hợp lệ, JSON hỏng, đường dẫn Windows, nhóm c;
+  - `--resume`;
+  - prompt qua stdin;
+  - `--dry-run` của `locate_v2` liệt kê đúng 20 tác vụ × arm × seed.
+
+  Fixture luồng **thật** sẽ thêm ở prompt C3 sau khi probe.
+- **M12.5.9 Tài liệu:** `evals/c3_protocol_v2.md` gồm thiết kế, luật arm, chấm, KPI chốt trước (bảng ở M12.6.4 và KPI C3 trong prompt C3), cách chạy trên Windows. Cập nhật `docs/BENCHMARK.md` phần "C3 v2 (chưa chạy)".
+
+**Nghiệm thu M12.5**
+
+| Chỉ số | Ngưỡng | Loại |
+|---|---|---|
+| Test cũ của `run_c3`/`run_c3_matrix` | pass không sửa | cứng |
+| `tests/test_c3_v2.py` | pass | cứng |
+| `run_c3_matrix --suite locate_v2 --agent claude --dry-run` và `--agent gemini --dry-run` | đủ 20 × 3 × 2 = 120 lượt mỗi agent; prompt tác vụ cùng sha giữa các arm | cứng |
+| `git diff m12-base -- src` do M12.5 gây ra | rỗng | cứng |
+
+---
