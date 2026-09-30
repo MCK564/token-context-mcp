@@ -1228,9 +1228,10 @@ def _analyze_function_scope(
                     if branch:
                         assigned_in_branch.add(v)
         elif language_name in {"java", "c_sharp"}:
-            if node_type == "local_variable_declaration":
+            if node_type in {"local_variable_declaration", "variable_declaration"}:
                 t_node = _field(node, "type")
-                t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                t_raw = _node_text(t_node, raw) if t_node else ""
+                t_text = _clean_type_name(t_raw) if t_raw and t_raw != "var" else ""
                 for child in getattr(node, "named_children", []):
                     if getattr(child, "type", "") == "variable_declarator":
                         n_node = _field(child, "name")
@@ -1241,6 +1242,28 @@ def _analyze_function_scope(
                                 assigned_in_branch.add(v)
                             if t_text:
                                 annotated_types[v] = t_text
+                            named_ch = getattr(child, "named_children", [])
+                            val_node = named_ch[1] if len(named_ch) > 1 else None
+                            if val_node is not None:
+                                if val_node.type == "object_creation_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "cast_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "invocation_expression":
+                                    expr = _field(val_node, "expression")
+                                    if expr is not None and expr.type == "identifier":
+                                        fn_name = _node_text(expr, raw).strip()
+                                        fn_call_assigns[v] = fn_name
+                                        if fn_return_types and fn_name in fn_return_types:
+                                            ctor_types[v] = fn_return_types[fn_name]
             elif node_type == "assignment_expression":
                 left = _field(node, "left")
                 if left is not None and getattr(left, "type", "") == "identifier":
