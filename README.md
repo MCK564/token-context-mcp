@@ -274,6 +274,44 @@ This is a local MCP `stdio` server. It works with a client that can start local 
 
 Recommended `serve` flags per client and the real check results (only one client is recorded so far) are in [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md). A client that reads only the text content should use `--output-mode text`; Gemini-family clients and Antigravity should use `--schema-profile gemini_safe`. Restart the client session after changing flags.
 
+### Configuring Output Mode (`output_mode`)
+
+MCP tool payloads can be delivered in two primary formats:
+
+| Mode | Format | When to use |
+| --- | --- | --- |
+| `text` | Formatted JSON inside `TextContent` | **Recommended for Google Gemini & Antigravity IDE**, or any MCP client environment that summarizes or collapses array fields into scalar counts (e.g. `symbols=38 items`). Ensures the model receives the complete payload and exact source lines. |
+| `structured` | Structured JSON inside `structuredContent` | **Recommended for Claude Code, Codex, and Cursor**, which natively parse JSON tool results. |
+| `auto` | Dynamic based on client name | Picks `structured` for known structured-compatible clients (e.g. `claude-code`), and defaults to `text` for others. |
+| `legacy_dual` | Dual `TextContent` + `structuredContent` | Backward compatibility with older clients requiring both representations. |
+
+**How to configure:**
+
+1. **Via Desktop GUI:** Open `token-context-gui`, navigate to the **Settings** tab, select your preferred **Output Mode** from the dropdown, and click **Save Server Settings**.
+2. **Via `repos.toml`:** Set `output_mode` under `[server]`:
+   ```toml
+   [server]
+   output_mode = "text"   # or "structured", "auto", "legacy_dual"
+   ```
+3. **Via MCP Client Command-Line Argument:** Add `--output-mode text` to the MCP `serve` command in your client configuration (e.g., Antigravity `mcp_config.json`):
+   ```json
+   {
+     "mcpServers": {
+       "token-context": {
+         "command": "uv",
+         "args": [
+           "run",
+           "--directory", "D:\\AI\\token-context-mcp",
+           "token-context",
+           "serve",
+           "--output-mode", "text",
+           "--schema-profile", "gemini_safe"
+         ]
+       }
+     }
+   }
+   ```
+
 For an editor connected to another host over SSH, see [Linux, macOS and VS Code Remote-SSH](#linux-macos-and-vs-code-remote-ssh): the configuration has to live on the host that holds the source.
 
 Cloud/web agents cannot start this server on a local machine. They need a separately deployed, authenticated HTTP MCP service; this project intentionally ships only local `stdio` transport.
