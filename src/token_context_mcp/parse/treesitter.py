@@ -58,6 +58,7 @@ class ParseResult:
     warnings: list[str]
     calls: list[CallRecord] = field(default_factory=list)
     inheritance: dict[str, list[str]] = field(default_factory=dict)
+    namespaces: list[str] = field(default_factory=list)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -139,6 +140,9 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
     calls = extract_calls(tree.root_node, raw, language_name)
     inheritance = _extract_inheritance(tree.root_node, raw, language_name)
+    namespaces: list[str] = []
+    if language_name == "c_sharp":
+        namespaces = _extract_csharp_namespaces(tree.root_node, raw)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
@@ -151,6 +155,7 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
         warnings=warnings,
         calls=calls,
         inheritance=inheritance,
+        namespaces=namespaces,
     )
 
 
@@ -1000,6 +1005,28 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     except (SyntaxError, ValueError):
         return value[1:-1]
     return result if isinstance(result, str) else None
+
+
+def _extract_csharp_namespaces(root: object, raw: bytes) -> list[str]:
+    """Extract C# block-scoped and file-scoped namespace declarations (E3)."""
+    namespaces: list[str] = []
+
+    def visit(node: object, prefix: str = "") -> None:
+        c_type = getattr(node, "type", "")
+        if c_type in {"namespace_declaration", "file_scoped_namespace_declaration"}:
+            name_node = _field(node, "name")
+            if name_node is not None:
+                ns_name = _node_text(name_node, raw)
+                full_ns = f"{prefix}.{ns_name}" if prefix else ns_name
+                namespaces.append(full_ns)
+                for child in getattr(node, "named_children", []):
+                    visit(child, full_ns)
+                return
+        for child in getattr(node, "named_children", []):
+            visit(child, prefix)
+
+    visit(root)
+    return namespaces
 
 
 _CONTAINER_TYPES = {

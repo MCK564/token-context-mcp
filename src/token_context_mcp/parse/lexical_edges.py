@@ -41,9 +41,17 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     "import_match": 0.90,
     "import_module_match": 0.75,
     "same_package": 0.75,
+    "same_namespace": 0.80,
+    "namespace_match": 0.80,
     "global": 0.40,
     "virtual_stub": 0.90,
 }
+
+
+def _namespace_ancestors(ns: str) -> list[str]:
+    """Return self and enclosing namespace prefixes for C# (e.g. 'A.B.C' -> ['A.B.C', 'A.B', 'A'])."""
+    parts = ns.split(".")
+    return [".".join(parts[:i]) for i in range(len(parts), 0, -1)]
 
 
 def _count_params(sig: str | None) -> int | None:
@@ -159,6 +167,7 @@ def build_lexical_edges(
     imports_by_path: dict[str, list[str]] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
     external_stubs: list[ExternalStubRecord] | None = None,
+    file_namespaces: dict[str, list[str]] | None = None,
 ) -> list[EdgeRecord]:
     by_name: dict[str, list[SymbolRecord]] = defaultdict(list)
     symbols_by_path: dict[str, list[SymbolRecord]] = defaultdict(list)
@@ -273,6 +282,7 @@ def build_lexical_edges(
                     imports=imports_map.get(path, []),
                     class_hierarchy=class_hierarchy,
                     call_arg_count=getattr(call, "arg_count", None),
+                    file_namespaces=file_namespaces,
                 )
                 status = "resolved" if target else "ambiguous"
                 evidence = ["ast_call", f"scope:{scope}"]
@@ -426,8 +436,17 @@ def _resolve_candidate(
     imports: list[str] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
     call_arg_count: int | None = None,
+    file_namespaces: dict[str, list[str]] | None = None,
 ) -> tuple[SymbolRecord | None, str, float]:
     imports_list = imports or []
+
+    is_csharp = source.symbol_id.startswith("c_sharp:") or source.path.endswith(".cs")
+    src_ancestors: set[str] = set()
+    using_namespaces: set[str] = set()
+    if is_csharp and file_namespaces:
+        for ns in file_namespaces.get(source.path, []):
+            src_ancestors.update(_namespace_ancestors(ns))
+        using_namespaces = set(imports_list)
 
     # Defensive Heuristic: Tainted variable (reassigned >= 2 times or assigned in branch)
     if is_tainted:
@@ -607,6 +626,31 @@ def _resolve_candidate(
                 ov = _try_resolve_overload(import_rec, source, call_arg_count)
                 if ov is not None:
                     return ov
+
+            # E3: C# Namespace resolution for receiver matches
+            if is_csharp and file_namespaces:
+                same_ns_rec = [
+                    c for c in receiver_matches
+                    if any(c_ns in src_ancestors for c_ns in file_namespaces.get(c.path, []))
+                ]
+                if len(same_ns_rec) == 1:
+                    return same_ns_rec[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+                if len(same_ns_rec) > 1:
+                    ov = _try_resolve_overload(same_ns_rec, source, call_arg_count)
+                    if ov is not None:
+                        return ov[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+
+                ns_match_rec = [
+                    c for c in receiver_matches
+                    if any(c_ns in using_namespaces for c_ns in file_namespaces.get(c.path, []))
+                ]
+                if len(ns_match_rec) == 1:
+                    return ns_match_rec[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+                if len(ns_match_rec) > 1:
+                    ov = _try_resolve_overload(ns_match_rec, source, call_arg_count)
+                    if ov is not None:
+                        return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+
             ov = _try_resolve_overload(receiver_matches, source, call_arg_count)
             if ov is not None:
                 return ov
@@ -732,6 +776,30 @@ def _resolve_candidate(
             if ov is not None:
                 return ov
             return None, "import_ambiguous", 0.10
+
+    # E3: C# Namespace resolution for free calls
+    if is_csharp and file_namespaces:
+        same_ns_cands = [
+            c for c in candidates
+            if any(c_ns in src_ancestors for c_ns in file_namespaces.get(c.path, []))
+        ]
+        if len(same_ns_cands) == 1:
+            return same_ns_cands[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+        if len(same_ns_cands) > 1:
+            ov = _try_resolve_overload(same_ns_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+
+        ns_match_cands = [
+            c for c in candidates
+            if any(c_ns in using_namespaces for c_ns in file_namespaces.get(c.path, []))
+        ]
+        if len(ns_match_cands) == 1:
+            return ns_match_cands[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+        if len(ns_match_cands) > 1:
+            ov = _try_resolve_overload(ns_match_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
 
     source_package = source.path.rsplit("/", 1)[0]
     same_package = [
