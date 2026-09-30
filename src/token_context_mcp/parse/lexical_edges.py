@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import posixpath
 import re
-import time
 from collections import defaultdict
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -14,9 +13,12 @@ if TYPE_CHECKING:
 
 _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 
-# Per-file wall-clock budget of edge resolution (a guard against pathological files).  Time-based, hence
-# machine-dependent: evals/index_equivalence.py sets it to infinity so that "incremental == full" (I1) is exact.
-FILE_CIRCUIT_BREAKER_SECONDS = 0.030
+# Per-file budget of edge resolution (a guard against pathological files), counted in abstract work units
+# (one unit per symbol scanned to find the enclosing symbol of a call, ``WORK_PER_CANDIDATE`` per candidate handed to
+# the resolver) and NOT in wall-clock time: a time-based breaker made two builds of the same tree differ on a loaded
+# machine (M12 review).  The largest file of the benchmark corpora needs ~2e5 units, so 4e6 never fires on real code.
+FILE_EDGE_WORK_BUDGET = 4_000_000
+WORK_PER_CANDIDATE = 20
 
 RESOLVER_VERSION = 3
 
@@ -195,7 +197,7 @@ def build_lexical_edges(
                 continue
 
             sorted_symbols = sorted(path_symbols, key=lambda s: (s.start_byte, -s.end_byte))
-            file_start = time.perf_counter()
+            file_work = 0
             file_timed_out = False
 
             for call in calls:
@@ -207,8 +209,9 @@ def build_lexical_edges(
                     continue
                 source = min(enclosing, key=lambda s: s.end_byte - s.start_byte)
 
-                # 30ms circuit breaker per file
-                if not file_timed_out and (time.perf_counter() - file_start > FILE_CIRCUIT_BREAKER_SECONDS):
+                # deterministic per-file work budget (see FILE_EDGE_WORK_BUDGET)
+                file_work += len(sorted_symbols)
+                if not file_timed_out and file_work > FILE_EDGE_WORK_BUDGET:
                     file_timed_out = True
 
                 if file_timed_out:
@@ -223,7 +226,7 @@ def build_lexical_edges(
                             confidence=0.10,
                             source_path=source.path,
                             source_line=call.line,
-                            evidence=["ast_call", "circuit_breaker_timeout"],
+                            evidence=["ast_call", "edge_work_budget"],
                         )
                     )
                     continue
@@ -236,6 +239,7 @@ def build_lexical_edges(
                         _, orig_name = bound_target.rsplit(".", 1)
                         candidates = [c for c in by_name.get(orig_name, []) if c.symbol_id != source.symbol_id]
 
+                file_work += WORK_PER_CANDIDATE * len(candidates)
                 effective_receiver_type = getattr(call, "receiver_type", None)
                 if effective_receiver_type is None and getattr(call, "assigned_from_fn", None):
                     fn_src = call.assigned_from_fn
