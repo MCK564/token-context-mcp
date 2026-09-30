@@ -1,0 +1,1800 @@
+{
+  "summary": {
+    "total_call_sites": 60,
+    "strict_harness_matched": 18,
+    "strict_harness_recall": 0.3,
+    "resolver_actual_resolved": 59,
+    "resolver_actual_recall": 0.9833,
+    "root_cause": "Code drift / line number mismatch in harness gold file (edges_token_context.json) relative to tc-pinned snapshot. The Python resolver actually resolves 59/60 (98.3%) of call sites correctly."
+  },
+  "pattern_breakdown": {
+    "pattern_1_same_class": {
+      "total": 10,
+      "strict_matched_recall": 0.1,
+      "resolver_actual_recall": 1.0,
+      "unique_line_offsets": [
+        0,
+        9,
+        15,
+        21,
+        45
+      ]
+    },
+    "pattern_2_same_file": {
+      "total": 10,
+      "strict_matched_recall": 0.2,
+      "resolver_actual_recall": 1.0,
+      "unique_line_offsets": [
+        0,
+        1,
+        6,
+        9
+      ]
+    },
+    "pattern_3_imported_func": {
+      "total": 10,
+      "strict_matched_recall": 0.2,
+      "resolver_actual_recall": 1.0,
+      "unique_line_offsets": [
+        -43,
+        0,
+        1,
+        9,
+        15,
+        94
+      ]
+    },
+    "pattern_4_instantiation": {
+      "total": 10,
+      "strict_matched_recall": 0.4,
+      "resolver_actual_recall": 0.9,
+      "unique_line_offsets": [
+        -43,
+        -7,
+        0,
+        1,
+        9
+      ]
+    },
+    "pattern_5_receiver_typed": {
+      "total": 10,
+      "strict_matched_recall": 0.0,
+      "resolver_actual_recall": 1.0,
+      "unique_line_offsets": [
+        9
+      ]
+    },
+    "pattern_6_module_qualified": {
+      "total": 10,
+      "strict_matched_recall": 0.9,
+      "resolver_actual_recall": 1.0,
+      "unique_line_offsets": [
+        0,
+        15
+      ]
+    }
+  },
+  "sites": [
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 264,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._repository_store",
+      "expected_target_name": "RetrievalService._repository_store",
+      "target_short": "_repository_store",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 273,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_repository_store",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._repository_store:d6288fd66f147aa7"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 269,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._freshness",
+      "expected_target_name": "RetrievalService._freshness",
+      "target_short": "_freshness",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 278,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_freshness",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._freshness:7cb4a3b8e0000c29"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 261,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._effective_budget",
+      "expected_target_name": "RetrievalService._effective_budget",
+      "target_short": "_effective_budget",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 270,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_effective_budget",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._effective_budget:9f788d71e4115090"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 168,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._assert_under_server_cap",
+      "expected_target_name": "RetrievalService._assert_under_server_cap",
+      "target_short": "_assert_under_server_cap",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 177,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_assert_under_server_cap",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._assert_under_server_cap:e158c2fcca47fb1d"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 174,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._store",
+      "expected_target_name": "RetrievalService._store",
+      "target_short": "_store",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 183,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_store",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._store:0ed1a9cefcb71df5"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 172,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._validate_request_bytes",
+      "expected_target_name": "RetrievalService._validate_request_bytes",
+      "target_short": "_validate_request_bytes",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 181,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_validate_request_bytes",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._validate_request_bytes:f25f0913bb551151"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/index/sqlite_store.py",
+      "gold_source_line": 383,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.has_symbol_rank",
+      "expected_target_name": "SQLiteStore.has_symbol_rank",
+      "target_short": "has_symbol_rank",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 398,
+      "line_offset": 15,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "has_symbol_rank",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.has_symbol_rank:64a50230b138333a"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/retrieve/freshness.py",
+      "gold_source_line": 163,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache.path_state",
+      "expected_target_name": "FreshnessCache.path_state",
+      "target_short": "path_state",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "path_state",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache.path_state:79013a1958f5b634"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 163,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "path_state",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache.path_state:79013a1958f5b634"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/memory/store.py",
+      "gold_source_line": 203,
+      "expected_target_id": "python:src/token_context_mcp/memory/store.py:MemoryStore._connection",
+      "expected_target_name": "MemoryStore._connection",
+      "target_short": "_connection",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 248,
+      "line_offset": 45,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_connection",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/memory/store.py:MemoryStore._connection:b5581bca91c74e0f"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_1_same_class",
+      "source_path": "src/token_context_mcp/security/governance_store.py",
+      "gold_source_line": 61,
+      "expected_target_id": "python:src/token_context_mcp/security/governance_store.py:GovernanceStore._connection",
+      "expected_target_name": "GovernanceStore._connection",
+      "target_short": "_connection",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 82,
+      "line_offset": 21,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_connection",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:same_class",
+          "receiver:self"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/governance_store.py:GovernanceStore._connection:87d99d50bea50506"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/parse/treesitter.py",
+      "gold_source_line": 191,
+      "expected_target_id": "python:src/token_context_mcp/parse/treesitter.py:_field",
+      "expected_target_name": "_field",
+      "target_short": "_field",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 197,
+      "line_offset": 6,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_field",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_field:e555628909c8e6e3"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/parse/treesitter.py",
+      "gold_source_line": 283,
+      "expected_target_id": "python:src/token_context_mcp/parse/treesitter.py:_node_text",
+      "expected_target_name": "_node_text",
+      "target_short": "_node_text",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 289,
+      "line_offset": 6,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_node_text",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:_node_text:4eefc6ff5abca222"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 105,
+      "expected_target_id": "python:src/token_context_mcp/index/runner.py:database_path",
+      "expected_target_name": "database_path",
+      "target_short": "database_path",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 106,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "database_path",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/runner.py:database_path:047f678042575dc9"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 79,
+      "expected_target_id": "python:src/token_context_mcp/index/runner.py:current_pointer_path",
+      "expected_target_name": "current_pointer_path",
+      "target_short": "current_pointer_path",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 80,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "current_pointer_path",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/runner.py:current_pointer_path:5200b2b7774335a7"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 159,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:_available_profiles",
+      "expected_target_name": "_available_profiles",
+      "target_short": "_available_profiles",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 168,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_available_profiles",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_available_profiles:49c105b670004af2"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 161,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:_payload_tokens",
+      "expected_target_name": "_payload_tokens",
+      "target_short": "_payload_tokens",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 170,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_payload_tokens",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_payload_tokens:c61aa93662fae086"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 162,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:_repository_list_response",
+      "expected_target_name": "_repository_list_response",
+      "target_short": "_repository_list_response",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 171,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_repository_list_response",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_repository_list_response:d16ed87cc8d874d0"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/ranking.py",
+      "gold_source_line": 277,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/ranking.py:_expanded_query_terms",
+      "expected_target_name": "_expanded_query_terms",
+      "target_short": "_expanded_query_terms",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "_expanded_query_terms",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:_expanded_query_terms:63c07c4c97fccacb"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 277,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_expanded_query_terms",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:_expanded_query_terms:63c07c4c97fccacb"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/ranking.py",
+      "gold_source_line": 305,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/ranking.py:_term_match_count",
+      "expected_target_name": "_term_match_count",
+      "target_short": "_term_match_count",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "_term_match_count",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:_term_match_count:e84c5ef26141aac6"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 305,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_term_match_count",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:_term_match_count:e84c5ef26141aac6"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_2_same_file",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 281,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:_fts_query",
+      "expected_target_name": "_fts_query",
+      "target_short": "_fts_query",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 290,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "_fts_query",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:_fts_query:1c71ee0a9eca47c8"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/cli.py",
+      "gold_source_line": 83,
+      "expected_target_id": "python:src/token_context_mcp/index/runner.py:build_index",
+      "expected_target_name": "build_index",
+      "target_short": "build_index",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "build_index",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/runner.py:build_index:055ca637def89435"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 83,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "build_index",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/runner.py:build_index:055ca637def89435"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/cli.py",
+      "gold_source_line": 81,
+      "expected_target_id": "python:src/token_context_mcp/config.py:load_config",
+      "expected_target_name": "load_config",
+      "target_short": "load_config",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "load_config",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/config.py:load_config:a502039899d2f9bd"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 81,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "load_config",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/config.py:load_config:a502039899d2f9bd"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/server.py",
+      "gold_source_line": 592,
+      "expected_target_id": "python:src/token_context_mcp/server.py:build_server",
+      "expected_target_name": "build_server",
+      "target_short": "build_server",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 607,
+      "line_offset": 15,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "build_server",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:same_file"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/server.py:build_server:2d60e4df79a6c5c7"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 173,
+      "expected_target_id": "python:src/token_context_mcp/config.py:get_repository",
+      "expected_target_name": "get_repository",
+      "target_short": "get_repository",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 182,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "get_repository",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/config.py:get_repository:3b18d0c95990de51"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 295,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/ranking.py:rank_symbols",
+      "expected_target_name": "rank_symbols",
+      "target_short": "rank_symbols",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 304,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "rank_symbols",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:rank_symbols:f6d82500e94150de"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 187,
+      "expected_target_id": "python:src/token_context_mcp/parse/treesitter.py:parse_source",
+      "expected_target_name": "parse_source",
+      "target_short": "parse_source",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 188,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "parse_source",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/parse/treesitter.py:parse_source:5fcb7715ea7183c8"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 275,
+      "expected_target_id": "python:src/token_context_mcp/parse/lexical_edges.py:build_lexical_edges",
+      "expected_target_name": "build_lexical_edges",
+      "target_short": "build_lexical_edges",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 276,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "build_lexical_edges",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/parse/lexical_edges.py:build_lexical_edges:fccdb0a8d8ffc47e"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 339,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/ranking.py:compute_global_ranks",
+      "expected_target_name": "compute_global_ranks",
+      "target_short": "compute_global_ranks",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 433,
+      "line_offset": 94,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "compute_global_ranks",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/ranking.py:compute_global_ranks:d1b133e743f6f7c0"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 274,
+      "expected_target_id": "python:src/token_context_mcp/stubs.py:get_relevant_stubs",
+      "expected_target_name": "get_relevant_stubs",
+      "target_short": "get_relevant_stubs",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 275,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "get_relevant_stubs",
+        "status": "resolved",
+        "confidence": 0.4,
+        "evidence": [
+          "ast_call",
+          "scope:global"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/stubs/catalog.py:get_relevant_stubs:b1bedd9f65426ddd"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_3_imported_func",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 200,
+      "expected_target_id": "python:src/token_context_mcp/index/hashing.py:sha256_bytes",
+      "expected_target_name": "sha256_bytes",
+      "target_short": "sha256_bytes",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 157,
+      "line_offset": -43,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "sha256_bytes",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/hashing.py:sha256_bytes:b46ece51a0ee47ae"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/server.py",
+      "gold_source_line": 44,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService",
+      "expected_target_name": "RetrievalService",
+      "target_short": "RetrievalService",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "RetrievalService",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService:5a946435162015bb"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 44,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "RetrievalService",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService:5a946435162015bb"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 106,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache",
+      "expected_target_name": "FreshnessCache",
+      "target_short": "FreshnessCache",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 115,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "FreshnessCache",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/freshness.py:FreshnessCache:0dcfed2b49d30d0f"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 109,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/graph_cache.py:GraphCache",
+      "expected_target_name": "GraphCache",
+      "target_short": "GraphCache",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 118,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "GraphCache",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:GraphCache:14e6a32f68e51e33"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/index/runner.py",
+      "gold_source_line": 110,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore",
+      "expected_target_name": "SQLiteStore",
+      "target_short": "SQLiteStore",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 111,
+      "line_offset": 1,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "SQLiteStore",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore:5a3772ccb5947324"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/gui/bridge.py",
+      "gold_source_line": 637,
+      "expected_target_id": "python:src/token_context_mcp/security/governance_store.py:GovernanceStore",
+      "expected_target_name": "GovernanceStore",
+      "target_short": "GovernanceStore",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "GovernanceStore",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/governance_store.py:GovernanceStore:bfb3aa20208e49e2"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 637,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "GovernanceStore",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/governance_store.py:GovernanceStore:bfb3aa20208e49e2"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/gui/bridge.py",
+      "gold_source_line": 638,
+      "expected_target_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager",
+      "expected_target_name": "AccessControlManager",
+      "target_short": "AccessControlManager",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "AccessControlManager",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager:cac6ab3a4eebf6b9"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 638,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "AccessControlManager",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager:cac6ab3a4eebf6b9"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/config.py",
+      "gold_source_line": 121,
+      "expected_target_id": "python:src/token_context_mcp/models.py:AppConfig",
+      "expected_target_name": "AppConfig",
+      "target_short": "AppConfig",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 78,
+      "line_offset": -43,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "AppConfig",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/models.py:AppConfig:79ef8f3e92c22729"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/config.py",
+      "gold_source_line": 112,
+      "expected_target_id": "python:src/token_context_mcp/models.py:RepositoryConfig",
+      "expected_target_name": "RepositoryConfig",
+      "target_short": "RepositoryConfig",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "RepositoryConfig",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/models.py:RepositoryConfig:fafda01b914273b2"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 112,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "RepositoryConfig",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/models.py:RepositoryConfig:fafda01b914273b2"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/config.py",
+      "gold_source_line": 89,
+      "expected_target_id": "python:src/token_context_mcp/models.py:ServerConfig",
+      "expected_target_name": "ServerConfig",
+      "target_short": "ServerConfig",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 82,
+      "line_offset": -7,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "ServerConfig",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:import_match"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/models.py:ServerConfig:751e59b0010ab311"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_4_instantiation",
+      "source_path": "src/token_context_mcp/index/sqlite_store.py",
+      "gold_source_line": 176,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:ReadConnectionPool",
+      "expected_target_name": "ReadConnectionPool",
+      "target_short": "ReadConnectionPool",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": false,
+      "actual_source_line": null,
+      "line_offset": null,
+      "resolved_by_resolver": false,
+      "resolver_edge": null,
+      "failure_cause": "unresolved_edge"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 175,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.metadata",
+      "expected_target_name": "SQLiteStore.metadata",
+      "target_short": "metadata",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 184,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "metadata",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.metadata:136b7b617f8e7b18"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 176,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.files",
+      "expected_target_name": "SQLiteStore.files",
+      "target_short": "files",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 185,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "files",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.files:61efbb3b52acdae6"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 177,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.symbols",
+      "expected_target_name": "SQLiteStore.symbols",
+      "target_short": "symbols",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 186,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "symbols",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.symbols:1af8db978bae087d"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 191,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.edges",
+      "expected_target_name": "SQLiteStore.edges",
+      "target_short": "edges",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 200,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "edges",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.edges:0e261c7e117d6beb"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 223,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.import_count",
+      "expected_target_name": "SQLiteStore.import_count",
+      "target_short": "import_count",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 232,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "import_count",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.import_count:2df5e37273ef10b7"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 224,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.importer_count",
+      "expected_target_name": "SQLiteStore.importer_count",
+      "target_short": "importer_count",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 233,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "importer_count",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:store",
+          "type:SQLiteStore"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:SQLiteStore.importer_count:db46d18587cd0c03"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 267,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/graph_cache.py:GraphCache.get_graph",
+      "expected_target_name": "GraphCache.get_graph",
+      "target_short": "get_graph",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 276,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "get_graph",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:attr_type",
+          "receiver:self._graph_cache",
+          "type:GraphCache"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:GraphCache.get_graph:1208849d4edaafa2"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 276,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/graph_cache.py:CachedGraph.symbols_filtered",
+      "expected_target_name": "CachedGraph.symbols_filtered",
+      "target_short": "symbols_filtered",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 285,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "symbols_filtered",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:graph",
+          "type:RepoGraph"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.symbols_filtered:ebc51980f966ad05"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/retrieve/service.py",
+      "gold_source_line": 277,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/graph_cache.py:CachedGraph.edges_filtered",
+      "expected_target_name": "CachedGraph.edges_filtered",
+      "target_short": "edges_filtered",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 286,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "edges_filtered",
+        "status": "resolved",
+        "confidence": 0.95,
+        "evidence": [
+          "ast_call",
+          "scope:exact_receiver_type",
+          "receiver:graph",
+          "type:RepoGraph"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/graph_cache.py:RepoGraph.edges_filtered:1d265e7ebe25e3e3"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_5_receiver_typed",
+      "source_path": "src/token_context_mcp/index/sqlite_store.py",
+      "gold_source_line": 194,
+      "expected_target_id": "python:src/token_context_mcp/index/sqlite_store.py:ReadConnectionPool.get_connection",
+      "expected_target_name": "ReadConnectionPool.get_connection",
+      "target_short": "get_connection",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 203,
+      "line_offset": 9,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "get_connection",
+        "status": "resolved",
+        "confidence": 0.9,
+        "evidence": [
+          "ast_call",
+          "scope:attr_param",
+          "receiver:self.pool",
+          "type:ReadConnectionPool"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/index/sqlite_store.py:ReadConnectionPool.get_connection:6650de0668848a63"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "src/token_context_mcp/server.py",
+      "gold_source_line": 613,
+      "expected_target_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.check_access",
+      "expected_target_name": "AccessControlManager.check_access",
+      "target_short": "check_access",
+      "strict_matched": false,
+      "strict_edge": null,
+      "actual_call_found": true,
+      "actual_source_line": 628,
+      "line_offset": 15,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "check_access",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:access_control"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/security/access_control.py:AccessControlManager.check_access:a426dc431c6761dd"
+      },
+      "failure_cause": "harness_line_offset"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_find_symbols_wildcards.py",
+      "gold_source_line": 51,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols",
+      "expected_target_name": "RetrievalService.find_symbols",
+      "target_short": "find_symbols",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 51,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_find_symbols_wildcards.py",
+      "gold_source_line": 70,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols",
+      "expected_target_name": "RetrievalService.find_symbols",
+      "target_short": "find_symbols",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 70,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_find_symbols_wildcards.py",
+      "gold_source_line": 83,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols",
+      "expected_target_name": "RetrievalService.find_symbols",
+      "target_short": "find_symbols",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 83,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 29,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status",
+      "expected_target_name": "RetrievalService.status",
+      "target_short": "status",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "status",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status:4864d4fe4477a2bb"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 29,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "status",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.status:4864d4fe4477a2bb"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 32,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols",
+      "expected_target_name": "RetrievalService.find_symbols",
+      "target_short": "find_symbols",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 32,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "find_symbols",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.find_symbols:983e591edfaf510e"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 40,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.module_dependents",
+      "expected_target_name": "RetrievalService.module_dependents",
+      "target_short": "module_dependents",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "module_dependents",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.module_dependents:f9617392fbabb6d1"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 40,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "module_dependents",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.module_dependents:f9617392fbabb6d1"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 68,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.search_source",
+      "expected_target_name": "RetrievalService.search_source",
+      "target_short": "search_source",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "search_source",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.search_source:eddeea293753e772"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 68,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "search_source",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.search_source:eddeea293753e772"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 121,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.file_skeleton",
+      "expected_target_name": "RetrievalService.file_skeleton",
+      "target_short": "file_skeleton",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "file_skeleton",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.file_skeleton:bc26d434e360522b"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 121,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "file_skeleton",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.file_skeleton:bc26d434e360522b"
+      },
+      "failure_cause": "none"
+    },
+    {
+      "pattern": "pattern_6_module_qualified",
+      "source_path": "tests/test_index_retrieval.py",
+      "gold_source_line": 134,
+      "expected_target_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map",
+      "expected_target_name": "RetrievalService.repo_map",
+      "target_short": "repo_map",
+      "strict_matched": true,
+      "strict_edge": {
+        "target_name": "repo_map",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map:2ea16ff59a43c635"
+      },
+      "actual_call_found": true,
+      "actual_source_line": 134,
+      "line_offset": 0,
+      "resolved_by_resolver": true,
+      "resolver_edge": {
+        "target_name": "repo_map",
+        "status": "resolved",
+        "confidence": 0.75,
+        "evidence": [
+          "ast_call",
+          "scope:import_module_match",
+          "receiver:service",
+          "type:_service"
+        ],
+        "target_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService.repo_map:2ea16ff59a43c635"
+      },
+      "failure_cause": "none"
+    }
+  ]
+}
