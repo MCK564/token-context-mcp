@@ -59,6 +59,7 @@ class ParseResult:
     calls: list[CallRecord] = field(default_factory=list)
     inheritance: dict[str, list[str]] = field(default_factory=dict)
     namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -143,6 +144,9 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     namespaces: list[str] = []
     if language_name == "c_sharp":
         namespaces = _extract_csharp_namespaces(tree.root_node, raw)
+    module_bindings: dict[str, str] = {}
+    if language_name in {"javascript", "typescript", "tsx"}:
+        module_bindings = _extract_js_module_bindings(tree.root_node, raw)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
@@ -156,6 +160,7 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
         calls=calls,
         inheritance=inheritance,
         namespaces=namespaces,
+        module_bindings=module_bindings,
     )
 
 
@@ -1029,6 +1034,67 @@ def _extract_csharp_namespaces(root: object, raw: bytes) -> list[str]:
     return namespaces
 
 
+def _extract_js_module_bindings(root: object, raw: bytes) -> dict[str, str]:
+    """Extract JS/TS CommonJS require and ES6 import bindings (E8)."""
+    bindings: dict[str, str] = {}
+
+    def visit(node: object) -> None:
+        c_type = getattr(node, "type", "")
+        if c_type == "variable_declarator":
+            name_node = _field(node, "name")
+            val_node = _field(node, "value")
+            if val_node and getattr(val_node, "type", "") == "call_expression":
+                fn_node = _field(val_node, "function")
+                if fn_node and _node_text(fn_node, raw).strip() == "require":
+                    args_node = _field(val_node, "arguments")
+                    first_arg = next(iter(getattr(args_node, "named_children", [])), None) if args_node else None
+                    mod_path = _string_literal_value(first_arg, raw) if first_arg else None
+                    if mod_path and name_node:
+                        if getattr(name_node, "type", "") == "identifier":
+                            bindings[_node_text(name_node, raw).strip()] = mod_path
+                        elif getattr(name_node, "type", "") == "object_pattern":
+                            for child in getattr(name_node, "named_children", []):
+                                ch_type = getattr(child, "type", "")
+                                if ch_type == "shorthand_property_identifier_pattern":
+                                    ident = _node_text(child, raw).strip()
+                                    bindings[ident] = f"{mod_path}.{ident}"
+                                elif ch_type == "pair_pattern":
+                                    key_node = _field(child, "key")
+                                    val_sub = _field(child, "value")
+                                    if key_node and val_sub:
+                                        key_name = _node_text(key_node, raw).strip()
+                                        val_name = _node_text(val_sub, raw).strip()
+                                        bindings[val_name] = f"{mod_path}.{key_name}"
+        elif c_type in {"import_statement", "import_declaration"}:
+            source_node = _field(node, "source")
+            mod_path = _string_literal_value(source_node, raw) if source_node else None
+            if mod_path:
+                for child in getattr(node, "named_children", []):
+                    if getattr(child, "type", "") == "import_clause":
+                        for sub in getattr(child, "named_children", []):
+                            s_type = getattr(sub, "type", "")
+                            if s_type == "identifier":
+                                bindings[_node_text(sub, raw).strip()] = mod_path
+                            elif s_type == "namespace_import":
+                                ns_name = _field(sub, "name") or (sub.named_children[0] if getattr(sub, "named_children", None) else None)
+                                if ns_name:
+                                    bindings[_node_text(ns_name, raw).strip()] = mod_path
+                            elif s_type == "named_imports":
+                                for spec in getattr(sub, "named_children", []):
+                                    if getattr(spec, "type", "") == "import_specifier":
+                                        n_node = _field(spec, "name")
+                                        alias_node = _field(spec, "alias")
+                                        orig_name = _node_text(n_node, raw).strip() if n_node else ""
+                                        local_name = _node_text(alias_node, raw).strip() if alias_node else orig_name
+                                        if local_name:
+                                            bindings[local_name] = f"{mod_path}.{orig_name}"
+        for c in getattr(node, "children", []):
+            visit(c)
+
+    visit(root)
+    return bindings
+
+
 _CONTAINER_TYPES = {
     "dict", "Dict", "defaultdict", "Mapping", "MutableMapping",
     "list", "List", "Sequence", "MutableSequence", "Iterable", "Iterator",
@@ -1608,7 +1674,7 @@ def _extract_class_attributes(
                                 if inferred_t and inferred_t not in _BUILTIN_RECEIVERS and inferred_t not in {"None", "Any"}:
                                     class_attr_assigned[next_class][attr_text].append((inferred_t, inferred_source))
             elif language_name in {"javascript", "typescript", "tsx"}:
-                if c_type in {"public_field_definition", "field_definition", "property_definition"}:
+                if c_type in {"public_field_definition", "field_definition", "property_definition", "property_signature"}:
                     name_node = _field(current, "property") or _field(current, "name")
                     t_node = _field(current, "type")
                     if name_node is not None and t_node is not None:

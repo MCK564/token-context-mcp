@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import posixpath
 import re
 import time
 from collections import defaultdict
@@ -169,6 +170,7 @@ def build_lexical_edges(
     class_hierarchy: dict[str, list[str]] | None = None,
     external_stubs: list[ExternalStubRecord] | None = None,
     file_namespaces: dict[str, list[str]] | None = None,
+    js_module_bindings: dict[str, dict[str, str]] | None = None,
 ) -> list[EdgeRecord]:
     by_name: dict[str, list[SymbolRecord]] = defaultdict(list)
     symbols_by_path: dict[str, list[SymbolRecord]] = defaultdict(list)
@@ -226,7 +228,13 @@ def build_lexical_edges(
                     )
                     continue
 
+                file_mod_bindings = js_module_bindings.get(source.path) if js_module_bindings else None
                 candidates = [c for c in by_name.get(call.name, []) if c.symbol_id != source.symbol_id]
+                if not candidates and file_mod_bindings and call.name in file_mod_bindings:
+                    bound_target = file_mod_bindings[call.name]
+                    if "." in bound_target and (bound_target.startswith(".") or "/" in bound_target):
+                        _, orig_name = bound_target.rsplit(".", 1)
+                        candidates = [c for c in by_name.get(orig_name, []) if c.symbol_id != source.symbol_id]
 
                 effective_receiver_type = getattr(call, "receiver_type", None)
                 if effective_receiver_type is None and getattr(call, "assigned_from_fn", None):
@@ -284,6 +292,8 @@ def build_lexical_edges(
                     class_hierarchy=class_hierarchy,
                     call_arg_count=getattr(call, "arg_count", None),
                     file_namespaces=file_namespaces,
+                    module_bindings=file_mod_bindings,
+                    call_name=call.name,
                 )
                 status = "resolved" if target else "ambiguous"
                 evidence = ["ast_call", f"scope:{scope}"]
@@ -392,10 +402,32 @@ def _import_parts(imp: str) -> tuple[str | None, list[str] | None, list[str]]:
     return member_part, mod_segs, imp_segs
 
 
-def _import_matches_candidate(imp: str, candidate: SymbolRecord) -> bool:
+def _matches_js_module(source_path: str, target_mod: str, candidate_path: str) -> bool:
+    """Normalize relative JS/TS module imports and match against candidate file (E8)."""
+    s_path = source_path.replace("\\", "/")
+    c_path = candidate_path.replace("\\", "/")
+    if target_mod.startswith("."):
+        source_dir = posixpath.dirname(s_path)
+        norm_target = posixpath.normpath(posixpath.join(source_dir, target_mod))
+        exts = [
+            "", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx",
+            "/index.js", "/index.mjs", "/index.cjs", "/index.ts", "/index.tsx"
+        ]
+        expected = {norm_target + ext for ext in exts}
+        return c_path in expected
+    else:
+        cand_segs = c_path.split("/")
+        return target_mod in cand_segs or c_path.startswith(target_mod)
+
+
+def _import_matches_candidate(imp: str, candidate: SymbolRecord, source_path: str | None = None) -> bool:
     """Check if an import string accurately matches a candidate symbol's module or path."""
     if not imp:
         return False
+
+    if source_path and imp.startswith("."):
+        if _matches_js_module(source_path, imp, candidate.path):
+            return True
 
     cand_segs = _path_segments(candidate.path)
     if not cand_segs:
@@ -438,6 +470,8 @@ def _resolve_candidate(
     class_hierarchy: dict[str, list[str]] | None = None,
     call_arg_count: int | None = None,
     file_namespaces: dict[str, list[str]] | None = None,
+    module_bindings: dict[str, str] | None = None,
+    call_name: str | None = None,
 ) -> tuple[SymbolRecord | None, str, float]:
     imports_list = imports or []
 
@@ -462,7 +496,12 @@ def _resolve_candidate(
         rec_clean = receiver.strip()
         if rec_clean in _BUILTIN_RECEIVERS or (receiver_type and receiver_type in _BUILTIN_RECEIVERS):
             # Check if this receiver is an explicitly imported internal module
-            has_internal_import = any(_import_matches_candidate(imp, c) for imp in imports_list for c in candidates if c.path != source.path)
+            has_internal_import = any(_import_matches_candidate(imp, c, source.path) for imp in imports_list for c in candidates if c.path != source.path)
+            if not has_internal_import and module_bindings and rec_clean in module_bindings:
+                target_mod = module_bindings[rec_clean]
+                if "." in target_mod and not target_mod.startswith("."):
+                    target_mod = target_mod.split(".")[0]
+                has_internal_import = any(_matches_js_module(source.path, target_mod, c.path) for c in candidates if c.path != source.path)
             if not has_internal_import:
                 return None, "builtin_receiver_skipped", 0.10
 
@@ -700,6 +739,26 @@ def _resolve_candidate(
                     return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
                 return None, "namespace_ambiguous", 0.10
 
+        # E8: JS CommonJS require & ES6 import module match (e.g. const X = require('./x'); X.foo())
+        if module_bindings and receiver in module_bindings:
+            target_mod = module_bindings[receiver]
+            if "." in target_mod and not target_mod.startswith("."):
+                target_mod = target_mod.split(".")[0]
+            mod_cands = [
+                c for c in candidates
+                if _matches_js_module(source.path, target_mod, c.path)
+            ]
+            if len(mod_cands) == 1:
+                return mod_cands[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
+            if len(mod_cands) > 1:
+                same_file_mod = [c for c in mod_cands if c.path == source.path]
+                if len(same_file_mod) == 1:
+                    return same_file_mod[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
+                ov = _try_resolve_overload(mod_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
+                return None, "import_module_ambiguous", 0.10
+
         # Check if candidate is a method of an imported/same-file class and receiver name matches class name:
         # e.g., receiver="store" matches class="SQLiteStore" or "MemoryStore" (when imported)
         if imports_list or any(c.path == source.path for c in candidates):
@@ -796,7 +855,7 @@ def _resolve_candidate(
     if imports_list:
         imported_cands = [
             c for c in candidates
-            if any(_import_matches_candidate(imp, c) for imp in imports_list)
+            if any(_import_matches_candidate(imp, c, source.path) for imp in imports_list)
         ]
         if len(imported_cands) == 1:
             return imported_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
@@ -804,6 +863,26 @@ def _resolve_candidate(
             ov = _try_resolve_overload(imported_cands, source, call_arg_count)
             if ov is not None:
                 return ov
+            return None, "import_ambiguous", 0.10
+
+    # E8: JS/TS destructuring require & import match (e.g. const { a } = require('./x'); a())
+    target_lookup_name = call_name or (candidates[0].name if candidates else None)
+    if module_bindings and target_lookup_name and target_lookup_name in module_bindings:
+        bound_target = module_bindings[target_lookup_name]
+        if "." in bound_target and (bound_target.startswith(".") or "/" in bound_target):
+            target_mod, orig_name = bound_target.rsplit(".", 1)
+        else:
+            target_mod, orig_name = bound_target, target_lookup_name
+        mod_cands = [
+            c for c in candidates
+            if c.name == orig_name and _matches_js_module(source.path, target_mod, c.path)
+        ]
+        if len(mod_cands) == 1:
+            return mod_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.90)
+        if len(mod_cands) > 1:
+            ov = _try_resolve_overload(mod_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.90)
             return None, "import_ambiguous", 0.10
 
     # E3: C# Namespace resolution for free calls

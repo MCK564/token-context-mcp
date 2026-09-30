@@ -192,6 +192,7 @@ class _Outcome:
     source_body: str | None = None
     fts_rows: list[tuple[str, str, str, str, str, str]] = field(default_factory=list)
     namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
     parse_attempts: int = 0
     read_ms: float = 0.0
     parse_ms: float = 0.0
@@ -272,6 +273,7 @@ def _process_candidate(task: _Task) -> _Outcome:
         read_ms=read_ms,
         parse_ms=parse_ms,
         namespaces=parsed.namespaces,
+        module_bindings=getattr(parsed, "module_bindings", {}),
     )
     outcome.text_ms = (time.perf_counter() - text_started) * 1000.0
     return outcome
@@ -563,6 +565,7 @@ def _artifact_row(outcome: _Outcome, language: str) -> tuple:
                 "call_names": sorted({call.name for call in outcome.calls}),
                 "assigned_from": sorted({call.assigned_from_fn for call in outcome.calls if call.assigned_from_fn}),
                 "namespaces": outcome.namespaces,
+                "module_bindings": outcome.module_bindings,
             },
             separators=(",", ":"),
             sort_keys=True,
@@ -764,6 +767,8 @@ def build_index(
             inheritance_by_path[relative] = outcome.inheritance
             if outcome.namespaces:
                 facts_by_path.setdefault(relative, {})["namespaces"] = outcome.namespaces
+            if outcome.module_bindings:
+                facts_by_path.setdefault(relative, {})["module_bindings"] = outcome.module_bindings
         registry_names.update(outcome.registry_names)
         artifact_rows.append(_artifact_row(outcome, language))
         symbol_body_rows.extend(outcome.symbol_body_rows)
@@ -837,6 +842,11 @@ def build_index(
         for path, facts in facts_by_path.items()
         if facts.get("namespaces")
     }
+    js_module_bindings: dict[str, dict[str, str]] = {
+        path: facts["module_bindings"]
+        for path, facts in facts_by_path.items()
+        if facts.get("module_bindings")
+    }
     edges, edge_context_sha256, edge_report = _resolve_edges(
         symbols=symbols,
         calls_by_path=calls_by_path,
@@ -848,6 +858,7 @@ def build_index(
         previous=previous,
         reparsed_paths=reparsed_paths,
         file_namespaces=file_namespaces,
+        js_module_bindings=js_module_bindings,
     )
     timings.add("edges", _t_edges)
 
@@ -886,6 +897,7 @@ def build_index(
         "schema_version": "1.0",
         "index_schema_version": INDEX_SCHEMA_VERSION,
         "csharp_namespaces": csharp_ns_map,
+        "js_module_bindings": js_module_bindings,
         "repo_id": repository.repo_id,
         "repo_root_id": sha256_bytes(str(repository.root).encode()),
         "commit_sha": git_head(repository.root),
@@ -1037,6 +1049,7 @@ def _resolve_edges(
     previous: _Previous | None,
     reparsed_paths: set[str],
     file_namespaces: dict[str, list[str]] | None = None,
+    js_module_bindings: dict[str, dict[str, str]] | None = None,
 ) -> tuple[list[EdgeRecord], str, dict[str, object]]:
     """Edges of the whole graph, re-resolving only what a change can affect (M7.5).
 
@@ -1064,6 +1077,7 @@ def _resolve_edges(
             class_hierarchy=class_hierarchy_map,
             external_stubs=active_stubs,
             file_namespaces=file_namespaces,
+            js_module_bindings=js_module_bindings,
         )
 
     if previous is None or previous.edge_context_sha256 != context_sha:
