@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 3  # 3: JS assigned methods via prototype/object (M12.1); bump whenever parse output changes
+PARSER_ARTIFACT_VERSION = 4  # 4: C# base_list inheritance and ranking (M12.2); bump whenever parse output changes
 
 
 try:
@@ -1315,13 +1315,19 @@ def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[s
             if name_node is not None:
                 cls_name = _node_text(name_node, raw).strip()
                 bases = []
-                bl = _field(current, "base_list")
+                bl = _field(current, "base_list") or next(
+                    (c for c in getattr(current, "children", []) if getattr(c, "type", "") == "base_list"),
+                    None,
+                )
                 if bl is not None:
                     for expr in getattr(bl, "named_children", []):
-                        if expr.type in {"identifier", "type_identifier", "generic_name"}:
+                        if expr.type in {"identifier", "type_identifier", "generic_name", "qualified_name"}:
                             b = _node_text(expr, raw).strip()
-                            if b and b not in bases:
-                                bases.append(b)
+                            clean_b = re.split(r"[<\[]", b)[0].strip()
+                            if "." in clean_b:
+                                clean_b = clean_b.rsplit(".", 1)[-1].strip()
+                            if clean_b and clean_b not in bases:
+                                bases.append(clean_b)
                 inheritance[cls_name] = bases
 
         for child in getattr(current, "named_children", []):

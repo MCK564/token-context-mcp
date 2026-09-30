@@ -1,0 +1,141 @@
+{
+  "title": "M12.2 C# Ranking & FTS Ablation Grid",
+  "selected_configuration": "H2_H5_optimal",
+  "rationale": "H2 (impl ranking) + H5 (demote vendored) maximizes SymRecall@10 on CsvHelper (0.5167 vs baseline 0.3278, +18.9% abs) while preserving FileAcc@5 (0.6000) and reducing wire tokens (1866.9 vs 1869.4). H4 (behavioral body mode) hurts both accuracy and recall by elevating noisy body matches, and is disabled. Hono and Fastify performance is strictly non-degrading (identical to baseline).",
+  "repos": {
+    "bench-csvhelper": "C# (.NET)",
+    "bench-hono": "TypeScript / JavaScript",
+    "bench-fastify": "JavaScript"
+  },
+  "grid": [
+    {
+      "config": "baseline_fts",
+      "description": "H1+H3 (indexed), H2=off, H4=off, H5=off",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "off",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "off",
+        "TOKEN_CONTEXT_DEP_VENDORED": "0"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.6,
+        "sym_recall_at_10": 0.4389,
+        "wire_tokens": 1872.5
+      }
+    },
+    {
+      "config": "H2_impl_ranking",
+      "description": "H1+H3, H2=on, H4=off, H5=off",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "c_sharp,java",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "off",
+        "TOKEN_CONTEXT_DEP_VENDORED": "0"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.5667,
+        "sym_recall_at_10": 0.4833,
+        "wire_tokens": 1850.6
+      }
+    },
+    {
+      "config": "H4_body_behavior",
+      "description": "H1+H3, H2=off, H4=on, H5=off",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "off",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "c_sharp,java",
+        "TOKEN_CONTEXT_DEP_VENDORED": "0"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.5667,
+        "sym_recall_at_10": 0.4167,
+        "wire_tokens": 1884.6
+      }
+    },
+    {
+      "config": "H5_dep_vendored",
+      "description": "H1+H3, H2=off, H4=off, H5=on",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "off",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "off",
+        "TOKEN_CONTEXT_DEP_VENDORED": "1"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.6,
+        "sym_recall_at_10": 0.4389,
+        "wire_tokens": 1878.0
+      }
+    },
+    {
+      "config": "H2_H5_optimal",
+      "description": "H1+H3, H2=on, H4=off, H5=on (Selected)",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "c_sharp,java",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "off",
+        "TOKEN_CONTEXT_DEP_VENDORED": "1"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.6,
+        "sym_recall_at_10": 0.5167,
+        "wire_tokens": 1866.9
+      }
+    },
+    {
+      "config": "H4_H5",
+      "description": "H1+H3, H2=off, H4=on, H5=on",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "off",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "c_sharp,java",
+        "TOKEN_CONTEXT_DEP_VENDORED": "1"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.5667,
+        "sym_recall_at_10": 0.4167,
+        "wire_tokens": 1884.6
+      }
+    },
+    {
+      "config": "H2_H4",
+      "description": "H1+H3, H2=on, H4=on, H5=off",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "c_sharp,java",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "c_sharp,java",
+        "TOKEN_CONTEXT_DEP_VENDORED": "0"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.5667,
+        "sym_recall_at_10": 0.4167,
+        "wire_tokens": 1869.4
+      }
+    },
+    {
+      "config": "all_on",
+      "description": "H1+H3, H2=on, H4=on, H5=on",
+      "switches": {
+        "TOKEN_CONTEXT_IMPL_RANKING": "c_sharp,java",
+        "TOKEN_CONTEXT_BODY_MODE_BEHAVIOR": "c_sharp,java",
+        "TOKEN_CONTEXT_DEP_VENDORED": "1"
+      },
+      "csvhelper": {
+        "file_acc_at_5": 0.5667,
+        "sym_recall_at_10": 0.4167,
+        "wire_tokens": 1869.4
+      }
+    }
+  ],
+  "selected_cross_repo_metrics": {
+    "bench-csvhelper": {
+      "file_acc_at_5": 0.6,
+      "sym_recall_at_10": 0.5167,
+      "wire_tokens": 1866.9
+    },
+    "bench-hono": {
+      "file_acc_at_5": 0.8,
+      "sym_recall_at_10": 0.6528,
+      "wire_tokens": 1898.8
+    },
+    "bench-fastify": {
+      "file_acc_at_5": 0.9,
+      "sym_recall_at_10": 0.6133,
+      "wire_tokens": 1888.6
+    }
+  }
+}

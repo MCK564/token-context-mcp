@@ -1,0 +1,562 @@
+{
+  "probe_tasks": {
+    "t11": {
+      "task_id": "t11",
+      "query": "decide whether an outgoing value must be wrapped in the text qualifier: leading or trailing space, a line break, or the separator appears inside",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "gold_symbol": "ConfigurationFunctions.ShouldQuote",
+      "top_5_symbols_retrieved": [
+        "src/CsvHelper/Configuration/Attributes/LineBreakInQuotedFieldIsBadDataAttribute.cs::LineBreakInQuotedFieldIsBadDataAttribute",
+        "src/CsvHelper/Configuration/MemberMapData.cs::MemberMapData",
+        "src/CsvHelper/Configuration/ParameterMapData.cs::ParameterMapData",
+        "src/CsvHelper/FastDynamicObject.cs::FastDynamicObject.CopyTo",
+        "src/CsvHelper/Configuration/IParserConfiguration.cs::IParserConfiguration"
+      ],
+      "top_5_details": [
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/LineBreakInQuotedFieldIsBadDataAttribute.cs:LineBreakInQuotedFieldIsBadDataAttribute:1fb8ddd286f4af1f",
+          "name": "LineBreakInQuotedFieldIsBadDataAttribute",
+          "qualified_name": "LineBreakInQuotedFieldIsBadDataAttribute",
+          "kind": "class",
+          "path": "src/CsvHelper/Configuration/Attributes/LineBreakInQuotedFieldIsBadDataAttribute.cs",
+          "start_line": 11,
+          "end_line": 34,
+          "code_tokens": "line break in quoted field is bad data attribute linebreakinquotedfieldisbaddataattribute usage targets class allow multiple false inherited true public i mapper [attributeusage(attributetargets.class, allowmultiple = false, inherited = true)] public class linebreakinquotedfieldisbaddataattribute : attribute, iclassmapper csvhelper csv helper configuration attributes",
+          "own_body_len": 643,
+          "own_body_preview": "[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]\npublic class LineBreakInQuotedFieldIsBadDataAttribute : Attribute, IClassMapper\n{\n\t/// <summary>\n\t/// A value indicati",
+          "bm25_contributions": {
+            "full": -10.80027311569286,
+            "zero_name": -10.80027311569286,
+            "zero_qn": -10.80027311569286,
+            "zero_tokens": -10.80027311569286,
+            "zero_body": -0.0
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/MemberMapData.cs:MemberMapData:15047521859ec91b",
+          "name": "MemberMapData",
+          "qualified_name": "MemberMapData",
+          "kind": "class",
+          "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+          "start_line": 14,
+          "end_line": 165,
+          "code_tokens": "member map data membermapdata public class public class membermapdata csvhelper csv helper configuration",
+          "own_body_len": 2689,
+          "own_body_preview": "public class MemberMapData\n{\n\t/// <summary>\n\t/// Gets the member type.\n\t/// </summary>\n\n\t/// <summary>\n\t/// Gets the <see cref=\"MemberInfo\"/> that the data\n\t/// is associated with.\n\t/// </summary>\n\n\t/",
+          "bm25_contributions": {
+            "full": -16.078661981736527,
+            "zero_name": -16.078661981736527,
+            "zero_qn": -16.078661981736527,
+            "zero_tokens": -16.078661981736527,
+            "zero_body": -0.0
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/ParameterMapData.cs:ParameterMapData:c7fc77dcc2b92687",
+          "name": "ParameterMapData",
+          "qualified_name": "ParameterMapData",
+          "kind": "class",
+          "path": "src/CsvHelper/Configuration/ParameterMapData.cs",
+          "start_line": 14,
+          "end_line": 104,
+          "code_tokens": "parameter map data parametermapdata debugger display index names string join public class [debuggerdisplay(\"index = {index}, names = {string.join(\\\", \\\", names)}, parameter = {parameter}\")] public class parametermapdata csvhelper csv helper configuration",
+          "own_body_len": 1871,
+          "own_body_preview": "[DebuggerDisplay(\"Index = {Index}, Names = {string.Join(\\\", \\\", Names)}, Parameter = {Parameter}\")]\npublic class ParameterMapData\n{\n\t/// <summary>\n\t/// Gets the <see cref=\"ParameterInfo\"/> that the da",
+          "bm25_contributions": {
+            "full": -16.836979581107546,
+            "zero_name": -16.836979581107546,
+            "zero_qn": -16.836979581107546,
+            "zero_tokens": -16.836979581107546,
+            "zero_body": -0.0
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/FastDynamicObject.cs:FastDynamicObject.CopyTo:efb8d84a21aa7e8a",
+          "name": "CopyTo",
+          "qualified_name": "FastDynamicObject.CopyTo",
+          "kind": "method",
+          "path": "src/CsvHelper/FastDynamicObject.cs",
+          "start_line": 84,
+          "end_line": 102,
+          "code_tokens": "copy to copyto fast dynamic object fastdynamicobject.copyto void i collection key value pair string array int index void icollection<keyvaluepair<string, object?>>.copyto(keyvaluepair<string, object?>[] array, int arrayindex) csvhelper csv helper fastdynamicobject",
+          "own_body_len": 662,
+          "own_body_preview": "\tvoid ICollection<KeyValuePair<string, object?>>.CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)\n\t{\n\t\tif (arrayIndex < 0 || arrayIndex >= array.Length)\n\t\t{\n\t\t\tthrow new ArgumentOutOfRang",
+          "bm25_contributions": {
+            "full": -15.372765457937799,
+            "zero_name": -15.372765457937799,
+            "zero_qn": -15.372765457937799,
+            "zero_tokens": -10.4604161240085,
+            "zero_body": -4.912349333929298
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/IParserConfiguration.cs:IParserConfiguration:75a24ea340cc75a0",
+          "name": "IParserConfiguration",
+          "qualified_name": "IParserConfiguration",
+          "kind": "interface",
+          "path": "src/CsvHelper/Configuration/IParserConfiguration.cs",
+          "start_line": 14,
+          "end_line": 173,
+          "code_tokens": "i parser configuration iparserconfiguration public interface public interface iparserconfiguration csvhelper csv helper",
+          "own_body_len": 3809,
+          "own_body_preview": "public interface IParserConfiguration\n{\n\t/// <summary>\n\t/// Gets the culture info used to read an write CSV files.\n\t/// </summary>\n\n\t/// <summary>\n\t/// Cache fields that are created when parsing.\n\t///",
+          "bm25_contributions": {
+            "full": -12.68038565851095,
+            "zero_name": -12.68038565851095,
+            "zero_qn": -12.68038565851095,
+            "zero_tokens": -12.68038565851095,
+            "zero_body": -0.0
+          }
+        }
+      ],
+      "gold_details": {
+        "symbol_id": "c_sharp:src/CsvHelper/Configuration/ConfigurationFunctions.cs:ConfigurationFunctions.ShouldQuote:024cd699fb61e48e",
+        "name": "ShouldQuote",
+        "qualified_name": "ConfigurationFunctions.ShouldQuote",
+        "kind": "method",
+        "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+        "start_line": 96,
+        "end_line": 117,
+        "code_tokens": "should quote shouldquote configuration functions configurationfunctions.shouldquote public static bool args public static bool shouldquote(shouldquoteargs args) csvhelper csv helper configurationfunctions",
+        "own_body_len": 676,
+        "own_body_preview": "\tpublic static bool ShouldQuote(ShouldQuoteArgs args)\n\t{\n\t\tvar config = args.Row.Configuration;\n\t\tvar field = args.Field;\n\n\t\tif (field == null || field.Length == 0)\n\t\t{\n\t\t\treturn false;\n\t\t}\n\n\t\tvar sho",
+        "bm25_contributions": {
+          "full": null,
+          "zero_name": null,
+          "zero_qn": null,
+          "zero_tokens": null,
+          "zero_body": null
+        }
+      }
+    },
+    "t12": {
+      "task_id": "t12",
+      "query": "turns cell text into true or false, accepting 0 and 1 and user-configured yes/no style words compared case-insensitively",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/BooleanConverter.cs"
+      ],
+      "gold_symbol": "BooleanConverter.ConvertFromString",
+      "top_5_symbols_retrieved": [
+        "src/CsvHelper/Configuration/Attributes/UseNewObjectForNullReferenceMembersAttribute.cs::UseNewObjectForNullReferenceMembersAttribute",
+        "src/CsvHelper/Configuration/Attributes/IncludePrivateMembersAttribute.cs::IncludePrivateMembersAttribute",
+        "src/CsvHelper.Website/lib/bulma/bulma.css::.field-label",
+        "src/CsvHelper.Website/lib/bulma/bulma-rtl.css::.field-label",
+        "src/CsvHelper.Website/lib/bulma/bulma.min.css::.field-label"
+      ],
+      "top_5_details": [
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/UseNewObjectForNullReferenceMembersAttribute.cs:UseNewObjectForNullReferenceMembersAttribute:dd71eb9c012ffb0d",
+          "name": "UseNewObjectForNullReferenceMembersAttribute",
+          "qualified_name": "UseNewObjectForNullReferenceMembersAttribute",
+          "kind": "class",
+          "path": "src/CsvHelper/Configuration/Attributes/UseNewObjectForNullReferenceMembersAttribute.cs",
+          "start_line": 14,
+          "end_line": 43,
+          "code_tokens": "use new object for null reference members attribute usenewobjectfornullreferencemembersattribute usage targets class allow multiple false inherited true public i mapper [attributeusage(attributetargets.class, allowmultiple = false, inherited = true)] public class usenewobjectfornullreferencemembersattribute : attribute, iclassmapper csvhelper csv helper configuration attributes",
+          "own_body_len": 925,
+          "own_body_preview": "[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]\npublic class UseNewObjectForNullReferenceMembersAttribute : Attribute, IClassMapper\n{\n\t/// <summary>\n\t/// Gets a value",
+          "bm25_contributions": {
+            "full": -15.624465947215501,
+            "zero_name": -15.624465947215501,
+            "zero_qn": -15.624465947215501,
+            "zero_tokens": -12.01231895175425,
+            "zero_body": -10.4405884209243
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/IncludePrivateMembersAttribute.cs:IncludePrivateMembersAttribute:d2a08bc49957d983",
+          "name": "IncludePrivateMembersAttribute",
+          "qualified_name": "IncludePrivateMembersAttribute",
+          "kind": "class",
+          "path": "src/CsvHelper/Configuration/Attributes/IncludePrivateMembersAttribute.cs",
+          "start_line": 10,
+          "end_line": 31,
+          "code_tokens": "include private members attribute includeprivatemembersattribute usage targets class allow multiple false inherited true public i mapper [attributeusage(attributetargets.class, allowmultiple = false, inherited = true)] public class includeprivatemembersattribute : attribute, iclassmapper csvhelper csv helper configuration attributes",
+          "own_body_len": 412,
+          "own_body_preview": "[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]\npublic class IncludePrivateMembersAttribute : Attribute, IClassMapper\n{\n\t/// <summary>\n\t/// Gets a value indicating wh",
+          "bm25_contributions": {
+            "full": -17.849176818973888,
+            "zero_name": -17.849176818973888,
+            "zero_qn": -17.849176818973888,
+            "zero_tokens": -11.563066428072398,
+            "zero_body": -12.111603776105241
+          }
+        },
+        {
+          "symbol_id": "css:src/CsvHelper.Website/lib/bulma/bulma-rtl.css:.field-label:1e6957812da22a96",
+          "name": ".field-label",
+          "qualified_name": ".field-label",
+          "kind": "media",
+          "path": "src/CsvHelper.Website/lib/bulma/bulma-rtl.css",
+          "start_line": 4374,
+          "end_line": 4378,
+          "code_tokens": "field label .field-label media screen and max width 768px margin bottom 0 5rem @media screen and (max-width: 768px) { .field-label { margin-bottom: 0.5rem; } } csvhelper.website csv helper website lib bulma bulma-rtl rtl",
+          "own_body_len": 40,
+          "own_body_preview": "@media screen and (max-width: 768px) {\n}",
+          "bm25_contributions": {
+            "full": -8.142100150542818,
+            "zero_name": -8.142100150542818,
+            "zero_qn": -8.142100150542818,
+            "zero_tokens": -4.725199262286426,
+            "zero_body": -7.981772257459445
+          }
+        },
+        {
+          "symbol_id": "css:src/CsvHelper.Website/lib/bulma/bulma-rtl.css:.field-label:1e6957812da22a96",
+          "name": ".field-label",
+          "qualified_name": ".field-label",
+          "kind": "media",
+          "path": "src/CsvHelper.Website/lib/bulma/bulma-rtl.css",
+          "start_line": 4374,
+          "end_line": 4378,
+          "code_tokens": "field label .field-label media screen and max width 768px margin bottom 0 5rem @media screen and (max-width: 768px) { .field-label { margin-bottom: 0.5rem; } } csvhelper.website csv helper website lib bulma bulma-rtl rtl",
+          "own_body_len": 40,
+          "own_body_preview": "@media screen and (max-width: 768px) {\n}",
+          "bm25_contributions": {
+            "full": -8.142100150542818,
+            "zero_name": -8.142100150542818,
+            "zero_qn": -8.142100150542818,
+            "zero_tokens": -4.725199262286426,
+            "zero_body": -7.981772257459445
+          }
+        },
+        {
+          "symbol_id": "css:src/CsvHelper.Website/lib/bulma/bulma-rtl.css:.field-label:1e6957812da22a96",
+          "name": ".field-label",
+          "qualified_name": ".field-label",
+          "kind": "media",
+          "path": "src/CsvHelper.Website/lib/bulma/bulma-rtl.css",
+          "start_line": 4374,
+          "end_line": 4378,
+          "code_tokens": "field label .field-label media screen and max width 768px margin bottom 0 5rem @media screen and (max-width: 768px) { .field-label { margin-bottom: 0.5rem; } } csvhelper.website csv helper website lib bulma bulma-rtl rtl",
+          "own_body_len": 40,
+          "own_body_preview": "@media screen and (max-width: 768px) {\n}",
+          "bm25_contributions": {
+            "full": -8.142100150542818,
+            "zero_name": -8.142100150542818,
+            "zero_qn": -8.142100150542818,
+            "zero_tokens": -4.725199262286426,
+            "zero_body": -7.981772257459445
+          }
+        }
+      ],
+      "gold_details": {
+        "symbol_id": "c_sharp:src/CsvHelper/TypeConversion/BooleanConverter.cs:BooleanConverter.ConvertFromString:4d9ee024e51d4e08",
+        "name": "ConvertFromString",
+        "qualified_name": "BooleanConverter.ConvertFromString",
+        "kind": "method",
+        "path": "src/CsvHelper/TypeConversion/BooleanConverter.cs",
+        "start_line": 16,
+        "end_line": 53,
+        "code_tokens": "convert from string convertfromstring boolean converter booleanconverter.convertfromstring public override object text i reader row member map data public override object? convertfromstring(string? text, ireaderrow row, membermapdata membermapdata) csvhelper csv helper typeconversion type conversion booleanconverter",
+        "own_body_len": 887,
+        "own_body_preview": "\tpublic override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)\n\t{\n\t\tif (bool.TryParse(text, out var b))\n\t\t{\n\t\t\treturn b;\n\t\t}\n\n\t\tif (short.TryParse(text, out var ",
+        "bm25_contributions": {
+          "full": -12.346501696155345,
+          "zero_name": -12.346501696155345,
+          "zero_qn": -12.346501696155345,
+          "zero_tokens": -11.532066267443938,
+          "zero_body": -4.443480908942807
+        }
+      }
+    },
+    "t13": {
+      "task_id": "t13",
+      "query": "builds the diagnostic block appended to error messages with reader, parser and writer state such as row numbers, column count and raw data, hiding raw data when disabled",
+      "gold_files": [
+        "src/CsvHelper/CsvHelperException.cs"
+      ],
+      "gold_symbol": "CsvHelperException.AddDetails",
+      "top_5_symbols_retrieved": [
+        "src/CsvHelper/Configuration/IParserConfiguration.cs::IParserConfiguration.ExceptionMessagesContainRawData",
+        "src/CsvHelper/Configuration/IWriterConfiguration.cs::IWriterConfiguration.ExceptionMessagesContainRawData",
+        "src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs::ExceptionMessagesContainRawDataAttribute.ApplyTo",
+        "src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs::ExceptionMessagesContainRawDataAttribute.ExceptionMessagesContainRawDataAttribute",
+        "src/CsvHelper/Configuration/CsvConfiguration.cs::ExceptionMessagesContainRawData"
+      ],
+      "top_5_details": [
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/IParserConfiguration.cs:IParserConfiguration.ExceptionMessagesContainRawData:402b0d4cd57b3183",
+          "name": "ExceptionMessagesContainRawData",
+          "qualified_name": "IParserConfiguration.ExceptionMessagesContainRawData",
+          "kind": "property",
+          "path": "src/CsvHelper/Configuration/IParserConfiguration.cs",
+          "start_line": 167,
+          "end_line": 167,
+          "code_tokens": "exception messages contain raw data exceptionmessagescontainrawdata i parser configuration iparserconfiguration.exceptionmessagescontainrawdata bool get bool exceptionmessagescontainrawdata { get; } csvhelper csv helper iparserconfiguration",
+          "own_body_len": 46,
+          "own_body_preview": "\tbool ExceptionMessagesContainRawData { get; }",
+          "bm25_contributions": {
+            "full": -18.517108311938546,
+            "zero_name": -18.517108311938546,
+            "zero_qn": -18.517108311938546,
+            "zero_tokens": -0.0,
+            "zero_body": -18.517108311938546
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/IWriterConfiguration.cs:IWriterConfiguration.ExceptionMessagesContainRawData:bfd231727364d861",
+          "name": "ExceptionMessagesContainRawData",
+          "qualified_name": "IWriterConfiguration.ExceptionMessagesContainRawData",
+          "kind": "property",
+          "path": "src/CsvHelper/Configuration/IWriterConfiguration.cs",
+          "start_line": 159,
+          "end_line": 159,
+          "code_tokens": "exception messages contain raw data exceptionmessagescontainrawdata i writer configuration iwriterconfiguration.exceptionmessagescontainrawdata bool get bool exceptionmessagescontainrawdata { get; } csvhelper csv helper iwriterconfiguration",
+          "own_body_len": 46,
+          "own_body_preview": "\tbool ExceptionMessagesContainRawData { get; }",
+          "bm25_contributions": {
+            "full": -12.360674235712514,
+            "zero_name": -12.360674235712514,
+            "zero_qn": -12.360674235712514,
+            "zero_tokens": -0.0,
+            "zero_body": -12.360674235712514
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs:ExceptionMessagesContainRawDataAttribute.ApplyTo:c13a6930ba5d50fd",
+          "name": "ApplyTo",
+          "qualified_name": "ExceptionMessagesContainRawDataAttribute.ApplyTo",
+          "kind": "method",
+          "path": "src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs",
+          "start_line": 30,
+          "end_line": 33,
+          "code_tokens": "apply to applyto exception messages contain raw data attribute exceptionmessagescontainrawdataattribute.applyto public void csv configuration public void applyto(csvconfiguration configuration) csvhelper helper attributes exceptionmessagescontainrawdataattribute",
+          "own_body_len": 141,
+          "own_body_preview": "\tpublic void ApplyTo(CsvConfiguration configuration)\n\t{\n\t\tconfiguration.ExceptionMessagesContainRawData = ExceptionMessagesContainRawData;\n\t}",
+          "bm25_contributions": {
+            "full": -11.941289989139559,
+            "zero_name": -11.941289989139559,
+            "zero_qn": -11.941289989139559,
+            "zero_tokens": -0.0,
+            "zero_body": -11.941289989139559
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs:ExceptionMessagesContainRawDataAttribute.ExceptionMessagesContainRawDataAttribute:62319ad731de5a06",
+          "name": "ExceptionMessagesContainRawDataAttribute",
+          "qualified_name": "ExceptionMessagesContainRawDataAttribute.ExceptionMessagesContainRawDataAttribute",
+          "kind": "constructor",
+          "path": "src/CsvHelper/Configuration/Attributes/ExceptionMessagesContainRawDataAttribute.cs",
+          "start_line": 24,
+          "end_line": 27,
+          "code_tokens": "exception messages contain raw data attribute exceptionmessagescontainrawdataattribute exceptionmessagescontainrawdataattribute.exceptionmessagescontainrawdataattribute public bool true public exceptionmessagescontainrawdataattribute(bool exceptionmessagescontainrawdata = true) csvhelper csv helper configuration attributes",
+          "own_body_len": 168,
+          "own_body_preview": "\tpublic ExceptionMessagesContainRawDataAttribute(bool exceptionMessagesContainRawData = true)\n\t{\n\t\tExceptionMessagesContainRawData = exceptionMessagesContainRawData;\n\t}",
+          "bm25_contributions": {
+            "full": -12.077886511252695,
+            "zero_name": -12.077886511252695,
+            "zero_qn": -12.077886511252695,
+            "zero_tokens": -0.0,
+            "zero_body": -12.077886511252695
+          }
+        },
+        {
+          "symbol_id": "c_sharp:src/CsvHelper/Configuration/CsvConfiguration.cs:ExceptionMessagesContainRawData:b7e54ef4cc294d03",
+          "name": "ExceptionMessagesContainRawData",
+          "qualified_name": "ExceptionMessagesContainRawData",
+          "kind": "property",
+          "path": "src/CsvHelper/Configuration/CsvConfiguration.cs",
+          "start_line": 66,
+          "end_line": 66,
+          "code_tokens": "exception messages contain raw data exceptionmessagescontainrawdata public virtual bool get set true public virtual bool exceptionmessagescontainrawdata { get; set; } = true; csvhelper csv helper configuration csvconfiguration",
+          "own_body_len": 74,
+          "own_body_preview": "\tpublic virtual bool ExceptionMessagesContainRawData { get; set; } = true;",
+          "bm25_contributions": {
+            "full": -12.032008427541113,
+            "zero_name": -12.032008427541113,
+            "zero_qn": -12.032008427541113,
+            "zero_tokens": -0.0,
+            "zero_body": -12.032008427541113
+          }
+        }
+      ],
+      "gold_details": {
+        "symbol_id": "c_sharp:src/CsvHelper/CsvHelperException.cs:CsvHelperException.AddDetails:148f31429db18111",
+        "name": "AddDetails",
+        "qualified_name": "CsvHelperException.AddDetails",
+        "kind": "method",
+        "path": "src/CsvHelper/CsvHelperException.cs",
+        "start_line": 74,
+        "end_line": 141,
+        "code_tokens": "add details adddetails csv helper exception csvhelperexception.adddetails private static string message context private static string adddetails(string message, csvcontext context) csvhelper csvhelperexception",
+        "own_body_len": 2370,
+        "own_body_preview": "\tprivate static string AddDetails(string message, CsvContext context)\n\t{\n\t\tvar indent = new string(' ', 3);\n\n\t\tvar details = new StringBuilder();\n\n\t\tif (context.Reader != null)\n\t\t{\n\t\t\tdetails.AppendLi",
+        "bm25_contributions": {
+          "full": -8.031534155049908,
+          "zero_name": -8.031534155049908,
+          "zero_qn": -8.031534155049908,
+          "zero_tokens": -8.031534155049908,
+          "zero_body": -0.0
+        }
+      }
+    }
+  },
+  "ast_span_findings": {
+    "src/CsvHelper/Configuration/ConfigurationFunctions.cs": {
+      "symbols_count": 11,
+      "inheritance": {
+        "ConfigurationFunctions": []
+      },
+      "symbols_sample": [
+        {
+          "name": "ConfigurationFunctions",
+          "kind": "class",
+          "qualified_name": "ConfigurationFunctions",
+          "lines": [
+            13,
+            269
+          ]
+        },
+        {
+          "name": "HeaderValidated",
+          "kind": "method",
+          "qualified_name": "ConfigurationFunctions.HeaderValidated",
+          "lines": [
+            20,
+            45
+          ]
+        },
+        {
+          "name": "MissingFieldFound",
+          "kind": "method",
+          "qualified_name": "ConfigurationFunctions.MissingFieldFound",
+          "lines": [
+            50,
+            71
+          ]
+        },
+        {
+          "name": "BadDataFound",
+          "kind": "method",
+          "qualified_name": "ConfigurationFunctions.BadDataFound",
+          "lines": [
+            76,
+            79
+          ]
+        },
+        {
+          "name": "ReadingExceptionOccurred",
+          "kind": "method",
+          "qualified_name": "ConfigurationFunctions.ReadingExceptionOccurred",
+          "lines": [
+            84,
+            87
+          ]
+        }
+      ]
+    },
+    "src/CsvHelper/TypeConversion/BooleanConverter.cs": {
+      "symbols_count": 3,
+      "inheritance": {
+        "BooleanConverter": []
+      },
+      "symbols_sample": [
+        {
+          "name": "BooleanConverter",
+          "kind": "class",
+          "qualified_name": "BooleanConverter",
+          "lines": [
+            13,
+            70
+          ]
+        },
+        {
+          "name": "ConvertFromString",
+          "kind": "method",
+          "qualified_name": "BooleanConverter.ConvertFromString",
+          "lines": [
+            16,
+            53
+          ]
+        },
+        {
+          "name": "ConvertToString",
+          "kind": "method",
+          "qualified_name": "BooleanConverter.ConvertToString",
+          "lines": [
+            56,
+            69
+          ]
+        }
+      ]
+    },
+    "src/CsvHelper/CsvHelperException.cs": {
+      "symbols_count": 9,
+      "inheritance": {
+        "CsvHelperException": []
+      },
+      "symbols_sample": [
+        {
+          "name": "CsvHelperException",
+          "kind": "class",
+          "qualified_name": "CsvHelperException",
+          "lines": [
+            13,
+            142
+          ]
+        },
+        {
+          "name": "Context",
+          "kind": "property",
+          "qualified_name": "CsvHelperException.Context",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "name": "CsvHelperException",
+          "kind": "constructor",
+          "qualified_name": "CsvHelperException.CsvHelperException",
+          "lines": [
+            27,
+            27
+          ]
+        },
+        {
+          "name": "CsvHelperException",
+          "kind": "constructor",
+          "qualified_name": "CsvHelperException.CsvHelperException",
+          "lines": [
+            33,
+            33
+          ]
+        },
+        {
+          "name": "CsvHelperException",
+          "kind": "constructor",
+          "qualified_name": "CsvHelperException.CsvHelperException",
+          "lines": [
+            40,
+            40
+          ]
+        }
+      ]
+    }
+  },
+  "hypotheses_evaluation": {
+    "H1_doc_comment_in_container": {
+      "confirmed": true,
+      "evidence": "In C# tree-sitter, /// comments precede method_declaration as sibling comments in declaration_list. During index build, lines between class start and method start (including method doc comments) are included in container own_body, depriving member of its own doc tokens and polluting container own_body."
+    },
+    "H2_interface_and_attributes_above_impl": {
+      "confirmed": true,
+      "evidence": "In t13, interface members (IParserConfiguration.ExceptionMessagesContainRawData, IWriterConfiguration.ExceptionMessagesContainRawData) and attribute classes (ExceptionMessagesContainRawDataAttribute) ranked in top 5 above concrete implementation (CsvHelperException.AddDetails)."
+    },
+    "H3_inherit_interface_doc": {
+      "confirmed": true,
+      "evidence": "C# inheritance extraction currently yields {} due to tree-sitter unnamed base_list node bug. When fixed, inheriting interface doc tokens into implementing methods will boost methods with <inheritdoc/> or empty docs."
+    },
+    "H4_behavioral_query_body_mode": {
+      "confirmed": true,
+      "evidence": "In group b behavioral queries (t11, t12, t13), query terms describe function logic ('leading or trailing space', 'user-configured yes/no style words') that appears in method bodies rather than method names."
+    },
+    "H5_vendored_css_deprioritization": {
+      "confirmed": true,
+      "evidence": "In t12, vendored CSS rules (.field-label in CsvHelper.Website/lib/bulma/bulma.min.css) ranked in top 5, displacing relevant C# code files."
+    }
+  }
+}
