@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 4  # 4: C# base_list inheritance and ranking (M12.2); bump whenever parse output changes
+PARSER_ARTIFACT_VERSION = 5  # 5: CallRecord arg_count and E2 overload resolution (M12.3)
 
 
 try:
@@ -47,6 +47,7 @@ class CallRecord:
     # (annotation, constructor call, local var, etc.), which keeps the existing
     # "attr_type" scope label in lexical_edges.py.
     receiver_type_source: str | None = None
+    arg_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -1721,6 +1722,8 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 return
 
         if language_name == "python" and c_type == "call":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "attribute":
@@ -1740,6 +1743,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1750,9 +1754,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name in {"javascript", "typescript", "tsx"} and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "member_expression":
@@ -1772,6 +1779,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1782,9 +1790,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "go" and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "selector_expression":
@@ -1804,6 +1815,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1814,9 +1826,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "java" and c_type == "method_invocation":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             obj = _field(current, "object")
             name = _field(current, "name")
             if name is not None:
@@ -1833,9 +1848,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                         is_tainted=is_t,
                         assigned_from_fn=fn_src,
                         receiver_type_source=r_src,
+                        arg_count=call_arg_count,
                     )
                 )
         elif language_name == "c_sharp" and c_type == "invocation_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             expr = _field(current, "expression") or (
                 current.named_children[0] if getattr(current, "named_children", None) else None
             )
@@ -1857,6 +1875,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif expr.type == "identifier":
@@ -1867,6 +1886,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         for child in getattr(current, "named_children", []):

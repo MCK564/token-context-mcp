@@ -26,6 +26,8 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     "same_class_split": 0.85,
     "implicit_this": 0.90,
     "implicit_this_partial": 0.85,
+    "overload_arity": 0.85,
+    "overload_group": 0.70,
     "cha_inherited": 0.90,
     "attr_type": 0.95,
     "attr_type_inherited": 0.90,
@@ -42,6 +44,71 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     "global": 0.40,
     "virtual_stub": 0.90,
 }
+
+
+def _count_params(sig: str | None) -> int | None:
+    if not sig:
+        return None
+    start = sig.find("(")
+    end = sig.rfind(")")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    param_str = sig[start + 1 : end].strip()
+    if not param_str:
+        return 0
+    count = 0
+    depth = 0
+    current_token: list[str] = []
+    for ch in param_str:
+        if ch in "([{<":
+            depth += 1
+            current_token.append(ch)
+        elif ch in ")]}>":
+            depth = max(0, depth - 1)
+            current_token.append(ch)
+        elif ch == "," and depth == 0:
+            if "".join(current_token).strip():
+                count += 1
+            current_token = []
+        else:
+            current_token.append(ch)
+    if "".join(current_token).strip():
+        count += 1
+    return count
+
+
+def _try_resolve_overload(
+    candidates: list[SymbolRecord],
+    source: SymbolRecord,
+    call_arg_count: int | None,
+) -> tuple[SymbolRecord | None, str, float] | None:
+    if not candidates or len(candidates) < 2:
+        return None
+    # E2: Only C#, Java, TS. Strictly NOT enabled for Python.
+    is_overload_lang = (
+        source.symbol_id.startswith(("c_sharp:", "java:", "typescript:", "tsx:"))
+        or source.path.endswith((".cs", ".java", ".ts", ".tsx"))
+    )
+    if not is_overload_lang:
+        return None
+
+    # Check if all remaining candidates have the exact same qualified_name
+    qnames = {c.qualified_name for c in candidates}
+    if len(qnames) != 1:
+        return None
+
+    # 1. Overload arity match (matching parameter count with argument count)
+    if call_arg_count is not None:
+        arity_matches = [
+            c for c in candidates
+            if _count_params(c.signature) == call_arg_count
+        ]
+        if len(arity_matches) == 1:
+            return arity_matches[0], "overload_arity", SCOPE_CONFIDENCE.get("overload_arity", 0.85)
+
+    # 2. Overload group match (smallest start_line)
+    best = min(candidates, key=lambda c: c.start_line)
+    return best, "overload_group", SCOPE_CONFIDENCE.get("overload_group", 0.70)
 
 
 
@@ -205,6 +272,7 @@ def build_lexical_edges(
                     is_tainted=getattr(call, "is_tainted", False),
                     imports=imports_map.get(path, []),
                     class_hierarchy=class_hierarchy,
+                    call_arg_count=getattr(call, "arg_count", None),
                 )
                 status = "resolved" if target else "ambiguous"
                 evidence = ["ast_call", f"scope:{scope}"]
@@ -357,6 +425,7 @@ def _resolve_candidate(
     is_tainted: bool = False,
     imports: list[str] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
+    call_arg_count: int | None = None,
 ) -> tuple[SymbolRecord | None, str, float]:
     imports_list = imports or []
 
@@ -383,6 +452,11 @@ def _resolve_candidate(
             ]
             if len(same_class) == 1:
                 return same_class[0], "same_class", SCOPE_CONFIDENCE.get("same_class", 0.95)
+            if len(same_class) > 1:
+                ov = _try_resolve_overload(same_class, source, call_arg_count)
+                if ov is not None:
+                    return ov
+                return None, "same_class_ambiguous", 0.10
 
             # Class Hierarchy Analysis (CHA) lookup for inherited method
             if class_hierarchy:
@@ -397,6 +471,9 @@ def _resolve_candidate(
                     if len(ancestor_matches) == 1:
                         return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
                     if len(ancestor_matches) > 1:
+                        ov = _try_resolve_overload(ancestor_matches, source, call_arg_count)
+                        if ov is not None:
+                            return ov
                         return None, "cha_ambiguous", 0.10
 
             # Receiver this Cross-File Resolution (M12.1.3):
@@ -412,6 +489,9 @@ def _resolve_candidate(
                 if len(split_class) == 1:
                     return split_class[0], "same_class_split", SCOPE_CONFIDENCE.get("same_class_split", 0.85)
                 if len(split_class) > 1:
+                    ov = _try_resolve_overload(split_class, source, call_arg_count)
+                    if ov is not None:
+                        return ov
                     return None, "same_class_split_ambiguous", 0.10
 
         # Fallback to same file
@@ -419,6 +499,9 @@ def _resolve_candidate(
         if len(same_file) == 1:
             return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
         if len(same_file) > 1:
+            ov = _try_resolve_overload(same_file, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "same_file_ambiguous", 0.10
 
     # 1b. Receiver is an instance attribute (self.x, this.x, cls.x)
@@ -441,6 +524,9 @@ def _resolve_candidate(
                 same_file_type = [c for c in type_matches if c.path == source.path]
                 if len(same_file_type) == 1:
                     return same_file_type[0], attr_scope, SCOPE_CONFIDENCE.get(attr_scope, 0.90)
+                ov = _try_resolve_overload(same_file_type or type_matches, source, call_arg_count)
+                if ov is not None:
+                    return ov
                 return None, "attr_type_ambiguous", 0.10
 
             # Try CHA on receiver_type
@@ -475,6 +561,9 @@ def _resolve_candidate(
             same_file_type = [c for c in type_matches if c.path == source.path]
             if len(same_file_type) == 1:
                 return same_file_type[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
+            ov = _try_resolve_overload(same_file_type or type_matches, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "receiver_type_ambiguous", 0.10
 
         # Try CHA on receiver_type
@@ -505,6 +594,9 @@ def _resolve_candidate(
             same_file_rec = [c for c in receiver_matches if c.path == source.path]
             if len(same_file_rec) == 1:
                 return same_file_rec[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
+            ov = _try_resolve_overload(same_file_rec, source, call_arg_count)
+            if ov is not None:
+                return ov
             if imports_list:
                 import_rec = [
                     c for c in receiver_matches
@@ -512,6 +604,12 @@ def _resolve_candidate(
                 ]
                 if len(import_rec) == 1:
                     return import_rec[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
+                ov = _try_resolve_overload(import_rec, source, call_arg_count)
+                if ov is not None:
+                    return ov
+            ov = _try_resolve_overload(receiver_matches, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "receiver_ambiguous", 0.10
 
         # Receiver might be an imported module name
@@ -524,6 +622,9 @@ def _resolve_candidate(
             if len(imp_cands) == 1:
                 return imp_cands[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
             if len(imp_cands) > 1:
+                ov = _try_resolve_overload(imp_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov
                 return None, "import_module_ambiguous", 0.10
 
         # Check if candidate is a method of an imported/same-file class and receiver name matches class name:
@@ -569,6 +670,9 @@ def _resolve_candidate(
             if len(same_class) == 1:
                 return same_class[0], "implicit_this", SCOPE_CONFIDENCE.get("implicit_this", 0.90)
             if len(same_class) > 1:
+                ov = _try_resolve_overload(same_class, source, call_arg_count)
+                if ov is not None:
+                    return ov
                 return None, "implicit_this_ambiguous", 0.10
 
             # 2. C.name in other files (partial class)
@@ -582,6 +686,9 @@ def _resolve_candidate(
             if len(same_class_partial) == 1:
                 return same_class_partial[0], "implicit_this_partial", SCOPE_CONFIDENCE.get("implicit_this_partial", 0.85)
             if len(same_class_partial) > 1:
+                ov = _try_resolve_overload(same_class_partial, source, call_arg_count)
+                if ov is not None:
+                    return ov
                 return None, "implicit_this_partial_ambiguous", 0.10
 
             # 3. CHA up to parent class
@@ -597,6 +704,9 @@ def _resolve_candidate(
                     if len(ancestor_matches) == 1:
                         return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
                     if len(ancestor_matches) > 1:
+                        ov = _try_resolve_overload(ancestor_matches, source, call_arg_count)
+                        if ov is not None:
+                            return ov
                         return None, "cha_ambiguous", 0.10
 
     # 4. Direct candidate resolution: same_file -> imported -> same_package -> global
@@ -605,6 +715,9 @@ def _resolve_candidate(
     if len(same_file) == 1:
         return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
     if len(same_file) > 1:
+        ov = _try_resolve_overload(same_file, source, call_arg_count)
+        if ov is not None:
+            return ov
         return None, "same_file_ambiguous", 0.10
 
     if imports_list:
@@ -615,6 +728,9 @@ def _resolve_candidate(
         if len(imported_cands) == 1:
             return imported_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
         if len(imported_cands) > 1:
+            ov = _try_resolve_overload(imported_cands, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "import_ambiguous", 0.10
 
     source_package = source.path.rsplit("/", 1)[0]
@@ -627,6 +743,9 @@ def _resolve_candidate(
         if same_package[0].name not in _GENERIC_METHOD_NAMES:
             return same_package[0], "same_package", SCOPE_CONFIDENCE.get("same_package", 0.75)
     if len(same_package) > 1:
+        ov = _try_resolve_overload(same_package, source, call_arg_count)
+        if ov is not None:
+            return ov
         return None, "same_package_ambiguous", 0.10
 
     # Restrict global fallback:
@@ -638,6 +757,10 @@ def _resolve_candidate(
             is_class_method = ("." in cand.qualified_name) and (cand.kind in {"method", "function"})
             if not is_class_method:
                 return cand, "global", SCOPE_CONFIDENCE.get("global", 0.40)
+    if len(candidates) > 1:
+        ov = _try_resolve_overload(candidates, source, call_arg_count)
+        if ov is not None:
+            return ov
 
     return None, "global_ambiguous", 0.10
 
