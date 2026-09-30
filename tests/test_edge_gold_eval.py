@@ -35,8 +35,13 @@ def test_guard_bypassed_with_allow_baseline_code(tmp_path: Path):
         check_heldout_guard("heldout", allow_baseline_code=non_existent)
 
 
-def test_guard_fails_when_m12_freeze_tag_missing():
-    # In current state, m12-freeze tag does not exist
+def test_guard_fails_when_m12_freeze_tag_missing(monkeypatch):
+    def mock_run_no_tag(cmd, **kwargs):
+        if "rev-parse" in cmd:
+            return subprocess.CompletedProcess(args=cmd, returncode=1, stderr="Not found")
+        return subprocess.CompletedProcess(args=cmd, returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", mock_run_no_tag)
     with pytest.raises(RuntimeError, match="Rule 17 violation.*m12-freeze.*does not exist"):
         check_heldout_guard("heldout")
 
