@@ -1,0 +1,339 @@
+{
+  "repo_id": "bench-fastify",
+  "repo_url": "https://github.com/fastify/fastify",
+  "reviewed": true,
+  "reviewed_by": "Independent reviewer (Antigravity M12 session)",
+  "review_note": "Annotated following Appendix D guidelines from AST call sites.",
+  "sites": [
+    {
+      "path": ".github/scripts/lint-ecosystem.js",
+      "line": 45,
+      "col": 9,
+      "callee_text": "line.startsWith",
+      "snippet": "      modules = []\n    }\n\n    if (line.startsWith('- [') !== true) {\n      continue\n    }\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "String.prototype.startsWith in JS runtime"
+    },
+    {
+      "path": "eslint.config.js",
+      "line": 5,
+      "col": 6,
+      "callee_text": "neostandard",
+      "snippet": "const neostandard = require('neostandard')\n\nmodule.exports = [\n  ...neostandard({\n    ignores: [\n      'lib/config-validator.js',\n      'lib/error-serializer.js',",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "External npm package neostandard"
+    },
+    {
+      "path": "examples/benchmark/hooks-benchmark-async-await.js",
+      "line": 28,
+      "col": 1,
+      "callee_text": "fastify\n  .addHook('onRequest', asyncHook)\n  .addHook('onRequest', asyncHook)\n  .addHook",
+      "snippet": "  await new Promise(promiseFunction)\n}\n\nfastify\n  .addHook('onRequest', asyncHook)\n  .addHook('onRequest', asyncHook)\n  .addHook('preHandler', asyncHook)",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.addHook"
+      },
+      "reason": "Fastify instance method addHook"
+    },
+    {
+      "path": "examples/benchmark/hooks-benchmark.js",
+      "line": 28,
+      "col": 1,
+      "callee_text": "fastify\n  .addHook('preHandler', function (request, reply, done) {\n    done()\n  })\n  .addHook",
+      "snippet": "    done()\n  })\n\nfastify\n  .addHook('preHandler', function (request, reply, done) {\n    done()\n  })",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.addHook"
+      },
+      "reason": "Fastify instance method addHook"
+    },
+    {
+      "path": "examples/benchmark/parser.js",
+      "line": 3,
+      "col": 17,
+      "callee_text": "require('../../fastify')",
+      "snippet": "'use strict'\n\nconst fastify = require('../../fastify')({\n  logger: false\n})\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify"
+      },
+      "reason": "Call to exported fastify factory function"
+    },
+    {
+      "path": "examples/benchmark/simple.js",
+      "line": 3,
+      "col": 17,
+      "callee_text": "require('../../fastify')",
+      "snippet": "'use strict'\n\nconst fastify = require('../../fastify')({\n  logger: false\n})\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify"
+      },
+      "reason": "Call to exported fastify factory function"
+    },
+    {
+      "path": "examples/benchmark/webstream.js",
+      "line": 13,
+      "col": 7,
+      "callee_text": "controller.close",
+      "snippet": "  const stream = new ReadableStream({\n    start (controller) {\n      controller.enqueue(payload)\n      controller.close()\n    }\n  })\n  return new Response(stream, {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "ReadableStreamDefaultController.close in Web Streams API"
+    },
+    {
+      "path": "examples/http2.js",
+      "line": 9,
+      "col": 27,
+      "callee_text": "path.join",
+      "snippet": "  http2: true,\n  https: {\n    key: fs.readFileSync(path.join(__dirname, '../test/https/fastify.key')),\n    cert: fs.readFileSync(path.join(__dirname, '../test/https/fastify.cert'))\n  },\n  logger: true\n})",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js core module path.join"
+    },
+    {
+      "path": "examples/https.js",
+      "line": 8,
+      "col": 11,
+      "callee_text": "fs.readFileSync",
+      "snippet": "const fastify = require('../fastify')({\n  https: {\n    key: fs.readFileSync(path.join(__dirname, '../test/https/fastify.key')),\n    cert: fs.readFileSync(path.join(__dirname, '../test/https/fastify.cert'))\n  },\n  logger: true\n})",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js core module fs.readFileSync"
+    },
+    {
+      "path": "examples/plugin.js",
+      "line": 9,
+      "col": 7,
+      "callee_text": "reply.send",
+      "snippet": "      reply.send({ hello: 'world' })\n    })\n    .post('/', opts, function (req, reply) {\n      reply.send({ hello: 'world' })\n    })\n  done()\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/reply.js",
+        "qualified_name": "Reply.send"
+      },
+      "reason": "Reply class instance method send"
+    },
+    {
+      "path": "examples/route-prefix.js",
+      "line": 20,
+      "col": 3,
+      "callee_text": "instance.get",
+      "snippet": "\nfastify.register(function (instance, options, done) {\n  // the route will be '/english/hello'\n  instance.get('/hello', opts, (req, reply) => {\n    reply.send({ greet: 'hello' })\n  })\n  done()",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.get"
+      },
+      "reason": "Fastify route shorthand instance method get"
+    },
+    {
+      "path": "examples/simple-stream.js",
+      "line": 19,
+      "col": 3,
+      "callee_text": "fastify.log.info",
+      "snippet": "  if (err) {\n    throw err\n  }\n  fastify.log.info(`server listening on ${address}`)\n})",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Pino logger instance method info"
+    },
+    {
+      "path": "examples/simple.mjs",
+      "line": 27,
+      "col": 1,
+      "callee_text": "app.listen",
+      "snippet": "  return { hello: 'world' }\n})\n\napp.listen({ port: 3000 }).catch(console.error)",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.listen"
+      },
+      "reason": "Fastify instance method listen"
+    },
+    {
+      "path": "examples/use-plugin.js",
+      "line": 19,
+      "col": 18,
+      "callee_text": "require",
+      "snippet": "    }\n  }\n}\nfastify.register(require('./plugin'), opts, function (err) {\n  if (err) {\n    throw err\n  }",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js require built-in"
+    },
+    {
+      "path": "integration/server.js",
+      "line": 23,
+      "col": 3,
+      "callee_text": "reply.code",
+      "snippet": "\nfastify.put('/put/:id', async function (request, reply) {\n  const { id } = request.params\n  reply.code(200).send({ data: `${id}` })\n})\n\nfastify.delete('/delete/:id', async function (request, reply) {",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/reply.js",
+        "qualified_name": "Reply.code"
+      },
+      "reason": "Reply class instance method code"
+    },
+    {
+      "path": "lib/config-validator.js",
+      "line": 1175,
+      "col": 44,
+      "callee_text": "Array.isArray",
+      "snippet": "let data30 = data29[key2];\nconst _errs85 = errors;\nif(errors === _errs85){\nif(data30 && typeof data30 == \"object\" && !Array.isArray(data30)){\nlet missing1;\nif(((((data30.name === undefined) && (missing1 = \"name\")) || ((data30.storage === undefined) && (missing1 = \"storage\"))) || ((data30.validate === undefined) && (missing1 = \"validate\"))) || ((data30.deriveConstraint === undefined) && (missing1 = \"deriveConstraint\"))){\nvalidate10.errors = [{instancePath:instancePath+\"/constraints/\" + key2.replace(/~/g, \"~0\").replace(/\\//g, \"~1\"),schemaPath:\"#/properties/constraints/additionalProperties/required\",keyword:\"required\",params:{missingProperty: missing1},message:\"must have required property '\"+missing1+\"'\"}];",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript standard library Array.isArray"
+    },
+    {
+      "path": "lib/decorate.js",
+      "line": 27,
+      "col": 5,
+      "callee_text": "Object.defineProperty",
+      "snippet": "  checkDependencies(instance, name, dependencies)\n\n  if (fn && (typeof fn.getter === 'function' || typeof fn.setter === 'function')) {\n    Object.defineProperty(instance, name, {\n      get: fn.getter,\n      set: fn.setter\n    })",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript standard library Object.defineProperty"
+    },
+    {
+      "path": "lib/error-serializer.js",
+      "line": 6,
+      "col": 22,
+      "callee_text": "require",
+      "snippet": "\n  'use strict'\n\n  const Serializer = require('fast-json-stringify/lib/serializer')\n  const serializerState = {\"mode\":\"standalone\"}\n  const serializer = Serializer.restoreFromState(serializerState)\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js require built-in"
+    },
+    {
+      "path": "lib/four-oh-four.js",
+      "line": 176,
+      "col": 16,
+      "callee_text": "getGenReqId",
+      "snippet": "    // here, let's print out as much info as\n    // we can\n    const fourOhFourContext = this[kFourOhFourLevelInstance][kFourOhFourContext]\n    const id = getGenReqId(fourOhFourContext.server, req)\n    const childLogger = createChildLogger(fourOhFourContext, logger, req, id)\n\n    childLogger.info({ req }, 'incoming request')",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/four-oh-four.js",
+        "qualified_name": "getGenReqId"
+      },
+      "reason": "Internal helper function getGenReqId"
+    },
+    {
+      "path": "lib/handle-request.js",
+      "line": 190,
+      "col": 16,
+      "callee_text": "channels.end.publish",
+      "snippet": "      }\n    }\n  } finally {\n    if (store) channels.end.publish(store)\n  }\n}\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "node:diagnostics_channel TracingChannel.publish"
+    },
+    {
+      "path": "lib/logger-factory.js",
+      "line": 45,
+      "col": 10,
+      "callee_text": "logger.child",
+      "snippet": " * @returns {import('../types/logger.js').FastifyBaseLogger}\n */\nfunction defaultChildLoggerFactory (logger, bindings, opts) {\n  return logger.child(bindings, opts)\n}\n\n/**",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Pino logger instance method child"
+    },
+    {
+      "path": "lib/logger-pino.js",
+      "line": 40,
+      "col": 14,
+      "callee_text": "pino",
+      "snippet": "    opts.logger = prevLogger\n    opts.genReqId = prevGenReqId\n  } else {\n    logger = pino(opts, opts.stream)\n  }\n\n  return logger",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "External pino package factory function"
+    },
+    {
+      "path": "lib/plugin-utils.js",
+      "line": 137,
+      "col": 3,
+      "callee_text": "this[kRegisteredPlugins].push",
+      "snippet": "\n  const name = meta.name\n  if (!name) return\n  this[kRegisteredPlugins].push(name)\n  return name\n}\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Array.prototype.push in JS runtime"
+    },
+    {
+      "path": "lib/reply.js",
+      "line": 804,
+      "col": 9,
+      "callee_text": "reply.log.warn",
+      "snippet": "      } else if (typeof payload.abort === 'function') {\n        payload.abort()\n      } else {\n        reply.log.warn('stream payload does not end properly')\n      }\n    }\n  })",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Pino logger instance method warn"
+    },
+    {
+      "path": "lib/route.js",
+      "line": 5,
+      "col": 23,
+      "callee_text": "require",
+      "snippet": "\nconst FindMyWay = require('find-my-way')\nconst Context = require('./context')\nconst handleRequest = require('./handle-request.js')\nconst { onRequestAbortHookRunner, lifecycleHooks, preParsingHookRunner, onTimeoutHookRunner, onRequestHookRunner } = require('./hooks')\nconst { normalizeSchema } = require('./schemas')\nconst { parseHeadOnSendHandlers } = require('./head-route.js')",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js require built-in"
+    },
+    {
+      "path": "lib/schema-controller.js",
+      "line": 124,
+      "col": 55,
+      "callee_text": "this.parent.getSerializerCompiler",
+      "snippet": "  }\n\n  getSerializerCompiler () {\n    return this.serializerCompiler || (this.parent && this.parent.getSerializerCompiler())\n  }\n\n  getSerializerBuilder () {",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/schema-controller.js",
+        "qualified_name": "SchemaController.getSerializerCompiler"
+      },
+      "reason": "SchemaController method getSerializerCompiler"
+    },
+    {
+      "path": "lib/schemas.js",
+      "line": 124,
+      "col": 23,
+      "callee_text": "Object.keys",
+      "snippet": "  }\n\n  if (schema.response) {\n    const httpCodes = Object.keys(schema.response)\n    for (const code of httpCodes) {\n      if (schema.response[code].isFluentSchema || schema.response[code][kFluentSchema]) {\n        schema.response[code] = schema.response[code].valueOf()",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript standard library Object.keys"
+    },
+    {
+      "path": "lib/symbols.js",
+      "line": 45,
+      "col": 22,
+      "callee_text": "Symbol",
+      "snippet": "  kCanSetNotFoundHandler: Symbol('fastify.canSetNotFoundHandler'),\n  kFourOhFourLevelInstance: Symbol('fastify.404LogLevelInstance'),\n  kFourOhFourContext: Symbol('fastify.404ContextKey'),\n  kDefaultJsonParse: Symbol('fastify.defaultJSONParse'),\n  // Reply\n  kReply: Symbol('fastify.Reply'),\n  kReplySerializer: Symbol('fastify.reply.serializer'),",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript standard library Symbol"
+    },
+    {
+      "path": "lib/validation.js",
+      "line": 131,
+      "col": 12,
+      "callee_text": "ret\n      .then",
+      "snippet": "  }\n\n  if (ret && typeof ret.then === 'function') {\n    return ret\n      .then((res) => { return answer(res) })\n      .catch(err => { return err }) // return as simple error (not throw)\n  }",
+      "node_type": "call_expression",
+      "expected": "dynamic",
+      "reason": "Dynamic thenable Promise method"
+    },
+    {
+      "path": "lib/wrap-thenable.js",
+      "line": 10,
+      "col": 18,
+      "callee_text": "diagnostics.tracingChannel",
+      "snippet": "const { setErrorStatusCode } = require('./error-status')\n\nconst diagnostics = require('node:diagnostics_channel')\nconst channels = diagnostics.tracingChannel('fastify.request.handler')\n\nfunction wrapThenable (thenable, reply, store) {\n  if (store) store.async = true",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "node:diagnostics_channel tracingChannel function"
+    }
+  ]
+}

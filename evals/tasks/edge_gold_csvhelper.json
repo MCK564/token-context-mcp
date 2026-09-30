@@ -1,0 +1,339 @@
+{
+  "repo_id": "bench-csvhelper",
+  "repo_url": "https://github.com/JoshClose/CsvHelper",
+  "reviewed": true,
+  "reviewed_by": "Independent reviewer (Antigravity M12 session)",
+  "review_note": "Annotated following Appendix D guidelines from AST call sites.",
+  "sites": [
+    {
+      "path": "performance/CsvHelper.Benchmarks/BenchmarkEnumerateRecords.cs",
+      "line": 26,
+      "col": 16,
+      "callee_text": "Random",
+      "snippet": "\t{\n\t\tusing var streamWriter = new StreamWriter(this.stream, null, -1, true);\n\t\tusing var writer = new CsvWriter(streamWriter, CultureInfo.InvariantCulture, true);\n\t\tvar random = new Random(42); // Pick a known seed to keep things consistent\n\n\t\tvar chars = new char[10];\n\t\tstring getRandomString()",
+      "node_type": "object_creation_expression",
+      "expected": "external",
+      "reason": "System.Random constructor in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper.Website/TocItem.cs",
+      "line": 26,
+      "col": 13,
+      "callee_text": "data.Get<string>",
+      "snippet": "\t\t{\n\t\t\tvar tocItem = new TocItem()\n\t\t\t{\n\t\t\t\tTitle = data.Get<string>(\"title\"),\n\t\t\t\tLink = data.Get<string>(\"link\"),\n\t\t\t};\n",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "Dynamic YamlDotNet or website data accessor"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/CultureInfoAttribute.cs",
+      "line": 42,
+      "col": 9,
+      "callee_text": "nameof",
+      "snippet": "\t\t\tcase nameof(CultureInfo.CurrentUICulture):\n\t\t\t\tCultureInfo = CultureInfo.CurrentUICulture;\n\t\t\t\tbreak;\n\t\t\tcase nameof(CultureInfo.InstalledUICulture):\n\t\t\t\tCultureInfo = CultureInfo.InstalledUICulture;\n\t\t\t\tbreak;\n\t\t\tdefault:",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "C# nameof keyword expression"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/EncodingAttribute.cs",
+      "line": 35,
+      "col": 14,
+      "callee_text": "Encoding.GetEncoding",
+      "snippet": "\t/// <param name=\"codepage\"><inheritdoc cref=\"Encoding.GetEncoding(int)\"/></param>\n\tpublic EncodingAttribute(int codepage)\n\t{\n\t\tEncoding = Encoding.GetEncoding(codepage);\n\t}\n\n\t/// <inheritdoc />",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Text.Encoding.GetEncoding in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/IgnoreAttribute.cs",
+      "line": 28,
+      "col": 4,
+      "callee_text": "ApplyTo",
+      "snippet": "\t{\n\t\tforeach (var memberMap in referenceMap.Data.Mapping.MemberMaps)\n\t\t{\n\t\t\tApplyTo(memberMap);\n\t\t}\n\t}\n",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/Configuration/Attributes/IgnoreAttribute.cs",
+        "qualified_name": "IgnoreAttribute.ApplyTo"
+      },
+      "reason": "IgnoreAttribute helper ApplyTo"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ClassMap.cs",
+      "line": 255,
+      "col": 4,
+      "callee_text": "indexes.Add",
+      "snippet": "\t\tvar indexes = new List<int>();\n\t\tif (MemberMaps.Count > 0)\n\t\t{\n\t\t\tindexes.Add(MemberMaps.Max(pm => pm.Data.Index));\n\t\t}\n\n\t\tif (ReferenceMaps.Count > 0)",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Collections.Generic.List.Add"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ClassMap`1.cs",
+      "line": 83,
+      "col": 14,
+      "callee_text": "stack.Pop",
+      "snippet": "\t\t\t// We need to add a reference map for every sub member.\n\t\t\twhile (stack.Count > 1)\n\t\t\t{\n\t\t\t\tmember = stack.Pop();\n\t\t\t\tType mapType;\n\t\t\t\tvar property = member as PropertyInfo;\n\t\t\t\tvar field = member as FieldInfo;",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Collections.Generic.Stack.Pop"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/CsvConfiguration.cs",
+      "line": 205,
+      "col": 7,
+      "callee_text": "whiteSpaceChars.Contains",
+      "snippet": "\t\tif (escape == Delimiter) throw new ConfigurationException($\"The escape character '{Escape}' and delimiter '{Delimiter}' cannot be the same.\");\n\t\tif (escape == NewLine && IsNewLineSet) throw new ConfigurationException($\"The escape character '{Escape}' and new line '{NewLine}' cannot be the same.\");\n\t\tif (lineEndings.Contains(Escape.ToString()) && !IsNewLineSet) throw new ConfigurationException($\"The escape character '{Escape}' cannot be a line ending. ('\\\\r', '\\\\n', '\\\\r\\\\n')\");\n\t\tif (whiteSpaceChars.Contains(escape)) throw new ConfigurationException($\"The escape character '{Escape}' cannot be a WhiteSpaceChar.\");\n\n\t\t// Quote\n\t\tif (quote == Delimiter) throw new ConfigurationException($\"The quote character '{Quote}' and the delimiter '{Delimiter}' cannot be the same.\");",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Collections.Generic.ICollection.Contains"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/MemberMap.cs",
+      "line": 236,
+      "col": 32,
+      "callee_text": "Expression.Call",
+      "snippet": "\tpublic virtual MemberMap Validate(Validate validateExpression, ValidateMessage validateMessageExpression)\n\t{\n\t\tvar fieldParameter = Expression.Parameter(typeof(ValidateArgs), \"field\");\n\t\tvar validateCallExpression = Expression.Call(\n\t\t\tExpression.Constant(validateExpression.Target),\n\t\t\tvalidateExpression.Method,\n\t\t\tfieldParameter",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Linq.Expressions.Expression.Call"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/MemberNameCollection.cs",
+      "line": 94,
+      "col": 10,
+      "callee_text": "names.GetEnumerator",
+      "snippet": "\t/// <filterpriority>2</filterpriority>\n\tIEnumerator IEnumerable.GetEnumerator()\n\t{\n\t\treturn names.GetEnumerator();\n\t}\n}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Collections.Generic.List.GetEnumerator"
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ParameterReferenceMapData.cs",
+      "line": 36,
+      "col": 70,
+      "callee_text": "string.Concat",
+      "snippet": "\t\t\t{\n\t\t\t\tforeach (var memberRef in Mapping.ReferenceMaps)\n\t\t\t\t{\n\t\t\t\t\tmemberRef.Data.Prefix = memberRef.Data.Prefix == null ? value : string.Concat(value, memberRef.Data.Prefix);\n\t\t\t\t}\n\t\t\t}\n\t\t}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.String.Concat in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/CsvContext.cs",
+      "line": 58,
+      "col": 102,
+      "callee_text": "nameof",
+      "snippet": "\t{\n\t\tReader = reader;\n\t\tParser = reader.Parser;\n\t\tConfiguration = reader.Configuration as CsvConfiguration ?? throw new InvalidOperationException($\"{nameof(IReader)}.{nameof(IReader.Configuration)} must be of type {nameof(CsvConfiguration)} to be used in the context.\");\n\t\tMaps = new ClassMapCollection(this);\n\t}\n",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "C# nameof keyword expression"
+    },
+    {
+      "path": "src/CsvHelper/CsvReader.cs",
+      "line": 1290,
+      "col": 20,
+      "callee_text": "prepareHeaderForMatch",
+      "snippet": "\t\t{\n\t\t\t// Get the list of indexes for this name.\n\t\t\tvar args = new PrepareHeaderForMatchArgs(n, i);\n\t\t\tvar fieldName = prepareHeaderForMatch(args);\n\t\t\tif (namedIndexes.ContainsKey(fieldName ?? string.Empty))\n\t\t\t{\n\t\t\t\tname = fieldName;",
+      "node_type": "invocation_expression",
+      "expected": "dynamic",
+      "reason": "Dynamic delegate prepareHeaderForMatch invocation"
+    },
+    {
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "line": 248,
+      "col": 36,
+      "callee_text": "nameof",
+      "snippet": "\t{\n\t\tif (type == null)\n\t\t{\n\t\t\tthrow new ArgumentNullException(nameof(type));\n\t\t}\n\n\t\tif (type == typeof(object))",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "C# nameof keyword expression"
+    },
+    {
+      "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+      "line": 442,
+      "col": 218,
+      "callee_text": "Expression.Constant",
+      "snippet": "\t\tif (memberMap.Data.Member!.MemberType() != typeof(string) && memberMap.Data.Default != null && memberMap.Data.Default.GetType() == typeof(string))\n\t\t{\n\t\t\t// The default is a string but the member type is not. Use a converter.\n\t\t\tdefaultValueExpression = Expression.Call(Expression.Constant(memberMap.Data.TypeConverter), nameof(ITypeConverter.ConvertFromString), null, Expression.Constant(memberMap.Data.Default), Expression.Constant(reader), Expression.Constant(memberMap.Data));\n\t\t}\n\t\telse\n\t\t{",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Linq.Expressions.Expression.Constant"
+    },
+    {
+      "path": "src/CsvHelper/Expressions/PrimitiveRecordWriter.cs",
+      "line": 42,
+      "col": 82,
+      "callee_text": "Writer.Context.TypeConverterOptionsCache.GetOptions",
+      "snippet": "\t\t{\n\t\t\tIndex = 0,\n\t\t\tTypeConverter = typeConverter,\n\t\t\tTypeConverterOptions = TypeConverterOptions.Merge(new TypeConverterOptions(), Writer.Context.TypeConverterOptionsCache.GetOptions(type))\n\t\t};\n\t\tmemberMapData.TypeConverterOptions.CultureInfo = Writer.Configuration.CultureInfo;\n",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/TypeConverterOptionsCache.cs",
+        "qualified_name": "TypeConverterOptionsCache.GetOptions"
+      },
+      "reason": "TypeConverterOptionsCache method GetOptions"
+    },
+    {
+      "path": "src/CsvHelper/Expressions/RecordCreator.cs",
+      "line": 43,
+      "col": 43,
+      "callee_text": "CreateCreateRecordDelegate",
+      "snippet": "\t{\n\t\tif (!createRecordFuncs.TryGetValue(recordType, out Delegate? func))\n\t\t{\n\t\t\tcreateRecordFuncs[recordType] = func = CreateCreateRecordDelegate(recordType);\n\t\t}\n\n\t\treturn (Func<T>)func;",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/Expressions/RecordCreator.cs",
+        "qualified_name": "RecordCreator.CreateCreateRecordDelegate"
+      },
+      "reason": "Internal RecordCreator method CreateCreateRecordDelegate"
+    },
+    {
+      "path": "src/CsvHelper/Factory.cs",
+      "line": 70,
+      "col": 10,
+      "callee_text": "CsvReader",
+      "snippet": "\t/// <returns>The created reader.</returns>\n\tpublic virtual IReader CreateReader(IParser parser)\n\t{\n\t\treturn new CsvReader(parser);\n\t}\n\n\t/// <summary>",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader"
+      },
+      "reason": "CsvReader constructor"
+    },
+    {
+      "path": "src/CsvHelper/FastDynamicObject.cs",
+      "line": 177,
+      "col": 21,
+      "callee_text": "DynamicMetaObject",
+      "snippet": "\n\t\tprivate DynamicMetaObject CallMethod(MethodInfo method, Expression[] parameters)\n\t\t{\n\t\t\tvar callMethod = new DynamicMetaObject(Expression.Call(Expression.Convert(Expression, LimitType), method, parameters), BindingRestrictions.GetTypeRestriction(Expression, LimitType));\n\n\t\t\treturn callMethod;\n\t\t}",
+      "node_type": "object_creation_expression",
+      "expected": "external",
+      "reason": "System.Dynamic.DynamicMetaObject constructor"
+    },
+    {
+      "path": "src/CsvHelper/FieldCache.cs",
+      "line": 51,
+      "col": 38,
+      "callee_text": "entry.Value.AsSpan",
+      "snippet": "\t\t{\n\t\t\tref var entry = ref entries[i];\n\n\t\t\tif (entry.HashCode == hashCode && entry.Value.AsSpan().SequenceEqual(new Span<char>(buffer, start, length)))\n\t\t\t{\n\t\t\t\treturn entry.Value;\n\t\t\t}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "MemoryExtensions.AsSpan in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/ArrayConverter.cs",
+      "line": 43,
+      "col": 19,
+      "callee_text": "ObjectResolver.Current.Resolve",
+      "snippet": "\t\t\t\tnameIndex++;\n\t\t\t}\n\n\t\t\tarray = (Array)ObjectResolver.Current.Resolve(memberMapData.Member!.MemberType(), list.Count);\n\t\t\tfor (var i = 0; i < list.Count; i++)\n\t\t\t{\n\t\t\t\tarray.SetValue(list[i], i);",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/ObjectResolver.cs",
+        "qualified_name": "ObjectResolver.Resolve"
+      },
+      "reason": "ObjectResolver instance method Resolve"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/DoubleConverter.cs",
+      "line": 26,
+      "col": 16,
+      "callee_text": "memberMapData.TypeConverterOptions.Formats?.FirstOrDefault",
+      "snippet": "\t/// <returns>The string representation of the object.</returns>\n\tpublic override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)\n\t{\n\t\tvar format = memberMapData.TypeConverterOptions.Formats?.FirstOrDefault() ?? defaultFormat.Value;\n\n\t\tif (value is double d)\n\t\t{",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Linq.Enumerable.FirstOrDefault"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/IDictionaryGenericConverter.cs",
+      "line": 28,
+      "col": 33,
+      "callee_text": "ObjectResolver.Current.Resolve",
+      "snippet": "\t\tvar valueType = memberMapData.Member!.MemberType().GetGenericArguments()[1];\n\t\tvar dictionaryType = typeof(Dictionary<,>);\n\t\tdictionaryType = dictionaryType.MakeGenericType(keyType, valueType);\n\t\tvar dictionary = (IDictionary)ObjectResolver.Current.Resolve(dictionaryType);\n\t\tvar converter = row.Context.TypeConverterCache.GetConverter(valueType);\n\n\t\tvar indexEnd = memberMapData.IndexEnd < memberMapData.Index",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/ObjectResolver.cs",
+        "qualified_name": "ObjectResolver.Resolve"
+      },
+      "reason": "ObjectResolver instance method Resolve"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/Int16Converter.cs",
+      "line": 26,
+      "col": 7,
+      "callee_text": "short.TryParse",
+      "snippet": "\t{\n\t\tvar numberStyle = memberMapData.TypeConverterOptions.NumberStyles ?? NumberStyles.Integer;\n\n\t\tif (short.TryParse(text, numberStyle, memberMapData.TypeConverterOptions.CultureInfo, out var s))\n\t\t{\n\t\t\treturn s;\n\t\t}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Int16.TryParse in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/Int32Converter.cs",
+      "line": 26,
+      "col": 7,
+      "callee_text": "int.TryParse",
+      "snippet": "\t{\n\t\tvar numberStyle = memberMapData.TypeConverterOptions.NumberStyles ?? NumberStyles.Integer;\n\n\t\tif (int.TryParse(text, numberStyle, memberMapData.TypeConverterOptions.CultureInfo, out var i))\n\t\t{\n\t\t\treturn i;\n\t\t}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Int32.TryParse in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/NullableConverter.cs",
+      "line": 53,
+      "col": 29,
+      "callee_text": "typeConverterFactory.GetConverter",
+      "snippet": "\t\t\tthrow new ArgumentException(\"type is not a nullable type.\");\n\t\t}\n\n\t\tUnderlyingTypeConverter = typeConverterFactory.GetConverter(UnderlyingType);\n\t}\n\n\t/// <summary>",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/TypeConverterFactory.cs",
+        "qualified_name": "TypeConverterFactory.GetConverter"
+      },
+      "reason": "TypeConverterFactory method GetConverter"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/NullableConverterFactory.cs",
+      "line": 13,
+      "col": 33,
+      "callee_text": "type.GetGenericTypeDefinition().Equals",
+      "snippet": "\t/// <inheritdoc />\n\tpublic bool CanCreate(Type type)\n\t{\n\t\treturn (type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)));\n\t}\n\n\t/// <inheritdoc />",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "System.Type.Equals in .NET runtime"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/SByteConverter.cs",
+      "line": 31,
+      "col": 10,
+      "callee_text": "base.ConvertFromString",
+      "snippet": "\t\t\treturn sb;\n\t\t}\n\n\t\treturn base.ConvertFromString(text, row, memberMapData);\n\t}\n}",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/UInt32Converter.cs",
+      "line": 31,
+      "col": 10,
+      "callee_text": "base.ConvertFromString",
+      "snippet": "\t\t\treturn ui;\n\t\t}\n\n\t\treturn base.ConvertFromString(text, row, memberMapData);\n\t}\n}",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString"
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/UriConverter.cs",
+      "line": 32,
+      "col": 10,
+      "callee_text": "base.ConvertFromString",
+      "snippet": "\t\t\treturn uri;\n\t\t}\n\n\t\treturn base.ConvertFromString(text, row, memberMapData);\n\t}\n}",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString"
+    }
+  ]
+}

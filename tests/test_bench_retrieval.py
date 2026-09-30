@@ -209,3 +209,18 @@ def test_results_are_reproducible(bench_env):
     a, b = strip_latency(a), strip_latency(b)
     a["benchmark"] = b["benchmark"] = ""
     assert a == b
+
+
+def test_heldout_role_triggers_rule17_guard(bench_env):
+    config, tasks_file, out = bench_env
+    ns = argparse.Namespace(
+        tasks=tasks_file,
+        config=config,
+        repo_id=None,
+        name="shop",
+        out_dir=out,
+        role="heldout",
+        allow_baseline_code=None,
+    )
+    with pytest.raises(RuntimeError, match="Rule 17 violation"):
+        br.run(ns)

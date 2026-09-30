@@ -140,7 +140,7 @@ def test_commit_sha_and_head_change_detection(project) -> None:
 
     def git(*args: str) -> str:
         return subprocess.run(
-            ["git", "-C", str(root), "-c", "user.email=t@example.com", "-c", "user.name=t", *args],
+            ["git", "-C", str(root), "-c", "user.email=t@example.com", "-c", "user.name=t", "-c", "commit.gpgsign=false", *args],
             check=True, capture_output=True, text=True,
         ).stdout.strip()
 
