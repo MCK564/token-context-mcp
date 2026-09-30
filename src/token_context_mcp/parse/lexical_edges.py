@@ -17,11 +17,15 @@ _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 # machine-dependent: evals/index_equivalence.py sets it to infinity so that "incremental == full" (I1) is exact.
 FILE_CIRCUIT_BREAKER_SECONDS = 0.030
 
+RESOLVER_VERSION = 2
+
 # Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
 SCOPE_CONFIDENCE: dict[str, float] = {
     "same_class": 0.95,
     "same_class_split": 0.85,
+    "implicit_this": 0.90,
+    "implicit_this_partial": 0.85,
     "cha_inherited": 0.90,
     "attr_type": 0.95,
     "attr_type_inherited": 0.90,
@@ -549,6 +553,51 @@ def _resolve_candidate(
         # Receiver was explicit but could not be matched:
         # DO NOT fall back to global search for a method on an unknown receiver!
         return None, "unresolved_receiver", 0.10
+
+    # E1: Implicit this (C#, Java) for calls without receiver inside a class method
+    if not receiver and (source.symbol_id.startswith(("c_sharp:", "java:")) or source.path.endswith((".cs", ".java"))):
+        if "." in source.qualified_name:
+            class_prefix = source.qualified_name.rsplit(".", 1)[0]
+            # 1. Candidate C.name same path
+            same_class = [
+                c for c in candidates
+                if c.path == source.path and (
+                    c.qualified_name == f"{class_prefix}.{c.name}"
+                    or c.qualified_name.startswith(f"{class_prefix}.")
+                )
+            ]
+            if len(same_class) == 1:
+                return same_class[0], "implicit_this", SCOPE_CONFIDENCE.get("implicit_this", 0.90)
+            if len(same_class) > 1:
+                return None, "implicit_this_ambiguous", 0.10
+
+            # 2. C.name in other files (partial class)
+            same_class_partial = [
+                c for c in candidates
+                if c.path != source.path and (
+                    c.qualified_name == f"{class_prefix}.{c.name}"
+                    or c.qualified_name.startswith(f"{class_prefix}.")
+                )
+            ]
+            if len(same_class_partial) == 1:
+                return same_class_partial[0], "implicit_this_partial", SCOPE_CONFIDENCE.get("implicit_this_partial", 0.85)
+            if len(same_class_partial) > 1:
+                return None, "implicit_this_partial_ambiguous", 0.10
+
+            # 3. CHA up to parent class
+            if class_hierarchy:
+                ancestors = _get_ancestors(class_prefix, class_hierarchy)
+                for ancestor in ancestors:
+                    ancestor_matches = [
+                        c for c in candidates
+                        if c.qualified_name == f"{ancestor}.{c.name}"
+                        or c.qualified_name.startswith(f"{ancestor}.")
+                        or c.qualified_name.endswith(f".{ancestor}.{c.name}")
+                    ]
+                    if len(ancestor_matches) == 1:
+                        return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
+                    if len(ancestor_matches) > 1:
+                        return None, "cha_ambiguous", 0.10
 
     # 4. Direct candidate resolution: same_file -> imported -> same_package -> global
     # (Only for free function calls, direct identifier invocations without receiver)
