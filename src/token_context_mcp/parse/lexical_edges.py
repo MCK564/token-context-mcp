@@ -17,7 +17,7 @@ _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 # machine-dependent: evals/index_equivalence.py sets it to infinity so that "incremental == full" (I1) is exact.
 FILE_CIRCUIT_BREAKER_SECONDS = 0.030
 
-RESOLVER_VERSION = 2
+RESOLVER_VERSION = 3
 
 # Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
@@ -449,6 +449,10 @@ def _resolve_candidate(
             src_ancestors.update(_namespace_ancestors(ns))
         using_namespaces = set(imports_list)
 
+    # E6: Prefer class/struct/interface symbols over constructor symbols
+    if any(c.kind in {"class", "struct", "interface"} for c in candidates):
+        candidates = [c for c in candidates if c.kind != "constructor"]
+
     # Defensive Heuristic: Tainted variable (reassigned >= 2 times or assigned in branch)
     if is_tainted:
         return None, "tainted_poly_receiver", 0.10
@@ -672,6 +676,29 @@ def _resolve_candidate(
                 if ov is not None:
                     return ov
                 return None, "import_module_ambiguous", 0.10
+
+        # In C#, receiver might match candidate's namespace (e.g. MyNamespace.DataStore)
+        if is_csharp and file_namespaces:
+            ns_cands = [
+                c for c in candidates
+                if any(
+                    c_ns == receiver
+                    or c_ns.endswith(f".{receiver}")
+                    or receiver == c_ns.split(".")[-1]
+                    or receiver in c_ns.split(".")
+                    for c_ns in file_namespaces.get(c.path, [])
+                )
+            ]
+            if len(ns_cands) == 1:
+                return ns_cands[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+            if len(ns_cands) > 1:
+                same_file_ns = [c for c in ns_cands if c.path == source.path]
+                if len(same_file_ns) == 1:
+                    return same_file_ns[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+                ov = _try_resolve_overload(same_file_ns or ns_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+                return None, "namespace_ambiguous", 0.10
 
         # Check if candidate is a method of an imported/same-file class and receiver name matches class name:
         # e.g., receiver="store" matches class="SQLiteStore" or "MemoryStore" (when imported)

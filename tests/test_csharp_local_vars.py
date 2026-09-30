@@ -56,11 +56,12 @@ def test_csharp_local_var_types_inferred():
     tree = parser.parse(code)
     calls = extract_calls(tree.root_node, code, "c_sharp")
 
-    assert len(calls) == 4
-    assert calls[0].name == "Run" and calls[0].receiver == "x" and calls[0].receiver_type == "Foo"
-    assert calls[1].name == "Run" and calls[1].receiver == "y" and calls[1].receiver_type == "Bar"
-    assert calls[2].name == "Run" and calls[2].receiver == "z" and calls[2].receiver_type == "Generic"
-    assert calls[3].name == "Run" and calls[3].receiver == "casted" and calls[3].receiver_type == "SpecialWorker"
+    run_calls = [c for c in calls if c.name == "Run"]
+    assert len(run_calls) == 4
+    assert run_calls[0].name == "Run" and run_calls[0].receiver == "x" and run_calls[0].receiver_type == "Foo"
+    assert run_calls[1].name == "Run" and run_calls[1].receiver == "y" and run_calls[1].receiver_type == "Bar"
+    assert run_calls[2].name == "Run" and run_calls[2].receiver == "z" and run_calls[2].receiver_type == "Generic"
+    assert run_calls[3].name == "Run" and run_calls[3].receiver == "casted" and run_calls[3].receiver_type == "SpecialWorker"
 
 
 def test_csharp_local_var_taint_reassigned():
@@ -78,11 +79,12 @@ def test_csharp_local_var_taint_reassigned():
     tree = parser.parse(code)
     calls = extract_calls(tree.root_node, code, "c_sharp")
 
-    assert len(calls) == 1
-    assert calls[0].name == "Run"
-    assert calls[0].receiver == "x"
-    assert calls[0].receiver_type is None
-    assert calls[0].is_tainted is True
+    run_calls = [c for c in calls if c.name == "Run"]
+    assert len(run_calls) == 1
+    assert run_calls[0].name == "Run"
+    assert run_calls[0].receiver == "x"
+    assert run_calls[0].receiver_type is None
+    assert run_calls[0].is_tainted is True
 
 
 def test_csharp_local_var_taint_branch():
@@ -102,11 +104,12 @@ def test_csharp_local_var_taint_branch():
     tree = parser.parse(code)
     calls = extract_calls(tree.root_node, code, "c_sharp")
 
-    assert len(calls) == 1
-    assert calls[0].name == "Run"
-    assert calls[0].receiver == "x"
-    assert calls[0].receiver_type is None
-    assert calls[0].is_tainted is True
+    run_calls = [c for c in calls if c.name == "Run"]
+    assert len(run_calls) == 1
+    assert run_calls[0].name == "Run"
+    assert run_calls[0].receiver == "x"
+    assert run_calls[0].receiver_type is None
+    assert run_calls[0].is_tainted is True
 
 
 def test_csharp_local_var_edge_resolution():

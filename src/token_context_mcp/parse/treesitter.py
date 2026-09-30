@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 5  # 5: CallRecord arg_count and E2 overload resolution (M12.3)
+PARSER_ARTIFACT_VERSION = 6  # 6: E6 instantiation edges (new_expression, object_creation_expression)
 
 
 try:
@@ -1864,6 +1864,42 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             arg_count=call_arg_count,
                         )
                     )
+        elif language_name in {"javascript", "typescript", "tsx"} and c_type == "new_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            constr = _field(current, "constructor")
+            if constr is not None:
+                if constr.type == "member_expression":
+                    obj = _field(constr, "object")
+                    prop = _field(constr, "property")
+                    if prop is not None:
+                        rec = _node_text(obj, raw) if obj is not None else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(prop, raw),
+                                receiver=rec,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
+                                assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
+                                arg_count=call_arg_count,
+                            )
+                        )
+                elif constr.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(constr, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
         elif language_name == "go" and c_type == "call_expression":
             args_node = _field(current, "arguments")
             call_arg_count = len(args_node.named_children) if args_node is not None else None
@@ -1957,6 +1993,36 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+        elif language_name == "c_sharp" and c_type == "object_creation_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            t_node = _field(current, "type")
+            if t_node is not None:
+                raw_text = _node_text(t_node, raw).strip()
+                clean_text = raw_text.split("<")[0].strip().rstrip("?")
+                if clean_text.startswith("global::"):
+                    clean_text = clean_text[len("global::"):]
+                if clean_text:
+                    if "." in clean_text:
+                        rec, name = clean_text.rsplit(".", 1)
+                    else:
+                        rec = None
+                        name = clean_text
+                    r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec) if rec else (None, False, None, None)
+                    calls.append(
+                        CallRecord(
+                            name=name,
+                            receiver=rec,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            receiver_type=r_type,
+                            is_tainted=is_t,
+                            assigned_from_fn=fn_src,
+                            receiver_type_source=r_src,
                             arg_count=call_arg_count,
                         )
                     )
