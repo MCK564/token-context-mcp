@@ -332,7 +332,11 @@ class ClaudeAdapter(AgentAdapter):
             "--permission-mode",
             "dontAsk",
             "--disable-slash-commands",
+            "--max-turns",
+            str(extra.get("max_turns", 40)),
         ]
+        if extra.get("max_budget_usd") is not None:
+            cmd.extend(["--max-budget-usd", str(extra["max_budget_usd"])])
         if arm in {"B1", "B2"}:
             cmd.extend(["--allowedTools", "mcp__tcbench"])
         if extra.get("model"):
@@ -449,6 +453,11 @@ class GeminiAdapter(AgentAdapter):
         agent_bin = extra.get("agent_command", ["gemini"])
         cmd = list(agent_bin)
         cmd.extend(["-p", " ", "--output-format", "stream-json"])
+        # Headless Gemini CLI denies any tool that needs confirmation.  MCP tools need confirmation unless the server
+        # is marked ``"trust": true`` in the Gemini settings; set that (or pass ``approval_mode`` here) and verify
+        # with the probe task before a matrix run (docs: evals/c3_protocol_v2.md, "Gemini").
+        if extra.get("approval_mode"):
+            cmd.extend(["--approval-mode", str(extra["approval_mode"])])
         if arm in {"B1", "B2"}:
             cmd.extend(["--allowed-mcp-server-names", "tcbench"])
         elif arm == "B0":

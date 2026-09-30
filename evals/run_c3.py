@@ -148,6 +148,19 @@ def run_command(
     stderr_thread = threading.Thread(target=_copy_stream, args=(process.stderr, stderr_output), daemon=True)
     stderr_thread.start()
 
+    # The read loop below blocks on the agent's stdout, so a timeout checked only afterwards never fires for a hung
+    # agent.  A watchdog timer kills the process tree instead; the loop then ends and the timeout is reported.
+    timed_out = threading.Event()
+
+    def _on_timeout() -> None:
+        timed_out.set()
+        _terminate(process)
+
+    watchdog = threading.Timer(timeout_s, _on_timeout) if timeout_s else None
+    if watchdog is not None:
+        watchdog.daemon = True
+        watchdog.start()
+
     final_usage: dict[str, Any] | None = None
     mcp_servers: set[str] = set()
     mcp_call_count = 0
@@ -298,6 +311,12 @@ def run_command(
         return_code = process.wait(timeout=timeout_s)
     except subprocess.TimeoutExpired:
         _terminate(process)
+        failure = ProtocolViolation(f"Agent command timed out after {timeout_s}s")
+        return_code = -1
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
+    if timed_out.is_set() and failure is None:
         failure = ProtocolViolation(f"Agent command timed out after {timeout_s}s")
         return_code = -1
 

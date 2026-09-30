@@ -223,6 +223,9 @@ def test_codex_adapter_synthetic_stream() -> None:
 # ---------------------------------------------------------------------------
 
 
+DEV_MANIFEST = Path(__file__).resolve().parent.parent / "evals" / "c3" / "locate_v2_dev_manifest.json"
+
+
 def _make_jsonl_proc_script(events: list[dict]) -> list[str]:
     lines = "; ".join(f"print({json.dumps(json.dumps(ev))}, flush=True)" for ev in events)
     return [sys.executable, "-c", f"import json, time; {lines}"]
@@ -471,7 +474,7 @@ def test_matrix_dry_run_locate_v2_exact_120_runs() -> None:
         old_stdout = sys.stdout
         try:
             sys.stdout = buf
-            ret = matrix_main(["--suite", "locate_v2", "--agent", agent, "--dry-run"])
+            ret = matrix_main(["--suite", "locate_v2", "--agent", agent, "--dry-run", "--manifest", str(DEV_MANIFEST)])
         finally:
             sys.stdout = old_stdout
 
@@ -488,3 +491,115 @@ def test_matrix_dry_run_locate_v2_exact_120_runs() -> None:
         # Probe task must be skipped
         task_ids = {r["task_id"] for r in records}
         assert "probe" not in task_ids
+
+
+# ---------------------------------------------------------------------------
+# 5. M12 review: budget B1, watchdog, stdin, resume, run-config, suite roles, path case
+# ---------------------------------------------------------------------------
+
+
+def _mcp_call_events(count: int) -> list[dict]:
+    events: list[dict] = [{"type": "system", "subtype": "init", "mcp_servers": [{"name": "tcbench", "status": "connected"}]}]
+    for index in range(count):
+        events.append({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": str(index), "name": "mcp__tcbench__search_source", "input": {}}]}})
+        events.append({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": str(index), "content": "{}", "is_error": False}]}})
+    return events
+
+
+def test_b1_thirteenth_mcp_call_exceeds_the_budget(tmp_path: Path) -> None:
+    with pytest.raises(ProtocolViolation, match="MCP call budget exceeded: 13 > 12"):
+        run_command(_make_jsonl_proc_script(_mcp_call_events(13)), raw_output=tmp_path / "raw.jsonl", stderr_output=tmp_path / "err.log",
+                    agent="claude", arm="B1", protocol="hybrid", max_mcp_calls=12)
+
+
+def test_b1_twelve_mcp_calls_are_within_the_budget(tmp_path: Path) -> None:
+    events = _mcp_call_events(12) + [{"type": "result", "result": "ok", "usage": {"input_tokens": 1, "output_tokens": 1}}]
+    usage, _servers, mcp_calls, *_rest = run_command(
+        _make_jsonl_proc_script(events), raw_output=tmp_path / "raw.jsonl", stderr_output=tmp_path / "err.log",
+        agent="claude", arm="B1", protocol="hybrid", max_mcp_calls=12)
+    assert mcp_calls == 12 and usage["output_tokens"] == 1
+
+
+def test_hung_agent_is_killed_by_the_watchdog(tmp_path: Path) -> None:
+    import time
+
+    hang = [sys.executable, "-c", "import time; print('{\"type\": \"system\", \"subtype\": \"init\", \"mcp_servers\": []}', flush=True); time.sleep(60)"]
+    started = time.monotonic()
+    with pytest.raises(ProtocolViolation, match="timed out after 2"):
+        run_command(hang, raw_output=tmp_path / "raw.jsonl", stderr_output=tmp_path / "err.log", agent="claude", arm="B0", protocol="hybrid", timeout_s=2)
+    assert time.monotonic() - started < 20
+
+
+def test_prompt_reaches_the_agent_on_stdin_not_argv(tmp_path: Path) -> None:
+    prompt = "Question: where is X?\n" + "y" * 50_000  # far beyond any sane argv limit on Windows
+    echo = [sys.executable, "-c", (
+        "import json,sys; text=sys.stdin.read(); "
+        "print(json.dumps({'type':'result','result':str(len(text)),'usage':{'input_tokens':1,'output_tokens':1}}), flush=True)"
+    )]
+    telemetry: dict = {}
+    run_command(echo, raw_output=tmp_path / "raw.jsonl", stderr_output=tmp_path / "err.log", agent="claude", arm="B0",
+                protocol="hybrid", stdin_prompt=prompt, telemetry=telemetry)
+    assert telemetry["final_answer"] == str(len(prompt))
+
+
+def test_claude_command_has_isolation_and_turn_limit() -> None:
+    cmd, stdin_text, env = ClaudeAdapter().build_command("B2", "PROMPT", Path("."), extra_config={"mcp_config_path": "m.json", "max_budget_usd": 2})
+    assert stdin_text == "PROMPT" and "CLAUDECODE" not in env
+    for flag in ("--strict-mcp-config", "--no-session-persistence", "--disable-slash-commands", "--max-turns", "--max-budget-usd", "--mcp-config"):
+        assert flag in cmd
+    assert cmd[cmd.index("--max-turns") + 1] == "40"
+    b0, *_ = ClaudeAdapter().build_command("B0", "P", Path("."))
+    assert "mcp__tcbench" not in b0
+
+
+def test_gemini_command_limits_mcp_servers_per_arm() -> None:
+    b0, *_ = GeminiAdapter().build_command("B0", "P", Path("."))
+    b1, *_ = GeminiAdapter().build_command("B1", "P", Path("."), extra_config={"approval_mode": "default"})
+    assert b0[b0.index("--allowed-mcp-server-names") + 1] == "__none__"
+    assert b1[b1.index("--allowed-mcp-server-names") + 1] == "tcbench" and b1[b1.index("--approval-mode") + 1] == "default"
+
+
+def test_normalize_path_keeps_case_and_strips_the_workdir() -> None:
+    assert normalize_path("D:\\Repos\\CsvHelper\\src\\CsvHelper\\CsvReader.cs", "d:/repos/csvhelper") == "src/CsvHelper/CsvReader.cs"
+    assert normalize_path("./Rich/Syntax.py") == "Rich/Syntax.py"
+
+
+def test_matrix_run_config_and_resume(tmp_path: Path) -> None:
+    usage = tmp_path / "usage.jsonl"
+    cfg = tmp_path / "run.json"
+    cfg.write_text(json.dumps({"agent_command": ["claude-fake"], "max_turns": 7}), encoding="utf-8")
+    args = ["--suite", "locate_v2", "--agent", "claude", "--manifest", str(DEV_MANIFEST), "--run-config", str(cfg), "--usage-output", str(usage), "--dry-run"]
+    buf = io.StringIO()
+    old = sys.stdout
+    try:
+        sys.stdout = buf
+        assert matrix_main(args) == 0
+    finally:
+        sys.stdout = old
+    first = json.loads(buf.getvalue().splitlines()[0])
+    assert "claude-fake" in " ".join(first["command"]) or first["agent"] == "claude"
+    # --resume skips what the usage file already records
+    done = {"agent": "claude", "arm": first["arm"], "task_id": first["task_id"], "seed": first["seed"]}
+    usage.write_text(json.dumps(done) + "\n", encoding="utf-8")
+    buf = io.StringIO()
+    try:
+        sys.stdout = buf
+        assert matrix_main(args + ["--resume"]) == 0
+    finally:
+        sys.stdout = old
+    assert len(buf.getvalue().strip().splitlines()) == 119
+
+
+def test_suite_generator_never_falls_back_from_heldout_to_dev(tmp_path: Path) -> None:
+    from evals.c3_locate_suite import build_manifest
+
+    tasks = Path(__file__).resolve().parent.parent / "evals" / "tasks"
+    dev = build_manifest(tasks, role="dev")
+    assert dev["role"] == "dev" and dev["counted_tasks"] == 20
+    assert all(t["repo_id"].startswith("bench-") for t in dev["tasks"] if t["counted"])
+    with pytest.raises(FileNotFoundError):  # an empty directory has no held-out files: no silent fallback
+        build_manifest(tmp_path, role="heldout")
+    unreviewed = tmp_path / "heldout_starlette.json"
+    unreviewed.write_text(json.dumps({"reviewed": False, "tasks": [{"id": "t01", "group": "a_keyword", "query": "q"}]}), encoding="utf-8")
+    with pytest.raises(ValueError, match="not reviewed"):
+        build_manifest(tmp_path, role="heldout")

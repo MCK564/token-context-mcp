@@ -1,5 +1,6 @@
 {
   "suite": "locate_v2",
+  "role": "dev",
   "seed": 20261001,
   "total_tasks": 21,
   "counted_tasks": 20,
@@ -680,25 +681,25 @@
     },
     {
       "id": "probe",
-      "repo_id": "heldout-starlette",
-      "repo_name": "starlette",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
       "language": "Python",
       "group": "probe",
       "query": "Where does this project parse its command-line arguments or configuration? Give the main file.",
       "gold_files": [],
       "gold_symbols": [],
       "counted": false,
-      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Where does this project parse its command-line arguments or configuration? Give the main file.\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
-      "task_prompt_sha256": "70c65f1229ef8b786cc88d144a7e4a5ab12d48a3c2ef910c6700fdd552024411",
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Where does this project parse its command-line arguments or configuration? Give the main file.\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "8e7186e1b50d2aee8143ee8acbb4c742d779faba5005b920051e29e5ad218c19",
       "arm_preambles": {
         "B0": "Use your built-in tools to read and search the code.",
-        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
-        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
       },
       "arm_preamble_sha256": {
         "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
-        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
-        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
       }
     }
   ]

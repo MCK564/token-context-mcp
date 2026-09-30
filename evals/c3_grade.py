@@ -28,7 +28,7 @@ _JSON_BLOCK_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IG
 
 
 def normalize_path(path_str: str, workdir: Path | str | None = None) -> str:
-    """Normalize file path for robust cross-platform comparison."""
+    """Normalize a file path: separators, ``./`` and the workdir prefix.  Case is preserved (repositories are case-sensitive)."""
     if not path_str:
         return ""
     p = str(path_str).strip().strip("\"'").replace("\\", "/")
@@ -36,12 +36,11 @@ def normalize_path(path_str: str, workdir: Path | str | None = None) -> str:
         w = str(workdir).strip().strip("\"'").replace("\\", "/")
         if not w.endswith("/"):
             w += "/"
-        if p.lower().startswith(w.lower()):
+        if p.lower().startswith(w.lower()):  # the drive letter / root prefix may differ in case, the rest may not
             p = p[len(w):]
     while p.startswith("./"):
         p = p[2:]
-    p = p.lstrip("/")
-    return p.lower()
+    return p.lstrip("/")
 
 
 def extract_fenced_json(text: str) -> dict[str, Any] | None:
