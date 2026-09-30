@@ -13,6 +13,7 @@ import time
 import tomllib
 import uuid
 from bisect import bisect_left, bisect_right
+from collections import defaultdict
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from dataclasses import astuple, dataclass, field, replace
@@ -190,6 +191,8 @@ class _Outcome:
     symbol_body_rows: list[tuple[str, str, str]] = field(default_factory=list)
     source_body: str | None = None
     fts_rows: list[tuple[str, str, str, str, str, str]] = field(default_factory=list)
+    namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
     parse_attempts: int = 0
     read_ms: float = 0.0
     parse_ms: float = 0.0
@@ -269,6 +272,8 @@ def _process_candidate(task: _Task) -> _Outcome:
         parse_attempts=1,
         read_ms=read_ms,
         parse_ms=parse_ms,
+        namespaces=parsed.namespaces,
+        module_bindings=getattr(parsed, "module_bindings", {}),
     )
     outcome.text_ms = (time.perf_counter() - text_started) * 1000.0
     return outcome
@@ -559,6 +564,8 @@ def _artifact_row(outcome: _Outcome, language: str) -> tuple:
                 "registry_names": outcome.registry_names,
                 "call_names": sorted({call.name for call in outcome.calls}),
                 "assigned_from": sorted({call.assigned_from_fn for call in outcome.calls if call.assigned_from_fn}),
+                "namespaces": outcome.namespaces,
+                "module_bindings": outcome.module_bindings,
             },
             separators=(",", ":"),
             sort_keys=True,
@@ -758,6 +765,10 @@ def build_index(
             imports[relative] = outcome.imports
             calls_by_path[relative] = outcome.calls
             inheritance_by_path[relative] = outcome.inheritance
+            if outcome.namespaces:
+                facts_by_path.setdefault(relative, {})["namespaces"] = outcome.namespaces
+            if outcome.module_bindings:
+                facts_by_path.setdefault(relative, {})["module_bindings"] = outcome.module_bindings
         registry_names.update(outcome.registry_names)
         artifact_rows.append(_artifact_row(outcome, language))
         symbol_body_rows.extend(outcome.symbol_body_rows)
@@ -826,6 +837,16 @@ def build_index(
     if progress_callback:
         progress_callback("Resolving lexical graph edges...", files_seen, len(symbols))
     active_stubs = get_relevant_stubs(imports)
+    file_namespaces: dict[str, list[str]] = {
+        path: facts["namespaces"]
+        for path, facts in facts_by_path.items()
+        if facts.get("namespaces")
+    }
+    js_module_bindings: dict[str, dict[str, str]] = {
+        path: facts["module_bindings"]
+        for path, facts in facts_by_path.items()
+        if facts.get("module_bindings")
+    }
     edges, edge_context_sha256, edge_report = _resolve_edges(
         symbols=symbols,
         calls_by_path=calls_by_path,
@@ -836,6 +857,8 @@ def build_index(
         max_edges_per_symbol=max_edges_per_symbol,
         previous=previous,
         reparsed_paths=reparsed_paths,
+        file_namespaces=file_namespaces,
+        js_module_bindings=js_module_bindings,
     )
     timings.add("edges", _t_edges)
 
@@ -864,9 +887,17 @@ def build_index(
             use_delta = False
 
     index_run_id = _new_run_id()
+    ns_to_files: dict[str, list[str]] = defaultdict(list)
+    for p, ns_list in file_namespaces.items():
+        for ns in ns_list:
+            ns_to_files[ns].append(p)
+    csharp_ns_map = {ns: sorted(flist) for ns, flist in sorted(ns_to_files.items())}
+
     manifest: dict[str, object] = {
         "schema_version": "1.0",
         "index_schema_version": INDEX_SCHEMA_VERSION,
+        "csharp_namespaces": csharp_ns_map,
+        "js_module_bindings": js_module_bindings,
         "repo_id": repository.repo_id,
         "repo_root_id": sha256_bytes(str(repository.root).encode()),
         "commit_sha": git_head(repository.root),
@@ -1017,6 +1048,8 @@ def _resolve_edges(
     max_edges_per_symbol: int,
     previous: _Previous | None,
     reparsed_paths: set[str],
+    file_namespaces: dict[str, list[str]] | None = None,
+    js_module_bindings: dict[str, dict[str, str]] | None = None,
 ) -> tuple[list[EdgeRecord], str, dict[str, object]]:
     """Edges of the whole graph, re-resolving only what a change can affect (M7.5).
 
@@ -1043,6 +1076,8 @@ def _resolve_edges(
             imports_by_path=imports,
             class_hierarchy=class_hierarchy_map,
             external_stubs=active_stubs,
+            file_namespaces=file_namespaces,
+            js_module_bindings=js_module_bindings,
         )
 
     if previous is None or previous.edge_context_sha256 != context_sha:

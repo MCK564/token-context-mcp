@@ -217,7 +217,7 @@
       "snippet": "    // here, let's print out as much info as\n    // we can\n    const fourOhFourContext = this[kFourOhFourLevelInstance][kFourOhFourContext]\n    const id = getGenReqId(fourOhFourContext.server, req)\n    const childLogger = createChildLogger(fourOhFourContext, logger, req, id)\n\n    childLogger.info({ req }, 'incoming request')",
       "node_type": "call_expression",
       "expected": {
-        "path": "lib/four-oh-four.js",
+        "path": "lib/req-id-gen-factory.js",
         "qualified_name": "getGenReqId"
       },
       "reason": "Internal helper function getGenReqId"

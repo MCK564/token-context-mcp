@@ -281,10 +281,10 @@
       "snippet": "\t\t\tthrow new ArgumentException(\"type is not a nullable type.\");\n\t\t}\n\n\t\tUnderlyingTypeConverter = typeConverterFactory.GetConverter(UnderlyingType);\n\t}\n\n\t/// <summary>",
       "node_type": "invocation_expression",
       "expected": {
-        "path": "src/CsvHelper/TypeConversion/TypeConverterFactory.cs",
-        "qualified_name": "TypeConverterFactory.GetConverter"
+        "path": "src/CsvHelper/TypeConversion/TypeConverterCache.cs",
+        "qualified_name": "TypeConverterCache.GetConverter"
       },
-      "reason": "TypeConverterFactory method GetConverter"
+      "reason": "TypeConverterCache method GetConverter"
     },
     {
       "path": "src/CsvHelper/TypeConversion/NullableConverterFactory.cs",

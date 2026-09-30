@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 4  # 4: C# base_list inheritance and ranking (M12.2); bump whenever parse output changes
+PARSER_ARTIFACT_VERSION = 6  # 6: E6 instantiation edges (new_expression, object_creation_expression)
 
 
 try:
@@ -47,6 +47,7 @@ class CallRecord:
     # (annotation, constructor call, local var, etc.), which keeps the existing
     # "attr_type" scope label in lexical_edges.py.
     receiver_type_source: str | None = None
+    arg_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,8 @@ class ParseResult:
     warnings: list[str]
     calls: list[CallRecord] = field(default_factory=list)
     inheritance: dict[str, list[str]] = field(default_factory=dict)
+    namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -138,6 +141,12 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
     calls = extract_calls(tree.root_node, raw, language_name)
     inheritance = _extract_inheritance(tree.root_node, raw, language_name)
+    namespaces: list[str] = []
+    if language_name == "c_sharp":
+        namespaces = _extract_csharp_namespaces(tree.root_node, raw)
+    module_bindings: dict[str, str] = {}
+    if language_name in {"javascript", "typescript", "tsx"}:
+        module_bindings = _extract_js_module_bindings(tree.root_node, raw)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
@@ -150,6 +159,8 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
         warnings=warnings,
         calls=calls,
         inheritance=inheritance,
+        namespaces=namespaces,
+        module_bindings=module_bindings,
     )
 
 
@@ -1001,6 +1012,89 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     return result if isinstance(result, str) else None
 
 
+def _extract_csharp_namespaces(root: object, raw: bytes) -> list[str]:
+    """Extract C# block-scoped and file-scoped namespace declarations (E3)."""
+    namespaces: list[str] = []
+
+    def visit(node: object, prefix: str = "") -> None:
+        c_type = getattr(node, "type", "")
+        if c_type in {"namespace_declaration", "file_scoped_namespace_declaration"}:
+            name_node = _field(node, "name")
+            if name_node is not None:
+                ns_name = _node_text(name_node, raw)
+                full_ns = f"{prefix}.{ns_name}" if prefix else ns_name
+                namespaces.append(full_ns)
+                for child in getattr(node, "named_children", []):
+                    visit(child, full_ns)
+                return
+        for child in getattr(node, "named_children", []):
+            visit(child, prefix)
+
+    visit(root)
+    return namespaces
+
+
+def _extract_js_module_bindings(root: object, raw: bytes) -> dict[str, str]:
+    """Extract JS/TS CommonJS require and ES6 import bindings (E8)."""
+    bindings: dict[str, str] = {}
+
+    def visit(node: object) -> None:
+        c_type = getattr(node, "type", "")
+        if c_type == "variable_declarator":
+            name_node = _field(node, "name")
+            val_node = _field(node, "value")
+            if val_node and getattr(val_node, "type", "") == "call_expression":
+                fn_node = _field(val_node, "function")
+                if fn_node and _node_text(fn_node, raw).strip() == "require":
+                    args_node = _field(val_node, "arguments")
+                    first_arg = next(iter(getattr(args_node, "named_children", [])), None) if args_node else None
+                    mod_path = _string_literal_value(first_arg, raw) if first_arg else None
+                    if mod_path and name_node:
+                        if getattr(name_node, "type", "") == "identifier":
+                            bindings[_node_text(name_node, raw).strip()] = mod_path
+                        elif getattr(name_node, "type", "") == "object_pattern":
+                            for child in getattr(name_node, "named_children", []):
+                                ch_type = getattr(child, "type", "")
+                                if ch_type == "shorthand_property_identifier_pattern":
+                                    ident = _node_text(child, raw).strip()
+                                    bindings[ident] = f"{mod_path}.{ident}"
+                                elif ch_type == "pair_pattern":
+                                    key_node = _field(child, "key")
+                                    val_sub = _field(child, "value")
+                                    if key_node and val_sub:
+                                        key_name = _node_text(key_node, raw).strip()
+                                        val_name = _node_text(val_sub, raw).strip()
+                                        bindings[val_name] = f"{mod_path}.{key_name}"
+        elif c_type in {"import_statement", "import_declaration"}:
+            source_node = _field(node, "source")
+            mod_path = _string_literal_value(source_node, raw) if source_node else None
+            if mod_path:
+                for child in getattr(node, "named_children", []):
+                    if getattr(child, "type", "") == "import_clause":
+                        for sub in getattr(child, "named_children", []):
+                            s_type = getattr(sub, "type", "")
+                            if s_type == "identifier":
+                                bindings[_node_text(sub, raw).strip()] = mod_path
+                            elif s_type == "namespace_import":
+                                ns_name = _field(sub, "name") or (sub.named_children[0] if getattr(sub, "named_children", None) else None)
+                                if ns_name:
+                                    bindings[_node_text(ns_name, raw).strip()] = mod_path
+                            elif s_type == "named_imports":
+                                for spec in getattr(sub, "named_children", []):
+                                    if getattr(spec, "type", "") == "import_specifier":
+                                        n_node = _field(spec, "name")
+                                        alias_node = _field(spec, "alias")
+                                        orig_name = _node_text(n_node, raw).strip() if n_node else ""
+                                        local_name = _node_text(alias_node, raw).strip() if alias_node else orig_name
+                                        if local_name:
+                                            bindings[local_name] = f"{mod_path}.{orig_name}"
+        for c in getattr(node, "children", []):
+            visit(c)
+
+    visit(root)
+    return bindings
+
+
 _CONTAINER_TYPES = {
     "dict", "Dict", "defaultdict", "Mapping", "MutableMapping",
     "list", "List", "Sequence", "MutableSequence", "Iterable", "Iterator",
@@ -1200,9 +1294,10 @@ def _analyze_function_scope(
                     if branch:
                         assigned_in_branch.add(v)
         elif language_name in {"java", "c_sharp"}:
-            if node_type == "local_variable_declaration":
+            if node_type in {"local_variable_declaration", "variable_declaration"}:
                 t_node = _field(node, "type")
-                t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                t_raw = _node_text(t_node, raw) if t_node else ""
+                t_text = _clean_type_name(t_raw) if t_raw and t_raw != "var" else ""
                 for child in getattr(node, "named_children", []):
                     if getattr(child, "type", "") == "variable_declarator":
                         n_node = _field(child, "name")
@@ -1213,6 +1308,28 @@ def _analyze_function_scope(
                                 assigned_in_branch.add(v)
                             if t_text:
                                 annotated_types[v] = t_text
+                            named_ch = getattr(child, "named_children", [])
+                            val_node = named_ch[1] if len(named_ch) > 1 else None
+                            if val_node is not None:
+                                if val_node.type == "object_creation_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "cast_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "invocation_expression":
+                                    expr = _field(val_node, "expression")
+                                    if expr is not None and expr.type == "identifier":
+                                        fn_name = _node_text(expr, raw).strip()
+                                        fn_call_assigns[v] = fn_name
+                                        if fn_return_types and fn_name in fn_return_types:
+                                            ctor_types[v] = fn_return_types[fn_name]
             elif node_type == "assignment_expression":
                 left = _field(node, "left")
                 if left is not None and getattr(left, "type", "") == "identifier":
@@ -1557,7 +1674,7 @@ def _extract_class_attributes(
                                 if inferred_t and inferred_t not in _BUILTIN_RECEIVERS and inferred_t not in {"None", "Any"}:
                                     class_attr_assigned[next_class][attr_text].append((inferred_t, inferred_source))
             elif language_name in {"javascript", "typescript", "tsx"}:
-                if c_type in {"public_field_definition", "field_definition", "property_definition"}:
+                if c_type in {"public_field_definition", "field_definition", "property_definition", "property_signature"}:
                     name_node = _field(current, "property") or _field(current, "name")
                     t_node = _field(current, "type")
                     if name_node is not None and t_node is not None:
@@ -1582,15 +1699,30 @@ def _extract_class_attributes(
                                 class_attr_assigned[next_class][attr_text].append((inferred_t, "attr_type"))
             elif language_name in {"java", "c_sharp"}:
                 if c_type == "field_declaration":
-                    t_node = _field(current, "type")
-                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
-                    if t_text and t_text not in _BUILTIN_RECEIVERS:
+                    var_decl = None
+                    if language_name == "c_sharp":
                         for child in getattr(current, "named_children", []):
+                            if getattr(child, "type", "") == "variable_declaration":
+                                var_decl = child
+                                break
+                    parent_decl = var_decl or current
+                    t_node = _field(parent_decl, "type")
+                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                    if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var":
+                        for child in getattr(parent_decl, "named_children", []):
                             if getattr(child, "type", "") in {"variable_declarator", "variable_declaration"}:
                                 n_node = _field(child, "name") or (child.named_children[0] if getattr(child, "named_children", None) else None)
                                 if n_node is not None:
                                     attr_text = _node_text(n_node, raw).strip()
                                     class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
+                elif language_name == "c_sharp" and c_type == "property_declaration":
+                    t_node = _field(current, "type")
+                    n_node = _field(current, "name")
+                    if t_node is not None and n_node is not None:
+                        t_text = _clean_type_name(_node_text(t_node, raw))
+                        attr_text = _node_text(n_node, raw).strip()
+                        if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var" and attr_text:
+                            class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
 
         for child in getattr(current, "named_children", []):
             visit(child, next_class, param_type_map)
@@ -1662,6 +1794,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 if (curr_cls, attr_name) in class_attr_types:
                     attr_source = class_attr_param_source.get((curr_cls, attr_name))
                     return class_attr_types[(curr_cls, attr_name)], False, None, attr_source
+        if language_name in {"c_sharp", "java"} and class_stack and class_stack[-1]:
+            curr_cls = class_stack[-1]
+            if (curr_cls, receiver) in class_attr_tainted:
+                return None, True, None, None
+            if (curr_cls, receiver) in class_attr_types:
+                return class_attr_types[(curr_cls, receiver)], False, None, "field_type"
         return None, False, None, None
 
     def visit(current: object) -> None:
@@ -1721,6 +1859,8 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 return
 
         if language_name == "python" and c_type == "call":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "attribute":
@@ -1740,6 +1880,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1750,9 +1891,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name in {"javascript", "typescript", "tsx"} and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "member_expression":
@@ -1772,6 +1916,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1782,9 +1927,48 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+        elif language_name in {"javascript", "typescript", "tsx"} and c_type == "new_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            constr = _field(current, "constructor")
+            if constr is not None:
+                if constr.type == "member_expression":
+                    obj = _field(constr, "object")
+                    prop = _field(constr, "property")
+                    if prop is not None:
+                        rec = _node_text(obj, raw) if obj is not None else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(prop, raw),
+                                receiver=rec,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
+                                assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
+                                arg_count=call_arg_count,
+                            )
+                        )
+                elif constr.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(constr, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "go" and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "selector_expression":
@@ -1804,6 +1988,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1814,9 +1999,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "java" and c_type == "method_invocation":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             obj = _field(current, "object")
             name = _field(current, "name")
             if name is not None:
@@ -1833,10 +2021,13 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                         is_tainted=is_t,
                         assigned_from_fn=fn_src,
                         receiver_type_source=r_src,
+                        arg_count=call_arg_count,
                     )
                 )
         elif language_name == "c_sharp" and c_type == "invocation_expression":
-            expr = _field(current, "expression") or (
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            expr = _field(current, "function") or _field(current, "expression") or (
                 current.named_children[0] if getattr(current, "named_children", None) else None
             )
             if expr is not None:
@@ -1844,11 +2035,16 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     expr_obj = _field(expr, "expression")
                     expr_name = _field(expr, "name")
                     if expr_name is not None:
+                        if expr_name.type == "generic_name":
+                            call_name = _node_text(expr_name.named_children[0], raw) if expr_name.named_children else _node_text(expr_name, raw).split("<")[0].strip()
+                        else:
+                            call_name = _node_text(expr_name, raw)
                         rec = _node_text(expr_obj, raw) if expr_obj is not None else None
-                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
                         calls.append(
                             CallRecord(
-                                name=_node_text(expr_name, raw),
+                                name=call_name,
                                 receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
@@ -1857,6 +2053,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif expr.type == "identifier":
@@ -1867,6 +2064,80 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+                elif expr.type == "generic_name":
+                    call_name = _node_text(expr.named_children[0], raw) if expr.named_children else _node_text(expr, raw).split("<")[0].strip()
+                    calls.append(
+                        CallRecord(
+                            name=call_name,
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+                elif expr.type == "conditional_access_expression":
+                    cond = _field(expr, "condition")
+                    binding = None
+                    for child in getattr(expr, "named_children", []):
+                        if child.type == "member_binding_expression":
+                            binding = child
+                            break
+                    if binding is not None:
+                        name_node = _field(binding, "name")
+                        if name_node is not None:
+                            if name_node.type == "generic_name":
+                                call_name = _node_text(name_node.named_children[0], raw) if name_node.named_children else _node_text(name_node, raw).split("<")[0].strip()
+                            else:
+                                call_name = _node_text(name_node, raw)
+                            rec = _node_text(cond, raw) if cond is not None else None
+                            clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                            r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
+                            calls.append(
+                                CallRecord(
+                                    name=call_name,
+                                    receiver=rec,
+                                    line=int(current.start_point[0]) + 1,
+                                    start_byte=int(current.start_byte),
+                                    end_byte=int(current.end_byte),
+                                    receiver_type=r_type,
+                                    is_tainted=is_t,
+                                    assigned_from_fn=fn_src,
+                                    receiver_type_source=r_src,
+                                    arg_count=call_arg_count,
+                                )
+                            )
+        elif language_name == "c_sharp" and c_type == "object_creation_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            t_node = _field(current, "type")
+            if t_node is not None:
+                raw_text = _node_text(t_node, raw).strip()
+                clean_text = raw_text.split("<")[0].strip().rstrip("?")
+                if clean_text.startswith("global::"):
+                    clean_text = clean_text[len("global::"):]
+                if clean_text:
+                    if "." in clean_text:
+                        rec, name = clean_text.rsplit(".", 1)
+                    else:
+                        rec = None
+                        name = clean_text
+                    r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec) if rec else (None, False, None, None)
+                    calls.append(
+                        CallRecord(
+                            name=name,
+                            receiver=rec,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            receiver_type=r_type,
+                            is_tainted=is_t,
+                            assigned_from_fn=fn_src,
+                            receiver_type_source=r_src,
+                            arg_count=call_arg_count,
                         )
                     )
         for child in getattr(current, "named_children", []):

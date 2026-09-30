@@ -14,7 +14,7 @@ import json
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, parse_source
 
 # (PARSER_ARTIFACT_VERSION, digest of the parse of SAMPLES).  Update both together.
-GOLDEN = (4, "2802679c7d978210b4dc8c531b71831ce70cdc89eb08cd3c06b111832a9450e4")
+GOLDEN = (6, "7039683ba7efbb5acae3192de9692a92701edd9c33e0b1aeb9dad4a3a523619f")
 
 SAMPLES = {
     "python": (
@@ -75,5 +75,5 @@ def test_call_record_layout_is_serialised_positionally() -> None:
     # runner._calls_to_json stores dataclasses.astuple(call); a new field means a new artifact format.
     assert [f.name for f in dataclasses.fields(CallRecord)] == [
         "name", "receiver", "line", "start_byte", "end_byte", "receiver_type", "is_tainted",
-        "assigned_from_fn", "receiver_type_source",
+        "assigned_from_fn", "receiver_type_source", "arg_count",
     ]
