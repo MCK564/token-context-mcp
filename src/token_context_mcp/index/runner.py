@@ -40,7 +40,7 @@ from token_context_mcp.models import (
     RepositoryConfig,
     SymbolRecord,
 )
-from token_context_mcp.parse.lexical_edges import build_lexical_edges
+from token_context_mcp.parse.lexical_edges import RESOLVER_VERSION, build_lexical_edges
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
 from token_context_mcp.retrieve.code_tokens import path_tokens, split_identifier
@@ -452,7 +452,7 @@ def _parser_fingerprint() -> str:
             parts.append(f"{name}={metadata.version(name)}")
         except metadata.PackageNotFoundError:
             continue
-    return f"artifact-v{PARSER_ARTIFACT_VERSION};fts-v{FTS_BUILDER_VERSION};" + ";".join(parts)
+    return f"artifact-v{PARSER_ARTIFACT_VERSION};fts-v{FTS_BUILDER_VERSION};resolver-v{RESOLVER_VERSION};" + ";".join(parts)
 
 
 def _load_previous(destination: Path, repository: RepositoryConfig, fingerprint: str) -> _Previous | None:
@@ -907,6 +907,7 @@ def build_index(
         "parser_fingerprint": fingerprint,
         "parser_artifact_version": PARSER_ARTIFACT_VERSION,
         "fts_builder_version": FTS_BUILDER_VERSION,
+        "resolver_version": RESOLVER_VERSION,
         "scan_started_at_ns": scan_started_at_ns,
         "generated_at": datetime.now(UTC).isoformat(),
         "files_seen": files_seen,

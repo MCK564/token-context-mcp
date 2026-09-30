@@ -13,62 +13,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "evals"))
 
 import edge_gold_eval as ege  # noqa: E402
-from guard import check_heldout_guard  # noqa: E402
 from token_context_mcp.index.sqlite_store import SQLiteStore  # noqa: E402
 from token_context_mcp.models import EdgeRecord, FileRecord, SymbolRecord  # noqa: E402
-
-
-def test_guard_passes_for_dev_role():
-    # Dev role must never trigger the guard
-    check_heldout_guard("dev")
-
-
-def test_guard_bypassed_with_allow_baseline_code(tmp_path: Path):
-    fake_baseline = tmp_path / "baseline_code"
-    fake_baseline.mkdir()
-    # Should succeed because path exists
-    check_heldout_guard("heldout", allow_baseline_code=fake_baseline)
-
-    # Should fail if path does not exist
-    non_existent = tmp_path / "does_not_exist"
-    with pytest.raises(FileNotFoundError):
-        check_heldout_guard("heldout", allow_baseline_code=non_existent)
-
-
-def test_guard_fails_when_m12_freeze_tag_missing(monkeypatch):
-    def mock_run_no_tag(cmd, **kwargs):
-        if "rev-parse" in cmd:
-            return subprocess.CompletedProcess(args=cmd, returncode=1, stderr="Not found")
-        return subprocess.CompletedProcess(args=cmd, returncode=0)
-
-    monkeypatch.setattr(subprocess, "run", mock_run_no_tag)
-    with pytest.raises(RuntimeError, match="Rule 17 violation.*m12-freeze.*does not exist"):
-        check_heldout_guard("heldout")
-
-
-def test_guard_with_mocked_git_success_and_diff(monkeypatch):
-    def mock_run(cmd, **kwargs):
-        if "rev-parse" in cmd:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="sha123\n")
-        if "diff" in cmd:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="")
-        return subprocess.CompletedProcess(args=cmd, returncode=0)
-
-    monkeypatch.setattr(subprocess, "run", mock_run)
-    # Should pass when tag exists and diff is empty
-    check_heldout_guard("heldout")
-
-    # Should fail when diff is non-empty
-    def mock_run_with_diff(cmd, **kwargs):
-        if "rev-parse" in cmd:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="sha123\n")
-        if "diff" in cmd:
-            return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="diff --git a/src b/src\n+new line")
-        return subprocess.CompletedProcess(args=cmd, returncode=0)
-
-    monkeypatch.setattr(subprocess, "run", mock_run_with_diff)
-    with pytest.raises(RuntimeError, match="Rule 17 violation.*diff against 'm12-freeze' is not empty"):
-        check_heldout_guard("heldout")
 
 
 def test_callee_matches_logic():

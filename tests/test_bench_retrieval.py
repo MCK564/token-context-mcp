@@ -211,7 +211,10 @@ def test_results_are_reproducible(bench_env):
     assert a == b
 
 
-def test_heldout_role_triggers_rule17_guard(bench_env):
+def test_heldout_role_triggers_rule17_guard(bench_env, tmp_path, monkeypatch):
+    import guard
+
+    monkeypatch.setattr(guard, "REPO_ROOT", tmp_path)  # a directory with no git repo: no freeze tag, whatever the real repo holds
     config, tasks_file, out = bench_env
     ns = argparse.Namespace(
         tasks=tasks_file,

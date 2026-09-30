@@ -60,7 +60,8 @@ _TABLE_QUERIES: dict[str, str] = {
 }
 _METADATA_KEYS = (
     "index_schema_version", "files_indexed", "files_skipped", "symbols_indexed", "edges_indexed", "stubs_indexed",
-    "entry_points", "role_counts", "derived_defaults", "warnings", "parser_artifact_version",
+    "entry_points", "role_counts", "derived_defaults", "warnings", "parser_artifact_version", "fts_builder_version",
+    "resolver_version",
 )
 
 

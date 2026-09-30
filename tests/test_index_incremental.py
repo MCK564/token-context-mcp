@@ -89,7 +89,7 @@ def db_rows(out: Path, sql: str, repo_id: str = "demo"):
 
 @pytest.fixture(autouse=True)
 def _deterministic_edges():
-    """The per-file circuit breaker is wall-clock based; equivalence checks must not depend on machine load."""
+    """The per-file edge budget is deterministic (work units); switched off so I1 does not depend on its value."""
     with ie.deterministic_edges():
         yield
 
@@ -273,6 +273,34 @@ def test_artifact_version_bump_reparses_everything(tree: Path, tmp_path: Path, m
     monkeypatch.setattr(runner, "PARSER_ARTIFACT_VERSION", runner.PARSER_ARTIFACT_VERSION + 1)
     second = index(tree, out)
     assert second["incremental"] is False and second["parse_source_calls"] == first["parse_source_calls"]
+
+
+@pytest.mark.parametrize("key", ["FTS_BUILDER_VERSION", "RESOLVER_VERSION"])
+def test_builder_version_bump_rebuilds_everything(tree: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, key: str) -> None:
+    """Rule 20: FTS builder and edge resolver changes carry their own version key, and a changed key is a full rebuild."""
+    out = tmp_path / "idx"
+    first = index(tree, out)
+    monkeypatch.setattr(runner, key, getattr(runner, key) + 1)
+    second = index(tree, out)
+    assert second["incremental"] is False and second["parse_source_calls"] == first["parse_source_calls"]
+    assert second[key.lower()] == getattr(runner, key)
+
+
+def test_i1_holds_across_a_version_bump(tree: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rule 20 (I1 across versions): full build with the old keys, then an incremental run with the new keys, equals a
+    from-scratch build with the new keys, table by table."""
+    upgraded = tmp_path / "upgraded"
+    with monkeypatch.context() as old:
+        old.setattr(runner, "FTS_BUILDER_VERSION", runner.FTS_BUILDER_VERSION - 1)
+        old.setattr(runner, "RESOLVER_VERSION", runner.RESOLVER_VERSION - 1)
+        index(tree, upgraded)
+    (tree / "pkg" / "mod_05.py").write_text("def func_05(value):\n    return value * 2\n", encoding="utf-8")
+    age(tree)
+    index(tree, upgraded)  # current keys: the old snapshot must not be reused
+    fresh = tmp_path / "fresh"
+    index(tree, fresh)
+    problems = ie.compare_dumps(ie.dump_snapshot(database_path(upgraded, "demo")), ie.dump_snapshot(database_path(fresh, "demo")))
+    assert not problems, problems
 
 
 def test_parse_error_files_are_not_reparsed_every_run(tree: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
