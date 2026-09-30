@@ -1961,7 +1961,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
         elif language_name == "c_sharp" and c_type == "invocation_expression":
             args_node = _field(current, "arguments")
             call_arg_count = len(args_node.named_children) if args_node is not None else None
-            expr = _field(current, "expression") or (
+            expr = _field(current, "function") or _field(current, "expression") or (
                 current.named_children[0] if getattr(current, "named_children", None) else None
             )
             if expr is not None:
@@ -1969,11 +1969,16 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     expr_obj = _field(expr, "expression")
                     expr_name = _field(expr, "name")
                     if expr_name is not None:
+                        if expr_name.type == "generic_name":
+                            call_name = _node_text(expr_name.named_children[0], raw) if expr_name.named_children else _node_text(expr_name, raw).split("<")[0].strip()
+                        else:
+                            call_name = _node_text(expr_name, raw)
                         rec = _node_text(expr_obj, raw) if expr_obj is not None else None
-                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
                         calls.append(
                             CallRecord(
-                                name=_node_text(expr_name, raw),
+                                name=call_name,
                                 receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
@@ -1996,6 +2001,49 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             arg_count=call_arg_count,
                         )
                     )
+                elif expr.type == "generic_name":
+                    call_name = _node_text(expr.named_children[0], raw) if expr.named_children else _node_text(expr, raw).split("<")[0].strip()
+                    calls.append(
+                        CallRecord(
+                            name=call_name,
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+                elif expr.type == "conditional_access_expression":
+                    cond = _field(expr, "condition")
+                    binding = None
+                    for child in getattr(expr, "named_children", []):
+                        if child.type == "member_binding_expression":
+                            binding = child
+                            break
+                    if binding is not None:
+                        name_node = _field(binding, "name")
+                        if name_node is not None:
+                            if name_node.type == "generic_name":
+                                call_name = _node_text(name_node.named_children[0], raw) if name_node.named_children else _node_text(name_node, raw).split("<")[0].strip()
+                            else:
+                                call_name = _node_text(name_node, raw)
+                            rec = _node_text(cond, raw) if cond is not None else None
+                            clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                            r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
+                            calls.append(
+                                CallRecord(
+                                    name=call_name,
+                                    receiver=rec,
+                                    line=int(current.start_point[0]) + 1,
+                                    start_byte=int(current.start_byte),
+                                    end_byte=int(current.end_byte),
+                                    receiver_type=r_type,
+                                    is_tainted=is_t,
+                                    assigned_from_fn=fn_src,
+                                    receiver_type_source=r_src,
+                                    arg_count=call_arg_count,
+                                )
+                            )
         elif language_name == "c_sharp" and c_type == "object_creation_expression":
             args_node = _field(current, "arguments")
             call_arg_count = len(args_node.named_children) if args_node is not None else None
