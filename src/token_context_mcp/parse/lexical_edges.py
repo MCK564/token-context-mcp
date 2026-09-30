@@ -21,6 +21,7 @@ FILE_CIRCUIT_BREAKER_SECONDS = 0.030
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
 SCOPE_CONFIDENCE: dict[str, float] = {
     "same_class": 0.95,
+    "same_class_split": 0.85,
     "cha_inherited": 0.90,
     "attr_type": 0.95,
     "attr_type_inherited": 0.90,
@@ -393,6 +394,21 @@ def _resolve_candidate(
                         return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
                     if len(ancestor_matches) > 1:
                         return None, "cha_ambiguous", 0.10
+
+            # Receiver this Cross-File Resolution (M12.1.3):
+            # In JS/TS, methods of class X can be split across multiple files.
+            # Add a fallback query for candidates matching c.qualified_name.startswith(f"{class_prefix}.")
+            # across all files, labeled with scope same_class_split and confidence 0.85.
+            # Guard with is_js_ts check so Python is never touched.
+            if source.symbol_id.startswith(("javascript:", "typescript:", "tsx:")) or source.path.endswith((".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")):
+                split_class = [
+                    c for c in candidates
+                    if c.qualified_name.startswith(f"{class_prefix}.")
+                ]
+                if len(split_class) == 1:
+                    return split_class[0], "same_class_split", SCOPE_CONFIDENCE.get("same_class_split", 0.85)
+                if len(split_class) > 1:
+                    return None, "same_class_split_ambiguous", 0.10
 
         # Fallback to same file
         same_file = [c for c in candidates if c.path == source.path]

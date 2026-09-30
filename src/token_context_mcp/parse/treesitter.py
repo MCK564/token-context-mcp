@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 2  # 2: Go grammar added (M10.2); bump whenever parse output for the same bytes can change
+PARSER_ARTIFACT_VERSION = 3  # 3: JS assigned methods via prototype/object (M12.1); bump whenever parse output changes
 
 
 try:
@@ -184,6 +184,397 @@ def _new_parser(language: Language) -> Parser:
         return Parser(language)
 
 
+_JS_SPECIAL_IDENTIFIERS = {
+    "this", "module", "exports", "prototype",
+    "window", "global", "globalThis", "process",
+    "console", "document",
+}
+
+
+def _js_fn_signature(prop_name: str, fn_node: object, raw: bytes) -> str:
+    params_node = _field(fn_node, "parameters") or _field(fn_node, "parameter")
+    params_text = _node_text(params_node, raw) if params_node else "()"
+    if not params_text.startswith("("):
+        params_text = f"({params_text})"
+    ret_node = _field(fn_node, "return_type")
+    if ret_node is not None:
+        params_text = f"{params_text}{_node_text(ret_node, raw)}"
+    return f"{prop_name}{params_text}"
+
+
+def _extract_js_object_methods(
+    object_node: object,
+    raw: bytes,
+    path: str,
+    language_name: str,
+    parents: list[str],
+    prefix: str,
+    default_kind: str = "method",
+) -> Iterable[SymbolRecord]:
+    for member in object_node.named_children:
+        if member.type == "method_definition":
+            m_name = _node_name(member, raw)
+            if m_name:
+                qname = f"{prefix}.{m_name}" if prefix else m_name
+                yield _symbol_record(
+                    member,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=m_name,
+                    kind=default_kind,
+                    qualified_name=qname,
+                )
+        elif member.type == "pair":
+            k = _field(member, "key")
+            v = _field(member, "value")
+            if k and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                m_name = _node_text(k, raw).strip("'\"`")
+                if m_name:
+                    body_node = _field(v, "body")
+                    sig = _js_fn_signature(m_name, v, raw)
+                    qname = f"{prefix}.{m_name}" if prefix else m_name
+                    yield _symbol_record(
+                        member,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=m_name,
+                        kind=default_kind,
+                        qualified_name=qname,
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+
+def _extract_js_assigned_expression(
+    node: object,
+    raw: bytes,
+    path: str,
+    language_name: str,
+    parents: list[str],
+    enclosing_func: str | None = None,
+) -> Iterable[SymbolRecord]:
+    child = node.named_children[0] if node.named_children else None
+    if child is None:
+        return
+
+    # Assignment: X.prototype.m = fn, X.m = fn, this.m = fn, module.exports.m = fn, exports.m = fn, etc.
+    if child.type == "assignment_expression":
+        left = _field(child, "left")
+        right = _field(child, "right")
+        if left is None or right is None:
+            return
+
+        is_fn_value = right.type in {"function_expression", "arrow_function", "generator_function"}
+
+        if left.type == "member_expression":
+            obj = _field(left, "object")
+            prop = _field(left, "property")
+            prop_name = _node_text(prop, raw) if prop else ""
+
+            # Pattern 1 & 7a: X.prototype.m = fn or module.exports.m = fn
+            if obj and obj.type == "member_expression":
+                sub_obj = _field(obj, "object")
+                sub_prop = _field(obj, "property")
+                sub_prop_name = _node_text(sub_prop, raw) if sub_prop else ""
+                if sub_prop_name == "prototype" and sub_obj:
+                    class_name = _node_text(sub_obj, raw)
+                    if is_fn_value and class_name and prop_name:
+                        body_node = _field(right, "body")
+                        sig = _js_fn_signature(prop_name, right, raw)
+                        yield _symbol_record(
+                            node,
+                            raw,
+                            path,
+                            language_name,
+                            parents,
+                            name=prop_name,
+                            kind="method",
+                            qualified_name=f"{class_name}.{prop_name}",
+                            signature=sig,
+                            body_node=body_node,
+                        )
+                elif _node_text(sub_obj, raw) == "module" and sub_prop_name == "exports":
+                    if is_fn_value and prop_name:
+                        body_node = _field(right, "body")
+                        sig = _js_fn_signature(prop_name, right, raw)
+                        yield _symbol_record(
+                            node,
+                            raw,
+                            path,
+                            language_name,
+                            parents,
+                            name=prop_name,
+                            kind="function",
+                            qualified_name=prop_name,
+                            signature=sig,
+                            body_node=body_node,
+                        )
+
+            # Pattern 7b: exports.m = fn
+            elif obj and obj.type == "identifier" and _node_text(obj, raw) == "exports":
+                if is_fn_value and prop_name:
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(prop_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=prop_name,
+                        kind="function",
+                        qualified_name=prop_name,
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+            # Pattern 5: this.m = fn inside constructor
+            elif obj and obj.type == "this":
+                if is_fn_value and enclosing_func and prop_name:
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(prop_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=prop_name,
+                        kind="method",
+                        qualified_name=f"{enclosing_func}.{prop_name}",
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+            # Pattern 2: X.prototype = { m() {}, n: fn }
+            elif obj and prop_name == "prototype" and right.type == "object":
+                class_name = _node_text(obj, raw)
+                if class_name:
+                    yield from _extract_js_object_methods(
+                        right, raw, path, language_name, parents, prefix=class_name, default_kind="method"
+                    )
+
+            # Pattern 7c: module.exports = { m() {}, n: fn }
+            elif obj and _node_text(obj, raw) == "module" and prop_name == "exports":
+                if right.type == "object":
+                    yield from _extract_js_object_methods(
+                        right, raw, path, language_name, parents, prefix="", default_kind="function"
+                    )
+                elif is_fn_value:
+                    fn_name = _node_name(right, raw) or _file_stem(path)
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(fn_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=fn_name,
+                        kind="function",
+                        qualified_name=fn_name,
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+            # Pattern 4: X.m = fn (where X is an identifier and not special)
+            elif obj and obj.type == "identifier":
+                obj_name = _node_text(obj, raw)
+                if is_fn_value and obj_name not in _JS_SPECIAL_IDENTIFIERS and prop_name:
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(prop_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=prop_name,
+                        kind="method",
+                        qualified_name=f"{obj_name}.{prop_name}",
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+    # Pattern 3: Object.defineProperty / Object.defineProperties
+    elif child.type == "call_expression":
+        fn = _field(child, "function")
+        fn_text = _node_text(fn, raw) if fn else ""
+        args_node = _field(child, "arguments")
+        args = [c for c in args_node.named_children] if args_node else []
+
+        if fn_text == "Object.defineProperty" and len(args) >= 3:
+            target_obj = args[0]
+            class_name = None
+            kind = "method"
+            if target_obj.type == "member_expression":
+                sub_obj = _field(target_obj, "object")
+                sub_prop = _field(target_obj, "property")
+                if sub_prop and _node_text(sub_prop, raw) == "prototype" and sub_obj:
+                    class_name = _node_text(sub_obj, raw)
+                elif _node_text(sub_obj, raw) == "module" and sub_prop and _node_text(sub_prop, raw) == "exports":
+                    kind = "function"
+                else:
+                    class_name = _node_text(target_obj, raw)
+            elif target_obj.type == "identifier":
+                tname = _node_text(target_obj, raw)
+                if tname == "exports":
+                    kind = "function"
+                elif tname not in _JS_SPECIAL_IDENTIFIERS:
+                    class_name = tname
+            elif target_obj.type == "this" and enclosing_func:
+                class_name = enclosing_func
+
+            prop_name = _node_text(args[1], raw).strip("'\"`")
+            desc = args[2]
+            target_qname = f"{class_name}.{prop_name}" if class_name else prop_name
+            if prop_name and desc.type == "object":
+                for member in desc.named_children:
+                    if member.type == "method_definition":
+                        m_name = _node_name(member, raw)
+                        if m_name in {"get", "set"}:
+                            params_node = _field(member, "parameters")
+                            ptext = _node_text(params_node, raw) if params_node else "()"
+                            sig = f"{m_name} {prop_name}{ptext}"
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                            )
+                    elif member.type == "pair":
+                        k = _field(member, "key")
+                        v = _field(member, "value")
+                        m_name = _node_text(k, raw).strip("'\"`") if k else ""
+                        if m_name in {"get", "set"} and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                            params_node = _field(v, "parameters") or _field(v, "parameter")
+                            ptext = _node_text(params_node, raw) if params_node else "()"
+                            if not ptext.startswith("("):
+                                ptext = f"({ptext})"
+                            sig = f"{m_name} {prop_name}{ptext}"
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                                body_node=_field(v, "body"),
+                            )
+                        elif m_name == "value" and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                            sig = _js_fn_signature(prop_name, v, raw)
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                                body_node=_field(v, "body"),
+                            )
+
+        elif fn_text == "Object.defineProperties" and len(args) >= 2:
+            target_obj = args[0]
+            class_name = None
+            kind = "method"
+            if target_obj.type == "member_expression":
+                sub_obj = _field(target_obj, "object")
+                sub_prop = _field(target_obj, "property")
+                if sub_prop and _node_text(sub_prop, raw) == "prototype" and sub_obj:
+                    class_name = _node_text(sub_obj, raw)
+                elif _node_text(sub_obj, raw) == "module" and sub_prop and _node_text(sub_prop, raw) == "exports":
+                    kind = "function"
+                else:
+                    class_name = _node_text(target_obj, raw)
+            elif target_obj.type == "identifier":
+                tname = _node_text(target_obj, raw)
+                if tname == "exports":
+                    kind = "function"
+                elif tname not in _JS_SPECIAL_IDENTIFIERS:
+                    class_name = tname
+            elif target_obj.type == "this" and enclosing_func:
+                class_name = enclosing_func
+
+            desc = args[1]
+            if desc.type == "object":
+                for pair in desc.named_children:
+                    if pair.type == "pair":
+                        k = _field(pair, "key")
+                        v = _field(pair, "value")
+                        prop_name = _node_text(k, raw).strip("'\"`")
+                        target_qname = f"{class_name}.{prop_name}" if class_name else prop_name
+                        if prop_name and v and v.type == "object":
+                            for member in v.named_children:
+                                if member.type == "method_definition":
+                                    m_name = _node_name(member, raw)
+                                    if m_name in {"get", "set"}:
+                                        params_node = _field(member, "parameters")
+                                        ptext = _node_text(params_node, raw) if params_node else "()"
+                                        sig = f"{m_name} {prop_name}{ptext}"
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                        )
+                                elif member.type == "pair":
+                                    mk = _field(member, "key")
+                                    mv = _field(member, "value")
+                                    m_name = _node_text(mk, raw).strip("'\"`") if mk else ""
+                                    if m_name in {"get", "set"} and mv and mv.type in {"function_expression", "arrow_function", "generator_function"}:
+                                        params_node = _field(mv, "parameters") or _field(mv, "parameter")
+                                        ptext = _node_text(params_node, raw) if params_node else "()"
+                                        if not ptext.startswith("("):
+                                            ptext = f"({ptext})"
+                                        sig = f"{m_name} {prop_name}{ptext}"
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                            body_node=_field(mv, "body"),
+                                        )
+                                    elif m_name == "value" and mv and mv.type in {"function_expression", "arrow_function", "generator_function"}:
+                                        sig = _js_fn_signature(prop_name, mv, raw)
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                            body_node=_field(mv, "body"),
+                                        )
+
+
 def _walk_symbols(
     node: object,
     raw: bytes,
@@ -191,6 +582,7 @@ def _walk_symbols(
     language_name: str,
     parents: list[str],
     line_offsets: list[int],
+    enclosing_function: str | None = None,
 ) -> Iterable[SymbolRecord]:
     node_kind = node.type
     mapping = _NODE_KINDS[language_name]
@@ -200,30 +592,52 @@ def _walk_symbols(
         if record is not None:
             yield record
     elif node_kind in mapping:
-        name = _node_name(node, raw) or _anonymous_export_name(node, raw, path) or f"anonymous_{node.start_point[0] + 1}"
-        yield _symbol_record(
-            node,
-            raw,
-            path,
-            language_name,
-            parents,
-            name,
-            mapping[node_kind],
-        )
-        if mapping[node_kind] in {"class", "interface"}:
-            next_parents = [*parents, name]
+        if language_name in {"javascript", "typescript", "tsx"} and node_kind == "method_definition" and getattr(node.parent, "type", "") == "object":
+            # Handled by assigned method patterns or local object
+            pass
+        else:
+            name = _node_name(node, raw) or _anonymous_export_name(node, raw, path) or f"anonymous_{node.start_point[0] + 1}"
+            yield _symbol_record(
+                node,
+                raw,
+                path,
+                language_name,
+                parents,
+                name,
+                mapping[node_kind],
+            )
+            if mapping[node_kind] in {"class", "interface"}:
+                next_parents = [*parents, name]
     elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "variable_declarator":
         value = _field(node, "value")
         name = _declarator_name(node, raw)
-        if name and value is not None and value.type in {"arrow_function", "function_expression"}:
-            yield _symbol_record(value, raw, path, language_name, parents, name, "function")
+        if name and value is not None:
+            if value.type in {"arrow_function", "function_expression"}:
+                yield _symbol_record(value, raw, path, language_name, parents, name, "function")
+            elif not parents and not enclosing_function and value.type == "object":
+                yield from _extract_js_object_methods(value, raw, path, language_name, parents, prefix=name, default_kind="method")
     elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "export_statement":
         declaration = _field(node, "declaration") or _field(node, "value")
         if declaration is not None and declaration.type in {"arrow_function", "function_expression"}:
             name = _file_stem(path)
             yield _symbol_record(declaration, raw, path, language_name, parents, name, "function")
+    elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "expression_statement":
+        yield from _extract_js_assigned_expression(node, raw, path, language_name, parents, enclosing_function)
+
+    next_enclosing_function = enclosing_function
+    if node_kind == "function_declaration":
+        fn_name = _node_name(node, raw)
+        next_enclosing_function = fn_name or enclosing_function
+    elif node_kind == "variable_declarator":
+        val = _field(node, "value")
+        if val is not None and val.type in {"arrow_function", "function_expression"}:
+            decl_name = _declarator_name(node, raw)
+            next_enclosing_function = decl_name or enclosing_function
+    elif node_kind in {"class_declaration", "interface_declaration", "method_definition"}:
+        next_enclosing_function = None
+
     for child in node.named_children:
-        yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets)
+        yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets, next_enclosing_function)
 
 
 def _go_receiver_type(node: object, raw: bytes) -> str | None:
@@ -286,15 +700,20 @@ def _symbol_record(
     parents: list[str],
     name: str,
     kind: str,
+    qualified_name: str | None = None,
+    signature: str | None = None,
+    body_node: object | None = None,
 ) -> SymbolRecord:
-    qualified_name = ".".join([*parents, name])
+    if qualified_name is None:
+        qualified_name = ".".join([*parents, name])
     start_byte = int(node.start_byte)
     end_byte = int(node.end_byte)
-    body = _field(node, "body")
+    body = body_node if body_node is not None else _field(node, "body")
     body_start = int(body.start_byte) if body else None
     body_end = int(body.end_byte) if body else None
-    signature_end = body_start if body_start is not None else end_byte
-    signature = _signature(raw[start_byte:signature_end])
+    if signature is None:
+        signature_end = body_start if body_start is not None else end_byte
+        signature = _signature(raw[start_byte:signature_end])
     start_line = int(node.start_point[0]) + 1
     end_line = int(node.end_point[0]) + 1
     digest = hashlib.sha256(f"{language_name}:{path}:{qualified_name}:{start_byte}".encode()).hexdigest()[:16]
