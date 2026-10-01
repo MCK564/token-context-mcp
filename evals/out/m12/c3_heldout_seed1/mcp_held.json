@@ -1,0 +1,1 @@
+{"mcpServers":{"tcbench":{"command":"/home/claude/work/venv/bin/python","args":["-m","token_context_mcp","serve","--config","/home/claude/work/heldout_new/repos.toml"]}}}

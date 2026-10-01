@@ -1,0 +1,227 @@
+{
+  "total_runs": 60,
+  "completed_runs": 60,
+  "failures_count": 0,
+  "protocol_violations": 0,
+  "infra_failures": 0,
+  "runtime_errors": 0,
+  "protocol_violation_rate": 0.0,
+  "infra_failure_rate": 0.0,
+  "arms": {
+    "B0": {
+      "runs": 20,
+      "success_rate": 1.0,
+      "success_ci95": [
+        1.0,
+        1.0
+      ],
+      "retrieved_tokens_mean": 752.8,
+      "retrieved_tokens_ci95": [
+        503.55,
+        1031.3
+      ],
+      "input_tokens_mean": 81503.2,
+      "output_tokens_mean": 707.4,
+      "total_tokens_mean": 82210.6,
+      "total_tokens_ci95": [
+        74349.75,
+        90607.3
+      ],
+      "cached_tokens_mean": 73797.9,
+      "latency_mean_s": 12.22,
+      "mcp_calls_mean": 0.0,
+      "native_calls_mean": 2.15
+    },
+    "B1": {
+      "runs": 20,
+      "success_rate": 1.0,
+      "success_ci95": [
+        1.0,
+        1.0
+      ],
+      "retrieved_tokens_mean": 468.1,
+      "retrieved_tokens_ci95": [
+        284.95,
+        668.55
+      ],
+      "input_tokens_mean": 83858.3,
+      "output_tokens_mean": 648.5,
+      "total_tokens_mean": 84506.9,
+      "total_tokens_ci95": [
+        71449.2,
+        98865.9
+      ],
+      "cached_tokens_mean": 76570.1,
+      "latency_mean_s": 12.53,
+      "mcp_calls_mean": 0.0,
+      "native_calls_mean": 2.05
+    },
+    "B2": {
+      "runs": 20,
+      "success_rate": 1.0,
+      "success_ci95": [
+        1.0,
+        1.0
+      ],
+      "retrieved_tokens_mean": 1387.0,
+      "retrieved_tokens_ci95": [
+        1048.6,
+        1779.6
+      ],
+      "input_tokens_mean": 64925.8,
+      "output_tokens_mean": 537.9,
+      "total_tokens_mean": 65463.6,
+      "total_tokens_ci95": [
+        59204.55,
+        72782.45
+      ],
+      "cached_tokens_mean": 55886.8,
+      "latency_mean_s": 10.63,
+      "mcp_calls_mean": 1.15,
+      "native_calls_mean": 0.1
+    }
+  },
+  "paired": {
+    "b1_vs_b0": {
+      "retrieved_tokens": {
+        "pairs": 20,
+        "mean_diff": -284.7,
+        "ci95": [
+          -560.55,
+          -52.0
+        ],
+        "percent_reduction": 37.82
+      },
+      "total_tokens": {
+        "pairs": 20,
+        "mean_diff": 2296.2,
+        "ci95": [
+          -9019.0,
+          14201.85
+        ],
+        "percent_reduction": -2.79
+      },
+      "task_success": {
+        "pairs": 20,
+        "mean_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "percent_reduction": -0.0
+      }
+    },
+    "b2_vs_b0": {
+      "retrieved_tokens": {
+        "pairs": 20,
+        "mean_diff": 634.25,
+        "ci95": [
+          294.1,
+          975.3
+        ],
+        "percent_reduction": -84.26
+      },
+      "total_tokens": {
+        "pairs": 20,
+        "mean_diff": -16747.05,
+        "ci95": [
+          -25065.45,
+          -8586.1
+        ],
+        "percent_reduction": 20.37
+      },
+      "task_success": {
+        "pairs": 20,
+        "mean_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "percent_reduction": -0.0
+      }
+    },
+    "b2_vs_b1": {
+      "retrieved_tokens": {
+        "pairs": 20,
+        "mean_diff": 918.95,
+        "ci95": [
+          587.15,
+          1295.0
+        ],
+        "percent_reduction": -196.34
+      },
+      "total_tokens": {
+        "pairs": 20,
+        "mean_diff": -19043.25,
+        "ci95": [
+          -31374.7,
+          -7443.1
+        ],
+        "percent_reduction": 22.53
+      },
+      "task_success": {
+        "pairs": 20,
+        "mean_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "percent_reduction": -0.0
+      }
+    }
+  },
+  "groups": {
+    "a_keyword": {
+      "B0": {
+        "runs": 4,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 498.0
+      },
+      "B1": {
+        "runs": 4,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 306.5
+      },
+      "B2": {
+        "runs": 4,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 1462.0
+      }
+    },
+    "b_hidden_dep": {
+      "B0": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 663.0
+      },
+      "B1": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 532.1
+      },
+      "B2": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 1045.9
+      }
+    },
+    "c_multi_file": {
+      "B0": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 969.9
+      },
+      "B1": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 484.8
+      },
+      "B2": {
+        "runs": 8,
+        "success_rate": 1.0,
+        "retrieved_tokens_mean": 1690.6
+      }
+    },
+    "probe": {}
+  }
+}

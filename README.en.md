@@ -143,7 +143,7 @@ Measured in this repository. Method and raw records: [`docs/BENCHMARK_FINDINGS.e
 | Locate by name | 33,670 | 30,787 | −9% |
 | Callers / impact | 39,404 | 57,404 | **+46% worse** |
 
-Median paired total-token reduction: **−0.3%**, CI95 **−53% to +33%**, n=3. **This does not support a headline token-saving claim**, and none is made — the full 5-task × 3-seed matrix is still pending. What it does support is that *the shape of the question decides the outcome*: savings come from localisation, not enumeration. See [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)) for which questions to ask.
+Median paired total-token reduction: **−0.3%**, CI95 **−53% to +33%**, n=3. **This does not support a headline token-saving claim**, and none is made — the full 5-task × 3-seed matrix was never run (a different, partial C3 v2 run on held-out repositories is under Benchmark status (0.3.x)). What it does support is that *the shape of the question decides the outcome*: savings come from localisation, not enumeration. See [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)) for which questions to ask.
 
 Two figures worth reading before interpreting any of the above: `cached_input_tokens` was **89–92% of input** in every pilot row, and in one run retrieved content was 2,558 tokens against 120,832 cached — **2%** of the total. A `total_tokens` delta mostly measures conversation length, which is why the primary metric is retrieved content.
 
@@ -177,9 +177,18 @@ Old → new, File Acc@5 / Symbol Recall@10 of `R2` (≈1.9k tokens), and referen
 
 What this means: M12 clearly helped **JavaScript** and **C# symbols and call edges**, did **not** raise C# file accuracy, helped TypeScript only a little, and left Python untouched. A 0.3.0 regression found afterwards — methods of object literals passed as arguments stopped being indexed, the likely reason the TypeScript call-graph gold sample fell from 2/12 to 0/12 — and the chained-assignment miss behind K1 are fixed in **0.3.1** (`tests/test_js_object_methods.py`); 0.3.1 was re-measured on the development repositories only, because the held-out sets are measured once, so the table above describes 0.3.0.
 
-**End to end (C3 v2, Claude Sonnet 5.5, medium reasoning, 20 held-out tasks × 3 arms × 2 seeds).** @@C3@@
+**End to end (C3 v2, Claude Sonnet 5.5, medium reasoning, 20 held-out tasks × 3 arms).** *Incomplete and not validated:* only seed 1 of 2 was run (60 of 120 runs); the rest was stopped for cost. Every arm solved all 20 tasks (a ceiling: success cannot separate the arms). MCP-first (B2) used **20 % fewer total tokens** than the native-only agent (about 65k against 82k per run, paired CI95 −25.1k to −8.6k) and was about 13 % faster, because it needs fewer turns; it retrieved *more* content (1,387 against 753 estimated tokens) and the provider-reported cost was the same (US$1.08 per 20 runs each), since the saving is mostly cheaper cache reads. In the hybrid arm (B1) the agent never called the MCP server (0 of 20 runs), so B1 only shows run-to-run noise. This says nothing about harder tasks or weaker models, and the repositories are well known to the model. Details and caveats: [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M12, C3 subsection).
 
 Limits: one repository per language and 30 tasks each (wide intervals), a simulated grep baseline, independent-session but not human review of the task sets, retrieval quality rather than agent productivity, a single agent and model for C3, and well-known public repositories that a model may partly remember.
+
+### Future directions (light)
+
+None of this is done; it is where the measurements point.
+
+- **Ranking:** find out why fastify's Symbol Recall@10 fell (new assigned-method symbols crowd the top ten) and weigh method bodies for C# behavioural queries, where file accuracy did not move.
+- **Call graph:** receiver typing for JavaScript and TypeScript (43 to 56 % of edges are still ambiguous, which caps what a packet can return), and re-measuring the TypeScript edge-gold sample after the 0.3.1 fix.
+- **Agent adoption:** the hybrid mode did not make the agent call the MCP server at all; prompting or tool descriptions that make it use `search_source` first are worth testing, with harder tasks, less famous repositories, more seeds, a weaker model and the Gemini and Codex adapters (all built, none run).
+- **Evaluation hygiene:** a fresh held-out set with a human reviewer for the next round, fixed-query latency in `bench_latency.py`, and closing the baseline-on-`PYTHONPATH` loophole in the Rule 17 guard.
 
 ### Benchmark status (0.2.0)
 
@@ -196,9 +205,9 @@ At equal cost token-context finds the right file far more often than grep (0.90 
 
 On a second, TypeScript repository (`honojs/hono` v4.9.9; task set reviewed by another Claude session, not yet by the owner) the locate result holds: at equal cost `search_source(profile="locate")` finds the right file in 80% of tasks against 23% for grep cut to the same size (63% for unbounded grep, which reads about 11 times more tokens). **The packet did not meet its targets there** (signature and reference coverage 0.58 against targets of 0.60 and 0.80, saving against reading 0.57 against 0.70) because call edges in TypeScript are far more ambiguous, so the packet can only return what the graph reaches. Details in [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
-Two more repositories, JavaScript (`fastify`) and C# (`CsvHelper`), give a four-language picture (task sets reviewed by another Claude session, not by the owner). File Acc@5 at equal cost: `rich` (Python) 0.90 vs 0.57, hono (TypeScript) 0.80 vs 0.23, fastify (JavaScript) 0.90 vs 0.27, CsvHelper (C#) 0.60 vs 0.43; against unbounded grep the tool is roughly level in Python (0.90 vs 0.93), ahead in TypeScript (0.80 vs 0.63) and JavaScript (0.90 vs 0.57), and **behind in C#** (0.60 vs 0.77, significantly), where behavioural queries mostly fail (declarations, attributes and interfaces outrank implementations). The packet meets its targets only in Python (coverage 0.98, saving 0.91); in TypeScript, JavaScript (0.46) and C# (0.47) it misses, tracking the share of ambiguous call edges (17 %, 45 %, 72 %, 90 %). The JavaScript indexer also does not index prototype-assigned methods. Details and cross-language table in [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
+Two more repositories, JavaScript (`fastify`) and C# (`CsvHelper`), give a four-language picture (task sets reviewed by another Claude session, not by the owner). File Acc@5 at equal cost: `rich` (Python) 0.90 vs 0.57, hono (TypeScript) 0.80 vs 0.23, fastify (JavaScript) 0.90 vs 0.27, CsvHelper (C#) 0.60 vs 0.43; against unbounded grep the tool is roughly level in Python (0.90 vs 0.93), ahead in TypeScript (0.80 vs 0.63) and JavaScript (0.90 vs 0.57), and **behind in C#** (0.60 vs 0.77, significantly), where behavioural queries mostly fail (declarations, attributes and interfaces outrank implementations). The packet meets its targets only in Python (coverage 0.98, saving 0.91); in TypeScript, JavaScript (0.46) and C# (0.47) it misses, tracking the share of ambiguous call edges (17 %, 45 %, 72 %, 90 %). At the time, the JavaScript indexer did not index prototype-assigned methods (fixed in 0.3.0). Details and cross-language table in [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
-Limits: one repository per language, wide intervals, a simulated grep baseline, and retrieval quality only, not agent task success. The end-to-end C3 matrix has not been run, so there is still no claim about total tokens spent by an agent. Measured M7/M8 results, including the targets that were missed, are in the [changelog](CHANGELOG.md) and the [M6–M10 report](docs/reports/M6_M10_REPORT.vi.md).
+Limits: one repository per language, wide intervals, a simulated grep baseline, and retrieval quality only, not agent task success. At the time the end-to-end C3 matrix had not been run; a partial C3 run (seed 1 only, Claude Sonnet 5.5) is reported under Benchmark status (0.3.x) above and is not validated. Measured M7/M8 results, including the targets that were missed, are in the [changelog](CHANGELOG.md) and the [M6–M10 report](docs/reports/M6_M10_REPORT.vi.md).
 
 ## Non-goals and security boundary
 
@@ -674,6 +683,8 @@ uv run pytest
 # 5. Restart the MCP client
 ```
 
+> **Upgrading to 0.3.x:** `PARSER_ARTIFACT_VERSION` (7), `FTS_BUILDER_VERSION` (2) and `RESOLVER_VERSION` (3) changed, so the first `uv run token-context index --all` after upgrading re-parses and re-indexes every file of every repository (run it once; no need to `register` again). If you skip it, the old index stays readable but keeps the old JS/TS/C# symbols and call graph.
+>
 > **Upgrading to 0.2.0:** the index schema changes to 2.4 and the parser artifact version changes (Go was added), so the first index run after the upgrade re-parses every file. Run `uv run token-context index --all` once. Older snapshots can still be read, but `get_index_status` warns that they need re-indexing.
 >
 > **About registered repositories and indexes:**
