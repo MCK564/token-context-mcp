@@ -1,0 +1,350 @@
+{
+  "repo_id": "bench-fastify",
+  "total_symbols": 1408,
+  "total_edges": 955,
+  "unresolved_edges": 652,
+  "total_suspicious_edges": 12,
+  "suspicious_edges_ratio": 0.0126,
+  "status_counts": {
+    "resolved": 303,
+    "ambiguous": 652
+  },
+  "scope_counts": {
+    "scope:same_file": 151,
+    "scope:unresolved_receiver": 317,
+    "scope:receiver_ambiguous": 100,
+    "scope:global_ambiguous": 120,
+    "scope:import_match": 78,
+    "scope:import_module_match": 14,
+    "scope:exact_receiver_type": 24,
+    "scope:import_ambiguous": 3,
+    "scope:tainted_poly_receiver": 27,
+    "scope:same_class": 13,
+    "scope:same_package": 9,
+    "scope:builtin_receiver_skipped": 20,
+    "scope:global": 11,
+    "scope:same_package_ambiguous": 34,
+    "scope:same_file_ambiguous": 31,
+    "scope:overload_group": 2,
+    "scope:overload_arity": 1
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "javascript:fastify.js:throwIfAlreadyStarted:af106db72f1c5f91",
+      "name": "throwIfAlreadyStarted",
+      "qualified_name": "throwIfAlreadyStarted",
+      "path": "fastify.js",
+      "in_degree": 13,
+      "resolved_count": 13,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.154,
+      "scopes": {
+        "scope:same_file": 11,
+        "scope:global": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "typescript:fastify.d.ts:Fastify:48dc77bda66c5c13",
+      "name": "Fastify",
+      "qualified_name": "Fastify",
+      "path": "fastify.d.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 6,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 6
+      },
+      "reasons": {
+        "low_confidence_0.40": 6,
+        "scope_global_fallback": 6
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/content-type.js:ContentType:27eb79b8172cd4a5",
+      "name": "ContentType",
+      "qualified_name": "ContentType",
+      "path": "lib/content-type.js",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 6
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/decorate.js:hasKey:9ee67890f827c7a5",
+      "name": "hasKey",
+      "qualified_name": "hasKey",
+      "path": "lib/decorate.js",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4,
+        "scope:import_module_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:Reply.code:7066b6766076e3b9",
+      "name": "code",
+      "qualified_name": "Reply.code",
+      "path": "lib/reply.js",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 5,
+        "scope:same_class": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/req-id-gen-factory.js:getGenReqId:089e8906ba56c035",
+      "name": "getGenReqId",
+      "qualified_name": "getGenReqId",
+      "path": "lib/req-id-gen-factory.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/logger-factory.js:createChildLogger:ea6920bfd1d774fc",
+      "name": "createChildLogger",
+      "qualified_name": "createChildLogger",
+      "path": "lib/logger-factory.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:onErrorHook:58c6843a4771936f",
+      "name": "onErrorHook",
+      "qualified_name": "onErrorHook",
+      "path": "lib/reply.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/validation.js:wrapValidationError:4b3f00d5b031f9a3",
+      "name": "wrapValidationError",
+      "qualified_name": "wrapValidationError",
+      "path": "lib/validation.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/error-handler.js:buildErrorHandler:0c1d02defd1b362c",
+      "name": "buildErrorHandler",
+      "qualified_name": "buildErrorHandler",
+      "path": "lib/error-handler.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/request.js:Request:caeeeaadb1ca233d",
+      "name": "Request",
+      "qualified_name": "Request",
+      "path": "lib/request.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:Reply:6aef361d92763dae",
+      "name": "Reply",
+      "qualified_name": "Reply",
+      "path": "lib/reply.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/decorate.js:checkExistence:6e53282a7978aa57",
+      "name": "checkExistence",
+      "qualified_name": "checkExistence",
+      "path": "lib/decorate.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/hooks.js:onListenHookRunner:41257f42e1958e8f",
+      "name": "onListenHookRunner",
+      "qualified_name": "onListenHookRunner",
+      "path": "lib/hooks.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:import_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/plugin-utils.js:getMeta:a2ba6faa3e23bff1",
+      "name": "getMeta",
+      "qualified_name": "getMeta",
+      "path": "lib/plugin-utils.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:cb:1d34286efe46a485",
+      "name": "cb",
+      "qualified_name": "cb",
+      "path": "lib/reply.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:import_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:test/listen.5.test.js:callback:cf3f217d2241fa62",
+      "name": "callback",
+      "qualified_name": "callback",
+      "path": "test/listen.5.test.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:fastify.js:ready:360d81cf5602e0f7",
+      "name": "ready",
+      "qualified_name": "ready",
+      "path": "fastify.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.667,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:global": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/schema-controller.js:buildSchemaController:e9300f96249ee2f0",
+      "name": "buildSchemaController",
+      "qualified_name": "buildSchemaController",
+      "path": "lib/schema-controller.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_module_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/hooks.js:hookRunnerApplication:95d6ccdb9dc0ed8a",
+      "name": "hookRunnerApplication",
+      "qualified_name": "hookRunnerApplication",
+      "path": "lib/hooks.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 2,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    }
+  ]
+}

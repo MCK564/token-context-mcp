@@ -1,0 +1,406 @@
+{
+  "tag": "baseline",
+  "repo_id": "bench-fastify",
+  "role": "dev",
+  "index_run_id": "run_20261001T012002Z_b70769bc",
+  "reviewed_gold": true,
+  "total_call_sites": 30,
+  "internal_call_sites": 10,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 1,
+    "correct_edges": 1,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 10,
+    "resolved_correctly": 1,
+    "recall": 0.1
+  },
+  "scope_breakdown": {
+    "import_match": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": ".github/scripts/lint-ecosystem.js",
+      "line": 45,
+      "callee_text": "line.startsWith",
+      "expected": "external",
+      "reason": "String.prototype.startsWith in JS runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "eslint.config.js",
+      "line": 5,
+      "callee_text": "neostandard",
+      "expected": "external",
+      "reason": "External npm package neostandard",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/benchmark/hooks-benchmark-async-await.js",
+      "line": 28,
+      "callee_text": "fastify\n  .addHook('onRequest', asyncHook)\n  .addHook('onRequest', asyncHook)\n  .addHook",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.addHook"
+      },
+      "reason": "Fastify instance method addHook",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/benchmark/hooks-benchmark.js",
+      "line": 28,
+      "callee_text": "fastify\n  .addHook('preHandler', function (request, reply, done) {\n    done()\n  })\n  .addHook",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.addHook"
+      },
+      "reason": "Fastify instance method addHook",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/benchmark/parser.js",
+      "line": 3,
+      "callee_text": "require('../../fastify')",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify"
+      },
+      "reason": "Call to exported fastify factory function",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/benchmark/simple.js",
+      "line": 3,
+      "callee_text": "require('../../fastify')",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify"
+      },
+      "reason": "Call to exported fastify factory function",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/benchmark/webstream.js",
+      "line": 13,
+      "callee_text": "controller.close",
+      "expected": "external",
+      "reason": "ReadableStreamDefaultController.close in Web Streams API",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "close",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "examples/http2.js",
+      "line": 9,
+      "callee_text": "path.join",
+      "expected": "external",
+      "reason": "Node.js core module path.join",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/https.js",
+      "line": 8,
+      "callee_text": "fs.readFileSync",
+      "expected": "external",
+      "reason": "Node.js core module fs.readFileSync",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/plugin.js",
+      "line": 9,
+      "callee_text": "reply.send",
+      "expected": {
+        "path": "lib/reply.js",
+        "qualified_name": "Reply.send"
+      },
+      "reason": "Reply class instance method send",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/route-prefix.js",
+      "line": 20,
+      "callee_text": "instance.get",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.get"
+      },
+      "reason": "Fastify route shorthand instance method get",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/simple-stream.js",
+      "line": 19,
+      "callee_text": "fastify.log.info",
+      "expected": "external",
+      "reason": "Pino logger instance method info",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/simple.mjs",
+      "line": 27,
+      "callee_text": "app.listen",
+      "expected": {
+        "path": "fastify.js",
+        "qualified_name": "fastify.listen"
+      },
+      "reason": "Fastify instance method listen",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "examples/use-plugin.js",
+      "line": 19,
+      "callee_text": "require",
+      "expected": "external",
+      "reason": "Node.js require built-in",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "integration/server.js",
+      "line": 23,
+      "callee_text": "reply.code",
+      "expected": {
+        "path": "lib/reply.js",
+        "qualified_name": "Reply.code"
+      },
+      "reason": "Reply class instance method code",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/config-validator.js",
+      "line": 1175,
+      "callee_text": "Array.isArray",
+      "expected": "external",
+      "reason": "JavaScript standard library Array.isArray",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/decorate.js",
+      "line": 27,
+      "callee_text": "Object.defineProperty",
+      "expected": "external",
+      "reason": "JavaScript standard library Object.defineProperty",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/error-serializer.js",
+      "line": 6,
+      "callee_text": "require",
+      "expected": "external",
+      "reason": "Node.js require built-in",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/four-oh-four.js",
+      "line": 176,
+      "callee_text": "getGenReqId",
+      "expected": {
+        "path": "lib/req-id-gen-factory.js",
+        "qualified_name": "getGenReqId"
+      },
+      "reason": "Internal helper function getGenReqId",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "getGenReqId",
+          "target_symbol_id": "javascript:lib/req-id-gen-factory.js:getGenReqId:089e8906ba56c035",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "import_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "lib/handle-request.js",
+      "line": 190,
+      "callee_text": "channels.end.publish",
+      "expected": "external",
+      "reason": "node:diagnostics_channel TracingChannel.publish",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/logger-factory.js",
+      "line": 45,
+      "callee_text": "logger.child",
+      "expected": "external",
+      "reason": "Pino logger instance method child",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "child",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "builtin_receiver_skipped",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "lib/logger-pino.js",
+      "line": 40,
+      "callee_text": "pino",
+      "expected": "external",
+      "reason": "External pino package factory function",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/plugin-utils.js",
+      "line": 137,
+      "callee_text": "this[kRegisteredPlugins].push",
+      "expected": "external",
+      "reason": "Array.prototype.push in JS runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/reply.js",
+      "line": 804,
+      "callee_text": "reply.log.warn",
+      "expected": "external",
+      "reason": "Pino logger instance method warn",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "warn",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "lib/route.js",
+      "line": 5,
+      "callee_text": "require",
+      "expected": "external",
+      "reason": "Node.js require built-in",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/schema-controller.js",
+      "line": 124,
+      "callee_text": "this.parent.getSerializerCompiler",
+      "expected": {
+        "path": "lib/schema-controller.js",
+        "qualified_name": "SchemaController.getSerializerCompiler"
+      },
+      "reason": "SchemaController method getSerializerCompiler",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/schemas.js",
+      "line": 124,
+      "callee_text": "Object.keys",
+      "expected": "external",
+      "reason": "JavaScript standard library Object.keys",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/symbols.js",
+      "line": 45,
+      "callee_text": "Symbol",
+      "expected": "external",
+      "reason": "JavaScript standard library Symbol",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "lib/validation.js",
+      "line": 131,
+      "callee_text": "ret\n      .then",
+      "expected": "dynamic",
+      "reason": "Dynamic thenable Promise method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "then",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "tainted_poly_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "lib/wrap-thenable.js",
+      "line": 10,
+      "callee_text": "diagnostics.tracingChannel",
+      "expected": "external",
+      "reason": "node:diagnostics_channel tracingChannel function",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    }
+  ]
+}

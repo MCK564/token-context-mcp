@@ -1,0 +1,353 @@
+{
+  "repo_id": "heldout-express",
+  "total_symbols": 265,
+  "total_edges": 199,
+  "unresolved_edges": 74,
+  "total_suspicious_edges": 26,
+  "suspicious_edges_ratio": 0.1307,
+  "status_counts": {
+    "ambiguous": 74,
+    "resolved": 125
+  },
+  "scope_counts": {
+    "scope:global_ambiguous": 8,
+    "scope:receiver_match": 54,
+    "scope:receiver_ambiguous": 21,
+    "scope:unresolved_receiver": 37,
+    "scope:same_class": 43,
+    "scope:same_file": 17,
+    "scope:import_match": 8,
+    "scope:same_package_ambiguous": 8,
+    "scope:exact_receiver_type": 1,
+    "scope:same_package": 2
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.set:b121d3f454b6c0bf",
+      "name": "set",
+      "qualified_name": "res.set",
+      "path": "lib/response.js",
+      "in_degree": 12,
+      "resolved_count": 12,
+      "ambiguous_count": 0,
+      "suspicious_count": 10,
+      "suspicious_ratio": 0.833,
+      "scopes": {
+        "scope:same_class": 10,
+        "scope:receiver_match": 2
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_res": 10
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.render:4b907647c1393a12",
+      "name": "render",
+      "qualified_name": "res.render",
+      "path": "lib/response.js",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 10
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.status:5a405cad91b1c7a9",
+      "name": "status",
+      "qualified_name": "res.status",
+      "path": "lib/response.js",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 6,
+        "scope:same_class": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/application.js:app.use:f72ceff31e4bc260",
+      "name": "use",
+      "qualified_name": "app.use",
+      "path": "lib/application.js",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/application.js:app.set:560116613ddcdb66",
+      "name": "set",
+      "qualified_name": "app.set",
+      "path": "lib/application.js",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 5,
+      "suspicious_ratio": 0.714,
+      "scopes": {
+        "scope:receiver_match": 2,
+        "scope:same_class": 5
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_app": 5
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.redirect:2d3859d110ab485c",
+      "name": "redirect",
+      "qualified_name": "res.redirect",
+      "path": "lib/response.js",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 6
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.json:bf35e8e8d9a0f497",
+      "name": "json",
+      "qualified_name": "res.json",
+      "path": "lib/response.js",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 5,
+        "scope:same_class": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.get:96ea79bc3f1fe97c",
+      "name": "get",
+      "qualified_name": "res.get",
+      "path": "lib/response.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 5,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:same_class": 5
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_res": 5
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.send:ca653fcf40917bbb",
+      "name": "send",
+      "qualified_name": "res.send",
+      "path": "lib/response.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 4,
+      "suspicious_ratio": 0.8,
+      "scopes": {
+        "scope:same_class": 4,
+        "scope:same_file": 1
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_res": 3,
+        "receiver_mismatch:self_vs_res": 1
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/request.js:req.accepts:3fef6f73f1580aca",
+      "name": "accepts",
+      "qualified_name": "req.accepts",
+      "path": "lib/request.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3,
+        "scope:receiver_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/application.js:app.enabled:e49d06dd3dffa77a",
+      "name": "enabled",
+      "qualified_name": "app.enabled",
+      "path": "lib/application.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:same_class": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/view.js:View.resolve:a2fc6c4a9193bbba",
+      "name": "resolve",
+      "qualified_name": "View.resolve",
+      "path": "lib/view.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 1,
+        "scope:same_package": 1,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.type:a45ee8bed48fb337",
+      "name": "type",
+      "qualified_name": "res.type",
+      "path": "lib/response.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_class": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/application.js:app.engine:853a2861c4f5038e",
+      "name": "engine",
+      "qualified_name": "app.engine",
+      "path": "lib/application.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 1,
+        "scope:receiver_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.format:2ff48fc5c34555d2",
+      "name": "format",
+      "qualified_name": "res.format",
+      "path": "lib/response.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.5,
+      "scopes": {
+        "scope:receiver_match": 1,
+        "scope:same_class": 1
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_res": 1
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/request.js:req.get:597631fca0526e01",
+      "name": "get",
+      "qualified_name": "req.get",
+      "path": "lib/request.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.5,
+      "scopes": {
+        "scope:receiver_match": 1,
+        "scope:same_class": 1
+      },
+      "reasons": {
+        "receiver_mismatch:this_vs_req": 1
+      }
+    },
+    {
+      "target_symbol_id": "javascript:examples/view-locals/user.js:User.count:aa768dcce1fb77a4",
+      "name": "count",
+      "qualified_name": "User.count",
+      "path": "examples/view-locals/user.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:examples/view-locals/user.js:User.all:34bc93e32f42fc3b",
+      "name": "all",
+      "qualified_name": "User.all",
+      "path": "examples/view-locals/user.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:stringify:9014b16c6f80f1cc",
+      "name": "stringify",
+      "qualified_name": "stringify",
+      "path": "lib/response.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:res.sendFile:e5d9ce5081a1976c",
+      "name": "sendFile",
+      "qualified_name": "res.sendFile",
+      "path": "lib/response.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_class": 1,
+        "scope:receiver_match": 1
+      },
+      "reasons": {}
+    }
+  ]
+}

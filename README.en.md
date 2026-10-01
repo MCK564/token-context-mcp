@@ -4,7 +4,18 @@
 
 `token-context-mcp` is a read-only local MCP server that indexes registered repositories and returns small, source-hashed code-context packets. It is designed to reduce broad repository crawling without pretending that syntax analysis is a complete semantic model.
 
-## What's new in 0.2.0
+## What's new in 0.3.x
+
+Full details: [`CHANGELOG.md`](CHANGELOG.md), measurements in [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M12) and [Benchmark status (0.3.x)](#benchmark-status-03x) below.
+
+- **JavaScript** — methods assigned through `X.prototype.m = …`, `X.prototype = {…}`, `Object.defineProperty(X.prototype, …)`, `this.m = …` in constructor functions, `exports.m` / `module.exports = {…}` and object literals are now symbols; 0.3.1 also binds chained assignments (`res.set = res.header = function …`) and fixes a 0.3.0 regression that dropped methods of object literals passed as arguments (`describe("x", { test() {} })`).
+- **C#** — implementation methods outrank interface/abstract declarations, doc comments attach to the member rather than the container, interface documentation is inherited, vendored CSS/JS is demoted.
+- **Fewer ambiguous call edges (JS/TS/C#)** — implicit `this`, overloads by arity, C# namespaces, local variable types, fields without `this.`, `new X()` instantiation edges, CommonJS and ES-module bindings, TypeScript property-signature types.
+- **Deterministic edge budget** — the 30 ms wall-clock circuit breaker made the call graph depend on machine load; it is replaced by a deterministic work budget, and the resolver version now takes part in the index fingerprint.
+- **Honest evaluation** — task sets for four *held-out* repositories (Python `starlette`, TypeScript `zod`, JavaScript `express`, C# `serilog`) were written and reviewed by independent sessions before any measurement, the code was frozen (tag `m12-freeze`) and each held-out set was measured once. Several predeclared targets were **not** met; they are listed below rather than hidden.
+- **Upgrade:** `PARSER_ARTIFACT_VERSION` (7), `FTS_BUILDER_VERSION` (2) and `RESOLVER_VERSION` (3) changed, so the first `token-context index --all` after upgrading re-indexes every repository. Python results are unchanged byte for byte.
+
+## What was new in 0.2.0
 
 Full details: [`CHANGELOG.md`](CHANGELOG.md), report [`docs/reports/M6_M10_REPORT.vi.md`](docs/reports/M6_M10_REPORT.vi.md), client results [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md).
 
@@ -40,12 +51,25 @@ Full details: [`CHANGELOG.md`](CHANGELOG.md), report [`docs/reports/M6_M10_REPOR
 - Desktop Controller (PySide6) with hardware telemetry, interactive graph viewer, task queueing and a dedicated **Agents & Security** management tab; all reads run off the UI thread;
 - Virtual External Stubs Engine (`external_stubs` table): import-driven tree-shaking for standard library and 3rd-party dependencies (`pydantic`, `unittest`, `requests`, `fastapi`, `pytest`, `builtins`), resolving external calls with 0.90 confidence and 0 false positives;
 - Flow-Sensitive Type Narrowing: scoped type stacking up to depth 12 for `if isinstance(...)` and `match/case` blocks, untainting narrowed identifiers inside guarded scopes;
-- Defensive Heuristics & Circuit Breakers: 30ms-per-file circuit breaker and Pseudo-SSA taint analysis preventing hallucinated edges in generated or polymorphic code;
+- Defensive heuristics: a deterministic per-file work budget in the edge resolver (`FILE_EDGE_WORK_BUDGET`, the same graph on every machine; the earlier 30 ms wall-clock breaker made graphs depend on machine load and was removed in 0.3.0) and Pseudo-SSA taint analysis preventing hallucinated edges in generated or polymorphic code;
 - Robust Multi-OS CI/CD Pipeline: automated GitHub Actions testing across Ubuntu Linux and Windows with isolated clean-room wheel validation, headless Qt (`PySide6`) test harness, and cross-engine golden test parity;
 - Abbreviation & Terminology Guide: formal compiler and graph theory definitions detailed in [`docs/ABBREVIATIONS.md`](docs/ABBREVIATIONS.md);
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
+
+## Is it useful on my language? (0.3.x, held-out evidence)
+
+Short answer: **yes for locating code in Python, JavaScript and TypeScript, usable with limits in C#; the call graph and the context packet are only as good as the language's edge resolution** (best in Python, partial elsewhere). Numbers are from four repositories that were *not* used to develop 0.3.0 (30 locate tasks each, one measurement, frozen code; [details](#benchmark-status-03x)). `R2` is `search_source(profile="locate")` at about 1.9k tokens per answer.
+
+| Language (repository, files) | File Acc@5, R2 | grep cut to the same size | grep, unbounded (tokens read) | Symbol Recall@10, R2 | What to expect |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Python (`starlette`, 88) | 0.77 | 0.47 | 0.77 (23.8k) | 0.44 (grep 0.28) | **Good.** Unchanged by 0.3.x. Hidden-dependency questions (no names in the query) find the file in 4 of 10 cases. |
+| JavaScript (`express`, 154) | **0.93** (was 0.80) | 0.67 | 0.97 (15.9k) | 0.67 (grep 0.16) | **Good**, and the language that gained most: edges 11 → 191, ambiguous 64 % → 43 %, packet reference coverage 0.00 → 0.39. |
+| TypeScript (`zod`, 517) | 0.73 (unchanged) | 0.43 | 0.60 (43.9k) | 0.61 (was 0.56; grep 0.13) | **Good for locating**, modest gains. The call graph stays weak (56 % ambiguous; 0 edges at confidence ≥ 0.6 on the gold sample) and packets cover 42 % of neighbours. |
+| C# (`serilog`, 216) | 0.70 (was 0.73) | 0.50 | 0.80 (29.5k) | **0.64** (was 0.43; grep 0.09) | **Usable, with a caveat.** Symbols and call edges improved clearly (edge recall 5/17 → 13/17 with 11/11 correct at confidence ≥ 0.6), but file accuracy did not rise and behavioural questions without a name in the query find the file in only 4 of 10 cases. Unbounded grep is 0.10 ahead on file accuracy (not significant, CI95 −0.30 to +0.10) at 16 times the tokens. |
+
+Go, Java, HTML and CSS are parsed but were not benchmarked in M12 (Go call edges are name based). In every language the answer to "which file?" is bounded to about 1.9k tokens where an unbounded grep reads 8 to 23 times more; none of the differences between `R2` and unbounded grep is statistically significant at 30 tasks per repository. Task sets were written and reviewed by independent Claude sessions, not by a human reviewer.
 
 ## Architecture & Indexing Pipeline
 
@@ -69,9 +93,9 @@ flowchart TD
         CALL --> RESOLVE["Lexical Edge Resolution Engine"]
         CHA --> RESOLVE
         STUBS --> RESOLVE
-        RESOLVE --> CB{"30ms Circuit Breaker"}
-        CB -->|Normal| EDGES["Resolved & Ambiguous Edges"]
-        CB -->|Timeout| AMBIG["Degraded Ambiguous Edge (0.10)"]
+        RESOLVE --> CB{"Deterministic per-file work budget"}
+        CB -->|Within budget| EDGES["Resolved & Ambiguous Edges"]
+        CB -->|Budget exhausted| AMBIG["Degraded Ambiguous Edge (0.10)"]
     end
 
     subgraph Storage ["4. Atomic SQLite Snapshot"]
@@ -122,6 +146,40 @@ Measured in this repository. Method and raw records: [`docs/BENCHMARK_FINDINGS.e
 Median paired total-token reduction: **−0.3%**, CI95 **−53% to +33%**, n=3. **This does not support a headline token-saving claim**, and none is made — the full 5-task × 3-seed matrix is still pending. What it does support is that *the shape of the question decides the outcome*: savings come from localisation, not enumeration. See [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)) for which questions to ask.
 
 Two figures worth reading before interpreting any of the above: `cached_input_tokens` was **89–92% of input** in every pilot row, and in one run retrieved content was 2,558 tokens against 120,832 cached — **2%** of the total. A `total_tokens` delta mostly measures conversation length, which is why the primary metric is retrieved content.
+
+### Benchmark status (0.3.x)
+
+**What was measured.** Four repositories that were not used to develop 0.3.0 — `encode/starlette` (Python), `colinhacks/zod` (TypeScript), `expressjs/express` (JavaScript), `serilog/serilog` (C#) — with 30 locate tasks and 10 packet tasks each, written by one independent session and reviewed by another that had no retrieval tools (human review pending). The code was frozen first (tag `m12-freeze`, guard `evals/guard.py`), then the old code (0.2.0 baseline, `m12-base`) and the new code were run on the same tasks, once. No model is in the loop; CI95 is a bootstrap over tasks. Full tables, raw outputs and the development-set before/after are in [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M12) and `evals/out/m12/`.
+
+Old → new, File Acc@5 / Symbol Recall@10 of `R2` (≈1.9k tokens), and reference coverage of the packet (`R3`):
+
+| Repository | File Acc@5 | Symbol Recall@10 | Packet ref. coverage | Ambiguous edges |
+| --- | ---: | ---: | ---: | ---: |
+| starlette (Python) | 0.77 → 0.77 | 0.44 → 0.44 | 0.52 → 0.52 | 31 % → 31 % |
+| zod (TypeScript) | 0.73 → 0.73 | 0.56 → 0.61 | 0.34 → 0.42 | 65 % → 56 % |
+| express (JavaScript) | 0.80 → **0.93** (+0.13, CI95 0.00 to +0.30) | 0.68 → 0.67 | 0.00 → **0.39** | 64 % → 43 % |
+| serilog (C#) | 0.73 → 0.70 | 0.43 → **0.64** (+0.21, CI95 +0.08 to +0.36) | 0.30 → **0.47** | 69 % → 40 % |
+
+**Predeclared targets, honestly.** Of ten targets set before the run, four were met and six were not:
+
+| | Target | Result | Met |
+| --- | --- | --- | :-: |
+| K1 | JS assigned-method recall in the index ≥ 0.95, 0 wrong in a 30-symbol sample | 0.933 (every miss is a chained assignment; 1.00 without them), 0 wrong | no |
+| K2 | JS File Acc@5, new − old ≥ 0 | +0.13 (CI95 0.00 to +0.30) | yes |
+| K3 | C# `R2` − unbounded grep ≥ −0.05 | −0.10 (CI95 −0.30 to +0.10) | no |
+| K4 | C# File Acc@5, new − old ≥ +0.10 | −0.03 (CI95 −0.13 to 0.00) | no |
+| K5 | C# hidden-dependency tasks ≥ 0.40 | 0.40 (unchanged from the old code) | yes |
+| K6 | ambiguous-edge ratio new/old ≤ 0.70 in JS, TS and C# | 0.68, **0.85**, 0.58 | no (zod) |
+| K7 | packet reference coverage +0.10 in JS, TS and C# | +0.28, **+0.08**, +0.17 | no (zod) |
+| K8 | edge precision ≥ 0.95 at confidence ≥ 0.6 | 1.00 in all three (2, **0** and 11 edges above the threshold: vacuous for TypeScript) | yes |
+| K9 | Python identical | identical, byte for byte | yes |
+| K10 | median latency ≤ +20 % | up to +27 % (≤ 3.3 ms absolute) on 2 of 12 fixed queries | no |
+
+What this means: M12 clearly helped **JavaScript** and **C# symbols and call edges**, did **not** raise C# file accuracy, helped TypeScript only a little, and left Python untouched. A 0.3.0 regression found afterwards — methods of object literals passed as arguments stopped being indexed, the likely reason the TypeScript call-graph gold sample fell from 2/12 to 0/12 — and the chained-assignment miss behind K1 are fixed in **0.3.1** (`tests/test_js_object_methods.py`); 0.3.1 was re-measured on the development repositories only, because the held-out sets are measured once, so the table above describes 0.3.0.
+
+**End to end (C3 v2, Claude Sonnet 5.5, medium reasoning, 20 held-out tasks × 3 arms × 2 seeds).** @@C3@@
+
+Limits: one repository per language and 30 tasks each (wide intervals), a simulated grep baseline, independent-session but not human review of the task sets, retrieval quality rather than agent productivity, a single agent and model for C3, and well-known public repositories that a model may partly remember.
 
 ### Benchmark status (0.2.0)
 

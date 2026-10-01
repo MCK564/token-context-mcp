@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 — fix: object-literal methods and chained assignments in JS/TS (2026-10-01)
+
+**Upgrade:** `PARSER_ARTIFACT_VERSION` 6 → 7; the first `token-context index --all` after upgrading re-parses JS/TS/TSX files (other languages produce the same artifact). Python results are unchanged.
+
+- **Regression introduced in 0.3.0 (M12.1), now fixed** — to avoid indexing a method twice, the parser skipped *every* `method_definition` inside an object literal. Methods of object literals that no pattern owns (an object passed as an argument such as `run("s", { test() {} })`, a returned object, a nested object, an object inside a function) therefore vanished from the index (0.3.0 holds 53 fewer symbols than 0.3.1 in hono, 195 fewer in fastify and 567 fewer in zod) and so did the edges that start in them. The generic path now skips only members that an owning pattern (`const x = {…}`, `X.prototype = {…}`, `module.exports = {…}`, `Object.defineProperty` descriptors) has already emitted. Tests: `tests/test_js_object_methods.py`.
+- **Chained assignments** — `res.set = res.header = function () {}` and `exports = module.exports = {…}` now bind the function (or the methods) to every left-hand side. 0.3.0 indexed none of them (K1 recall 0.933 on express, all misses chained); the same scan on 0.3.1 finds 90 of 90 assigned methods in express with 0 wrong in the 30-symbol sample (K1 met).
+- **Evidence** — 0.3.0 was measured on the held-out sets before this fix; those numbers belong to 0.3.0 (tag `m12-freeze`). 0.3.1 was re-measured on the development sets only, see `docs/BENCHMARK.md` (M12, "0.3.1 follow-up"). Rule 17's guard compares against the freeze tag and is expected to fail for this tree.
+
 ## 0.3.0 — M12: JavaScript assigned methods, C# ranking, fewer ambiguous call edges (2026-10-01)
 
 **Upgrade:** the parser artifact (6), FTS builder (2) and edge resolver (3) versions changed; the first `token-context index --all` after upgrading re-parses and re-indexes every repository. Python results are unchanged byte for byte (`tc-pinned` loc/edge gate and `rich` bench: 0 differences).

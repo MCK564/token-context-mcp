@@ -4,7 +4,18 @@
 
 `token-context-mcp` is a read-only local MCP server that indexes registered repositories and returns small, source-hashed code-context packets. It is designed to reduce broad repository crawling without pretending that syntax analysis is a complete semantic model.
 
-## What's new in 0.2.0
+## Có gì mới ở 0.3.x
+
+Chi tiết: [`CHANGELOG.md`](CHANGELOG.md); số đo trong [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M12) và mục [Kết quả benchmark (0.3.x)](#kết-quả-benchmark-03x) bên dưới.
+
+- **JavaScript** — method gán qua `X.prototype.m = …`, `X.prototype = {…}`, `Object.defineProperty(X.prototype, …)`, `this.m = …` trong constructor, `exports.m` / `module.exports = {…}` và object literal giờ là symbol; 0.3.1 thêm gán chuỗi (`res.set = res.header = function …`) và sửa lỗi hồi quy của 0.3.0 làm mất method trong object literal truyền làm đối số (`describe("x", { test() {} })`).
+- **C#** — method triển khai xếp trên khai báo interface/abstract, doc comment gắn vào member thay vì container, kế thừa doc từ interface, hạ ưu tiên CSS/JS vendored.
+- **Giảm cạnh gọi mơ hồ (JS/TS/C#)** — `this` ngầm, overload theo số tham số, namespace C#, kiểu biến cục bộ, field không có `this.`, cạnh khởi tạo `new X()`, binding CommonJS và ES module, kiểu property-signature của TypeScript.
+- **Ngân sách cạnh tất định** — cầu dao 30 ms theo đồng hồ làm đồ thị gọi phụ thuộc tải máy; nay thay bằng ngân sách công việc tất định, và phiên bản resolver nằm trong fingerprint của index.
+- **Đánh giá trung thực** — bộ tác vụ cho 4 repo *held-out* (Python `starlette`, TypeScript `zod`, JavaScript `express`, C# `serilog`) do các phiên độc lập soạn và duyệt trước khi đo; code được đóng băng (tag `m12-freeze`), mỗi bộ held-out chỉ đo một lần. Một số mục tiêu khai báo trước **không đạt**; chúng được liệt kê bên dưới, không giấu.
+- **Nâng cấp:** `PARSER_ARTIFACT_VERSION` (7), `FTS_BUILDER_VERSION` (2), `RESOLVER_VERSION` (3) đã đổi, nên lần `token-context index --all` đầu tiên sau khi nâng cấp sẽ index lại toàn bộ repo. Kết quả Python giữ nguyên từng byte.
+
+## What was new in 0.2.0
 
 Full details: [`CHANGELOG.md`](CHANGELOG.md), report [`docs/reports/M6_M10_REPORT.vi.md`](docs/reports/M6_M10_REPORT.vi.md), client results [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md).
 
@@ -40,12 +51,25 @@ Full details: [`CHANGELOG.md`](CHANGELOG.md), report [`docs/reports/M6_M10_REPOR
 - Desktop Controller (PySide6) with hardware telemetry, interactive graph viewer, task queueing and a dedicated **Agents & Security** management tab; all reads run off the UI thread;
 - Virtual External Stubs Engine (`external_stubs` table): import-driven tree-shaking for standard library and 3rd-party dependencies (`pydantic`, `unittest`, `requests`, `fastapi`, `pytest`, `builtins`), resolving external calls with 0.90 confidence and 0 false positives;
 - Flow-Sensitive Type Narrowing: scoped type stacking up to depth 12 for `if isinstance(...)` and `match/case` blocks, untainting narrowed identifiers inside guarded scopes;
-- Defensive Heuristics & Circuit Breakers: 30ms-per-file circuit breaker and Pseudo-SSA taint analysis preventing hallucinated edges in generated or polymorphic code;
+- Heuristics phòng thủ: ngân sách công việc tất định theo từng file trong bộ giải cạnh (`FILE_EDGE_WORK_BUDGET`, mọi máy cho cùng một đồ thị; cầu dao 30 ms theo đồng hồ trước đây làm đồ thị phụ thuộc tải máy nên đã bị gỡ ở 0.3.0) và phân tích taint Pseudo-SSA để tránh cạnh ảo trong code sinh tự động hoặc đa hình;
 - Robust Multi-OS CI/CD Pipeline: automated GitHub Actions testing across Ubuntu Linux and Windows with isolated clean-room wheel validation, headless Qt (`PySide6`) test harness, and cross-engine golden test parity;
 - Abbreviation & Terminology Guide: formal compiler and graph theory definitions detailed in [`docs/ABBREVIATIONS.md`](docs/ABBREVIATIONS.md);
 - strict read-only tool surface over MCP `stdio`;
 - hard deny rules for secrets/metadata, path traversal/reparse-point checks and resource limits;
 - security, integration and benchmark harnesses that report evidence rather than claiming universal savings.
+
+## Có dùng được cho ngôn ngữ của tôi không? (0.3.x, bằng chứng held-out)
+
+Trả lời ngắn: **có, dùng tốt để định vị code trong Python, JavaScript và TypeScript; dùng được nhưng có giới hạn với C#; đồ thị gọi và context packet chỉ tốt bằng độ phân giải cạnh của từng ngôn ngữ** (tốt nhất ở Python, một phần ở các ngôn ngữ còn lại). Số liệu lấy từ bốn repo *không* được dùng để phát triển 0.3.0 (mỗi repo 30 tác vụ locate, đo một lần, code đã đóng băng; [chi tiết](#kết-quả-benchmark-03x)). `R2` là `search_source(profile="locate")`, khoảng 1,9k token mỗi câu trả lời.
+
+| Ngôn ngữ (repo, số file) | File Acc@5, R2 | grep cắt cùng cỡ | grep không giới hạn (token đọc) | Symbol Recall@10, R2 | Nên kỳ vọng gì |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Python (`starlette`, 88) | 0,77 | 0,47 | 0,77 (23,8k) | 0,44 (grep 0,28) | **Tốt.** 0.3.x không làm thay đổi. Câu hỏi phụ thuộc ẩn (không có tên trong truy vấn) tìm đúng file 4/10 lần. |
+| JavaScript (`express`, 154) | **0,93** (trước 0,80) | 0,67 | 0,97 (15,9k) | 0,67 (grep 0,16) | **Tốt**, và là ngôn ngữ được cải thiện nhiều nhất: cạnh 11 → 191, mơ hồ 64 % → 43 %, độ phủ tham chiếu của packet 0,00 → 0,39. |
+| TypeScript (`zod`, 517) | 0,73 (không đổi) | 0,43 | 0,60 (43,9k) | 0,61 (trước 0,56; grep 0,13) | **Tốt khi định vị**, cải thiện nhỏ. Đồ thị gọi vẫn yếu (56 % mơ hồ; 0 cạnh có độ tin cậy ≥ 0,6 trong mẫu gold) và packet phủ 42 % lân cận. |
+| C# (`serilog`, 216) | 0,70 (trước 0,73) | 0,50 | 0,80 (29,5k) | **0,64** (trước 0,43; grep 0,09) | **Dùng được, kèm lưu ý.** Symbol và cạnh gọi cải thiện rõ (recall cạnh 5/17 → 13/17, đúng 11/11 ở độ tin cậy ≥ 0,6), nhưng độ chính xác file không tăng, và câu hỏi hành vi không có tên trong truy vấn chỉ tìm đúng file 4/10 lần. grep không giới hạn hơn 0,10 về File Acc (không có ý nghĩa thống kê, CI95 −0,30 đến +0,10) nhưng đọc nhiều gấp 16 lần token. |
+
+Go, Java, HTML, CSS có parse nhưng chưa được benchmark trong M12 (cạnh gọi Go dựa trên tên). Ở mọi ngôn ngữ, câu trả lời "file nào?" bị chặn ở khoảng 1,9k token trong khi grep không giới hạn đọc nhiều hơn 8 đến 23 lần; không chênh lệch nào giữa `R2` và grep không giới hạn có ý nghĩa thống kê ở 30 tác vụ mỗi repo. Bộ tác vụ do các phiên Claude độc lập soạn và duyệt, chưa có người duyệt.
 
 ## Architecture & Indexing Pipeline
 
@@ -69,9 +93,9 @@ flowchart TD
         CALL --> RESOLVE["Lexical Edge Resolution Engine"]
         CHA --> RESOLVE
         STUBS --> RESOLVE
-        RESOLVE --> CB{"30ms Circuit Breaker"}
-        CB -->|Normal| EDGES["Resolved & Ambiguous Edges"]
-        CB -->|Timeout| AMBIG["Degraded Ambiguous Edge (0.10)"]
+        RESOLVE --> CB{"Deterministic per-file work budget"}
+        CB -->|Within budget| EDGES["Resolved & Ambiguous Edges"]
+        CB -->|Budget exhausted| AMBIG["Degraded Ambiguous Edge (0.10)"]
     end
 
     subgraph Storage ["4. Atomic SQLite Snapshot"]
@@ -122,6 +146,40 @@ Measured in this repository. Method and raw records: [`docs/BENCHMARK_FINDINGS.e
 Median paired total-token reduction: **−0.3%**, CI95 **−53% to +33%**, n=3. **This does not support a headline token-saving claim**, and none is made — the full 5-task × 3-seed matrix is still pending. What it does support is that *the shape of the question decides the outcome*: savings come from localisation, not enumeration. See [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md) ([tiếng Việt](docs/PROMPTING.vi.md)) for which questions to ask.
 
 Two figures worth reading before interpreting any of the above: `cached_input_tokens` was **89–92% of input** in every pilot row, and in one run retrieved content was 2,558 tokens against 120,832 cached — **2%** of the total. A `total_tokens` delta mostly measures conversation length, which is why the primary metric is retrieved content.
+
+### Kết quả benchmark (0.3.x)
+
+**Đã đo gì.** Bốn repo không dùng để phát triển 0.3.0 — `encode/starlette` (Python), `colinhacks/zod` (TypeScript), `expressjs/express` (JavaScript), `serilog/serilog` (C#) — mỗi repo 30 tác vụ locate và 10 tác vụ packet, do một phiên độc lập soạn và một phiên khác (không có công cụ truy xuất) duyệt; chờ người duyệt. Code được đóng băng trước (tag `m12-freeze`, guard `evals/guard.py`), sau đó chạy code cũ (baseline 0.2.0, `m12-base`) và code mới trên cùng tác vụ, đúng một lần. Không có mô hình trong vòng lặp; CI95 là bootstrap theo tác vụ. Bảng đầy đủ, dữ liệu thô và so sánh trước/sau trên bộ dev nằm ở [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M12) và `evals/out/m12/`.
+
+Cũ → mới: File Acc@5 và Symbol Recall@10 của `R2` (≈1,9k token), độ phủ tham chiếu của packet (`R3`) và tỷ lệ cạnh mơ hồ:
+
+| Repo | File Acc@5 | Symbol Recall@10 | Độ phủ tham chiếu packet | Cạnh mơ hồ |
+| --- | ---: | ---: | ---: | ---: |
+| starlette (Python) | 0,77 → 0,77 | 0,44 → 0,44 | 0,52 → 0,52 | 31 % → 31 % |
+| zod (TypeScript) | 0,73 → 0,73 | 0,56 → 0,61 | 0,34 → 0,42 | 65 % → 56 % |
+| express (JavaScript) | 0,80 → **0,93** (+0,13, CI95 0,00 đến +0,30) | 0,68 → 0,67 | 0,00 → **0,39** | 64 % → 43 % |
+| serilog (C#) | 0,73 → 0,70 | 0,43 → **0,64** (+0,21, CI95 +0,08 đến +0,36) | 0,30 → **0,47** | 69 % → 40 % |
+
+**Mục tiêu khai báo trước, nói thẳng.** Trong mười mục tiêu đặt ra trước khi chạy, bốn đạt và sáu không đạt:
+
+| | Mục tiêu | Kết quả | Đạt |
+| --- | --- | --- | :-: |
+| K1 | Recall method gán trong JS có trong index ≥ 0,95, 0 sai trong mẫu 30 symbol | 0,933 (mọi trường hợp thiếu đều là gán chuỗi; 1,00 nếu bỏ chúng), 0 sai | không |
+| K2 | File Acc@5 JS, mới − cũ ≥ 0 | +0,13 (CI95 0,00 đến +0,30) | có |
+| K3 | C# `R2` − grep không giới hạn ≥ −0,05 | −0,10 (CI95 −0,30 đến +0,10) | không |
+| K4 | File Acc@5 C#, mới − cũ ≥ +0,10 | −0,03 (CI95 −0,13 đến 0,00) | không |
+| K5 | Tác vụ phụ thuộc ẩn C# ≥ 0,40 | 0,40 (không đổi so với code cũ) | có |
+| K6 | Tỷ lệ cạnh mơ hồ mới/cũ ≤ 0,70 ở JS, TS, C# | 0,68, **0,85**, 0,58 | không (zod) |
+| K7 | Độ phủ tham chiếu packet +0,10 ở JS, TS, C# | +0,28, **+0,08**, +0,17 | không (zod) |
+| K8 | Độ chính xác cạnh ≥ 0,95 ở độ tin cậy ≥ 0,6 | 1,00 cả ba (2, **0** và 11 cạnh vượt ngưỡng: vô nghĩa với TypeScript) | có |
+| K9 | Python giống hệt | giống hệt từng byte | có |
+| K10 | Độ trễ trung vị ≤ +20 % | tối đa +27 % (≤ 3,3 ms tuyệt đối) ở 2/12 truy vấn cố định | không |
+
+Ý nghĩa: M12 giúp rõ rệt **JavaScript** và **symbol cùng cạnh gọi của C#**, **không** tăng độ chính xác file của C#, giúp TypeScript chút ít và không đụng tới Python. Một lỗi hồi quy của 0.3.0 phát hiện sau đó — method trong object literal truyền làm đối số không còn được index, nhiều khả năng là lý do mẫu gold đồ thị gọi TypeScript tụt từ 2/12 xuống 0/12 — và chỗ thiếu gán chuỗi gây ra K1 đã được sửa ở **0.3.1** (`tests/test_js_object_methods.py`); 0.3.1 chỉ được đo lại trên các repo dev vì bộ held-out chỉ đo một lần, nên bảng trên mô tả 0.3.0.
+
+**End-to-end (C3 v2, Claude Sonnet 5.5, reasoning medium, 20 tác vụ held-out × 3 arm × 2 seed).** @@C3VI@@
+
+Giới hạn: mỗi ngôn ngữ một repo và 30 tác vụ (khoảng tin cậy rộng), baseline grep là mô phỏng, bộ tác vụ do phiên độc lập chứ không phải người duyệt, đo chất lượng truy xuất chứ không phải năng suất của agent, C3 chỉ có một agent và một mô hình, và các repo công khai nổi tiếng mà mô hình có thể đã nhớ một phần.
 
 ### Benchmark status (0.2.0)
 

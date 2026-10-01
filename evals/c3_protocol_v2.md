@@ -80,3 +80,16 @@ Grading rules (`evals/c3_grade.py`):
   - 95% Confidence Intervals via deterministic bootstrap (2,000 resamples, seed `20261001`).
   - Paired reductions: paired difference for B1 vs B0, B2 vs B0, and B2 vs B1 across matching `(task_id, seed)` runs.
 - **Reporting Harness:** `evals/c3_report.py` aggregates logs, generates markdown tables, and flags protocol violation rates.
+
+---
+
+## 6. Record of the M12 acceptance run (what was actually executed)
+
+Added after the run; sections 1–5 are unchanged except where stated here.
+
+- **Agent and model:** Claude Code (`claude -p`, headless) with `--model claude-sonnet-5-5 --effort medium --max-turns 30`, tools restricted to `Read,Grep,Glob` (`--tools`), `--strict-mcp-config`, `--permission-mode dontAsk`. Opus was not used (rate-limit budget). Gemini CLI was not installed in the run environment and Codex was not run, so the "multi-agent" claim of the harness is not exercised: **one agent, one model**.
+- **Suite and role:** the held-out suite (`evals/c3/locate_v2_manifest.json`, role `heldout`: starlette, zod, express, serilog; 20 counted tasks + 1 probe, 3 arms, 2 seeds = 120 counted runs) was run against the frozen 0.3.0 code and the held-out clones. A supplementary development suite (`evals/c3/locate_v2_dev_manifest.json`: rich, hono, fastify, CsvHelper) is reported separately because its tasks informed M12 changes.
+- **B1 deviation:** with the hybrid protocol the agent never called the MCP server in most runs, and the original gate rejected such runs as protocol failures. B1 was therefore run with `--mcp-optional` (the MCP server is available, calls are allowed up to the limit, not required). B1 is "hybrid, MCP optional"; B1 adoption (share of B1 runs with at least one MCP call) is reported next to its results. B0 and B2 are unchanged.
+- **Usage accounting fix:** the first version of the runner overwrote the normalised `input_tokens` with the provider's uncached count (a handful of tokens when caching is active). Records now carry `input_tokens` (uncached + cache read + cache creation), `uncached_input_tokens`, `cached_input_tokens`, `output_tokens` and `cost_usd`. All reported totals use the fixed fields.
+- **Ceiling effect:** all three arms solved every counted task in seed 1 (see `docs/BENCHMARK.md`), so success rate does not discriminate; only token and latency differences are informative. The four held-out repositories are well-known public projects, so a model may answer part of the tasks from memory (contamination is possible and not measured).
+- **Per-run overhead:** every Claude Code run carries a fixed system/tool prompt of roughly 25 000 cached input tokens; this dominates `total_tokens` and is why `retrieved_content_estimated_tokens` is the primary metric.
