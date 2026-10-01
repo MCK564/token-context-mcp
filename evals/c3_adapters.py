@@ -341,6 +341,8 @@ class ClaudeAdapter(AgentAdapter):
             cmd.extend(["--allowedTools", "mcp__tcbench"])
         if extra.get("model"):
             cmd.extend(["--model", str(extra["model"])])
+        if extra.get("effort"):
+            cmd.extend(["--effort", str(extra["effort"])])
         if extra.get("mcp_config_path"):
             cmd.extend(["--mcp-config", str(extra["mcp_config_path"])])
         env = dict(extra.get("env", {}))

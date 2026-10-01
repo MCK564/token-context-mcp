@@ -520,6 +520,31 @@ def test_b1_twelve_mcp_calls_are_within_the_budget(tmp_path: Path) -> None:
     assert mcp_calls == 12 and usage["output_tokens"] == 1
 
 
+def test_b1_without_any_mcp_call_is_recorded_when_mcp_is_optional(tmp_path: Path) -> None:
+    events = [
+        {"type": "system", "subtype": "init", "mcp_servers": [{"name": "tcbench", "status": "connected"}]},
+        {"type": "result", "result": "ok", "usage": {"input_tokens": 4, "cache_creation_input_tokens": 10, "cache_read_input_tokens": 90, "output_tokens": 7}},
+    ]
+    kwargs = dict(raw_output=tmp_path / "raw.jsonl", stderr_output=tmp_path / "err.log", agent="claude", arm="B1", protocol="hybrid", max_mcp_calls=12, required_mcp_server="tcbench")
+    with pytest.raises(RuntimeError, match="without calling required MCP server"):
+        run_command(_make_jsonl_proc_script(events), **kwargs)
+    usage, _servers, mcp_calls, *_rest = run_command(_make_jsonl_proc_script(events), mcp_optional=True, **kwargs)
+    assert mcp_calls == 0
+    # the normalised totals must not be overwritten by the provider's uncached-only ``input_tokens``
+    assert usage["input_tokens"] == 104 and usage["uncached_input_tokens"] == 14 and usage["cached_input_tokens"] == 90
+
+
+def test_matrix_marks_only_the_hybrid_arm_as_mcp_optional() -> None:
+    buf, old = io.StringIO(), sys.stdout
+    try:
+        sys.stdout = buf
+        matrix_main(["--suite", "locate_v2", "--agent", "claude", "--dry-run", "--manifest", str(DEV_MANIFEST), "--max-runs", "6"])
+    finally:
+        sys.stdout = old
+    for record in (json.loads(line) for line in buf.getvalue().strip().splitlines()):
+        assert ("--mcp-optional" in record["command"]) == (record["arm"] == "B1")
+
+
 def test_hung_agent_is_killed_by_the_watchdog(tmp_path: Path) -> None:
     import time
 
@@ -550,6 +575,8 @@ def test_claude_command_has_isolation_and_turn_limit() -> None:
     assert cmd[cmd.index("--max-turns") + 1] == "40"
     b0, *_ = ClaudeAdapter().build_command("B0", "P", Path("."))
     assert "mcp__tcbench" not in b0
+    with_model, *_ = ClaudeAdapter().build_command("B0", "P", Path("."), extra_config={"model": "claude-sonnet-5-5", "effort": "medium"})
+    assert with_model[with_model.index("--model") + 1] == "claude-sonnet-5-5" and with_model[with_model.index("--effort") + 1] == "medium"
 
 
 def test_gemini_command_limits_mcp_servers_per_arm() -> None:

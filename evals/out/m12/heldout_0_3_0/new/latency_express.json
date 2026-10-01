@@ -1,0 +1,450 @@
+{
+  "repo_id": "heldout-express",
+  "protocol": "Section 3 Protocol (5 warmup, 20 measure, 3 runs)",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v50-x86_64-with-glibc2.39",
+    "python_version": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+    "cpu_count": 2
+  },
+  "rounds_count": 2,
+  "iterations_per_round": 15,
+  "warmup_per_round": 3,
+  "summary": [
+    {
+      "tool": "list_repositories",
+      "median_p50_ms": 0.03,
+      "p50_runs": [
+        0.03,
+        0.03
+      ],
+      "min_p50_ms": 0.03,
+      "max_p50_ms": 0.03,
+      "noisy": false,
+      "median_p95_ms": 0.05,
+      "median_max_ms": 0.06,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_index_status",
+      "median_p50_ms": 1.33,
+      "p50_runs": [
+        1.33,
+        1.34
+      ],
+      "min_p50_ms": 1.33,
+      "max_p50_ms": 1.34,
+      "noisy": false,
+      "median_p95_ms": 1.42,
+      "median_max_ms": 1.44,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_repo_map@1024",
+      "median_p50_ms": 3.58,
+      "p50_runs": [
+        3.53,
+        3.62
+      ],
+      "min_p50_ms": 3.53,
+      "max_p50_ms": 3.62,
+      "noisy": false,
+      "median_p95_ms": 3.91,
+      "median_max_ms": 4.49,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "find_symbols",
+      "median_p50_ms": 1.83,
+      "p50_runs": [
+        1.83,
+        1.83
+      ],
+      "min_p50_ms": 1.83,
+      "max_p50_ms": 1.83,
+      "noisy": false,
+      "median_p95_ms": 1.88,
+      "median_max_ms": 1.89,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "search_source",
+      "median_p50_ms": 1.25,
+      "p50_runs": [
+        1.26,
+        1.25
+      ],
+      "min_p50_ms": 1.25,
+      "max_p50_ms": 1.26,
+      "noisy": false,
+      "median_p95_ms": 1.33,
+      "median_max_ms": 1.33,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_file_skeleton",
+      "median_p50_ms": 2.2,
+      "p50_runs": [
+        2.19,
+        2.21
+      ],
+      "min_p50_ms": 2.19,
+      "max_p50_ms": 2.21,
+      "noisy": false,
+      "median_p95_ms": 2.38,
+      "median_max_ms": 2.38,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_symbol_context",
+      "median_p50_ms": 0.93,
+      "p50_runs": [
+        0.91,
+        0.95
+      ],
+      "min_p50_ms": 0.91,
+      "max_p50_ms": 0.95,
+      "noisy": false,
+      "median_p95_ms": 0.98,
+      "median_max_ms": 0.99,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_impact_slice",
+      "median_p50_ms": 0.46,
+      "p50_runs": [
+        0.45,
+        0.47
+      ],
+      "min_p50_ms": 0.45,
+      "max_p50_ms": 0.47,
+      "noisy": false,
+      "median_p95_ms": 0.53,
+      "median_max_ms": 0.54,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "get_module_dependents",
+      "median_p50_ms": 0.0,
+      "p50_runs": [
+        0.0,
+        0.0
+      ],
+      "min_p50_ms": 0.0,
+      "max_p50_ms": 0.0,
+      "noisy": false,
+      "median_p95_ms": 0.0,
+      "median_max_ms": 0.0,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "inspect_symbol",
+      "median_p50_ms": 3.77,
+      "p50_runs": [
+        3.74,
+        3.79
+      ],
+      "min_p50_ms": 3.74,
+      "max_p50_ms": 3.79,
+      "noisy": false,
+      "median_p95_ms": 3.87,
+      "median_max_ms": 3.96,
+      "sha256_file_per_call": 0.0
+    },
+    {
+      "tool": "inspect_symbol[full@4096]x10",
+      "median_p50_ms": 49.53,
+      "p50_runs": [
+        49.47,
+        49.59
+      ],
+      "min_p50_ms": 49.47,
+      "max_p50_ms": 49.59,
+      "noisy": false,
+      "median_p95_ms": 51.55,
+      "median_max_ms": 54.19,
+      "sha256_file_per_call": 0.0
+    }
+  ],
+  "rounds": [
+    {
+      "repo_id": "heldout-express",
+      "iterations": 15,
+      "warmup_runs": 3,
+      "tools": [
+        {
+          "tool": "list_repositories",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.03,
+          "p95_ms": 0.03,
+          "max_ms": 0.04,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 4.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_index_status",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.33,
+          "p95_ms": 1.44,
+          "max_ms": 1.47,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 6.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_repo_map@1024",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 3.53,
+          "p95_ms": 3.59,
+          "max_ms": 3.6,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 5.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "find_symbols",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.83,
+          "p95_ms": 1.9,
+          "max_ms": 1.91,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 9.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "search_source",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.26,
+          "p95_ms": 1.33,
+          "max_ms": 1.33,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 17.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_file_skeleton",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 2.19,
+          "p95_ms": 2.24,
+          "max_ms": 2.24,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 18.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_symbol_context",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.91,
+          "p95_ms": 0.96,
+          "max_ms": 0.98,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 14.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_impact_slice",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.45,
+          "p95_ms": 0.52,
+          "max_ms": 0.53,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 6.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_module_dependents",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 0.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "inspect_symbol",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 3.74,
+          "p95_ms": 3.83,
+          "max_ms": 3.89,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 22.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "inspect_symbol[full@4096]x10",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 49.47,
+          "p95_ms": 51.49,
+          "max_ms": 54.12,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 194.13,
+          "sqlite3_connect_per_call": 0.0
+        }
+      ],
+      "round": 1
+    },
+    {
+      "repo_id": "heldout-express",
+      "iterations": 15,
+      "warmup_runs": 3,
+      "tools": [
+        {
+          "tool": "list_repositories",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.03,
+          "p95_ms": 0.07,
+          "max_ms": 0.07,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 4.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_index_status",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.34,
+          "p95_ms": 1.39,
+          "max_ms": 1.4,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 6.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_repo_map@1024",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 3.62,
+          "p95_ms": 4.23,
+          "max_ms": 5.37,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 5.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "find_symbols",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.83,
+          "p95_ms": 1.86,
+          "max_ms": 1.87,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 9.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "search_source",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 1.25,
+          "p95_ms": 1.32,
+          "max_ms": 1.32,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 17.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_file_skeleton",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 2.21,
+          "p95_ms": 2.51,
+          "max_ms": 2.53,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 18.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_symbol_context",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.95,
+          "p95_ms": 1.0,
+          "max_ms": 1.0,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 14.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_impact_slice",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.47,
+          "p95_ms": 0.53,
+          "max_ms": 0.55,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 6.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "get_module_dependents",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 0.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "inspect_symbol",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 3.79,
+          "p95_ms": 3.91,
+          "max_ms": 4.04,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 22.0,
+          "sqlite3_connect_per_call": 0.0
+        },
+        {
+          "tool": "inspect_symbol[full@4096]x10",
+          "iterations": 15,
+          "warmup_runs": 3,
+          "p50_ms": 49.59,
+          "p95_ms": 51.6,
+          "max_ms": 54.25,
+          "sha256_file_per_call": 0.0,
+          "total_sha256_file_calls": 0,
+          "os_stat_per_call": 194.13,
+          "sqlite3_connect_per_call": 0.0
+        }
+      ],
+      "round": 2
+    }
+  ]
+}

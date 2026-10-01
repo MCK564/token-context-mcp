@@ -1,0 +1,117 @@
+{
+  "repos": [
+    {
+      "repo_id": "heldout-zod",
+      "rows": [
+        {
+          "query": "zod3",
+          "base_p50_ms": 4.632,
+          "new_p50_ms": 4.757,
+          "ratio": 1.027,
+          "within": true
+        },
+        {
+          "query": "$ZodError",
+          "base_p50_ms": 13.057,
+          "new_p50_ms": 16.369,
+          "ratio": 1.254,
+          "within": false
+        },
+        {
+          "query": "parse",
+          "base_p50_ms": 14.464,
+          "new_p50_ms": 14.014,
+          "ratio": 0.969,
+          "within": true
+        }
+      ],
+      "all_within_20pct": false,
+      "floor_ms": 0.0
+    },
+    {
+      "repo_id": "heldout-express",
+      "rows": [
+        {
+          "query": "authenticate",
+          "base_p50_ms": 1.074,
+          "new_p50_ms": 1.215,
+          "ratio": 1.131,
+          "within": true
+        },
+        {
+          "query": "router",
+          "base_p50_ms": 3.884,
+          "new_p50_ms": 4.009,
+          "ratio": 1.032,
+          "within": true
+        },
+        {
+          "query": "params",
+          "base_p50_ms": 5.541,
+          "new_p50_ms": 4.312,
+          "ratio": 0.778,
+          "within": true
+        }
+      ],
+      "all_within_20pct": true,
+      "floor_ms": 0.0
+    },
+    {
+      "repo_id": "heldout-serilog",
+      "rows": [
+        {
+          "query": "PropertyValueConverter",
+          "base_p50_ms": 5.367,
+          "new_p50_ms": 5.447,
+          "ratio": 1.015,
+          "within": true
+        },
+        {
+          "query": "LogEvent",
+          "base_p50_ms": 10.174,
+          "new_p50_ms": 12.93,
+          "ratio": 1.271,
+          "within": false
+        },
+        {
+          "query": "Enrich",
+          "base_p50_ms": 5.68,
+          "new_p50_ms": 5.962,
+          "ratio": 1.05,
+          "within": true
+        }
+      ],
+      "all_within_20pct": false,
+      "floor_ms": 0.0
+    },
+    {
+      "repo_id": "heldout-starlette",
+      "rows": [
+        {
+          "query": "unreadable_receive",
+          "base_p50_ms": 1.232,
+          "new_p50_ms": 1.284,
+          "ratio": 1.042,
+          "within": true
+        },
+        {
+          "query": "Request",
+          "base_p50_ms": 7.091,
+          "new_p50_ms": 7.249,
+          "ratio": 1.022,
+          "within": true
+        },
+        {
+          "query": "middleware",
+          "base_p50_ms": 6.623,
+          "new_p50_ms": 6.727,
+          "ratio": 1.016,
+          "within": true
+        }
+      ],
+      "all_within_20pct": true,
+      "floor_ms": 0.0
+    }
+  ],
+  "all_within_20pct": false
+}

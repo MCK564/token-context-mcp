@@ -1,0 +1,81 @@
+{
+  "repo_id": "heldout-express",
+  "total_symbols": 165,
+  "total_edges": 11,
+  "unresolved_edges": 7,
+  "total_suspicious_edges": 0,
+  "suspicious_edges_ratio": 0.0,
+  "status_counts": {
+    "ambiguous": 7,
+    "resolved": 4
+  },
+  "scope_counts": {
+    "scope:global_ambiguous": 1,
+    "scope:unresolved_receiver": 5,
+    "scope:same_file": 4,
+    "scope:same_package_ambiguous": 1
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "javascript:lib/response.js:onaborted:b6353fb5b07f1c6c",
+      "name": "onaborted",
+      "qualified_name": "onaborted",
+      "path": "lib/response.js",
+      "in_degree": 1,
+      "resolved_count": 1,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/response.js:onerror:65aca11d9abd9d25",
+      "name": "onerror",
+      "qualified_name": "onerror",
+      "path": "lib/response.js",
+      "in_degree": 1,
+      "resolved_count": 1,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:test/support/tmpl.js:generateVariableLookup:5121b78a56f708be",
+      "name": "generateVariableLookup",
+      "qualified_name": "generateVariableLookup",
+      "path": "test/support/tmpl.js",
+      "in_degree": 1,
+      "resolved_count": 1,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:test/support/utils.js:getMajorVersion:ebb6ef953a76768f",
+      "name": "getMajorVersion",
+      "qualified_name": "getMajorVersion",
+      "path": "test/support/utils.js",
+      "in_degree": 1,
+      "resolved_count": 1,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    }
+  ]
+}

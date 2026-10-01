@@ -1,0 +1,316 @@
+{
+  "repo_id": "heldout-express",
+  "scan_symbols": 90,
+  "indexed": 84,
+  "recall": 0.9333,
+  "recall_excluding_chained": 1.0,
+  "chained_symbols": 6,
+  "by_pattern": {
+    "exports_member": {
+      "scan": 27,
+      "indexed": 27
+    },
+    "object_member": {
+      "scan": 50,
+      "indexed": 44
+    },
+    "object_literal": {
+      "scan": 9,
+      "indexed": 9
+    },
+    "prototype_method": {
+      "scan": 4,
+      "indexed": 4
+    }
+  },
+  "missing": [
+    {
+      "path": "lib/request.js",
+      "qualified_name": "req.get",
+      "line": 63,
+      "pattern": "object_member",
+      "chained": true
+    },
+    {
+      "path": "lib/request.js",
+      "qualified_name": "req.header",
+      "line": 63,
+      "pattern": "object_member",
+      "chained": true
+    },
+    {
+      "path": "lib/response.js",
+      "qualified_name": "res.contentType",
+      "line": 510,
+      "pattern": "object_member",
+      "chained": true
+    },
+    {
+      "path": "lib/response.js",
+      "qualified_name": "res.type",
+      "line": 510,
+      "pattern": "object_member",
+      "chained": true
+    },
+    {
+      "path": "lib/response.js",
+      "qualified_name": "res.set",
+      "line": 671,
+      "pattern": "object_member",
+      "chained": true
+    },
+    {
+      "path": "lib/response.js",
+      "qualified_name": "res.header",
+      "line": 671,
+      "pattern": "object_member",
+      "chained": true
+    }
+  ],
+  "precision_sample": {
+    "size": 30,
+    "wrong": 0,
+    "items": [
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.listen",
+        "line": 598,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.listen = function listen() {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.location",
+        "line": 801,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.location = function location(url) {"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.render",
+        "line": 522,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.render = function render(name, options, callback) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.jsonp",
+        "line": 267,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.jsonp = function jsonp(obj) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.links",
+        "line": 97,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.links = function(links) {"
+      },
+      {
+        "path": "examples/resource/index.js",
+        "qualified_name": "User.destroy",
+        "line": 48,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "destroy: function(req, res, id){"
+      },
+      {
+        "path": "lib/request.js",
+        "qualified_name": "req.accepts",
+        "line": 131,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "req.accepts = function(){"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.param",
+        "line": 322,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.param = function param(name, fn) {"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.use",
+        "line": 190,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.use = function use(fn) {"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.handle",
+        "line": 152,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.handle = function handle(req, res, callback) {"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.disabled",
+        "line": 439,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.disabled = function disabled(setting) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.cookie",
+        "line": 749,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.cookie = function (name, value, options) {"
+      },
+      {
+        "path": "examples/route-map/index.js",
+        "qualified_name": "pets.delete",
+        "line": 50,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "delete: function(req, res){"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.attachment",
+        "line": 611,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.attachment = function attachment(filename) {"
+      },
+      {
+        "path": "examples/route-map/index.js",
+        "qualified_name": "users.list",
+        "line": 32,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "list: function(req, res){"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.render",
+        "line": 900,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.render = function render(view, options, callback) {"
+      },
+      {
+        "path": "examples/resource/index.js",
+        "qualified_name": "User.index",
+        "line": 42,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "index: function(req, res){"
+      },
+      {
+        "path": "lib/request.js",
+        "qualified_name": "req.acceptsCharsets",
+        "line": 158,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "req.acceptsCharsets = function(){"
+      },
+      {
+        "path": "lib/request.js",
+        "qualified_name": "req.range",
+        "line": 201,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "req.range = function range(size, options) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.json",
+        "line": 239,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.json = function json(obj) {"
+      },
+      {
+        "path": "examples/route-map/index.js",
+        "qualified_name": "app.map",
+        "line": 14,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.map = function(a, route){"
+      },
+      {
+        "path": "examples/view-locals/user.js",
+        "qualified_name": "User.count",
+        "line": 22,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "User.count = function(fn){"
+      },
+      {
+        "path": "lib/view.js",
+        "qualified_name": "View.resolve",
+        "line": 169,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "View.prototype.resolve = function resolve(dir, file) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.sendFile",
+        "line": 378,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.sendFile = function sendFile(path, options, callback) {"
+      },
+      {
+        "path": "lib/view.js",
+        "qualified_name": "View.lookup",
+        "line": 104,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "View.prototype.lookup = function lookup(name) {"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.disable",
+        "line": 463,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.disable = function disable(setting) {"
+      },
+      {
+        "path": "lib/request.js",
+        "qualified_name": "req.acceptsLanguages",
+        "line": 172,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "req.acceptsLanguages = function(...languages) {"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.vary",
+        "line": 881,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.vary = function(field){"
+      },
+      {
+        "path": "lib/response.js",
+        "qualified_name": "res.get",
+        "line": 703,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "res.get = function(field){"
+      },
+      {
+        "path": "lib/application.js",
+        "qualified_name": "app.enable",
+        "line": 451,
+        "backed_by_source": true,
+        "in_scan": true,
+        "source_line": "app.enable = function enable(setting) {"
+      }
+    ]
+  }
+}

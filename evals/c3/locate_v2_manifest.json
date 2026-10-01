@@ -1,0 +1,762 @@
+{
+  "suite": "locate_v2",
+  "role": "heldout",
+  "seed": 20261001,
+  "total_tasks": 21,
+  "counted_tasks": 20,
+  "tasks": [
+    {
+      "id": "starlette_t04",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "a_keyword",
+      "query": "answer a CORS preflight OPTIONS request with 200 OK or a 400 naming which of origin, method, headers or private network is disallowed",
+      "gold_files": [
+        "starlette/middleware/cors.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/cors.py",
+          "qualified_name": "CORSMiddleware.preflight_response",
+          "def_line": 102
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: answer a CORS preflight OPTIONS request with 200 OK or a 400 naming which of origin, method, headers or private network is disallowed\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "ed622f1abea2cd9c00ff38751d9932dece56528bda3195ac934ea5275f6d079a",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    },
+    {
+      "id": "starlette_t16",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "b_hidden_dep",
+      "query": "assigning a value under a name, matched case-insensitively, overwrites the first occurrence in place and drops any later duplicates while preserving order",
+      "gold_files": [
+        "starlette/datastructures.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "MutableHeaders.__setitem__",
+          "def_line": 578
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: assigning a value under a name, matched case-insensitively, overwrites the first occurrence in place and drops any later duplicates while preserving order\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "87f23712fd4c5a03195c17d39cb3e508d9ca6e85ed0f0ad5c6876d8f92f7ed9a",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    },
+    {
+      "id": "starlette_t20",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "b_hidden_dep",
+      "query": "tests whether a request falls under a nested application's prefix, splits off the remainder, extends the root prefix and records the outermost one",
+      "gold_files": [
+        "starlette/routing.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Mount.matches",
+          "def_line": 396
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: tests whether a request falls under a nested application's prefix, splits off the remainder, extends the root prefix and records the outermost one\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "48d6c864bd11b03ff2994ac81f8258fdb774d5ad1fce35520024e1662fe0c41d",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    },
+    {
+      "id": "starlette_t29",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "c_multi_file",
+      "query": "compressing response bodies for clients accepting gzip while leaving small, already encoded, partial or excluded-type replies untouched, flushing streamed chunks and adding Vary",
+      "gold_files": [
+        "starlette/datastructures.py",
+        "starlette/middleware/gzip.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "GZipMiddleware.__call__",
+          "def_line": 60
+        },
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "IdentityResponder.send_with_compression",
+          "def_line": 105
+        },
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "GZipResponder._compress_body",
+          "def_line": 211
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "MutableHeaders.add_vary_header",
+          "def_line": 657
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: compressing response bodies for clients accepting gzip while leaving small, already encoded, partial or excluded-type replies untouched, flushing streamed chunks and adding Vary\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "463e30c327642183607b7ee420c950b1dd0fc254dafe2ebec8270b943e8526db",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    },
+    {
+      "id": "starlette_t27",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "c_multi_file",
+      "query": "sending a streamed response body from a generator, pulling chunks from sync iterators in worker threads and stopping when the client disconnects",
+      "gold_files": [
+        "starlette/concurrency.py",
+        "starlette/responses.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.__init__",
+          "def_line": 227
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.__call__",
+          "def_line": 259
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.listen_for_disconnect",
+          "def_line": 244
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.stream_response",
+          "def_line": 250
+        },
+        {
+          "path": "starlette/concurrency.py",
+          "qualified_name": "iterate_in_threadpool",
+          "def_line": 51
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: sending a streamed response body from a generator, pulling chunks from sync iterators in worker threads and stopping when the client disconnects\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "d680ee729678b7a21e544ce630b7f6509cb59af30a82886e74abd5438975da2f",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    },
+    {
+      "id": "zod_t02",
+      "repo_id": "heldout-zod",
+      "repo_name": "zod",
+      "language": "TypeScript",
+      "group": "a_keyword",
+      "query": "Russian plural chooser returning the one, few or many noun form from a count's last digit, with 11 through 19 always many",
+      "gold_files": [
+        "packages/zod/src/v4/locales/ru.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/locales/ru.ts",
+          "qualified_name": "getRussianPlural",
+          "def_line": 5
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"zod\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Russian plural chooser returning the one, few or many noun form from a count's last digit, with 11 through 19 always many\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "108bbf46eb74e07cc510f519924ccbdfd13008bf78cfa75eed2f9600a3c9c966",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-zod\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-zod\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "69b390f200e8d0223eacd9a7d844810477c0bd2f7dd7d46803768db33cf6237c",
+        "B2": "227e4769e820f5839b3ee0a753e0d5b70ce2234766d7aa7a326300275ff4b820"
+      }
+    },
+    {
+      "id": "zod_t20",
+      "repo_id": "heldout-zod",
+      "repo_name": "zod",
+      "language": "TypeScript",
+      "group": "b_hidden_dep",
+      "query": "Deprecated legacy-API shim passing a user callback that produces issue text into the library-wide configuration function under its custom handler option",
+      "gold_files": [
+        "packages/zod/src/v4/classic/compat.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/classic/compat.ts",
+          "qualified_name": "setErrorMap",
+          "def_line": 44
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"zod\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Deprecated legacy-API shim passing a user callback that produces issue text into the library-wide configuration function under its custom handler option\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "52498f8859ae91371e9087a53d176e2126745bc044b011068663c2a0337dd670",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-zod\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-zod\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "69b390f200e8d0223eacd9a7d844810477c0bd2f7dd7d46803768db33cf6237c",
+        "B2": "227e4769e820f5839b3ee0a753e0d5b70ce2234766d7aa7a326300275ff4b820"
+      }
+    },
+    {
+      "id": "zod_t13",
+      "repo_id": "heldout-zod",
+      "repo_name": "zod",
+      "language": "TypeScript",
+      "group": "b_hidden_dep",
+      "query": "Lithuanian helper sorting an integer into singular, paucal or plural class by trailing digits: teens and zero endings plural, one ending singular, others paucal",
+      "gold_files": [
+        "packages/zod/src/v4/locales/lt.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/locales/lt.ts",
+          "qualified_name": "getUnitTypeFromNumber",
+          "def_line": 12
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"zod\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Lithuanian helper sorting an integer into singular, paucal or plural class by trailing digits: teens and zero endings plural, one ending singular, others paucal\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "921a8fe0950961a9ec61fe582ea5588d2e2c3458d7fcf0ce4f01568e049dd9d4",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-zod\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-zod\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "69b390f200e8d0223eacd9a7d844810477c0bd2f7dd7d46803768db33cf6237c",
+        "B2": "227e4769e820f5839b3ee0a753e0d5b70ce2234766d7aa7a326300275ff4b820"
+      }
+    },
+    {
+      "id": "zod_t24",
+      "repo_id": "heldout-zod",
+      "repo_name": "zod",
+      "language": "TypeScript",
+      "group": "c_multi_file",
+      "query": "How v3 builds an issue's message: contextual error map first, then the schema's map, then the user's global override, then the default English map",
+      "gold_files": [
+        "packages/zod/src/v3/helpers/parseUtil.ts",
+        "packages/zod/src/v3/errors.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "addIssueToContext",
+          "def_line": 72
+        },
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "makeIssue",
+          "def_line": 6
+        },
+        {
+          "path": "packages/zod/src/v3/errors.ts",
+          "qualified_name": "getErrorMap",
+          "def_line": 11
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"zod\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: How v3 builds an issue's message: contextual error map first, then the schema's map, then the user's global override, then the default English map\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "c804c624ed75ec91801ab5d8ac806cfc9a8cfc2ef7845ee0c8c760e50e1c879f",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-zod\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-zod\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "69b390f200e8d0223eacd9a7d844810477c0bd2f7dd7d46803768db33cf6237c",
+        "B2": "227e4769e820f5839b3ee0a753e0d5b70ce2234766d7aa7a326300275ff4b820"
+      }
+    },
+    {
+      "id": "zod_t22",
+      "repo_id": "heldout-zod",
+      "repo_name": "zod",
+      "language": "TypeScript",
+      "group": "c_multi_file",
+      "query": "Convert a registry of id-tagged schemas into JSON Schema documents, extracting unregistered shared parts into a definitions bucket and building refs with a uri callback",
+      "gold_files": [
+        "packages/zod/src/v4/core/json-schema-processors.ts",
+        "packages/zod/src/v4/core/to-json-schema.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "qualified_name": "toJSONSchema",
+          "def_line": 886
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "extractDefs",
+          "def_line": 301
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "finalize",
+          "def_line": 568
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"zod\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Convert a registry of id-tagged schemas into JSON Schema documents, extracting unregistered shared parts into a definitions bucket and building refs with a uri callback\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "5828e786ab0084e79c7d18529cd110287b18c90add11406501f470c7b7107b82",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-zod\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-zod\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "69b390f200e8d0223eacd9a7d844810477c0bd2f7dd7d46803768db33cf6237c",
+        "B2": "227e4769e820f5839b3ee0a753e0d5b70ce2234766d7aa7a326300275ff4b820"
+      }
+    },
+    {
+      "id": "express_t03",
+      "repo_id": "heldout-express",
+      "repo_name": "express",
+      "language": "JavaScript",
+      "group": "a_keyword",
+      "query": "parse a query string with the qs library while allowing keys that collide with Object prototype properties",
+      "gold_files": [
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "parseExtendedQueryString",
+          "def_line": 267
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"express\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: parse a query string with the qs library while allowing keys that collide with Object prototype properties\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "4fab41fa0d1e05f4e5bf2efcada82599b92312f0465edefed76dd7dfb3f08261",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-express\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-express\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5d1ed35b7bf206ee478b8ce19e104702a8085be4f02298fa319a510742a98a54",
+        "B2": "512a595fc6e62554ee902875269c539d20708e8257259d8f4a72828fc744f2a9"
+      }
+    },
+    {
+      "id": "express_t11",
+      "repo_id": "heldout-express",
+      "repo_name": "express",
+      "language": "JavaScript",
+      "group": "b_hidden_dep",
+      "query": "synchronously fetch filesystem metadata for a path, yielding undefined instead of throwing when the path is missing or unreadable",
+      "gold_files": [
+        "lib/view.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "tryStat",
+          "def_line": 197
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"express\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: synchronously fetch filesystem metadata for a path, yielding undefined instead of throwing when the path is missing or unreadable\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "5400dca24f7ca5144d37779e376274dff9bdec8111fa14445dc663c23fb9e683",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-express\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-express\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5d1ed35b7bf206ee478b8ce19e104702a8085be4f02298fa319a510742a98a54",
+        "B2": "512a595fc6e62554ee902875269c539d20708e8257259d8f4a72828fc744f2a9"
+      }
+    },
+    {
+      "id": "express_t13",
+      "repo_id": "heldout-express",
+      "repo_name": "express",
+      "language": "JavaScript",
+      "group": "b_hidden_dep",
+      "query": "complete at most once with an error coded EISDIR and the message EISDIR, read when the requested path turns out to be a folder",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "ondirectory",
+          "def_line": 942
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"express\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: complete at most once with an error coded EISDIR and the message EISDIR, read when the requested path turns out to be a folder\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "5266a02f9cc64996cb6b0fea7202c742caeeef76a3f5fe68e20a764d8326af41",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-express\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-express\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5d1ed35b7bf206ee478b8ce19e104702a8085be4f02298fa319a510742a98a54",
+        "B2": "512a595fc6e62554ee902875269c539d20708e8257259d8f4a72828fc744f2a9"
+      }
+    },
+    {
+      "id": "express_t28",
+      "repo_id": "heldout-express",
+      "repo_name": "express",
+      "language": "JavaScript",
+      "group": "c_multi_file",
+      "query": "respond with the handler whose mime type best matches the Accept header, expanding extension shorthands to full types, or fail with 406 listing supported types",
+      "gold_files": [
+        "lib/response.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.format",
+          "def_line": 576,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeType",
+          "def_line": 61,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeTypes",
+          "def_line": 75,
+          "gold_pending_indexer": true
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"express\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: respond with the handler whose mime type best matches the Accept header, expanding extension shorthands to full types, or fail with 406 listing supported types\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "4113b6949ded6424a2e51d75c6c3c8f256aa37c26a9143c500e919d923978a43",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-express\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-express\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5d1ed35b7bf206ee478b8ce19e104702a8085be4f02298fa319a510742a98a54",
+        "B2": "512a595fc6e62554ee902875269c539d20708e8257259d8f4a72828fc744f2a9"
+      }
+    },
+    {
+      "id": "express_t27",
+      "repo_id": "heldout-express",
+      "repo_name": "express",
+      "language": "JavaScript",
+      "group": "c_multi_file",
+      "query": "normalize a proxy trust setting (boolean, hop count, address list or function) into a predicate, and make mounted sub-apps inherit the parent's value unless overridden",
+      "gold_files": [
+        "lib/application.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "compileTrust",
+          "def_line": 194,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "gold_pending_indexer": true
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"express\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: normalize a proxy trust setting (boolean, hop count, address list or function) into a predicate, and make mounted sub-apps inherit the parent's value unless overridden\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "ee72c0b266ea1c46ba83aaa8a739f4324b65d20ebd599f2f6b4ada5a07883564",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-express\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-express\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5d1ed35b7bf206ee478b8ce19e104702a8085be4f02298fa319a510742a98a54",
+        "B2": "512a595fc6e62554ee902875269c539d20708e8257259d8f4a72828fc744f2a9"
+      }
+    },
+    {
+      "id": "serilog_t04",
+      "repo_id": "heldout-serilog",
+      "repo_name": "serilog",
+      "language": "C#",
+      "group": "a_keyword",
+      "query": "split a setting value of the form Namespace.Type::StaticMember, optionally followed by assembly qualifiers, into a type name and a member name using a regular expression",
+      "gold_files": [
+        "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+          "qualified_name": "SettingValueConversions.TryParseStaticMemberAccessor",
+          "def_line": 139
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"serilog\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: split a setting value of the form Namespace.Type::StaticMember, optionally followed by assembly qualifiers, into a type name and a member name using a regular expression\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "54ee21fa5bfb43aac8bf635e9f9e6d8e4a822926c020fddf15bab14bdd61881a",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a1aa33e97e8308e8b0e2978fb50df10961ea5fc5f840309605f75980025e2729",
+        "B2": "cdc73fdf0918d8590fe1aee1e5b24c78cffba80eda04ad463e0e2a00e8bedd51"
+      }
+    },
+    {
+      "id": "serilog_t16",
+      "repo_id": "heldout-serilog",
+      "repo_name": "serilog",
+      "language": "C#",
+      "group": "b_hidden_dep",
+      "query": "from reflected candidates of a given name, keep those whose parameters after the first are all defaulted or supplied by name, ordered by most supplied",
+      "gold_files": [
+        "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.SelectConfigurationMethod",
+          "def_line": 257
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"serilog\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: from reflected candidates of a given name, keep those whose parameters after the first are all defaulted or supplied by name, ordered by most supplied\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "a24a10e316fd95b57b26450cf482d3f6c2328861697f338df396c68040a39599",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a1aa33e97e8308e8b0e2978fb50df10961ea5fc5f840309605f75980025e2729",
+        "B2": "cdc73fdf0918d8590fe1aee1e5b24c78cffba80eda04ad463e0e2a00e8bedd51"
+      }
+    },
+    {
+      "id": "serilog_t14",
+      "repo_id": "heldout-serilog",
+      "repo_name": "serilog",
+      "language": "C#",
+      "group": "b_hidden_dep",
+      "query": "reflect public getters into named members, skipping indexers and repeated names via a thread-static set; getter exceptions become message text unless propagating; anonymous types untagged",
+      "gold_files": [
+        "src/Serilog/Capturing/PropertyValueConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+          "qualified_name": "PropertyValueConverter.CreateStructureValue",
+          "def_line": 437
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"serilog\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: reflect public getters into named members, skipping indexers and repeated names via a thread-static set; getter exceptions become message text unless propagating; anonymous types untagged\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "514a7a1b9dff74ccd46ba05f5c5a81041ef6d03ce3be565eb5de6819c0b52231",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a1aa33e97e8308e8b0e2978fb50df10961ea5fc5f840309605f75980025e2729",
+        "B2": "cdc73fdf0918d8590fe1aee1e5b24c78cffba80eda04ad463e0e2a00e8bedd51"
+      }
+    },
+    {
+      "id": "serilog_t30",
+      "repo_id": "heldout-serilog",
+      "repo_name": "serilog",
+      "language": "C#",
+      "group": "c_multi_file",
+      "query": "how byte arrays and Memory<byte> values are captured as hex text, truncated to the first sixteen bytes with a total count once over a kilobyte",
+      "gold_files": [
+        "src/Serilog/Policies/ByteArrayScalarConversionPolicy.cs",
+        "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Policies/ByteArrayScalarConversionPolicy.cs",
+          "qualified_name": "ByteArrayScalarConversionPolicy.TryConvertToScalar",
+          "def_line": 24
+        },
+        {
+          "path": "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs",
+          "qualified_name": "ByteMemoryScalarConversionPolicy.TryConvertToScalar",
+          "def_line": 27
+        },
+        {
+          "path": "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs",
+          "qualified_name": "ByteMemoryScalarConversionPolicy.ConvertToHexString",
+          "def_line": 45
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"serilog\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: how byte arrays and Memory<byte> values are captured as hex text, truncated to the first sixteen bytes with a total count once over a kilobyte\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "69217bf6bb60df4d676ffb5aac4992f8110dfe8eccee9b4779caffb261e1c81b",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a1aa33e97e8308e8b0e2978fb50df10961ea5fc5f840309605f75980025e2729",
+        "B2": "cdc73fdf0918d8590fe1aee1e5b24c78cffba80eda04ad463e0e2a00e8bedd51"
+      }
+    },
+    {
+      "id": "serilog_t25",
+      "repo_id": "heldout-serilog",
+      "repo_name": "serilog",
+      "language": "C#",
+      "group": "c_multi_file",
+      "query": "how properties pushed onto the ambient LogContext reach later events: the enricher registered via Enrich.FromLogContext and the context routine that walks the async-local enricher stack",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+        "src/Serilog/Context/LogContextEnricher.cs",
+        "src/Serilog/Context/LogContext.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+          "qualified_name": "LoggerEnrichmentConfiguration.FromLogContext",
+          "def_line": 86
+        },
+        {
+          "path": "src/Serilog/Context/LogContextEnricher.cs",
+          "qualified_name": "LogContextEnricher.Enrich",
+          "def_line": 19
+        },
+        {
+          "path": "src/Serilog/Context/LogContext.cs",
+          "qualified_name": "LogContext.Enrich",
+          "def_line": 201
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"serilog\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: how properties pushed onto the ambient LogContext reach later events: the enricher registered via Enrich.FromLogContext and the context routine that walks the async-local enricher stack\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "e4dec842d1dc131c9b2efb1e70e043175ef37bbf70ecbb56edc6dad37455f46b",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-serilog\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a1aa33e97e8308e8b0e2978fb50df10961ea5fc5f840309605f75980025e2729",
+        "B2": "cdc73fdf0918d8590fe1aee1e5b24c78cffba80eda04ad463e0e2a00e8bedd51"
+      }
+    },
+    {
+      "id": "probe",
+      "repo_id": "heldout-starlette",
+      "repo_name": "starlette",
+      "language": "Python",
+      "group": "probe",
+      "query": "Where does this project parse its command-line arguments or configuration? Give the main file.",
+      "gold_files": [],
+      "gold_symbols": [],
+      "counted": false,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"starlette\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Where does this project parse its command-line arguments or configuration? Give the main file.\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "70c65f1229ef8b786cc88d144a7e4a5ab12d48a3c2ef910c6700fdd552024411",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"heldout-starlette\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "78ce07f4e8a0fc004150fa286762b08e05078143110e6909c5edccba9bc7624a",
+        "B2": "f44061f99c3b1ba884766f2294365bbdf9b4802759511c8de5d6a1f5de650369"
+      }
+    }
+  ]
+}

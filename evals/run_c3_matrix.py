@@ -234,6 +234,9 @@ def main(argv: list[str] | None = None) -> int:
                 if arm != "B0":
                     server_name = "tcbench" if args.suite == "locate_v2" else "token-context"
                     command.extend(("--require-mcp-server", server_name, "--max-mcp-calls", "12"))
+                    if arm == "B1":
+                        # hybrid arm: not calling the MCP server is a legitimate outcome (adoption is measured)
+                        command.append("--mcp-optional")
 
                 # Agent-specific command generation
                 if args.agent == "codex":

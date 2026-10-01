@@ -95,6 +95,7 @@ def run_command(
     raw_output: Path,
     stderr_output: Path,
     required_mcp_server: str | None = None,
+    mcp_optional: bool = False,
     protocol: str = "hybrid",
     max_mcp_calls: int | None = None,
     telemetry: dict[str, Any] | None = None,
@@ -248,12 +249,15 @@ def run_command(
                             native_command_output_bytes += ev.bytes
 
                     elif isinstance(ev, Usage):
+                        # provider ``raw`` first: its ``input_tokens`` counts only the uncached tokens (Claude Code) and
+                        # must not overwrite the normalised totals
                         final_usage = {
+                            **ev.raw,
                             "input_tokens": ev.input_total,
+                            "uncached_input_tokens": ev.input_uncached,
                             "output_tokens": ev.output,
                             "cached_input_tokens": ev.cached,
                             "cost_usd": ev.cost_usd,
-                            **ev.raw,
                         }
                 if failure is not None:
                     break
@@ -329,7 +333,7 @@ def run_command(
         raise RuntimeError(f"agent command exited with status {return_code}")
     if final_usage is None:
         raise RuntimeError("agent command completed without a turn.completed usage event")
-    if required_mcp_server and required_mcp_server not in mcp_servers:
+    if required_mcp_server and not mcp_optional and required_mcp_server not in mcp_servers:
         raise RuntimeError(f"agent command completed without calling required MCP server: {required_mcp_server}")
     if telemetry is not None:
         telemetry.update(
@@ -395,6 +399,11 @@ def main() -> int:
     parser.add_argument("--stderr-output", required=True, type=Path)
     parser.add_argument("--usage-output", required=True, type=Path)
     parser.add_argument("--require-mcp-server")
+    parser.add_argument(
+        "--mcp-optional",
+        action="store_true",
+        help="record the run even if the agent never calls the MCP server (hybrid arm: adoption is a result, not a failure)",
+    )
     parser.add_argument("--protocol", choices=("hybrid", "mcp-first"), default="hybrid")
     parser.add_argument("--max-mcp-calls", type=int)
     parser.add_argument("--agent", choices=("codex", "claude", "gemini"), default="codex")
@@ -427,6 +436,7 @@ def main() -> int:
             raw_output=args.raw_output,
             stderr_output=args.stderr_output,
             required_mcp_server=args.require_mcp_server,
+            mcp_optional=args.mcp_optional,
             protocol=args.protocol,
             max_mcp_calls=args.max_mcp_calls,
             telemetry=telemetry,
@@ -505,6 +515,9 @@ def main() -> int:
         "grading": grading_info,
         "prompt_sha256": args.prompt_sha256,
         "cached_input_tokens": int(usage.get("cached_input_tokens", 0)),
+        "uncached_input_tokens": int(usage.get("uncached_input_tokens", input_tokens)),
+        "cost_usd": usage.get("cost_usd"),
+        "mcp_adopted": call_count > 0,
         "reasoning_output_tokens": int(usage.get("reasoning_output_tokens", 0)),
         "mcp_health": "passed",
         "mcp_errors": [],

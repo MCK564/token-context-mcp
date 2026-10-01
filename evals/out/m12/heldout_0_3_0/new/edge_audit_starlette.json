@@ -1,0 +1,349 @@
+{
+  "repo_id": "heldout-starlette",
+  "total_symbols": 2063,
+  "total_edges": 3487,
+  "unresolved_edges": 1212,
+  "total_suspicious_edges": 169,
+  "suspicious_edges_ratio": 0.0485,
+  "status_counts": {
+    "resolved": 2406,
+    "ambiguous": 1081
+  },
+  "scope_counts": {
+    "scope:same_file": 229,
+    "scope:none": 131,
+    "scope:global_ambiguous": 26,
+    "scope:unresolved_receiver": 715,
+    "scope:import_match": 1123,
+    "scope:exact_receiver_type": 402,
+    "scope:same_class": 108,
+    "scope:attr_type": 6,
+    "scope:attr_type_unmatched": 15,
+    "scope:import_ambiguous": 49,
+    "scope:tainted_poly_receiver": 121,
+    "scope:builtin_receiver_skipped": 16,
+    "scope:cha_inherited": 17,
+    "scope:attr_param": 1,
+    "scope:same_package_ambiguous": 18,
+    "scope:same_package": 275,
+    "scope:same_file_ambiguous": 58,
+    "scope:receiver_type_ambiguous": 61,
+    "scope:global": 114,
+    "scope:import_module_ambiguous": 2
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "python:tests/conftest.py:test_client_factory:e512bb666196a211",
+      "name": "test_client_factory",
+      "qualified_name": "test_client_factory",
+      "path": "tests/conftest.py",
+      "in_degree": 384,
+      "resolved_count": 384,
+      "ambiguous_count": 0,
+      "suspicious_count": 113,
+      "suspicious_ratio": 0.294,
+      "scopes": {
+        "scope:global": 113,
+        "scope:same_package": 271
+      },
+      "reasons": {
+        "low_confidence_0.40": 113,
+        "scope_global_fallback": 113
+      }
+    },
+    {
+      "target_symbol_id": "python:starlette/applications.py:Starlette:97d37bdf3b75c05b",
+      "name": "Starlette",
+      "qualified_name": "Starlette",
+      "path": "starlette/applications.py",
+      "in_degree": 143,
+      "resolved_count": 143,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 143
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/routing.py:Route:73c8433de4737b9a",
+      "name": "Route",
+      "qualified_name": "Route",
+      "path": "starlette/routing.py",
+      "in_degree": 131,
+      "resolved_count": 131,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 130,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/middleware/__init__.py:Middleware:f37de6ddc5f55494",
+      "name": "Middleware",
+      "qualified_name": "Middleware",
+      "path": "starlette/middleware/__init__.py",
+      "in_degree": 100,
+      "resolved_count": 100,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 100
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/responses.py:PlainTextResponse:7949cd8fa5f732ad",
+      "name": "PlainTextResponse",
+      "qualified_name": "PlainTextResponse",
+      "path": "starlette/responses.py",
+      "in_degree": 89,
+      "resolved_count": 89,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 88,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/responses.py:JSONResponse:01af283c5a030d39",
+      "name": "JSONResponse",
+      "qualified_name": "JSONResponse",
+      "path": "starlette/responses.py",
+      "in_degree": 73,
+      "resolved_count": 73,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 73
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/testclient.py:TestClient.websocket_connect:de68535fbf4ed56a",
+      "name": "websocket_connect",
+      "qualified_name": "TestClient.websocket_connect",
+      "path": "starlette/testclient.py",
+      "in_degree": 63,
+      "resolved_count": 63,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 63
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/responses.py:Response:9328f2c16014d23a",
+      "name": "Response",
+      "qualified_name": "Response",
+      "path": "starlette/responses.py",
+      "in_degree": 59,
+      "resolved_count": 59,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 59
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/websockets.py:WebSocket:51024ec873afedb9",
+      "name": "WebSocket",
+      "qualified_name": "WebSocket",
+      "path": "starlette/websockets.py",
+      "in_degree": 51,
+      "resolved_count": 51,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 51
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/requests.py:Request:f1f6f0dae412d43a",
+      "name": "Request",
+      "qualified_name": "Request",
+      "path": "starlette/requests.py",
+      "in_degree": 49,
+      "resolved_count": 49,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 49
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/websockets.py:WebSocket.accept:466d7073f33f79a6",
+      "name": "accept",
+      "qualified_name": "WebSocket.accept",
+      "path": "starlette/websockets.py",
+      "in_degree": 49,
+      "resolved_count": 49,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 49
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/staticfiles.py:StaticFiles:0a8e0f3db85f300c",
+      "name": "StaticFiles",
+      "qualified_name": "StaticFiles",
+      "path": "starlette/staticfiles.py",
+      "in_degree": 39,
+      "resolved_count": 39,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 39
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/websockets.py:WebSocket.close:5ca44226a2c21244",
+      "name": "close",
+      "qualified_name": "WebSocket.close",
+      "path": "starlette/websockets.py",
+      "in_degree": 37,
+      "resolved_count": 37,
+      "ambiguous_count": 0,
+      "suspicious_count": 6,
+      "suspicious_ratio": 0.162,
+      "scopes": {
+        "scope:exact_receiver_type": 37
+      },
+      "reasons": {
+        "receiver_mismatch:session_vs_websocket": 6
+      }
+    },
+    {
+      "target_symbol_id": "python:starlette/middleware/base.py:BaseHTTPMiddleware.call_next:c259fcf6ff3d7e5c",
+      "name": "call_next",
+      "qualified_name": "BaseHTTPMiddleware.call_next",
+      "path": "starlette/middleware/base.py",
+      "in_degree": 35,
+      "resolved_count": 35,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 35
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/requests.py:Request.body:eb2151b8aedd1164",
+      "name": "body",
+      "qualified_name": "Request.body",
+      "path": "starlette/requests.py",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 29,
+        "scope:same_class": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/routing.py:Mount:8190c06cd10388ba",
+      "name": "Mount",
+      "qualified_name": "Mount",
+      "path": "starlette/routing.py",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:import_match": 29
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/routing.py:Router:049b0e107ad34d3e",
+      "name": "Router",
+      "qualified_name": "Router",
+      "path": "starlette/routing.py",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 23,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/responses.py:FileResponse:650f5c732c629ca1",
+      "name": "FileResponse",
+      "qualified_name": "FileResponse",
+      "path": "starlette/responses.py",
+      "in_degree": 20,
+      "resolved_count": 20,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 20
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/datastructures.py:Headers:3b1f084768439bb2",
+      "name": "Headers",
+      "qualified_name": "Headers",
+      "path": "starlette/datastructures.py",
+      "in_degree": 20,
+      "resolved_count": 20,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 19,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:starlette/websockets.py:WebSocket.send_json:d0cd46914ea51985",
+      "name": "send_json",
+      "qualified_name": "WebSocket.send_json",
+      "path": "starlette/websockets.py",
+      "in_degree": 20,
+      "resolved_count": 20,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 20
+      },
+      "reasons": {}
+    }
+  ]
+}

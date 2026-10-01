@@ -1,0 +1,369 @@
+{
+  "tag": "new",
+  "repo_id": "heldout-zod",
+  "role": "heldout",
+  "index_run_id": "run_20261001T004927Z_144e960b",
+  "reviewed_gold": true,
+  "total_call_sites": 30,
+  "internal_call_sites": 12,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 0,
+    "correct_edges": 0,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 12,
+    "resolved_correctly": 0,
+    "recall": 0.0
+  },
+  "scope_breakdown": {},
+  "sites": [
+    {
+      "path": "packages/bench/bench-invalid.ts",
+      "line": 115,
+      "callee_text": "Object.freeze",
+      "expected": "external",
+      "reason": "Object.freeze is a JavaScript built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/benchUtil.ts",
+      "line": 64,
+      "callee_text": "toFixed",
+      "expected": {
+        "path": "packages/bench/benchUtil.ts",
+        "qualified_name": "toFixed"
+      },
+      "reason": "Calls the module-local function toFixed declared at the bottom of the same file.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/compile-array-build.ts",
+      "line": 115,
+      "callee_text": "validateReturnInput",
+      "expected": {
+        "path": "packages/bench/compile-array-build.ts",
+        "qualified_name": "validateReturnInput"
+      },
+      "reason": "Calls the module-level function validateReturnInput defined in the same file.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/compile-codec-direction.ts",
+      "line": 131,
+      "callee_text": "unifiedNestedBranch",
+      "expected": {
+        "path": "packages/bench/compile-codec-direction.ts",
+        "qualified_name": "unifiedNestedBranch"
+      },
+      "reason": "Calls the module-level function unifiedNestedBranch defined in the same file.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/compile-output.ts",
+      "line": 262,
+      "callee_text": "console.log",
+      "expected": "external",
+      "reason": "console.log is a runtime built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/failing-safeparse.ts",
+      "line": 22,
+      "callee_text": "shape",
+      "expected": {
+        "path": "packages/bench/failing-safeparse.ts",
+        "qualified_name": "shape"
+      },
+      "reason": "shape is a module-level arrow function const defined in the same file and called here with z45.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/ipv4-regex.ts",
+      "line": 17,
+      "callee_text": "metabench(\"ipv4 regex\")\n  .add(\"A\", () => {\n    return ipv4RegexA.test(DATA);\n  })\n  .add",
+      "expected": {
+        "path": "packages/bench/metabench.ts",
+        "qualified_name": "Metabench.add"
+      },
+      "reason": "The outermost call in the chain is .add on the Metabench returned by metabench(); add is defined on the abstract class Metabench and returns this.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/libs.ts",
+      "line": 34,
+      "callee_text": "v.parse",
+      "expected": "external",
+      "reason": "v.parse is valibot's parse (import * as v from valibot).",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/memory/calibrate.ts",
+      "line": 14,
+      "callee_text": "Set",
+      "expected": "external",
+      "reason": "new Set is the built-in Set constructor.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/object-safe.ts",
+      "line": 4,
+      "callee_text": "metabench",
+      "expected": {
+        "path": "packages/bench/metabench.ts",
+        "qualified_name": "metabench"
+      },
+      "reason": "metabench is imported from ./metabench.js and resolves to the exported function in metabench.ts.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/object-setup.ts",
+      "line": 14,
+      "callee_text": "Math.random",
+      "expected": "external",
+      "reason": "Math.random is a JavaScript built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/safe.ts",
+      "line": 21,
+      "callee_text": "Math.random",
+      "expected": "external",
+      "reason": "Math.random is a JavaScript built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/bench/union.ts",
+      "line": 5,
+      "callee_text": "z.object",
+      "expected": "external",
+      "reason": "z is a callback parameter typed typeof zod4, and makeSchema only ever passes the npm-aliased published zod@3.24 and zod@4.0.8 packages, so every possible target is third-party code, never repo source.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/docs/app/api/search/route.ts",
+      "line": 4,
+      "callee_text": "createFromSource",
+      "expected": "external",
+      "reason": "createFromSource comes from the third-party fumadocs-core/search/server package.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/docs/components/gold.tsx",
+      "line": 11,
+      "callee_text": "() => {\n  const companies: Company[] = [\n    {\n      name: \"CodeRabbit\",\n      description: \"Cut code review time & bugs in half\",\n      logoDark: \"https://github.com/user-attachments/assets/eea24edb-ff20-4532-b57c-e8719f455d6d\",\n      logoLight: \"https://github.com/user-attachments/assets/d791bc7d-dc60-4d55-9c31-97779839cb74\",\n      url: \"coderabbit.ai\",\n      href: \"https://www.coderabbit.ai/\",\n    },\n  ];\n\n  return (\n    <div className=\"max-w-4xl mt-4\">\n      <div className=\"border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-md\">\n        <div className={`grid grid-cols-1 ${companies.length > 1 ? \"sm:grid-cols-2\" : \"\"}",
+      "expected": {
+        "path": "packages/docs/components/gold.tsx",
+        "qualified_name": "Gold"
+      },
+      "reason": "Not a real call: the node is the arrow function expression that defines the exported Gold component; the best label is the function that node is.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/docs/loaders/source.ts",
+      "line": 33,
+      "callee_text": "Date",
+      "expected": "external",
+      "reason": "new Date is the built-in Date constructor.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/integration/fixtures/ai-sdk/index.ts",
+      "line": 13,
+      "callee_text": "z.number",
+      "expected": {
+        "path": "packages/zod/src/v4/classic/schemas.ts",
+        "qualified_name": "number"
+      },
+      "reason": "z is imported from the workspace zod package (source condition), whose z namespace re-exports number from classic/schemas.ts.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/treeshake/zod-default-import.ts",
+      "line": 3,
+      "callee_text": "z.object",
+      "expected": {
+        "path": "packages/zod/src/v4/classic/schemas.ts",
+        "qualified_name": "object"
+      },
+      "reason": "Default import z from workspace zod is the classic namespace re-exporting object from classic/schemas.ts.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/treeshake/zod3-string.ts",
+      "line": 4,
+      "callee_text": "console.log",
+      "expected": "external",
+      "reason": "console.log is a runtime built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v3/benchmarks/index.ts",
+      "line": 28,
+      "callee_text": "argv.includes",
+      "expected": "external",
+      "reason": "argv is process.argv.slice(2), an array, so includes is Array.prototype.includes.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v3/benchmarks/object.ts",
+      "line": 6,
+      "callee_text": "Benchmark.Suite",
+      "expected": "external",
+      "reason": "Benchmark.Suite is the constructor from the third-party benchmark package.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+      "line": 85,
+      "callee_text": "ctx.common.issues.push",
+      "expected": "external",
+      "reason": "ctx.common.issues is a ZodIssue[] array, so push is Array.prototype.push.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/core/errors.ts",
+      "line": 385,
+      "callee_text": "Object.prototype.hasOwnProperty.call",
+      "expected": "external",
+      "reason": "Object.prototype.hasOwnProperty.call is a JavaScript built-in.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/cs.ts",
+      "line": 89,
+      "callee_text": "getSizing",
+      "expected": {
+        "path": "packages/zod/src/v4/locales/cs.ts",
+        "qualified_name": "getSizing"
+      },
+      "reason": "Calls the local function getSizing declared inside the error factory in the same file.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/is.ts",
+      "line": 83,
+      "callee_text": "issue.maximum.toString",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/ja.ts",
+      "line": 82,
+      "callee_text": "issue.maximum.toString",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/km.ts",
+      "line": 89,
+      "callee_text": "issue.minimum.toString",
+      "expected": "external",
+      "reason": "issue.minimum is number | bigint, so toString is the built-in method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/ne.ts",
+      "line": 79,
+      "callee_text": "issue.maximum.toString",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/locales/yo.ts",
+      "line": 108,
+      "callee_text": "util.joinValues",
+      "expected": {
+        "path": "packages/zod/src/v4/core/util.ts",
+        "qualified_name": "joinValues"
+      },
+      "reason": "util is import * as util from ../core/util.js, and joinValues is an exported function there.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "packages/zod/src/v4/mini/in-out.ts",
+      "line": 32,
+      "callee_text": "schemas.optional",
+      "expected": {
+        "path": "packages/zod/src/v4/mini/schemas.ts",
+        "qualified_name": "optional"
+      },
+      "reason": "schemas is import * as schemas from ./schemas.js (mini), which exports the function optional.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "optional",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}

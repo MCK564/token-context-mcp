@@ -1,0 +1,29 @@
+{
+  "repo_id": "heldout-serilog",
+  "queries": {
+    "PropertyValueConverter": {
+      "p50_ms": 5.447,
+      "p50_runs": [
+        5.43,
+        5.45,
+        5.447
+      ]
+    },
+    "LogEvent": {
+      "p50_ms": 12.93,
+      "p50_runs": [
+        12.89,
+        13.056,
+        12.93
+      ]
+    },
+    "Enrich": {
+      "p50_ms": 5.962,
+      "p50_runs": [
+        5.972,
+        5.95,
+        5.962
+      ]
+    }
+  }
+}
