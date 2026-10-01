@@ -1,0 +1,1104 @@
+{
+  "repo_id": "heldout-serilog",
+  "repo_url": "https://github.com/serilog/serilog",
+  "tag": "v4.4.0",
+  "commit_sha": "6d9fc0b84e004418f2677b5961b9c8970349d0be",
+  "license": "Apache-2.0",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Authored by one Claude session from reading the library source (src/Serilog only) at tag v4.4.0; no retrieval tool was run to write it. To be reviewed by a different Claude session. All tasks are TEST tasks. The repository owner has not reviewed this set. | Reviewed 2026-10-01: author and reviewer were separate sessions without retrieval tools; review log in evals/out/m12/heldout_serilog_review_log.md.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "find the most specific namespace-prefix minimum-level override for a source context, matching at a dot boundary ignoring case, else default level and switch",
+      "gold_files": [
+        "src/Serilog/Core/LevelOverrideMap.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/LevelOverrideMap.cs",
+          "qualified_name": "LevelOverrideMap.GetEffectiveLevel",
+          "def_line": 60
+        }
+      ],
+      "note": "LevelOverrideMap.GetEffectiveLevel scans the overrides (sorted descending so the longest prefix wins) for a context equal to, or followed by a dot after, the override key (case-insensitive), returning the override's switch; otherwise the defaults."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "write a string as a quoted JSON literal, escaping double quotes, backslashes and control characters with unicode escapes, copying unescaped stretches in bulk",
+      "gold_files": [
+        "src/Serilog/Formatting/Json/JsonValueFormatter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Formatting/Json/JsonValueFormatter.cs",
+          "qualified_name": "JsonValueFormatter.WriteQuotedJsonString",
+          "def_line": 570
+        }
+      ],
+      "note": "JsonValueFormatter.WriteQuotedJsonString scans for chars < 32, backslash or quote, writes the clean segments in bulk and escapes the rest (\\n, \\r, \\f, \\t, \\uXXXX)."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "idempotently signal shutdown of the batching sink: complete the queue writer and cancel the shutdown token once under a lock, since completing twice throws",
+      "gold_files": [
+        "src/Serilog/Core/Sinks/Batching/BatchingSink.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/BatchingSink.cs",
+          "qualified_name": "BatchingSink.SignalShutdown",
+          "def_line": 305
+        }
+      ],
+      "note": "BatchingSink.SignalShutdown takes _stateLock and, if not already cancelled, completes the Channel writer and cancels _shutdownSignal; Dispose and DisposeAsync both call it."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "split a setting value of the form Namespace.Type::StaticMember, optionally followed by assembly qualifiers, into a type name and a member name using a regular expression",
+      "gold_files": [
+        "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+          "qualified_name": "SettingValueConversions.TryParseStaticMemberAccessor",
+          "def_line": 139
+        }
+      ],
+      "note": "SettingValueConversions.TryParseStaticMemberAccessor matches StaticMemberAccessorRegex and recombines the short type name with the trailing qualifiers into accessorTypeName plus memberName."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "run a configuration callback against a temporary capturing WriteTo configuration and return the single sink it added, or a disposing aggregate when several were added",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerSinkConfiguration.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+          "qualified_name": "LoggerSinkConfiguration.CreateSink",
+          "def_line": 385
+        }
+      ],
+      "note": "LoggerSinkConfiguration.CreateSink builds a capturing LoggerConfiguration/LoggerSinkConfiguration, runs the callback and returns sinksToWrap[0] or a DisposingAggregateSink."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "temporarily hide all ambient LogContext enrichers by swapping in the empty stack, returning a disposable bookmark that restores the previous stack",
+      "gold_files": [
+        "src/Serilog/Context/LogContext.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Context/LogContext.cs",
+          "qualified_name": "LogContext.Suspend",
+          "def_line": 169
+        }
+      ],
+      "note": "LogContext.Suspend creates a ContextStackBookmark of the current stack and sets Enrichers to EnricherStack.Empty; disposing the bookmark restores it. Reset() clears without a bookmark."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "extension method that returns a context logger carrying a property only when the given event level is enabled, otherwise returns the same logger unchanged",
+      "gold_files": [
+        "src/Serilog/LoggerExtensions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/LoggerExtensions.cs",
+          "qualified_name": "LoggerExtensions.ForContext",
+          "def_line": 20
+        }
+      ],
+      "note": "LoggerExtensions.ForContext<TValue>(this ILogger, LogEventLevel, name, value, destructure) is the only method in the class: IsEnabled(level) ? logger.ForContext(...) : logger."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "predicate factory selecting events by SourceContext: a generic type's full name, or a string name matching itself or a namespace prefix ending at a dot",
+      "gold_files": [
+        "src/Serilog/Filters/Matching.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Filters/Matching.cs",
+          "qualified_name": "Matching.FromSource",
+          "def_line": 27
+        }
+      ],
+      "note": "Matching.FromSource has two overloads (generic type, and string name/namespace prefix); both are valid answers, def_line is the first overload."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "render a dictionary property value as square brackets holding comma-separated parenthesised key: value pairs",
+      "gold_files": [
+        "src/Serilog/Events/DictionaryValue.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Events/DictionaryValue.cs",
+          "qualified_name": "DictionaryValue.Render",
+          "def_line": 47
+        }
+      ],
+      "note": "DictionaryValue.Render writes '[' then '(key: value)' pairs separated by ', ' then ']'. SequenceValue/StructureValue.Render use different layouts."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "split the text inside a message template placeholder into property name with destructuring prefix, comma alignment and colon format, rejecting an empty alignment",
+      "gold_files": [
+        "src/Serilog/Parsing/MessageTemplateParser.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Parsing/MessageTemplateParser.cs",
+          "qualified_name": "MessageTemplateParser.TrySplitTagContent",
+          "def_line": 167
+        }
+      ],
+      "note": "MessageTemplateParser.TrySplitTagContent finds ':' and ',' delimiters to produce name/format/alignment and returns false for forms like '{Name,}' or '{Name,:x}'."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "memoises tokenised format strings keyed by reference identity; very long strings bypass the store, and it is emptied wholesale once a thousand entries accumulate",
+      "gold_files": [
+        "src/Serilog/Core/Pipeline/MessageTemplateCache.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/Pipeline/MessageTemplateCache.cs",
+          "qualified_name": "MessageTemplateCache.Parse",
+          "def_line": 40
+        }
+      ],
+      "note": "MessageTemplateCache.Parse skips the Hashtable (ByReferenceStringComparer) for templates over 1024 chars and clears it when it reaches 1000 items."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "runs the attached enricher inside a try/catch, reporting any failure to diagnostics, then unconditionally forwards the event to the sink without re-testing severity",
+      "gold_files": [
+        "src/Serilog/Core/Logger.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/Logger.cs",
+          "qualified_name": "Logger.PostLevelCheckEmit",
+          "def_line": 474
+        }
+      ],
+      "note": "Logger.PostLevelCheckEmit enriches with exception handling (SelfLog) then calls _sink.Emit; the level check is done by callers."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "on release, wipes the buffer and keeps this instance as the thread's cached one unless its capacity exceeds 32768 characters, when it is closed",
+      "gold_files": [
+        "src/Serilog/Rendering/ReusableStringWriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Rendering/ReusableStringWriter.cs",
+          "qualified_name": "ReusableStringWriter.Dispose",
+          "def_line": 40
+        }
+      ],
+      "note": "ReusableStringWriter.Dispose(bool) clears the StringBuilder and re-pools the writer in a [ThreadStatic] field unless capacity exceeds StringBuilderCapacityThreshold."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "reflect public getters into named members, skipping indexers and repeated names via a thread-static set; getter exceptions become message text unless propagating; anonymous types untagged",
+      "gold_files": [
+        "src/Serilog/Capturing/PropertyValueConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+          "qualified_name": "PropertyValueConverter.CreateStructureValue",
+          "def_line": 437
+        }
+      ],
+      "note": "PropertyValueConverter.CreateStructureValue reflects properties with a [ThreadStatic] seen-names set, skips 'Item' indexers, handles TargetInvocation/NotSupported exceptions and omits the type tag for compiler-generated types."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "returns the same instance if every child comes back reference-identical; at the first change copies earlier members, rebuilds the rest and keeps the type tag",
+      "gold_files": [
+        "src/Serilog/Data/LogEventPropertyValueRewriter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Data/LogEventPropertyValueRewriter.cs",
+          "qualified_name": "LogEventPropertyValueRewriter.VisitStructureValue",
+          "def_line": 81
+        }
+      ],
+      "note": "LogEventPropertyValueRewriter.VisitStructureValue is copy-on-write and preserves structure.TypeTag; the sequence/dictionary variants have no type tag."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "from reflected candidates of a given name, keep those whose parameters after the first are all defaulted or supplied by name, ordered by most supplied",
+      "gold_files": [
+        "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.SelectConfigurationMethod",
+          "def_line": 257
+        }
+      ],
+      "note": "KeyValuePairSettings.SelectConfigurationMethod filters MethodInfos by name and parameter satisfiability and orders by the count of supplied argument names."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "thread-safe severity threshold: volatile read, locked write, raising a change notification with old and new values only when the threshold actually differs",
+      "gold_files": [
+        "src/Serilog/Core/LoggingLevelSwitch.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/LoggingLevelSwitch.cs",
+          "qualified_name": "LoggingLevelSwitch.MinimumLevel",
+          "def_line": 47
+        }
+      ],
+      "note": "LoggingLevelSwitch.MinimumLevel property: getter reads the volatile field, setter locks and invokes MinimumLevelChanged only when the value changes."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "emit one placeholder: raw source text if no value is bound; written directly without an alignment width, else buffered and padded only if shorter",
+      "gold_files": [
+        "src/Serilog/Rendering/MessageTemplateRenderer.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Rendering/MessageTemplateRenderer.cs",
+          "qualified_name": "MessageTemplateRenderer.RenderPropertyToken",
+          "def_line": 57
+        }
+      ],
+      "note": "MessageTemplateRenderer.RenderPropertyToken writes pt.RawText when the property is missing, renders directly without alignment, else buffers in a ReusableStringWriter and pads via Padding.Apply."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "enrichers configured through a callback on a temporary setup: none returns the parent, several are grouped fail-safe, a decorator encloses them, warning if not disposable",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+          "qualified_name": "LoggerEnrichmentConfiguration.Wrap",
+          "def_line": 148
+        }
+      ],
+      "note": "LoggerEnrichmentConfiguration.Wrap (static) collects enrichers into a list; 0 -> parent config, 1 -> itself, n -> SafeAggregateEnricher; wraps with wrapEnricher and warns via SelfLog if not IDisposable. LoggerSinkConfiguration.Wrap is the sink analogue and is about sinks."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "emits a timestamped message with up to three format arguments to the configured callback if set, bumping a telemetry counter even when diagnostics are disabled",
+      "gold_files": [
+        "src/Serilog/Debugging/SelfLog.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Debugging/SelfLog.cs",
+          "qualified_name": "SelfLog.WriteLine",
+          "def_line": 76
+        }
+      ],
+      "note": "SelfLog.WriteLine formats '{UtcNow:o} {format}' with up to three args, invokes _output if not null, and always increments SelfMetrics.DiagnosticsSelfLogWrites. SelfLog.SelfLogFailureListener.OnLoggingFailed is similar (counter + callback) but takes sender/kind/events/exception, not a format string with three optional arguments."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "sink fallback chain: a failing sink's dropped events replay into the next fallback; the chain-building configuration method, the error-catching wrapper sink and the forwarding listener",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+        "src/Serilog/Core/Sinks/Fallback/FailureListenerSink.cs",
+        "src/Serilog/Core/Sinks/Fallback/DelegatingLoggingFailureListener.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+          "qualified_name": "LoggerSinkConfiguration.FallbackChain",
+          "def_line": 275
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Fallback/FailureListenerSink.cs",
+          "qualified_name": "FailureListenerSink.Emit",
+          "def_line": 33
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Fallback/DelegatingLoggingFailureListener.cs",
+          "qualified_name": "DelegatingLoggingFailureListener.OnLoggingFailed",
+          "def_line": 19
+        }
+      ],
+      "note": "FallbackChain reverses the configured chain and wraps each sink in a FailureListenerSink whose listener is a DelegatingLoggingFailureListener that emits dropped events into the next sink."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "when a batch fails to send: backoff with growing intervals, dropping the batch at the retry time limit, and eventually draining the whole queue",
+      "gold_files": [
+        "src/Serilog/Core/Sinks/Batching/FailureAwareBatchScheduler.cs",
+        "src/Serilog/Core/Sinks/Batching/BatchingSink.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/FailureAwareBatchScheduler.cs",
+          "qualified_name": "FailureAwareBatchScheduler.MarkFailure",
+          "def_line": 65
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/FailureAwareBatchScheduler.cs",
+          "qualified_name": "FailureAwareBatchScheduler.NextInterval",
+          "def_line": 86
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/BatchingSink.cs",
+          "qualified_name": "BatchingSink.DrainOnFailure",
+          "def_line": 202
+        }
+      ],
+      "note": "MarkFailure decides drop-batch / drop-queue from the retry limit and consecutive drops, NextInterval provides the exponential backoff, and BatchingSink.DrainOnFailure empties the channel to the failure listener."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how string settings like write-to:Console become configuration calls: scanning assemblies for static extension methods, matching by argument name, converting strings to parameter types",
+      "gold_files": [
+        "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+        "src/Serilog/Settings/KeyValuePairs/CallableConfigurationMethodFinder.cs",
+        "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.ApplyDirectives",
+          "def_line": 227
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.SelectConfigurationMethod",
+          "def_line": 257
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/CallableConfigurationMethodFinder.cs",
+          "qualified_name": "CallableConfigurationMethodFinder.FindConfigurationMethods",
+          "def_line": 20
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+          "qualified_name": "SettingValueConversions.ConvertToType",
+          "def_line": 40
+        }
+      ],
+      "note": "ApplyDirectives selects and invokes the method, FindConfigurationMethods discovers candidate static methods, and SettingValueConversions.ConvertToType converts each string argument. SelectConfigurationMethod is the part that matches candidate methods by supplied argument names."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how the Level placeholder of an output template is rendered: abbreviated to a width like u3 or w1, cased, then padded to the requested alignment",
+      "gold_files": [
+        "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+        "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+        "src/Serilog/Rendering/Padding.cs",
+        "src/Serilog/Rendering/Casing.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+          "qualified_name": "MessageTemplateTextFormatter.Format",
+          "def_line": 55
+        },
+        {
+          "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+          "qualified_name": "LevelOutputFormat.GetLevelMoniker",
+          "def_line": 55
+        },
+        {
+          "path": "src/Serilog/Rendering/Padding.cs",
+          "qualified_name": "Padding.Apply",
+          "def_line": 24
+        },
+        {
+          "path": "src/Serilog/Rendering/Casing.cs",
+          "qualified_name": "Casing.Format",
+          "def_line": 24
+        }
+      ],
+      "note": "Format dispatches the Level token to LevelOutputFormat.GetLevelMoniker (width/case maps, falling back to Casing.Format for plain u/w) and pads with Padding.Apply; Padding.Apply has a string and a StringBuilder overload."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how properties pushed onto the ambient LogContext reach later events: the enricher registered via Enrich.FromLogContext and the context routine that walks the async-local enricher stack",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+        "src/Serilog/Context/LogContextEnricher.cs",
+        "src/Serilog/Context/LogContext.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+          "qualified_name": "LoggerEnrichmentConfiguration.FromLogContext",
+          "def_line": 86
+        },
+        {
+          "path": "src/Serilog/Context/LogContextEnricher.cs",
+          "qualified_name": "LogContextEnricher.Enrich",
+          "def_line": 19
+        },
+        {
+          "path": "src/Serilog/Context/LogContext.cs",
+          "qualified_name": "LogContext.Enrich",
+          "def_line": 201
+        }
+      ],
+      "note": "FromLogContext registers LogContextEnricher whose Enrich calls LogContext.Enrich, which iterates the AsyncLocal EnricherStack."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "limiting destructuring depth: the configuration option that sets the maximum, and the thread-static depth counter that yields a null scalar once it is reached",
+      "gold_files": [
+        "src/Serilog/Capturing/DepthLimiter.cs",
+        "src/Serilog/Configuration/LoggerDestructuringConfiguration.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Capturing/DepthLimiter.cs",
+          "qualified_name": "PropertyValueConverter.DepthLimiter.CreatePropertyValue",
+          "def_line": 38
+        },
+        {
+          "path": "src/Serilog/Capturing/DepthLimiter.cs",
+          "qualified_name": "PropertyValueConverter.DepthLimiter.DefaultIfMaximumDepth",
+          "def_line": 62
+        },
+        {
+          "path": "src/Serilog/Capturing/DepthLimiter.cs",
+          "qualified_name": "PropertyValueConverter.DepthLimiter.SetCurrentDepth",
+          "def_line": 33
+        },
+        {
+          "path": "src/Serilog/Configuration/LoggerDestructuringConfiguration.cs",
+          "qualified_name": "LoggerDestructuringConfiguration.ToMaximumDepth",
+          "def_line": 167
+        }
+      ],
+      "note": "DepthLimiter (nested in PropertyValueConverter) keeps a [ThreadStatic] depth, returns ScalarValue.Null at the maximum; the maximum comes from Destructure.ToMaximumDepth. CreatePropertyValue has two overloads in DepthLimiter; both are valid."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "auditing versus regular logging: how the logger chooses between exception-swallowing and exception-propagating aggregate sinks, and whether filter errors propagate",
+      "gold_files": [
+        "src/Serilog/LoggerConfiguration.cs",
+        "src/Serilog/Core/Sinks/AggregateSink.cs",
+        "src/Serilog/Core/Sinks/SafeAggregateSink.cs",
+        "src/Serilog/Core/Sinks/FilteringSink.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/LoggerConfiguration.cs",
+          "qualified_name": "LoggerConfiguration.CreateLogger",
+          "def_line": 127
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/AggregateSink.cs",
+          "qualified_name": "AggregateSink.Emit",
+          "def_line": 28
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/SafeAggregateSink.cs",
+          "qualified_name": "SafeAggregateSink.Emit",
+          "def_line": 27
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/FilteringSink.cs",
+          "qualified_name": "FilteringSink.Emit",
+          "def_line": 30
+        }
+      ],
+      "note": "CreateLogger uses SafeAggregateSink for WriteTo sinks and AggregateSink (rethrowing AggregateException) when audit sinks exist, and passes auditing to FilteringSink, which rethrows filter exceptions only then."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "isolating events sent to a secondary logger: the sink copies each event and its property dictionary first so sub-logger enrichers cannot alter the original",
+      "gold_files": [
+        "src/Serilog/Core/Sinks/SecondaryLoggerSink.cs",
+        "src/Serilog/Events/LogEvent.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Core/Sinks/SecondaryLoggerSink.cs",
+          "qualified_name": "SecondaryLoggerSink.Emit",
+          "def_line": 38
+        },
+        {
+          "path": "src/Serilog/Events/LogEvent.cs",
+          "qualified_name": "LogEvent.Copy",
+          "def_line": 275
+        }
+      ],
+      "note": "SecondaryLoggerSink.Emit calls logEvent.Copy() (new properties dictionary, same template/exception/trace ids) and writes the copy to the wrapped ILogger."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "custom destructuring transformations for a type: configuration methods wrapping delegates in a projection policy, and the policy that applies the projection and recaptures the result",
+      "gold_files": [
+        "src/Serilog/Configuration/LoggerDestructuringConfiguration.cs",
+        "src/Serilog/Policies/ProjectedDestructuringPolicy.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Configuration/LoggerDestructuringConfiguration.cs",
+          "qualified_name": "LoggerDestructuringConfiguration.ByTransforming",
+          "def_line": 125
+        },
+        {
+          "path": "src/Serilog/Configuration/LoggerDestructuringConfiguration.cs",
+          "qualified_name": "LoggerDestructuringConfiguration.ByTransformingWhere",
+          "def_line": 147
+        },
+        {
+          "path": "src/Serilog/Policies/ProjectedDestructuringPolicy.cs",
+          "qualified_name": "ProjectedDestructuringPolicy.TryDestructure",
+          "def_line": 28
+        }
+      ],
+      "note": "ByTransforming/ByTransformingWhere wrap delegates in ProjectedDestructuringPolicy, whose TryDestructure projects the value and re-captures it with destructureObjects:true."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "how byte arrays and Memory<byte> values are captured as hex text, truncated to the first sixteen bytes with a total count once over a kilobyte",
+      "gold_files": [
+        "src/Serilog/Policies/ByteArrayScalarConversionPolicy.cs",
+        "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/Serilog/Policies/ByteArrayScalarConversionPolicy.cs",
+          "qualified_name": "ByteArrayScalarConversionPolicy.TryConvertToScalar",
+          "def_line": 24
+        },
+        {
+          "path": "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs",
+          "qualified_name": "ByteMemoryScalarConversionPolicy.TryConvertToScalar",
+          "def_line": 27
+        },
+        {
+          "path": "src/Serilog/Policies/ByteMemoryScalarConversionPolicy.cs",
+          "qualified_name": "ByteMemoryScalarConversionPolicy.ConvertToHexString",
+          "def_line": 45
+        }
+      ],
+      "note": "Two sibling policies: byte[] (ByteArrayScalarConversionPolicy) and Memory<byte>/ReadOnlyMemory<byte> (ByteMemoryScalarConversionPolicy); both cap at 16 bytes beyond 1024."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/LoggerConfiguration.cs",
+        "qualified_name": "LoggerConfiguration.CreateLogger",
+        "def_line": 127
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Core/Sinks/SafeAggregateSink.cs",
+          "qualified_name": "SafeAggregateSink",
+          "need": "signature",
+          "why": "CreateLogger wraps the regular WriteTo sinks in it; the constructor takes the sink sequence and Emit swallows each sink's exception, which is the non-audit behaviour."
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/AggregateSink.cs",
+          "qualified_name": "AggregateSink",
+          "need": "signature",
+          "why": "when audit sinks exist CreateLogger combines the safe sink with the audit sinks in an AggregateSink, whose Emit rethrows failures as an AggregateException."
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/FilteringSink.cs",
+          "qualified_name": "FilteringSink",
+          "need": "body",
+          "why": "configured filters are applied through this wrapper; CreateLogger passes the auditing flag as propagateExceptions, which only matters inside Emit's try/catch."
+        },
+        {
+          "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+          "qualified_name": "PropertyValueConverter.PropertyValueConverter",
+          "need": "signature",
+          "why": "CreateLogger constructs it with seven positional settings (depth, string length, collection count, scalar types, dictionary types, policies, propagateExceptions); the argument order must match."
+        },
+        {
+          "path": "src/Serilog/Core/LevelOverrideMap.cs",
+          "qualified_name": "LevelOverrideMap",
+          "need": "signature",
+          "why": "created only when overrides exist, from the overrides dictionary, the minimum level and the level switch, which CreateLogger has stored."
+        },
+        {
+          "path": "src/Serilog/Core/Logger.cs",
+          "qualified_name": "Logger",
+          "need": "signature",
+          "why": "CreateLogger returns new(...) calling Logger's internal constructor with processor, level, switch, sink, enricher, the dispose callbacks and the override map."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+        "qualified_name": "MessageTemplateTextFormatter.Format",
+        "def_line": 55
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+          "qualified_name": "LevelOutputFormat.GetLevelMoniker",
+          "need": "signature",
+          "why": "the Level token is rendered by calling GetLevelMoniker(logEvent.Level, pt.Format); the u3/w1/t4 format semantics live there."
+        },
+        {
+          "path": "src/Serilog/Rendering/Padding.cs",
+          "qualified_name": "Padding.Apply",
+          "need": "signature",
+          "why": "every property token's text (level, trace id, span id, new line, exception, buffered values) is written through Padding.Apply(output, text, pt.Alignment), including the StringBuilder overload used for buffered values."
+        },
+        {
+          "path": "src/Serilog/Rendering/MessageTemplateRenderer.cs",
+          "qualified_name": "MessageTemplateRenderer.Render",
+          "need": "signature",
+          "why": "the Message token delegates to it with the event's template, properties, writer, format and format provider."
+        },
+        {
+          "path": "src/Serilog/Formatting/Display/PropertiesOutputFormat.cs",
+          "qualified_name": "PropertiesOutputFormat.Render",
+          "need": "signature",
+          "why": "the Properties token delegates to it, passing the event template and the output template so properties already referenced in either are omitted."
+        },
+        {
+          "path": "src/Serilog/Formatting/Display/OutputProperties.cs",
+          "qualified_name": "OutputProperties",
+          "need": "signature",
+          "why": "supplies the well-known token names (Message, Timestamp, UtcTimestamp, Level, TraceId, SpanId, NewLine, Exception, Properties) that Format dispatches on."
+        },
+        {
+          "path": "src/Serilog/Rendering/ReusableStringWriter.cs",
+          "qualified_name": "ReusableStringWriter.GetOrCreate",
+          "need": "signature",
+          "why": "when a token has an alignment, Format buffers its output in a pooled writer obtained from here so the length can be measured before padding, then disposes it."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Core/Sinks/Batching/BatchingSink.cs",
+        "qualified_name": "BatchingSink.LoopAsync",
+        "def_line": 107
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/FailureAwareBatchScheduler.cs",
+          "qualified_name": "FailureAwareBatchScheduler.MarkFailure",
+          "need": "signature",
+          "why": "called in the catch block; its two out parameters shouldDropBatch and shouldDropQueue decide whether the current batch is cleared and DrainOnFailure runs."
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/FailureAwareBatchScheduler.cs",
+          "qualified_name": "FailureAwareBatchScheduler.NextInterval",
+          "need": "signature",
+          "why": "supplies the delay used to create fillBatch each iteration; it grows after consecutive failures so the loop's pacing depends on it."
+        },
+        {
+          "path": "src/Serilog/Core/IBatchedLogEventSink.cs",
+          "qualified_name": "IBatchedLogEventSink.EmitBatchAsync",
+          "need": "signature",
+          "why": "the loop hands _currentBatch (an IReadOnlyCollection<LogEvent>) to this method and treats any exception as a failed batch."
+        },
+        {
+          "path": "src/Serilog/Core/ILoggingFailureListener.cs",
+          "qualified_name": "ILoggingFailureListener.OnLoggingFailed",
+          "need": "signature",
+          "why": "the loop reports Temporary and Permanent failures through it with (sender, kind, message, events, exception)."
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/BatchingSink.cs",
+          "qualified_name": "BatchingSink.DrainOnFailure",
+          "need": "body",
+          "why": "invoked from the loop when the scheduler says to drop the queue and at shutdown with ignoreShutdownSignal; it empties the channel in chunks of 1024 to the failure listener."
+        },
+        {
+          "path": "src/Serilog/Core/Sinks/Batching/BatchingSink.cs",
+          "qualified_name": "BatchingSink.TryWaitToReadAsync",
+          "need": "body",
+          "why": "the fill phase awaits it; it caches the pending read task across calls when the timeout wins and returns false on timeout or cancellation, which controls when a partial batch is emitted."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+        "qualified_name": "KeyValuePairSettings.Configure",
+        "def_line": 83
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.ParseNamedLevelSwitchDeclarationDirectives",
+          "need": "body",
+          "why": "builds the $switch-name to LoggingLevelSwitch dictionary that Configure later uses to resolve minimum-level:controlled-by and override directives; it throws FormatException for invalid names."
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.LoadConfigurationAssemblies",
+          "need": "body",
+          "why": "supplies the assemblies scanned for configuration methods from the using directives and always includes Serilog's own assembly."
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/KeyValuePairSettings.cs",
+          "qualified_name": "KeyValuePairSettings.ApplyDirectives",
+          "need": "signature",
+          "why": "Configure groups the callable directives per receiver type and passes the grouped calls, discovered methods, receiver object and declared switches to it."
+        },
+        {
+          "path": "src/Serilog/Settings/KeyValuePairs/CallableConfigurationMethodFinder.cs",
+          "qualified_name": "CallableConfigurationMethodFinder.FindConfigurationMethods",
+          "need": "signature",
+          "why": "returns the extension (plus surrogate) methods for each receiver configuration type; Configure calls it once per receiver group with the loaded assemblies."
+        },
+        {
+          "path": "src/Serilog/Configuration/LoggerMinimumLevelConfiguration.cs",
+          "qualified_name": "LoggerMinimumLevelConfiguration.Override",
+          "need": "signature",
+          "why": "minimum-level:override:* directives call Override(namespacePrefix, level) or Override(namespacePrefix, switch), so both overloads must stay compatible with Configure's calls."
+        },
+        {
+          "path": "src/Serilog/Configuration/LoggerEnrichmentConfiguration.cs",
+          "qualified_name": "LoggerEnrichmentConfiguration.WithProperty",
+          "need": "signature",
+          "why": "enrich:with-property:* directives are applied through Enrich.WithProperty(name, value)."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+        "qualified_name": "PropertyValueConverter.TryConvertEnumerable",
+        "def_line": 172
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+          "qualified_name": "PropertyValueConverter.TryGetDictionary",
+          "need": "body",
+          "why": "decides whether an IEnumerable is treated as a dictionary: only registered dictionary types or generic Dictionary/ReadOnlyDictionary with primitive, built-in scalar or enum keys; otherwise the value falls through to sequence handling."
+        },
+        {
+          "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+          "qualified_name": "PropertyValueConverter.BuildArrayValue",
+          "need": "body",
+          "why": "multi-dimensional arrays (Rank > 1) are delegated to it, including the per-dimension collection-count cut-off."
+        },
+        {
+          "path": "src/Serilog/Capturing/DepthLimiter.cs",
+          "qualified_name": "PropertyValueConverter.DepthLimiter.CreatePropertyValue",
+          "need": "signature",
+          "why": "every key, value and element is converted through _depthLimiter.CreatePropertyValue(x, destructuring), so nesting-depth accounting depends on it."
+        },
+        {
+          "path": "src/Serilog/Events/DictionaryValue.cs",
+          "qualified_name": "DictionaryValue",
+          "need": "signature",
+          "why": "the dictionary result is a DictionaryValue built from an IEnumerable of KeyValuePair<ScalarValue, LogEventPropertyValue>; its constructor materialises the lazy MapToDictionaryElements iterator."
+        },
+        {
+          "path": "src/Serilog/Events/SequenceValue.cs",
+          "qualified_name": "SequenceValue",
+          "need": "signature",
+          "why": "the result for lists and other enumerables: built from an array for small IList values, from the lazy MapToSequenceElements iterator otherwise, or SequenceValue.Empty for empty lists."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Formatting/Json/JsonFormatter.cs",
+        "qualified_name": "JsonFormatter.Format",
+        "def_line": 55
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Formatting/Json/JsonValueFormatter.cs",
+          "qualified_name": "JsonValueFormatter.WriteQuotedJsonString",
+          "need": "signature",
+          "why": "used to write the template text, rendered message, exception and property names as escaped JSON strings; it is static and takes (string, TextWriter)."
+        },
+        {
+          "path": "src/Serilog/Formatting/Json/JsonValueFormatter.cs",
+          "qualified_name": "JsonValueFormatter.Format",
+          "need": "signature",
+          "why": "each property value is serialised through _jsonValueFormatter.Format(property.Value, output)."
+        },
+        {
+          "path": "src/Serilog/Formatting/Json/JsonFormatter.cs",
+          "qualified_name": "JsonFormatter.WriteRenderingsValues",
+          "need": "body",
+          "why": "the Renderings section is delegated to it with the grouped format-bearing property tokens; Format writes the surrounding braces and delimiters so both must agree."
+        },
+        {
+          "path": "src/Serilog/Events/MessageTemplate.cs",
+          "qualified_name": "MessageTemplate.Render",
+          "need": "signature",
+          "why": "when renderMessage is true, RenderedMessage comes from logEvent.MessageTemplate.Render(logEvent.Properties)."
+        },
+        {
+          "path": "src/Serilog/Events/LogEvent.cs",
+          "qualified_name": "LogEvent",
+          "need": "signature",
+          "why": "supplies Timestamp, Level, MessageTemplate, TraceId, SpanId, Exception and Properties that are written into the JSON object."
+        },
+        {
+          "path": "src/Serilog/Parsing/PropertyToken.cs",
+          "qualified_name": "PropertyToken",
+          "need": "signature",
+          "why": "template tokens are filtered with OfType<PropertyToken>() and grouped by PropertyName where Format != null to build the Renderings section."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Core/Logger.cs",
+        "qualified_name": "Logger.BindMessageTemplate",
+        "def_line": 1405
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Capturing/MessageTemplateProcessor.cs",
+          "qualified_name": "MessageTemplateProcessor.Process",
+          "need": "signature",
+          "why": "the method passes the template, propertyValues ?? NoPropertyValues and the out parameters to Process, which parses (via cache) and binds EventProperty[]."
+        },
+        {
+          "path": "src/Serilog/Capturing/PropertyBinder.cs",
+          "qualified_name": "PropertyBinder",
+          "need": "signature",
+          "why": "Process delegates the binding to this class (ConstructProperties); it is built from the PropertyValueConverter and logs to SelfLog instead of throwing on missing, extra or positional arguments, which is why BindMessageTemplate can return true with fewer properties."
+        },
+        {
+          "path": "src/Serilog/Events/EventProperty.cs",
+          "qualified_name": "EventProperty",
+          "need": "signature",
+          "why": "Process returns EventProperty[]; BindMessageTemplate wraps each one via new LogEventProperty(p)."
+        },
+        {
+          "path": "src/Serilog/Events/LogEventProperty.cs",
+          "qualified_name": "LogEventProperty",
+          "need": "signature",
+          "why": "the public result element type; it has an internal constructor accepting an EventProperty that is used here."
+        },
+        {
+          "path": "src/Serilog/Events/MessageTemplate.cs",
+          "qualified_name": "MessageTemplate",
+          "need": "signature",
+          "why": "the type of the out parameter parsedTemplate, which is null (NotNullWhen false) when messageTemplate is null."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Parsing/MessageTemplateParser.cs",
+        "qualified_name": "MessageTemplateParser.ParsePropertyToken",
+        "def_line": 77
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Parsing/MessageTemplateParser.cs",
+          "qualified_name": "MessageTemplateParser.TrySplitTagContent",
+          "need": "body",
+          "why": "the first step: its out results (name with hint, format, alignment) and false return decide which malformed tags become TextToken."
+        },
+        {
+          "path": "src/Serilog/Parsing/MessageTemplateParser.cs",
+          "qualified_name": "MessageTemplateParser.TryGetDestructuringHint",
+          "need": "signature",
+          "why": "maps a leading '@' (Destructure) or '$' (Stringify) to a Destructuring value via an out parameter; ParsePropertyToken then strips that character itself."
+        },
+        {
+          "path": "src/Serilog/Parsing/MessageTemplateParser.cs",
+          "qualified_name": "MessageTemplateParser.TryContinuePropertyName",
+          "need": "body",
+          "why": "drives validation of dotted identifiers through the ref beginIdent state; any rejected character makes the whole tag plain text."
+        },
+        {
+          "path": "src/Serilog/Parsing/PropertyToken.cs",
+          "qualified_name": "PropertyToken",
+          "need": "signature",
+          "why": "the successful result; its constructor (propertyName, rawText, format, alignment, destructuring) fixes the argument order used here."
+        },
+        {
+          "path": "src/Serilog/Parsing/TextToken.cs",
+          "qualified_name": "TextToken",
+          "need": "signature",
+          "why": "returned, with the raw text preserved, for every invalid or unterminated tag."
+        },
+        {
+          "path": "src/Serilog/Parsing/Alignment.cs",
+          "qualified_name": "Alignment",
+          "need": "signature",
+          "why": "built from an AlignmentDirection and the absolute width after parsing the alignment integer (a leading '-' means left)."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Context/LogContext.cs",
+        "qualified_name": "LogContext.Clone",
+        "def_line": 158
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Core/Enrichers/SafeAggregateEnricher.cs",
+          "qualified_name": "SafeAggregateEnricher",
+          "need": "signature",
+          "why": "Clone returns new SafeAggregateEnricher(stack); the constructor materialises the enumerable into an array, so the clone is a snapshot unaffected by later pushes and pops."
+        },
+        {
+          "path": "src/Serilog/Context/EnricherStack.cs",
+          "qualified_name": "EnricherStack",
+          "need": "signature",
+          "why": "the immutable linked stack passed as the IEnumerable; it enumerates from the most recently pushed enricher down, which fixes the snapshot's enrichment order."
+        },
+        {
+          "path": "src/Serilog/Context/LogContext.cs",
+          "qualified_name": "LogContext.GetOrCreateEnricherStack",
+          "need": "body",
+          "why": "Clone obtains the current async-local stack from it, lazily initialising it to EnricherStack.Empty when null."
+        },
+        {
+          "path": "src/Serilog/Core/ILogEventEnricher.cs",
+          "qualified_name": "ILogEventEnricher",
+          "need": "signature",
+          "why": "the declared return type of Clone; callers can push the returned enricher into another context."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+        "qualified_name": "PropertyValueConverter.PropertyValueConverter",
+        "def_line": 42
+      },
+      "gold_context": [
+        {
+          "path": "src/Serilog/Policies/PrimitiveScalarConversionPolicy.cs",
+          "qualified_name": "PrimitiveScalarConversionPolicy",
+          "need": "signature",
+          "why": "first entry of the scalar-policy array, so it takes precedence over the others for CLR primitives."
+        },
+        {
+          "path": "src/Serilog/Policies/SimpleScalarConversionPolicy.cs",
+          "qualified_name": "SimpleScalarConversionPolicy",
+          "need": "body",
+          "why": "receives BuiltInScalarTypes.Concat(additionalScalarTypes) and matches by exact runtime type from a HashSet, not by assignability."
+        },
+        {
+          "path": "src/Serilog/Policies/ByteArrayScalarConversionPolicy.cs",
+          "qualified_name": "ByteArrayScalarConversionPolicy",
+          "need": "signature",
+          "why": "registered after the enum policy so byte[] values are converted to hex text before any structure handling."
+        },
+        {
+          "path": "src/Serilog/Policies/DelegateDestructuringPolicy.cs",
+          "qualified_name": "DelegateDestructuringPolicy",
+          "need": "signature",
+          "why": "appended after the user-supplied destructuring policies, so user policies take priority."
+        },
+        {
+          "path": "src/Serilog/Policies/ReflectionTypesScalarDestructuringPolicy.cs",
+          "qualified_name": "ReflectionTypesScalarDestructuringPolicy",
+          "need": "signature",
+          "why": "the second built-in destructuring policy, keeping Type and MemberInfo values scalar."
+        },
+        {
+          "path": "src/Serilog/Capturing/DepthLimiter.cs",
+          "qualified_name": "PropertyValueConverter.DepthLimiter",
+          "need": "signature",
+          "why": "the constructor creates it with (maximumDestructuringDepth, this), so it needs the converter instance and the depth limit as configured."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: one author session and a different reviewer session (VERDICT: approved); executor did not read content (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

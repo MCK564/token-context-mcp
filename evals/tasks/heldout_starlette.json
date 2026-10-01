@@ -1,0 +1,1186 @@
+{
+  "repo_id": "heldout-starlette",
+  "repo_url": "https://github.com/encode/starlette",
+  "tag": "1.7.0",
+  "commit_sha": "2269e9a08c1edd3dfdea865710f40f84c857b623",
+  "license": "BSD-3-Clause",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Author draft by an independent Claude author session (2026-10-01). All 30 localisation + 10 packet tasks form the held-out TEST set; nothing may be tuned against them. Gold was located by reading source under starlette/ and every def_line was taken from the AST of the pinned commit. b_hidden_dep queries avoid the target name, qualified-name parts and file stem. Awaiting review by a different session. | Independent review by a different Claude session (2026-10-01): every def_line re-checked against the AST of the pinned commit, a/b answers re-checked for alternatives and name leakage, packet 'why' statements re-read against the code; gold sets of t21, t23, t25, t27 and t28 were extended with entry-point or counterpart symbols, no other task changed. 'reviewed' left false for the orchestrator. | Reviewed 2026-10-01: author and reviewer were separate sessions without retrieval tools; review log in evals/out/m12/heldout_starlette_review_log.md.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "set a cookie on the response with max age, expires, path, domain, secure, httponly, samesite and partitioned attributes",
+      "gold_files": [
+        "starlette/responses.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "Response.set_cookie",
+          "def_line": 89
+        }
+      ],
+      "note": "Response.set_cookie builds a SimpleCookie with the optional attributes (validating samesite, rejecting partitioned before Python 3.14) and appends a set-cookie raw header."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "convert a route path template with {name:type} placeholders into a compiled regex, a format string and a mapping of convertors",
+      "gold_files": [
+        "starlette/routing.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "compile_path",
+          "def_line": 111
+        }
+      ],
+      "note": "compile_path walks PARAM_REGEX matches, looks up each convertor type, builds the regex and format string and rejects duplicated parameter names."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "split a Cookie header string on semicolons into a dict of names and unquoted values, tolerating nameless chunks like browsers do",
+      "gold_files": [
+        "starlette/requests.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "cookie_parser",
+          "def_line": 46
+        }
+      ],
+      "note": "cookie_parser splits on ';', treats a chunk without '=' as an empty-name cookie and unquotes values with http.cookies._unquote."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "answer a CORS preflight OPTIONS request with 200 OK or a 400 naming which of origin, method, headers or private network is disallowed",
+      "gold_files": [
+        "starlette/middleware/cors.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/cors.py",
+          "qualified_name": "CORSMiddleware.preflight_response",
+          "def_line": 102
+        }
+      ],
+      "note": "CORSMiddleware.preflight_response collects failures for origin/method/headers/private-network and returns a 400 'Disallowed CORS ...' or a 200 'OK' with the preflight headers."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "load a signed cookie into the session on each request and emit Set-Cookie when it changed, or an expired cookie when cleared",
+      "gold_files": [
+        "starlette/middleware/sessions.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/sessions.py",
+          "qualified_name": "SessionMiddleware.__call__",
+          "def_line": 42
+        }
+      ],
+      "note": "SessionMiddleware.__call__ unsigns the cookie into scope['session'] and its send wrapper appends a signed Set-Cookie when modified or an expired one when the session was cleared."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "find the file for a requested relative path across the configured directories, refusing absolute paths and anything that escapes the directory",
+      "gold_files": [
+        "starlette/staticfiles.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/staticfiles.py",
+          "qualified_name": "StaticFiles.lookup_path",
+          "def_line": 160
+        }
+      ],
+      "note": "StaticFiles.lookup_path rejects absolute paths, resolves each directory (realpath or abspath depending on follow_symlink), enforces commonpath containment and returns the first stat hit."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "convert a configuration value with a cast callable, mapping true/false/1/0 strings for booleans and raising ValueError when invalid",
+      "gold_files": [
+        "starlette/config.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/config.py",
+          "qualified_name": "Config._perform_cast",
+          "def_line": 123
+        }
+      ],
+      "note": "Config._perform_cast applies cast, special-casing bool strings via a true/1/false/0 mapping and wrapping TypeError/ValueError into a descriptive ValueError."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "class-based endpoint picks the handler named after the request method, falls back from HEAD to GET, runs sync handlers in a thread, else 405",
+      "gold_files": [
+        "starlette/endpoints.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/endpoints.py",
+          "qualified_name": "HTTPEndpoint.dispatch",
+          "def_line": 32
+        }
+      ],
+      "note": "HTTPEndpoint.dispatch chooses get/post/... (HEAD falls back to get), else method_not_allowed, and runs sync handlers through run_in_threadpool."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "collect path, HTTP method and handler for every route, recursing into mounted and host sub-routes and skipping HEAD and routes excluded from the schema",
+      "gold_files": [
+        "starlette/schemas.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/schemas.py",
+          "qualified_name": "BaseSchemaGenerator.get_endpoints",
+          "def_line": 40
+        }
+      ],
+      "note": "BaseSchemaGenerator.get_endpoints returns EndpointInfo triples, recursing into Mount/Host, skipping HEAD and include_in_schema=False, and expanding class endpoints by method name."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "format a non-negative float path parameter back to a string without exponent or trailing zeros, asserting against negative, NaN and infinite values",
+      "gold_files": [
+        "starlette/convertors.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/convertors.py",
+          "qualified_name": "FloatConvertor.to_string",
+          "def_line": 61
+        }
+      ],
+      "note": "FloatConvertor.to_string asserts the value is non-negative, not NaN and not infinite, then formats it with '%0.20f' and strips trailing zeros and the dot."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "validates the authority of an incoming request, accepting bracketed IPv6 literals and an optional numeric port, yielding nothing when characters could alter the URL",
+      "gold_files": [
+        "starlette/_utils.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "parse_host_header",
+          "def_line": 118
+        }
+      ],
+      "note": "parse_host_header fullmatches _HOST_RE, validates IPv6 literals with IPv6Address and returns ParsedHost(host, port) or None for invalid input."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "picks the registered callback for a raised error by walking the error's class inheritance order from most specific to base",
+      "gold_files": [
+        "starlette/_exception_handler.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/_exception_handler.py",
+          "qualified_name": "_lookup_exception_handler",
+          "def_line": 16
+        }
+      ],
+      "note": "_lookup_exception_handler iterates type(exc).__mro__ and returns the first class registered in the handlers dict, else None."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "after a segment's metadata block ends, reads field name (error if absent), enforces upload versus plain-field caps, opens a spooled temp file for uploads",
+      "gold_files": [
+        "starlette/formparsers.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/formparsers.py",
+          "qualified_name": "MultiPartParser.on_headers_finished",
+          "def_line": 222
+        }
+      ],
+      "note": "MultiPartParser.on_headers_finished parses content-disposition, raises MultiPartException for a missing name or exceeded max_files/max_fields and creates a SpooledTemporaryFile-backed UploadFile for file parts."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "checks without blocking whether the client has gone away by polling the receive channel inside an already-cancelled scope, remembering the result once seen",
+      "gold_files": [
+        "starlette/requests.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "Request.is_disconnected",
+          "def_line": 328
+        }
+      ],
+      "note": "Request.is_disconnected awaits self._receive() inside a cancelled anyio.CancelScope so it returns immediately, and latches _is_disconnected on an http.disconnect message."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "translates an ASGI connection scope and buffered body into the CGI-style mapping synchronous Python web apps expect, joining repeated request headers with commas",
+      "gold_files": [
+        "starlette/middleware/wsgi.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/wsgi.py",
+          "qualified_name": "build_environ",
+          "def_line": 26
+        }
+      ],
+      "note": "build_environ maps scope fields (method, script name, path info, query string, server, client) and headers into a WSGI environ dict, comma-joining duplicate headers and exposing the body as wsgi.input."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "assigning a value under a name, matched case-insensitively, overwrites the first occurrence in place and drops any later duplicates while preserving order",
+      "gold_files": [
+        "starlette/datastructures.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "MutableHeaders.__setitem__",
+          "def_line": 578
+        }
+      ],
+      "note": "MutableHeaders.__setitem__ finds all matching lowercase keys, deletes the later duplicates, replaces the first in place or appends when absent."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "adds a global link-building helper to the rendering engine that resolves named routes via the current request, unless the user already defined one",
+      "gold_files": [
+        "starlette/templating.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/templating.py",
+          "qualified_name": "Jinja2Templates._setup_env_defaults",
+          "def_line": 101
+        }
+      ],
+      "note": "Jinja2Templates._setup_env_defaults defines a pass_context url_for that calls request.url_for and installs it with env.globals.setdefault."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "reads the next inbound ASGI message, aborting as oversize if the declared content length or the running byte total exceeds the cap",
+      "gold_files": [
+        "starlette/middleware/body_limit.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "RequestBodyLimitResponder.receive_with_limit",
+          "def_line": 104
+        }
+      ],
+      "note": "RequestBodyLimitResponder.receive_with_limit raises _RequestBodyTooLarge when content_length > max_body_size or the accumulated http.request bytes exceed it."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "wraps each HTTP exchange in a server trace span, flags 5xx replies as failed, renames it after the matched route template, skips excluded addresses",
+      "gold_files": [
+        "starlette/middleware/opentelemetry.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/opentelemetry.py",
+          "qualified_name": "OpenTelemetryMiddleware.__call__",
+          "def_line": 47
+        }
+      ],
+      "note": "OpenTelemetryMiddleware.__call__ skips excluded URLs, extracts propagated context, sets request attributes, wraps send to record status/5xx errors and updates the span name/http.route from scope['route'] in a finally block."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "tests whether a request falls under a nested application's prefix, splits off the remainder, extends the root prefix and records the outermost one",
+      "gold_files": [
+        "starlette/routing.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Mount.matches",
+          "def_line": 396
+        }
+      ],
+      "note": "Mount.matches matches path_regex against the route path, pops the trailing 'path' param as remaining_path, and returns child_scope with root_path extended and app_root_path set once."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "reading submitted form data from a request, choosing a decoder by content type and converting decoder limit violations into a client error",
+      "gold_files": [
+        "starlette/formparsers.py",
+        "starlette/requests.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "Request._get_form",
+          "def_line": 268
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "Request.form",
+          "def_line": 313
+        },
+        {
+          "path": "starlette/formparsers.py",
+          "qualified_name": "MultiPartParser.parse",
+          "def_line": 250
+        },
+        {
+          "path": "starlette/formparsers.py",
+          "qualified_name": "FormParser.parse",
+          "def_line": 108
+        }
+      ],
+      "note": "Request._get_form picks MultiPartParser or FormParser from the content type and maps MultiPartException to HTTPException 400; the parsers' parse methods drive python-multipart and build FormData. Request.form is the public entry point that wraps _get_form."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "serving a file from a static directory with cache validation, answering 304 when unchanged and partial content for byte ranges",
+      "gold_files": [
+        "starlette/responses.py",
+        "starlette/staticfiles.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/staticfiles.py",
+          "qualified_name": "StaticFiles.file_response",
+          "def_line": 181
+        },
+        {
+          "path": "starlette/staticfiles.py",
+          "qualified_name": "StaticFiles.is_not_modified",
+          "def_line": 211
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "FileResponse.set_stat_headers",
+          "def_line": 333
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "FileResponse.__call__",
+          "def_line": 343
+        }
+      ],
+      "note": "StaticFiles.file_response builds a FileResponse with stat headers (etag/last-modified) and swaps in NotModifiedResponse if is_not_modified; FileResponse.__call__ handles Range/If-Range."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "building a full absolute address for a named route from inside a view, from reverse lookup to scheme chosen by the base address",
+      "gold_files": [
+        "starlette/datastructures.py",
+        "starlette/requests.py",
+        "starlette/routing.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "HTTPConnection.url_for",
+          "def_line": 198
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Router.url_path_for",
+          "def_line": 637
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Route.url_path_for",
+          "def_line": 262
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "URLPath.make_absolute_url",
+          "def_line": 189
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "HTTPConnection.base_url",
+          "def_line": 116
+        }
+      ],
+      "note": "HTTPConnection.url_for asks the router/app for a URLPath and calls make_absolute_url(base_url); Route.url_path_for formats the path and base_url derives the app root. Router.url_path_for is the lookup actually reached through scope['router'] before Route.url_path_for."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "turning an unhandled error in a view into an HTTP reply: handler lookup by class or status code, plus the final 500 fallback",
+      "gold_files": [
+        "starlette/_exception_handler.py",
+        "starlette/applications.py",
+        "starlette/middleware/errors.py",
+        "starlette/middleware/exceptions.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/applications.py",
+          "qualified_name": "Starlette.build_middleware_stack",
+          "def_line": 63
+        },
+        {
+          "path": "starlette/middleware/exceptions.py",
+          "qualified_name": "ExceptionMiddleware.__call__",
+          "def_line": 47
+        },
+        {
+          "path": "starlette/_exception_handler.py",
+          "qualified_name": "wrap_app_handling_exceptions",
+          "def_line": 23
+        },
+        {
+          "path": "starlette/middleware/errors.py",
+          "qualified_name": "ServerErrorMiddleware.__call__",
+          "def_line": 149
+        }
+      ],
+      "note": "build_middleware_stack puts ServerErrorMiddleware outermost and ExceptionMiddleware innermost; wrap_app_handling_exceptions looks up status/class handlers; ServerErrorMiddleware turns anything left into a 500."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "attaching credentials and a user object to the connection after a pluggable backend authenticates, defaulting to an anonymous user",
+      "gold_files": [
+        "starlette/authentication.py",
+        "starlette/middleware/authentication.py",
+        "starlette/requests.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/authentication.py",
+          "qualified_name": "AuthenticationMiddleware.__call__",
+          "def_line": 29
+        },
+        {
+          "path": "starlette/authentication.py",
+          "qualified_name": "AuthCredentials",
+          "def_line": 110
+        },
+        {
+          "path": "starlette/authentication.py",
+          "qualified_name": "UnauthenticatedUser",
+          "def_line": 146
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "HTTPConnection.auth",
+          "def_line": 179
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "HTTPConnection.user",
+          "def_line": 184
+        }
+      ],
+      "note": "AuthenticationMiddleware.__call__ stores scope['auth'] and scope['user'] (defaulting to AuthCredentials() and UnauthenticatedUser()); HTTPConnection.user reads scope['user']. HTTPConnection.auth reads scope['auth'] like user reads scope['user']."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "refusing a websocket handshake with a plain HTTP reply, including the connection state tracking and how the test client surfaces it",
+      "gold_files": [
+        "starlette/responses.py",
+        "starlette/testclient.py",
+        "starlette/websockets.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/websockets.py",
+          "qualified_name": "WebSocket.send_denial_response",
+          "def_line": 189
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "Response._wrap_websocket_denial_send",
+          "def_line": 156
+        },
+        {
+          "path": "starlette/websockets.py",
+          "qualified_name": "WebSocket.send",
+          "def_line": 65
+        },
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "WebSocketTestSession._raise_on_close",
+          "def_line": 148
+        }
+      ],
+      "note": "send_denial_response runs a Response whose sends are renamed to websocket.http.response.*; WebSocket.send tracks the RESPONSE state; the test session turns the start message into WebSocketDenialResponse."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "sending a streamed response body from a generator, pulling chunks from sync iterators in worker threads and stopping when the client disconnects",
+      "gold_files": [
+        "starlette/concurrency.py",
+        "starlette/responses.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.__init__",
+          "def_line": 227
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.__call__",
+          "def_line": 259
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.listen_for_disconnect",
+          "def_line": 244
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.stream_response",
+          "def_line": 250
+        },
+        {
+          "path": "starlette/concurrency.py",
+          "qualified_name": "iterate_in_threadpool",
+          "def_line": 51
+        }
+      ],
+      "note": "StreamingResponse wraps sync iterables with iterate_in_threadpool and, on older ASGI specs, races stream_response against listen_for_disconnect in a task group. stream_response is the loop that sends start, each chunk and the final empty body."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "running application startup and shutdown when entering and leaving the test client context, exchanging lifespan messages with the app and merging yielded state",
+      "gold_files": [
+        "starlette/routing.py",
+        "starlette/testclient.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "TestClient.__enter__",
+          "def_line": 502
+        },
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "TestClient.__exit__",
+          "def_line": 527
+        },
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "TestClient.lifespan",
+          "def_line": 530
+        },
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "TestClient.wait_startup",
+          "def_line": 537
+        },
+        {
+          "path": "starlette/testclient.py",
+          "qualified_name": "TestClient.wait_shutdown",
+          "def_line": 554
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Router.lifespan",
+          "def_line": 645
+        }
+      ],
+      "note": "TestClient.__enter__ starts a portal and a lifespan task that feeds startup/shutdown messages; Router.lifespan runs the lifespan context and merges yielded state into scope['state']. __exit__ and wait_shutdown cover leaving the context (shutdown messages)."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "compressing response bodies for clients accepting gzip while leaving small, already encoded, partial or excluded-type replies untouched, flushing streamed chunks and adding Vary",
+      "gold_files": [
+        "starlette/datastructures.py",
+        "starlette/middleware/gzip.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "GZipMiddleware.__call__",
+          "def_line": 60
+        },
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "IdentityResponder.send_with_compression",
+          "def_line": 105
+        },
+        {
+          "path": "starlette/middleware/gzip.py",
+          "qualified_name": "GZipResponder._compress_body",
+          "def_line": 211
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "MutableHeaders.add_vary_header",
+          "def_line": 657
+        }
+      ],
+      "note": "GZipMiddleware picks GZipResponder when Accept-Encoding has gzip; send_with_compression applies the skip rules and Vary handling via MutableHeaders.add_vary_header; _compress_body uses zlib with sync flush for streams."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "user dispatch hook wrapped around the downstream app, calling next to get a streaming response while replaying an already read request body",
+      "gold_files": [
+        "starlette/middleware/base.py",
+        "starlette/requests.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "starlette/middleware/base.py",
+          "qualified_name": "BaseHTTPMiddleware.__call__",
+          "def_line": 101
+        },
+        {
+          "path": "starlette/middleware/base.py",
+          "qualified_name": "_CachedRequest.wrapped_receive",
+          "def_line": 34
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "Request.stream",
+          "def_line": 234
+        },
+        {
+          "path": "starlette/middleware/base.py",
+          "qualified_name": "_StreamingResponse.__call__",
+          "def_line": 224
+        }
+      ],
+      "note": "BaseHTTPMiddleware.__call__ builds a _CachedRequest and call_next that streams the downstream messages; wrapped_receive replays the cached body built by Request.body/stream; _StreamingResponse re-emits the body iterator."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "starlette/routing.py",
+        "qualified_name": "Route.__init__",
+        "def_line": 200
+      },
+      "gold_context": [
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "request_response",
+          "need": "signature",
+          "why": "function and method endpoints (functools.partial unwrapped) are wrapped with request_response(endpoint) to obtain the ASGI app, and sync functions are run in a threadpool there."
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "compile_path",
+          "need": "signature",
+          "why": "__init__ unpacks compile_path(path) into path_regex, path_format and param_convertors, so the 3-tuple shape must stay in sync."
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "get_name",
+          "need": "body",
+          "why": "when name is None the route name defaults to get_name(endpoint), i.e. the function __name__ or class name."
+        },
+        {
+          "path": "starlette/middleware/__init__.py",
+          "qualified_name": "Middleware.__iter__",
+          "need": "body",
+          "why": "route middleware is unpacked with `for cls, args, kwargs in reversed(middleware)`, which relies on Middleware.__iter__ yielding (cls, args, kwargs)."
+        },
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "RequestBodyLimitMiddleware.__init__",
+          "need": "signature",
+          "why": "when max_body_size is given the route app is wrapped in RequestBodyLimitMiddleware(self.app, max_body_size=...)."
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Route.matches",
+          "need": "signature",
+          "why": "matches consumes what __init__ sets up: path_regex, param_convertors and the methods set that __init__ upper-cases and extends with HEAD when GET is present."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "starlette/routing.py",
+        "qualified_name": "Router.app",
+        "def_line": 678
+      },
+      "gold_context": [
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Route.matches",
+          "need": "body",
+          "why": "returns Match.FULL, or Match.PARTIAL when the path matches but the HTTP method is not allowed; app dispatches a FULL match at once and keeps the first PARTIAL for a 405."
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Router.lifespan",
+          "need": "signature",
+          "why": "app hands scope type 'lifespan' to self.lifespan and returns before any route matching."
+        },
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "get_route_path",
+          "need": "body",
+          "why": "route_path is computed with get_route_path(scope), stripping root_path, before deciding whether to try the trailing-slash redirect."
+        },
+        {
+          "path": "starlette/routing.py",
+          "qualified_name": "Router.not_found",
+          "need": "signature",
+          "why": "self.default (set to not_found in __init__) is the final fallback when no route matches and no redirect applies."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "RedirectResponse.__init__",
+          "need": "signature",
+          "why": "when the toggled-slash path matches a route, app answers with RedirectResponse(url=str(redirect_url))."
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "URL.__init__",
+          "need": "signature",
+          "why": "the redirect URL is built as URL(scope=redirect_scope) from a copy of the scope whose path had its trailing slash toggled."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "starlette/responses.py",
+        "qualified_name": "StreamingResponse.__call__",
+        "def_line": 259
+      },
+      "gold_context": [
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.stream_response",
+          "need": "body",
+          "why": "performs the real sending of http.response.start, each body chunk and the final empty body; __call__ calls it directly (websocket, ASGI >= 2.4) or concurrently with the disconnect listener."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "StreamingResponse.listen_for_disconnect",
+          "need": "signature",
+          "why": "on older ASGI specs it runs beside stream_response and cancels the task group when an http.disconnect message arrives."
+        },
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "create_collapsing_task_group",
+          "need": "signature",
+          "why": "the task group used to race streaming against disconnect listening, unwrapping a lone exception from the exception group."
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "ClientDisconnect",
+          "need": "signature",
+          "why": "an OSError while streaming on ASGI >= 2.4 is converted into ClientDisconnect."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "Response._wrap_websocket_denial_send",
+          "need": "signature",
+          "why": "for websocket scopes the send callable is wrapped so http.response.* messages become websocket.http.response.*."
+        },
+        {
+          "path": "starlette/background.py",
+          "qualified_name": "BackgroundTask.__call__",
+          "need": "signature",
+          "why": "after streaming finishes, __call__ awaits self.background() when a background task was provided."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "starlette/middleware/errors.py",
+        "qualified_name": "ServerErrorMiddleware.__call__",
+        "def_line": 149
+      },
+      "gold_context": [
+        {
+          "path": "starlette/middleware/errors.py",
+          "qualified_name": "ServerErrorMiddleware.debug_response",
+          "need": "body",
+          "why": "with debug=True the error response is built by debug_response (run in a threadpool), choosing an HTML or plain-text traceback from the Accept header."
+        },
+        {
+          "path": "starlette/middleware/errors.py",
+          "qualified_name": "ServerErrorMiddleware.error_response",
+          "need": "signature",
+          "why": "without an installed handler the default 500 'Internal Server Error' plain-text response comes from error_response."
+        },
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "is_async_callable",
+          "need": "signature",
+          "why": "decides whether an installed 500 handler is awaited directly or run in a threadpool."
+        },
+        {
+          "path": "starlette/concurrency.py",
+          "qualified_name": "run_in_threadpool",
+          "need": "signature",
+          "why": "sync handlers and debug_response are executed through run_in_threadpool."
+        },
+        {
+          "path": "starlette/requests.py",
+          "qualified_name": "Request.__init__",
+          "need": "signature",
+          "why": "the handler receives Request(scope) created without receive/send, relying on the default empty_receive/empty_send."
+        },
+        {
+          "path": "starlette/applications.py",
+          "qualified_name": "Starlette.build_middleware_stack",
+          "need": "signature",
+          "why": "installs this middleware outermost, passing handler=error_handler taken from the 500/Exception handlers and the debug flag."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "starlette/endpoints.py",
+        "qualified_name": "WebSocketEndpoint.dispatch",
+        "def_line": 70
+      },
+      "gold_context": [
+        {
+          "path": "starlette/endpoints.py",
+          "qualified_name": "WebSocketEndpoint.decode",
+          "need": "body",
+          "why": "every websocket.receive message is decoded according to self.encoding (text/bytes/json/None) before on_receive, closing with 1003 on mismatches."
+        },
+        {
+          "path": "starlette/endpoints.py",
+          "qualified_name": "WebSocketEndpoint.on_connect",
+          "need": "signature",
+          "why": "called first; the default implementation accepts the websocket, subclasses override it."
+        },
+        {
+          "path": "starlette/endpoints.py",
+          "qualified_name": "WebSocketEndpoint.on_receive",
+          "need": "signature",
+          "why": "called with each decoded payload inside the receive loop."
+        },
+        {
+          "path": "starlette/endpoints.py",
+          "qualified_name": "WebSocketEndpoint.on_disconnect",
+          "need": "signature",
+          "why": "always called from the finally block with the computed close_code (1011 on errors, the client's code on disconnect)."
+        },
+        {
+          "path": "starlette/websockets.py",
+          "qualified_name": "WebSocket.receive",
+          "need": "body",
+          "why": "the loop calls websocket.receive(), which enforces connect/receive/disconnect message ordering and raises WebSocketDisconnected after a disconnect."
+        },
+        {
+          "path": "starlette/websockets.py",
+          "qualified_name": "WebSocket.__init__",
+          "need": "signature",
+          "why": "dispatch builds WebSocket(self.scope, receive=self.receive, send=self.send) and asserts scope type 'websocket'."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "starlette/middleware/trustedhost.py",
+        "qualified_name": "TrustedHostMiddleware.__call__",
+        "def_line": 32
+      },
+      "gold_context": [
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "parse_host_header",
+          "need": "body",
+          "why": "the Host header is validated with parse_host_header; None yields a 400 'Invalid host header' and the returned host drops the port."
+        },
+        {
+          "path": "starlette/middleware/trustedhost.py",
+          "qualified_name": "TrustedHostMiddleware.__init__",
+          "need": "body",
+          "why": "defines allowed_hosts, allow_any and www_redirect and validates wildcard patterns, which __call__ then reads."
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "URL.replace",
+          "need": "signature",
+          "why": "the www redirect target is built with url.replace(netloc='www.' + url.netloc)."
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "URL.__init__",
+          "need": "signature",
+          "why": "URL(scope=scope) builds the request URL that the redirect is derived from."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "RedirectResponse.__init__",
+          "need": "signature",
+          "why": "when the host only matches an allowed pattern carrying a 'www.' prefix and www_redirect is enabled, __call__ answers with RedirectResponse(url=str(redirect_url))."
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "Headers.__init__",
+          "need": "signature",
+          "why": "Headers(scope=scope) gives case-insensitive access to the incoming host header."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "starlette/templating.py",
+        "qualified_name": "Jinja2Templates.TemplateResponse",
+        "def_line": 117
+      },
+      "gold_context": [
+        {
+          "path": "starlette/templating.py",
+          "qualified_name": "Jinja2Templates.get_template",
+          "need": "signature",
+          "why": "the named template is loaded through get_template(name) from the Jinja environment."
+        },
+        {
+          "path": "starlette/templating.py",
+          "qualified_name": "_TemplateResponse.__init__",
+          "need": "body",
+          "why": "renders template.render(context) at construction, then calls the HTMLResponse initialiser with the rendered content and the status/headers/media_type/background arguments."
+        },
+        {
+          "path": "starlette/templating.py",
+          "qualified_name": "_TemplateResponse.__call__",
+          "need": "body",
+          "why": "reads context['request'] (hence TemplateResponse does context.setdefault('request', request)) to emit http.response.debug for the test client."
+        },
+        {
+          "path": "starlette/templating.py",
+          "qualified_name": "Jinja2Templates._setup_env_defaults",
+          "need": "signature",
+          "why": "installs the url_for global that expects the request in the template context that TemplateResponse provides."
+        },
+        {
+          "path": "starlette/background.py",
+          "qualified_name": "BackgroundTask.__init__",
+          "need": "signature",
+          "why": "the background argument is a BackgroundTask forwarded to the response."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "Response.__init__",
+          "need": "signature",
+          "why": "status_code, headers, media_type and background finally reach Response.__init__ through HTMLResponse."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "starlette/middleware/body_limit.py",
+        "qualified_name": "RequestBodyLimitResponder.__call__",
+        "def_line": 71
+      },
+      "gold_context": [
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "RequestBodyLimitResponder.receive_with_limit",
+          "need": "body",
+          "why": "__call__ passes it as the app's receive; it raises _RequestBodyTooLarge for an oversized declared length or running total."
+        },
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "RequestBodyLimitResponder.send_with_limit",
+          "need": "body",
+          "why": "passed as the app's send; at response start it replaces a response to an oversized declared request with a 413 and raises _RequestBodyLimitResponseSent."
+        },
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "_get_content_length",
+          "need": "body",
+          "why": "__call__ sets self.content_length from it, returning None for a missing or non-integer header."
+        },
+        {
+          "path": "starlette/middleware/body_limit.py",
+          "qualified_name": "_RequestBodyTooLarge",
+          "need": "signature",
+          "why": "the HTTPException subclass (413) that __call__ catches to write the 'Content Too Large' response when nothing was started."
+        },
+        {
+          "path": "starlette/exceptions.py",
+          "qualified_name": "HTTPException.__init__",
+          "need": "signature",
+          "why": "_RequestBodyTooLarge calls super().__init__(status_code=413, detail='Content Too Large')."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "PlainTextResponse",
+          "need": "signature",
+          "why": "the 413 reply is PlainTextResponse('Content Too Large', status_code=413), sent through the original scope/receive/send."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "starlette/background.py",
+        "qualified_name": "BackgroundTasks.add_task",
+        "def_line": 30
+      },
+      "gold_context": [
+        {
+          "path": "starlette/background.py",
+          "qualified_name": "BackgroundTask.__init__",
+          "need": "body",
+          "why": "add_task constructs BackgroundTask(func, *args, **kwargs); the constructor stores them and computes is_async once."
+        },
+        {
+          "path": "starlette/background.py",
+          "qualified_name": "BackgroundTask.__call__",
+          "need": "body",
+          "why": "queued tasks are later awaited: async functions directly, others through run_in_threadpool."
+        },
+        {
+          "path": "starlette/background.py",
+          "qualified_name": "BackgroundTasks.__call__",
+          "need": "body",
+          "why": "runs the tasks appended by add_task sequentially in insertion order."
+        },
+        {
+          "path": "starlette/_utils.py",
+          "qualified_name": "is_async_callable",
+          "need": "signature",
+          "why": "determines the is_async flag captured when the task is added (unwrapping functools.partial)."
+        },
+        {
+          "path": "starlette/concurrency.py",
+          "qualified_name": "run_in_threadpool",
+          "need": "signature",
+          "why": "sync tasks are executed in a worker thread through it."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "Response.__call__",
+          "need": "signature",
+          "why": "a Response awaits self.background() after sending its body, which is how tasks added with add_task get run."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "starlette/staticfiles.py",
+        "qualified_name": "StaticFiles.get_response",
+        "def_line": 115
+      },
+      "gold_context": [
+        {
+          "path": "starlette/staticfiles.py",
+          "qualified_name": "StaticFiles.lookup_path",
+          "need": "body",
+          "why": "get_response calls it in a worker thread for the requested path, for index.html and for 404.html, and expects (full_path, stat_result) or ('', None)."
+        },
+        {
+          "path": "starlette/staticfiles.py",
+          "qualified_name": "StaticFiles.file_response",
+          "need": "body",
+          "why": "a regular file is turned into a FileResponse, or a NotModifiedResponse when conditional headers match."
+        },
+        {
+          "path": "starlette/exceptions.py",
+          "qualified_name": "HTTPException.__init__",
+          "need": "signature",
+          "why": "get_response raises HTTPException with 405, 401 or 404 for non-GET/HEAD methods, permission errors and missing files."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "RedirectResponse.__init__",
+          "need": "signature",
+          "why": "a directory URL lacking a trailing slash is redirected with RedirectResponse(url=url)."
+        },
+        {
+          "path": "starlette/responses.py",
+          "qualified_name": "FileResponse.__init__",
+          "need": "signature",
+          "why": "404.html is served as FileResponse(full_path, stat_result=stat_result, status_code=404) in html mode."
+        },
+        {
+          "path": "starlette/datastructures.py",
+          "qualified_name": "URL.replace",
+          "need": "signature",
+          "why": "the directory redirect URL is built with url.replace(path=url.path + '/')."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: one author session and a different reviewer session (VERDICT: approved); executor did not read content (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

@@ -1,0 +1,1026 @@
+{
+  "repo_id": "heldout-zod",
+  "repo_url": "https://github.com/colinhacks/zod",
+  "tag": "v4.6.5",
+  "commit_sha": "59bbc03e10c636b9eb3c393dfeb552819774ec21",
+  "license": "MIT",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Author draft (session 1); not yet independently reviewed. All tasks are test split. | Reviewed 2026-10-01: author and reviewer were separate sessions without retrieval tools; review log in evals/out/m12/heldout_zod_review_log.md.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "transparent proxy that lazily builds its target from a getter on first access and forwards get, set, has, deleteProperty, ownKeys, getOwnPropertyDescriptor and defineProperty",
+      "gold_files": [
+        "packages/zod/src/v4/core/util.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "createTransparentProxy",
+          "def_line": 683
+        }
+      ],
+      "note": "Single function; every Proxy trap lazily calls the getter once (target ??= getter()) then delegates to Reflect."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Russian plural chooser returning the one, few or many noun form from a count's last digit, with 11 through 19 always many",
+      "gold_files": [
+        "packages/zod/src/v4/locales/ru.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/locales/ru.ts",
+          "qualified_name": "getRussianPlural",
+          "def_line": 5
+        }
+      ],
+      "note": "Belarusian be.ts has a near-identical helper, but the query says Russian; gold is the ru.ts function."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Legacy v3 helper listing the primitive values a discriminator field schema accepts: literals, enums, null, undefined, seeing through lazy, effects, branded, readonly and catch wrappers",
+      "gold_files": [
+        "packages/zod/src/v3/types.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "getDiscriminator",
+          "def_line": 3067
+        }
+      ],
+      "note": "v3 module-level const arrow function used by ZodDiscriminatedUnion.create; v4 uses propValues instead."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Convert a ZodError into a nested tree with errors arrays, string keys under properties and array indexes under items, recursing into union branches",
+      "gold_files": [
+        "packages/zod/src/v4/core/errors.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/errors.ts",
+          "qualified_name": "treeifyError",
+          "def_line": 423
+        }
+      ],
+      "note": "Overloaded; def_line is the implementation signature. Also recurses into invalid_key and invalid_element."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Group open issues and pull requests with similar titles into duplicate clusters using Jaccard similarity of title tokens, merged with union-find, largest cluster first",
+      "gold_files": [
+        "scripts/triage-signal.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "scripts/triage-signal.ts",
+          "qualified_name": "findClusters",
+          "def_line": 396
+        }
+      ],
+      "note": "Repo maintenance script (not library code). jaccard and titleTokens are helpers; findClusters does the grouping and sort."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Resolve a local $ref pointer to its target in the root schema, picking $defs or definitions by draft version and rejecting external refs",
+      "gold_files": [
+        "packages/zod/src/v4/classic/from-json-schema.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+          "qualified_name": "resolveRef",
+          "def_line": 132
+        }
+      ],
+      "note": "Only local '#' refs: '#' returns rootSchema, '#/$defs|definitions/name' returns the def; anything else throws."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Rewrite an anyOf whose branches are all bare type assertions into a single type array, compacting nested unions first and bailing on constrained branches",
+      "gold_files": [
+        "packages/zod/src/v4/core/to-json-schema.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "compactTypeUnion",
+          "def_line": 444
+        }
+      ],
+      "note": "Recursive in-place rewrite used by finalize; single-member result is a bare string, not an array."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Benchmark generator writing a chain of object schemas for zod, valibot or arktype that alternately omits three keys and extends with three new keys",
+      "gold_files": [
+        "packages/tsc/generate.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/tsc/generate.ts",
+          "qualified_name": "generateExtendChain",
+          "def_line": 198
+        }
+      ],
+      "note": "Other package (packages/tsc). The only other exported generator there is generate(); it does not alternate omit/extend."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Merge synchronous key and value parse results into a final object, aborting on invalid entries, ignoring __proto__ keys and undefined values unless alwaysSet",
+      "gold_files": [
+        "packages/zod/src/v3/helpers/parseUtil.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "ParseStatus.mergeObjectSync",
+          "def_line": 128
+        }
+      ],
+      "note": "v3 static method; mergeObjectAsync only awaits and then delegates to this one."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "Check an IPv6 CIDR string by splitting at the single slash, requiring a canonical decimal prefix between 0 and 128 and a valid address",
+      "gold_files": [
+        "packages/zod/src/v4/core/schemas.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "isValidCIDRv6",
+          "def_line": 991
+        }
+      ],
+      "note": "Exported helper, also hoisted by compile.ts; the v4 IPv4 CIDR is validated by regex only."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Walk the syntax tree's leading and trailing trivia to find double-slash annotations alone on a row, returning a map from zero-based row to trimmed text",
+      "gold_files": [
+        "scripts/check-comments.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "scripts/check-comments.ts",
+          "qualified_name": "ownLineComments",
+          "def_line": 65
+        }
+      ],
+      "note": "Name tokens own/line/comments and stem check/comments are avoided. Uses the TypeScript compiler API trivia ranges."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Armenian helper marking a noun as known by appending one ending after a vowel and another otherwise, giving an empty string for no word",
+      "gold_files": [
+        "packages/zod/src/v4/locales/hy.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/locales/hy.ts",
+          "qualified_name": "withDefiniteArticle",
+          "def_line": 9
+        }
+      ],
+      "note": "Appends ն after a vowel, ը otherwise; empty string for undefined/empty. Armenian is the only locale with this helper."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Lithuanian helper sorting an integer into singular, paucal or plural class by trailing digits: teens and zero endings plural, one ending singular, others paucal",
+      "gold_files": [
+        "packages/zod/src/v4/locales/lt.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/locales/lt.ts",
+          "qualified_name": "getUnitTypeFromNumber",
+          "def_line": 12
+        }
+      ],
+      "note": "Returns the label 'one' | 'few' | 'many' (not a word form), unlike the ru/be plural pickers; the last===0 rule is Lithuanian-specific."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Gap between a division result and its nearest integer, zeroed within four machine epsilons scaled by the quotient, for decimal multiple checks",
+      "gold_files": [
+        "packages/zod/src/v4/core/util.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "floatSafeRemainder",
+          "def_line": 327
+        }
+      ],
+      "note": "v3/types.ts has a different function of the same name (decimal-count scaling); the four-epsilon tolerance is only in the v4 core one."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Convert required_error, invalid_type_error and message options into a single error map, throwing when a custom error map is combined with the specific messages",
+      "gold_files": [
+        "packages/zod/src/v3/types.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "processCreateParams",
+          "def_line": 123
+        }
+      ],
+      "note": "v3 internal helper behind every Zod*.create(); throws when errorMap is combined with invalid_type_error or required_error."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Bank account checksum folding letters into two-digit values and keeping the running remainder modulo ninety-seven while reading the first four characters last, expecting one",
+      "gold_files": [
+        "packages/zod/src/v4/core/schemas.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "isIso7064Mod97",
+          "def_line": 1172
+        }
+      ],
+      "note": "Private helper; isValidIBAN only adds a regex test and calls it. Query describes the checksum loop, which is only here."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Format key segments as an accessor string: indexes in square brackets, symbols and awkward names quoted inside brackets, plain names joined by periods",
+      "gold_files": [
+        "packages/zod/src/v4/core/errors.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/errors.ts",
+          "qualified_name": "toDotPath",
+          "def_line": 514
+        }
+      ],
+      "note": "Used by prettifyError; segments may be PropertyKey or Standard Schema PathSegment objects."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Look up a schema's metadata layered over its parent's inherited metadata, excluding the id, returning undefined when the merged result has no keys",
+      "gold_files": [
+        "packages/zod/src/v4/core/registries.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/registries.ts",
+          "qualified_name": "$ZodRegistry.get",
+          "def_line": 60
+        }
+      ],
+      "note": "Recursive over _zod.parent; 'do not inherit id'. Registry.has/add/remove are not equally valid."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Run a callback with the code writer nested one level deeper, then restore the previous depth even if the callback throws",
+      "gold_files": [
+        "packages/zod/src/v4/core/doc.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/doc.ts",
+          "qualified_name": "Doc.indented",
+          "def_line": 16
+        }
+      ],
+      "note": "try/finally around indent += 1; the finally exists because compile.ts catches child throws and keeps writing to the same Doc."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "Deprecated legacy-API shim passing a user callback that produces issue text into the library-wide configuration function under its custom handler option",
+      "gold_files": [
+        "packages/zod/src/v4/classic/compat.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/classic/compat.ts",
+          "qualified_name": "setErrorMap",
+          "def_line": 44
+        }
+      ],
+      "note": "DOUBTFUL: v3/errors.ts also defines a setErrorMap (module-level override). Only the classic shim forwards into config({customError})."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Recursively make every nested object's properties optional, with a classic and a mini entry point both delegating to the shared bottom-up schema rewriter",
+      "gold_files": [
+        "packages/zod/src/v4/classic/deep-partial.ts",
+        "packages/zod/src/v4/mini/deep-partial.ts",
+        "packages/zod/src/v4/core/visit.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/classic/deep-partial.ts",
+          "qualified_name": "deepPartial",
+          "def_line": 67
+        },
+        {
+          "path": "packages/zod/src/v4/mini/deep-partial.ts",
+          "qualified_name": "deepPartial",
+          "def_line": 64
+        },
+        {
+          "path": "packages/zod/src/v4/core/visit.ts",
+          "qualified_name": "visit",
+          "def_line": 28
+        }
+      ],
+      "note": "visit is overloaded; def_line is the implementation signature. classic uses .partial(), mini uses the partial() function."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Convert a registry of id-tagged schemas into JSON Schema documents, extracting unregistered shared parts into a definitions bucket and building refs with a uri callback",
+      "gold_files": [
+        "packages/zod/src/v4/core/json-schema-processors.ts",
+        "packages/zod/src/v4/core/to-json-schema.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "qualified_name": "toJSONSchema",
+          "def_line": 886
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "extractDefs",
+          "def_line": 301
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "finalize",
+          "def_line": 568
+        }
+      ],
+      "note": "Registry branch of toJSONSchema drives two passes; extractDefs.makeURI uses external.uri and the __shared bucket; finalize per schema."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Compiling refuses a schema containing a reference cycle, and the compiled wrapper falls back to the runtime parser for values already hit as cycle back-edges",
+      "gold_files": [
+        "packages/zod/src/v4/core/memoizer.ts",
+        "packages/zod/src/v4/core/compile.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/memoizer.ts",
+          "qualified_name": "isRecursiveSchema",
+          "def_line": 195
+        },
+        {
+          "path": "packages/zod/src/v4/core/memoizer.ts",
+          "qualified_name": "isBackEdge",
+          "def_line": 328
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "compileFn",
+          "def_line": 237
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "withParser",
+          "def_line": 151
+        }
+      ],
+      "note": "compileFn and withParser both throw ZodCompileUnsupportedError when isRecursiveSchema; only withParser's wrapper consults isBackEdge."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "How v3 builds an issue's message: contextual error map first, then the schema's map, then the user's global override, then the default English map",
+      "gold_files": [
+        "packages/zod/src/v3/helpers/parseUtil.ts",
+        "packages/zod/src/v3/errors.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "addIssueToContext",
+          "def_line": 72
+        },
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "makeIssue",
+          "def_line": 6
+        },
+        {
+          "path": "packages/zod/src/v3/errors.ts",
+          "qualified_name": "getErrorMap",
+          "def_line": 11
+        }
+      ],
+      "note": "addIssueToContext assembles the ordered map list (reads getErrorMap); makeIssue folds them in reverse order. v3 only."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Length checks count code points rather than UTF-16 units; the generated validator reuses that counting routine only when raw length cannot settle the outcome",
+      "gold_files": [
+        "packages/zod/src/v4/core/util.ts",
+        "packages/zod/src/v4/core/compile.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "codePointLength",
+          "def_line": 992
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "codePointLengthVar",
+          "def_line": 478
+        }
+      ],
+      "note": "codePointLengthVar hoists util.codePointLength and calls it only when the cheap bound test (inDoubt) holds."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Discriminated union dispatch: runtime builds a value-to-option map rejecting duplicate or missing discriminator values; the compiled path emits an if/else-if chain instead",
+      "gold_files": [
+        "packages/zod/src/v4/core/schemas.ts",
+        "packages/zod/src/v4/core/compile.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "discriminatorMap",
+          "def_line": 2666
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "generateDiscriminatedUnionCheck",
+          "def_line": 1857
+        }
+      ],
+      "note": "The compiler does not call discriminatorMap; it re-derives claimed values itself and refuses to compile on duplicates."
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "String-to-boolean codec accepting yes, no, on, off style words, case-insensitive by default with custom truthy and falsy lists, shared by classic and mini wrappers",
+      "gold_files": [
+        "packages/zod/src/v4/core/api.ts",
+        "packages/zod/src/v4/classic/schemas.ts",
+        "packages/zod/src/v4/mini/schemas.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/api.ts",
+          "qualified_name": "_stringbool",
+          "def_line": 1787
+        },
+        {
+          "path": "packages/zod/src/v4/classic/schemas.ts",
+          "qualified_name": "stringbool",
+          "def_line": 2892
+        },
+        {
+          "path": "packages/zod/src/v4/mini/schemas.ts",
+          "qualified_name": "stringbool",
+          "def_line": 1948
+        }
+      ],
+      "note": "Both wrappers pass their own Codec/Boolean/String classes into core _stringbool, which holds all the logic."
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Tuples may omit trailing slots that accept undefined: runtime and compiled parsers both find where the omittable tail starts and truncate absent output slots",
+      "gold_files": [
+        "packages/zod/src/v4/core/schemas.ts",
+        "packages/zod/src/v4/core/compile.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "getTupleOptStart",
+          "def_line": 3101
+        },
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "handleTupleResults",
+          "def_line": 3117
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "getTupleOptStart",
+          "def_line": 1780
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "generateTupleCheck",
+          "def_line": 1697
+        }
+      ],
+      "note": "getTupleOptStart exists twice (runtime and compile mirror); both are gold because the query spans both parsers."
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Refinement context whose addIssue accepts a string or legacy issue object, filling in code, input and owner; classic and mini forward to one core builder",
+      "gold_files": [
+        "packages/zod/src/v4/core/api.ts",
+        "packages/zod/src/v4/classic/schemas.ts",
+        "packages/zod/src/v4/mini/schemas.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/api.ts",
+          "qualified_name": "_superRefine",
+          "def_line": 1708
+        },
+        {
+          "path": "packages/zod/src/v4/classic/schemas.ts",
+          "qualified_name": "superRefine",
+          "def_line": 2825
+        },
+        {
+          "path": "packages/zod/src/v4/mini/schemas.ts",
+          "qualified_name": "superRefine",
+          "def_line": 1909
+        }
+      ],
+      "note": "Reviewer rewrite (replaces the compile hoisting task). core _superRefine builds the check and installs payload.addIssue (string via util.issue; object gets code custom, input, inst, continue defaults, fatal -> continue false); classic and mini superRefine just forward to it."
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "Definition names are escaped for ref fragments on export, and the importer undoes that escaping when resolving a ref, reversing slash before tilde",
+      "gold_files": [
+        "packages/zod/src/v4/core/to-json-schema.ts",
+        "packages/zod/src/v4/classic/from-json-schema.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "encodeJSONPointerSegment",
+          "def_line": 297
+        },
+        {
+          "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+          "qualified_name": "decodeJSONPointerSegment",
+          "def_line": 128
+        }
+      ],
+      "note": "Reviewer rewrite (replaces the template literal pattern task). Exporter half escapes ~ then / when extractDefs builds refs; importer half decodes ~1 then ~0 in resolveRef. resolveRef itself is t06's gold and is not repeated here."
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+        "qualified_name": "convertSchema",
+        "def_line": 808
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+          "qualified_name": "convertBaseSchema",
+          "need": "body",
+          "why": "convertSchema calls convertBaseSchema first to build the type-specific base schema, then layers anyOf/oneOf/allOf, nullable, readOnly and default on top of that result."
+        },
+        {
+          "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+          "qualified_name": "containsRef",
+          "need": "body",
+          "why": "Decides whether a propertyNames or contains subschema may be carried into extraMeta; a subschema holding a $ref is dropped."
+        },
+        {
+          "path": "packages/zod/src/v4/classic/from-json-schema.ts",
+          "qualified_name": "fromJSONSchema",
+          "need": "signature",
+          "why": "The public entry point: it builds the ConversionContext (registry, defs, version, rootSchema) and calls convertSchema(normalized, ctx)."
+        },
+        {
+          "path": "packages/zod/src/v4/core/registries.ts",
+          "qualified_name": "$ZodRegistry.add",
+          "need": "signature",
+          "why": "convertSchema attaches the collected annotation metadata with ctx.registry.add(baseSchema, extraMeta)."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "assignProp",
+          "need": "signature",
+          "why": "Used to copy every unrecognized keyword into extraMeta via assignProp(extraMeta, key, schema[key])."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v3/types.ts",
+        "qualified_name": "ZodObject._parse",
+        "def_line": 2469
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "addIssueToContext",
+          "need": "signature",
+          "why": "Reports the invalid_type issue for a non-object input and the unrecognized_keys issue in strict mode."
+        },
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "ParseStatus.mergeObjectSync",
+          "need": "body",
+          "why": "The key/value pairs built by _parse are folded into the final object here (directly, or after awaiting in the async path); it decides aborted/dirty, skips __proto__ and honours alwaysSet."
+        },
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "ZodObject._getCached",
+          "need": "signature",
+          "why": "Supplies the shape and key list that _parse iterates over."
+        },
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "ParseInputLazyPath",
+          "need": "signature",
+          "why": "Each property is parsed with new ParseInputLazyPath(ctx, value, ctx.path, key), which builds the child path lazily."
+        },
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "ZodNever",
+          "need": "signature",
+          "why": "_parse tests this._def.catchall instanceof ZodNever to choose between unknownKeys handling and running a catchall schema."
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/core/to-json-schema.ts",
+        "qualified_name": "processSchema",
+        "def_line": 213
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/registries.ts",
+          "qualified_name": "$ZodRegistry.get",
+          "need": "signature",
+          "why": "ctx.metadataRegistry.get(schema) supplies the metadata merged into the result, including metadata inherited from parent schemas."
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "isTransforming",
+          "need": "body",
+          "why": "For io 'input' it decides whether examples and default are deleted from the result schema."
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "assignProps",
+          "need": "body",
+          "why": "Used to merge the registry metadata into result.schema."
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "Seen",
+          "need": "signature",
+          "why": "The per-schema record (schema, count, cycle, ref, path) that processSchema creates and stores in ctx.seen."
+        },
+        {
+          "path": "packages/zod/src/v4/core/json-schema-processors.ts",
+          "qualified_name": "objectProcessor",
+          "need": "body",
+          "why": "An example of the processors dispatched through ctx.processors[def.type]; it re-enters processSchema for each property and for the catchall."
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/core/util.ts",
+        "qualified_name": "finalizeIssue",
+        "def_line": 944
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "unwrapMessage",
+          "need": "body",
+          "why": "Normalizes each error callback's return value (a string or an object with message) so the ?? chain can pick the first message produced."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "attachSchema",
+          "need": "signature",
+          "why": "Stamps the owning schema onto issues raised by a check; finalizeIssue reads iss.schema to find that schema's def.error."
+        },
+        {
+          "path": "packages/zod/src/v4/core/parse.ts",
+          "qualified_name": "failure",
+          "need": "body",
+          "why": "The caller: it maps each raw issue through util.finalizeIssue(iss, ctx, core.config()) the first time the error is read."
+        },
+        {
+          "path": "packages/zod/src/v4/core/core.ts",
+          "qualified_name": "config",
+          "need": "signature",
+          "why": "Returns the global config whose customError and localeError callbacks finalizeIssue consults after the schema-level and per-parse errors."
+        },
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "ParseContext",
+          "need": "signature",
+          "why": "Declares the per-parse error callback and the reportInput flag that finalizeIssue reads from ctx."
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/classic/in-out.ts",
+        "qualified_name": "input",
+        "def_line": 28
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/visit.ts",
+          "qualified_name": "visit",
+          "need": "body",
+          "why": "input() delegates the rewrite to visit, which walks the tree bottom-up and passes each handler a flag saying whether a child was rewritten."
+        },
+        {
+          "path": "packages/zod/src/v4/classic/in-out.ts",
+          "qualified_name": "inSide",
+          "need": "body",
+          "why": "The pipe handler: replaces a pipe by its input side, and for z.preprocess (whose in side is a bare transform) falls back to the out side."
+        },
+        {
+          "path": "packages/zod/src/v4/classic/in-out.ts",
+          "qualified_name": "outSide",
+          "need": "body",
+          "why": "inSide calls it when the pipe's in schema is a transform, so the checks carried by the pipe are kept."
+        },
+        {
+          "path": "packages/zod/src/v4/classic/schemas.ts",
+          "qualified_name": "optional",
+          "need": "signature",
+          "why": "The default handler wraps the inner type with schemas.optional when it was rewritten, so the input type still admits undefined."
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/core/json-schema-generator.ts",
+        "qualified_name": "JSONSchemaGenerator.emit",
+        "def_line": 112
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "extractDefs",
+          "need": "body",
+          "why": "emit calls extractDefs(this.ctx, schema) to pull shared, id-tagged and cyclic subschemas out into definitions."
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "finalize",
+          "need": "body",
+          "why": "emit returns the result of finalize(this.ctx, schema) with the ~standard property stripped."
+        },
+        {
+          "path": "packages/zod/src/v4/core/json-schema-generator.ts",
+          "qualified_name": "JSONSchemaGenerator.process",
+          "need": "signature",
+          "why": "Must be called before emit; it fills ctx.seen, which extractDefs and finalize read (they throw for an unprocessed schema)."
+        },
+        {
+          "path": "packages/zod/src/v4/core/to-json-schema.ts",
+          "qualified_name": "ToJSONSchemaContext",
+          "need": "signature",
+          "why": "emit can overwrite ctx.cycles, ctx.reused and ctx.external from its params and always resets sharedDefsExtractedFor and sharedEmitDoneFor, all fields declared here."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v3/types.ts",
+        "qualified_name": "ZodFunction._parse",
+        "def_line": 3824
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "makeIssue",
+          "need": "body",
+          "why": "makeArgsIssue and makeReturnsIssue call it to build the invalid_arguments and invalid_return_type issues from the ordered error maps."
+        },
+        {
+          "path": "packages/zod/src/v3/errors.ts",
+          "qualified_name": "getErrorMap",
+          "need": "signature",
+          "why": "Supplies the global override map placed in the errorMaps list passed to makeIssue."
+        },
+        {
+          "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+          "qualified_name": "addIssueToContext",
+          "need": "signature",
+          "why": "Reports invalid_type when the parsed input is not a function."
+        },
+        {
+          "path": "packages/zod/src/v3/ZodError.ts",
+          "qualified_name": "ZodError",
+          "need": "signature",
+          "why": "The wrapper throws new ZodError([...]) for argument and return failures, and the async wrapper builds one and calls addIssue on it."
+        },
+        {
+          "path": "packages/zod/src/v3/types.ts",
+          "qualified_name": "ZodPromise",
+          "need": "signature",
+          "why": "this._def.returns instanceof ZodPromise selects the async wrapper, which parses the resolved result with the promise's inner type."
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/locales/ru.ts",
+        "qualified_name": "error",
+        "def_line": 33
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/locales/ru.ts",
+          "qualified_name": "getRussianPlural",
+          "need": "body",
+          "why": "Picks the one/few/many unit word used in the too_big and too_small messages."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "parsedType",
+          "need": "signature",
+          "why": "The invalid_type branch calls util.parsedType(issue.input) to name the received type."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "joinValues",
+          "need": "signature",
+          "why": "Formats the allowed options in the invalid_value message and the key list in the unrecognized_keys message."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "stringifyPrimitive",
+          "need": "signature",
+          "why": "Renders the single expected literal in the invalid_value message."
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/core/compile.ts",
+        "qualified_name": "compileFn",
+        "def_line": 237
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/memoizer.ts",
+          "qualified_name": "isRecursiveSchema",
+          "need": "signature",
+          "why": "compileFn calls it first and refuses to compile when the schema subtree contains a reference cycle."
+        },
+        {
+          "path": "packages/zod/src/v4/core/doc.ts",
+          "qualified_name": "Doc",
+          "need": "signature",
+          "why": "compileFn creates new Doc(['input']) to accumulate the generated source lines."
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "generateCheck",
+          "need": "signature",
+          "why": "compileFn calls generateCheck(doc, ctx, schema, 'input', ...) to emit the root validation code and obtain the output accessor."
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "ZodCompileUnsupportedError",
+          "need": "signature",
+          "why": "Thrown by compileFn for a cyclic schema and when the generated source fails to evaluate."
+        },
+        {
+          "path": "packages/zod/src/v4/core/compile.ts",
+          "qualified_name": "CompileContext",
+          "need": "signature",
+          "why": "compileFn builds this context (constants map, constantCounter, varCounter, definite), hoists its constants into the new Function, and copies ctx.definite onto the returned fn.definite."
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "packages/zod/src/v4/core/schemas.ts",
+        "qualified_name": "handleCatchall",
+        "def_line": 2093
+      },
+      "gold_context": [
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "handlePropertyResult",
+          "need": "body",
+          "why": "Called on each catchall run result, directly or after awaiting, to merge it into the payload with the optin/optout rules for absent keys."
+        },
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "normalizeDef",
+          "need": "body",
+          "why": "Produces the def whose keySet (string shape keys) handleCatchall uses to skip declared keys."
+        },
+        {
+          "path": "packages/zod/src/v4/core/util.ts",
+          "qualified_name": "aborted",
+          "need": "signature",
+          "why": "With abortEarly, handleCatchall calls util.aborted(payload, seen) to stop the key loop once an issue has aborted the payload."
+        },
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "ParsePayload",
+          "need": "signature",
+          "why": "The payload parameter that accumulates issues and the output value."
+        },
+        {
+          "path": "packages/zod/src/v4/core/schemas.ts",
+          "qualified_name": "ParseContextInternal",
+          "need": "signature",
+          "why": "The ctx parameter, passed through to _catchall.run for each extra key."
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: one author session and a different reviewer session (VERDICT: approved); executor did not read content (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

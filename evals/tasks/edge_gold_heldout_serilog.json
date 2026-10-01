@@ -1,0 +1,363 @@
+{
+  "repo_id": "heldout-serilog",
+  "repo_url": "https://github.com/serilog/serilog",
+  "tag": "v4.4.0",
+  "commit_sha": "6d9fc0b84e004418f2677b5961b9c8970349d0be",
+  "reviewed": true,
+  "review_note": "Author labels; not yet independently reviewed.",
+  "sites": [
+    {
+      "path": "src/Serilog/Capturing/MessageTemplateProcessor.cs",
+      "line": 35,
+      "col": 26,
+      "callee_text": "_parser.Parse",
+      "snippet": "    public void Process(string messageTemplate, object?[] messageTemplateParameters, out MessageTemplate parsedTemplate, out EventProperty[] properties)\n#endif\n    {\n        parsedTemplate = _parser.Parse(messageTemplate);\n        properties = _propertyBinder.ConstructProperties(parsedTemplate, messageTemplateParameters);\n    }\n",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Core/Pipeline/MessageTemplateCache.cs",
+        "qualified_name": "MessageTemplateCache.Parse"
+      },
+      "reason": "_parser is declared as MessageTemplateCache, so this resolves to its Parse method."
+    },
+    {
+      "path": "src/Serilog/Capturing/TrimConfiguration.cs",
+      "line": 13,
+      "col": 10,
+      "callee_text": "AppContext.TryGetSwitch",
+      "snippet": "    /// them as scalar values.\n    /// </summary>\n    public static bool IsStructureValueSupported { get; } =\n        !AppContext.TryGetSwitch(\"Serilog.Capturing.IsStructureValueSupported\", out var isEnabled) || isEnabled;\n}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "AppContext.TryGetSwitch is a .NET runtime API."
+    },
+    {
+      "path": "src/Serilog/Configuration/LoggerAuditSinkConfiguration.cs",
+      "line": 99,
+      "col": 16,
+      "callee_text": "_sinkConfiguration.Logger",
+      "snippet": "        ILogger logger,\n        LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum)\n    {\n        return _sinkConfiguration.Logger(logger, restrictedToMinimumLevel);\n    }\n}",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+        "qualified_name": "LoggerSinkConfiguration.Logger"
+      },
+      "reason": "_sinkConfiguration is a LoggerSinkConfiguration and the ILogger overload of Logger is called."
+    },
+    {
+      "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+      "line": 188,
+      "col": 16,
+      "callee_text": "Sink",
+      "snippet": "        }\n\n        var secondarySink = new SecondaryLoggerSink(subLogger, attemptDispose: true);\n        return Sink(secondarySink, restrictedToMinimumLevel, levelSwitch);\n    }\n\n    /// <summary>",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+        "qualified_name": "LoggerSinkConfiguration.Sink"
+      },
+      "reason": "Unqualified call to the Sink overload on the same class, LoggerSinkConfiguration."
+    },
+    {
+      "path": "src/Serilog/Context/EnricherStack.cs",
+      "line": 41,
+      "col": 86,
+      "callee_text": "Enumerator",
+      "snippet": "\n    public Enumerator GetEnumerator() => new(this);\n\n    IEnumerator<ILogEventEnricher> IEnumerable<ILogEventEnricher>.GetEnumerator() => new Enumerator(this);\n\n    IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);\n",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "src/Serilog/Context/EnricherStack.cs",
+        "qualified_name": "EnricherStack.Enumerator"
+      },
+      "reason": "Constructs the nested Enumerator struct declared inside EnricherStack."
+    },
+    {
+      "path": "src/Serilog/Context/LogContext.cs",
+      "line": 77,
+      "col": 21,
+      "callee_text": "stack.Push",
+      "snippet": "        var stack = GetOrCreateEnricherStack();\n        var bookmark = new ContextStackBookmark(stack);\n\n        Enrichers = stack.Push(enricher);\n\n        return bookmark;\n    }",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Context/EnricherStack.cs",
+        "qualified_name": "EnricherStack.Push"
+      },
+      "reason": "stack is the EnricherStack returned by GetOrCreateEnricherStack, so this is EnricherStack.Push."
+    },
+    {
+      "path": "src/Serilog/Core/Enrichers/ConditionalEnricher.cs",
+      "line": 36,
+      "col": 9,
+      "callee_text": "(_wrapped as IDisposable)?.Dispose",
+      "snippet": "\n    public void Dispose()\n    {\n        (_wrapped as IDisposable)?.Dispose();\n    }\n}",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "The receiver is cast to the BCL interface IDisposable, so the call is to System.IDisposable.Dispose."
+    },
+    {
+      "path": "src/Serilog/Core/Enrichers/SafeAggregateEnricher.cs",
+      "line": 38,
+      "col": 17,
+      "callee_text": "SelfLog.WriteLine",
+      "snippet": "            }\n            catch (Exception ex)\n            {\n                SelfLog.WriteLine(\"Exception {0} caught while enriching {1} with {2}.\", ex, logEvent, enricher);\n            }\n        }\n    }",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Debugging/SelfLog.cs",
+        "qualified_name": "SelfLog.WriteLine"
+      },
+      "reason": "Static call to SelfLog.WriteLine."
+    },
+    {
+      "path": "src/Serilog/Core/Filters/DelegateFilter.cs",
+      "line": 28,
+      "col": 9,
+      "callee_text": "Guard.AgainstNull",
+      "snippet": "\n    public bool IsEnabled(LogEvent logEvent)\n    {\n        Guard.AgainstNull(logEvent);\n        return _isEnabled(logEvent);\n    }\n}",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper."
+    },
+    {
+      "path": "src/Serilog/Core/Logger.cs",
+      "line": 588,
+      "col": 9,
+      "callee_text": "Write",
+      "snippet": "    [MessageTemplateFormatMethod(\"messageTemplate\")]\n    public void Verbose<T>(Exception? exception, string messageTemplate, T propertyValue)\n    {\n        Write(LogEventLevel.Verbose, exception, messageTemplate, propertyValue);\n    }\n\n    /// <summary>",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Core/Logger.cs",
+        "qualified_name": "Logger.Write"
+      },
+      "reason": "Unqualified call to a Write overload on the same Logger class."
+    },
+    {
+      "path": "src/Serilog/Core/Pipeline/MessageTemplateCache.cs",
+      "line": 53,
+      "col": 18,
+      "callee_text": "_innerParser.Parse",
+      "snippet": "        if (result != null)\n            return result;\n\n        result = _innerParser.Parse(messageTemplate);\n\n        lock (_templatesLock)\n        {",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Core/IMessageTemplateParser.cs",
+        "qualified_name": "IMessageTemplateParser.Parse"
+      },
+      "reason": "_innerParser is typed as the internal IMessageTemplateParser interface, so this resolves to the interface method; the concrete implementer is injected."
+    },
+    {
+      "path": "src/Serilog/Core/PropertiesInlineArray.cs",
+      "line": 24,
+      "col": 15,
+      "callee_text": "ArgumentOutOfRangeException",
+      "snippet": "    [DoesNotReturn]\n    static void ThrowArgumentOutOfRangeException(string param)\n    {\n        throw new ArgumentOutOfRangeException(param);\n    }\n}\n#endif",
+      "node_type": "object_creation_expression",
+      "expected": "external",
+      "reason": "new ArgumentOutOfRangeException is a System exception type."
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/AggregateSink.cs",
+      "line": 46,
+      "col": 19,
+      "callee_text": "AggregateException",
+      "snippet": "        }\n\n        if (exceptions != null)\n            throw new AggregateException(\"Failed to emit a log event.\", exceptions);\n    }\n}",
+      "node_type": "object_creation_expression",
+      "expected": "external",
+      "reason": "new AggregateException is a System exception type."
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/DisposingAggregateSink.cs",
+      "line": 41,
+      "col": 17,
+      "callee_text": "SelfLog.WriteLine",
+      "snippet": "            }\n            catch (Exception ex)\n            {\n                SelfLog.WriteLine(\"Caught exception while emitting to sink {0}: {1}\", sink, ex);\n                exceptions ??= [];\n                exceptions.Add(ex);\n            }",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Debugging/SelfLog.cs",
+        "qualified_name": "SelfLog.WriteLine"
+      },
+      "reason": "Static call to SelfLog.WriteLine."
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/Fallback/FailureListenerSink.cs",
+      "line": 26,
+      "col": 13,
+      "callee_text": "sfl.SetFailureListener",
+      "snippet": "    {\n        if (inner is ISetLoggingFailureListener sfl)\n        {\n            sfl.SetFailureListener(listener);\n        }\n\n        _inner = inner;",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Core/ISetLoggingFailureListener.cs",
+        "qualified_name": "ISetLoggingFailureListener.SetFailureListener"
+      },
+      "reason": "sfl is pattern-matched to the repo's ISetLoggingFailureListener, so this resolves to the interface method."
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/OptionalInterfaceForwardingSink.cs",
+      "line": 46,
+      "col": 19,
+      "callee_text": "innerAsync.DisposeAsync",
+      "snippet": "    {\n        if (_sink is IAsyncDisposable innerAsync)\n        {\n            await innerAsync.DisposeAsync();\n        }\n        else if (_sink is IDisposable inner)\n        {",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "innerAsync is an IAsyncDisposable, so this is the BCL DisposeAsync."
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/SecondaryLoggerSink.cs",
+      "line": 40,
+      "col": 9,
+      "callee_text": "Guard.AgainstNull",
+      "snippet": "\n    public void Emit(LogEvent logEvent)\n    {\n        Guard.AgainstNull(logEvent);\n\n        var copy = logEvent.Copy();\n        _logger.Write(copy);",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper."
+    },
+    {
+      "path": "src/Serilog/Debugging/SelfLog.cs",
+      "line": 79,
+      "col": 9,
+      "callee_text": "o?.Invoke",
+      "snippet": "    public static void WriteLine(string format, object? arg0 = null, object? arg1 = null, object? arg2 = null)\n    {\n        var o = _output;\n        o?.Invoke(string.Format($\"{DateTime.UtcNow:o} {format}\", arg0, arg1, arg2));\n\n        SelfMetrics.DiagnosticsSelfLogWrites.Add(1);\n    }",
+      "node_type": "invocation_expression",
+      "expected": "dynamic",
+      "reason": "o is a delegate (Action<string>) held in a static field and set at runtime via SelfLog.Enable, so the target is not statically known."
+    },
+    {
+      "path": "src/Serilog/Debugging/SelfMetrics.cs",
+      "line": 7,
+      "col": 50,
+      "callee_text": "typeof(Log).Assembly.GetName",
+      "snippet": "\nstatic class SelfMetrics\n{\n    static readonly Meter Meter = new(\"Serilog\", typeof(Log).Assembly.GetName().Version?.ToString());\n\n    public static class TagNames\n    {",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "typeof(Log).Assembly.GetName() is System.Reflection.Assembly.GetName."
+    },
+    {
+      "path": "src/Serilog/Events/MessageTemplate.cs",
+      "line": 35,
+      "col": 16,
+      "callee_text": "string.Concat",
+      "snippet": "    /// <param name=\"tokens\">The text and property tokens defining the template.</param>\n    public MessageTemplate(IEnumerable<MessageTemplateToken> tokens)\n        // ReSharper disable PossibleMultipleEnumeration\n        : this(string.Concat(tokens), tokens)\n    // ReSharper enable PossibleMultipleEnumeration\n    {\n    }",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "string.Concat is a BCL method."
+    },
+    {
+      "path": "src/Serilog/Events/StructureValue.cs",
+      "line": 97,
+      "col": 9,
+      "callee_text": "output.Write",
+      "snippet": "\n    static void Render(TextWriter output, LogEventProperty property, IFormatProvider? formatProvider = null)\n    {\n        output.Write(property.Name);\n        output.Write(\": \");\n        property.Value.Render(output, null, formatProvider);\n    }",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "output is a System.IO.TextWriter, so Write is a BCL method."
+    },
+    {
+      "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+      "line": 62,
+      "col": 34,
+      "callee_text": "GetLevelMoniker",
+      "snippet": "            return Casing.Format(value.ToString(), format);\n\n        if (format == null || format.Length != 2 && format.Length != 3)\n            return Casing.Format(GetLevelMoniker(_titleCaseLevelMap, value), format);\n\n        // Using int.Parse() here requires allocating a string to exclude the first character prefix.\n        // Junk like \"wxy\" will be accepted but produce benign results.",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+        "qualified_name": "LevelOutputFormat.GetLevelMoniker"
+      },
+      "reason": "Call to a GetLevelMoniker overload on the same static class."
+    },
+    {
+      "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+      "line": 42,
+      "col": 9,
+      "callee_text": "Guard.AgainstNull",
+      "snippet": "    /// <exception cref=\"ArgumentNullException\">When <paramref name=\"outputTemplate\"/> is <code>null</code></exception>\n    public MessageTemplateTextFormatter(string outputTemplate, IFormatProvider? formatProvider = null)\n    {\n        Guard.AgainstNull(outputTemplate);\n\n        _outputTemplate = new MessageTemplateParser().Parse(outputTemplate);\n        _formatProvider = formatProvider;",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper."
+    },
+    {
+      "path": "src/Serilog/LoggerExtensions.cs",
+      "line": 29,
+      "col": 16,
+      "callee_text": "logger.IsEnabled",
+      "snippet": "    {\n        Guard.AgainstNull(logger);\n\n        return logger.IsEnabled(level)\n            ? logger.ForContext(propertyName, value, destructureObjects)\n            : logger;\n    }",
+      "node_type": "invocation_expression",
+      "expected": {
+        "path": "src/Serilog/ILogger.cs",
+        "qualified_name": "ILogger.IsEnabled"
+      },
+      "reason": "logger is typed as the repo's ILogger interface, so this resolves to ILogger.IsEnabled."
+    },
+    {
+      "path": "src/Serilog/Policies/EnumScalarConversionPolicy.cs",
+      "line": 23,
+      "col": 22,
+      "callee_text": "ScalarValue",
+      "snippet": "    {\n        if (value is Enum)\n        {\n            result = new ScalarValue(value);\n            return true;\n        }\n",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "src/Serilog/Events/ScalarValue.cs",
+        "qualified_name": "ScalarValue"
+      },
+      "reason": "Constructor call, so the target is class ScalarValue."
+    },
+    {
+      "path": "src/Serilog/Policies/ReflectionTypesScalarDestructuringPolicy.cs",
+      "line": 25,
+      "col": 22,
+      "callee_text": "ScalarValue",
+      "snippet": "        // most sinks will convert them to strings.\n        if (value is Type or MemberInfo)\n        {\n            result = new ScalarValue(value);\n            return true;\n        }\n",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "src/Serilog/Events/ScalarValue.cs",
+        "qualified_name": "ScalarValue"
+      },
+      "reason": "Constructor call, so the target is class ScalarValue."
+    },
+    {
+      "path": "src/Serilog/Rendering/Padding.cs",
+      "line": 47,
+      "col": 13,
+      "callee_text": "output.Write",
+      "snippet": "        }\n\n        if (alignment.Value.Direction == AlignmentDirection.Right)\n            output.Write(value);\n    }\n\n#if FEATURE_WRITE_STRINGBUILDER",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "output is a System.IO.TextWriter, so Write is a BCL method."
+    },
+    {
+      "path": "src/Serilog/Rendering/ReusableStringWriter.cs",
+      "line": 48,
+      "col": 18,
+      "callee_text": "GetStringBuilder",
+      "snippet": "            return;\n        }\n\n        var sb = GetStringBuilder();\n        if (sb.Capacity > StringBuilderCapacityThreshold)\n        {\n            base.Dispose(disposing);",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "ReusableStringWriter derives from System.IO.StringWriter, and GetStringBuilder is inherited from it."
+    },
+    {
+      "path": "src/Serilog/Settings/KeyValuePairs/CallableConfigurationMethodFinder.cs",
+      "line": 22,
+      "col": 23,
+      "callee_text": "configurationAssemblies\n            .SelectMany(\n                [RequiresUnreferencedCode(\"Configuration methods are not trimming safe\")]\n                (a) => a.ExportedTypes\n                .Where(t => t.IsSealed && t.IsAbstract && !t.IsNested))\n            .SelectMany",
+      "snippet": "    [RequiresUnreferencedCode(\"Configuration methods are not trimming safe\")]\n    internal static IList<MethodInfo> FindConfigurationMethods(IEnumerable<Assembly> configurationAssemblies, Type configType)\n    {\n        var methods = configurationAssemblies\n            .SelectMany(\n                [RequiresUnreferencedCode(\"Configuration methods are not trimming safe\")]\n                (a) => a.ExportedTypes",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "The outer SelectMany is the System.Linq Enumerable extension method."
+    },
+    {
+      "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+      "line": 111,
+      "col": 24,
+      "callee_text": "ctor.Invoke",
+      "snippet": "                    throw new InvalidOperationException($\"A default constructor was not found on {type.FullName}.\");\n\n                var call = ctor.GetParameters().Select(pi => pi.DefaultValue).ToArray();\n                return ctor.Invoke(call);\n            }\n        }\n",
+      "node_type": "invocation_expression",
+      "expected": "external",
+      "reason": "ctor is a System.Reflection.ConstructorInfo, so Invoke is a BCL reflection method."
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: labeler + a different reviewer session (VERDICT: approved); executor did not read labels (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

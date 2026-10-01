@@ -1,0 +1,348 @@
+{
+  "repo_id": "heldout-zod",
+  "repo_url": "https://github.com/colinhacks/zod",
+  "tag": "v4.6.5",
+  "commit_sha": "59bbc03e10c636b9eb3c393dfeb552819774ec21",
+  "reviewed": true,
+  "review_note": "Author labels by source reading only (no index / tool output); independently re-labelled and reviewed in a second session. Site 14 is not a real call (arrow function definition) and is labelled with the function it defines (Gold); site 12 is a callback parameter that only ever receives the npm-aliased zod3/zod4 builds and is labelled external.",
+  "sites": [
+    {
+      "path": "packages/bench/bench-invalid.ts",
+      "line": 115,
+      "col": 19,
+      "callee_text": "Object.freeze",
+      "snippet": "    string: \"string\",\n    longString: \"Lorem ipsum dolor sit amet.\",\n    boolean: true,\n    deeplyNested: Object.freeze({ foo: \"bar\", num: 1, bool: false }),\n  })\n);\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Object.freeze is a JavaScript built-in."
+    },
+    {
+      "path": "packages/bench/benchUtil.ts",
+      "line": 64,
+      "col": 15,
+      "callee_text": "toFixed",
+      "snippet": "    return `${toFixed(val * 1e9)}n`;\n  }\n  if (val >= 1e-12) {\n    return `${toFixed(val * 1e12)}p`;\n  }\n  return val.toString();\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/benchUtil.ts",
+        "qualified_name": "toFixed"
+      },
+      "reason": "Calls the module-local function toFixed declared at the bottom of the same file."
+    },
+    {
+      "path": "packages/bench/compile-array-build.ts",
+      "line": 115,
+      "col": 33,
+      "callee_text": "validateReturnInput",
+      "snippet": "\nconst benchValLarge = metabench(\"validate + construct (25 elements)\", {\n  \"validate + return\"() {\n    for (const d of DATA_LARGE) validateReturnInput(d);\n  },\n  \"validate + build\"() {\n    for (const d of DATA_LARGE) validateBuildIndex(d);",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/compile-array-build.ts",
+        "qualified_name": "validateReturnInput"
+      },
+      "reason": "Calls the module-level function validateReturnInput defined in the same file."
+    },
+    {
+      "path": "packages/bench/compile-codec-direction.ts",
+      "line": 131,
+      "col": 12,
+      "callee_text": "unifiedNestedBranch",
+      "snippet": "    return unifiedTopLevel(input, \"forward\");\n  },\n  \"manual unified nested branch\"() {\n    return unifiedNestedBranch(input, \"forward\");\n  },\n  \"z.compile(codec).decode\"() {\n    return compiled.decode(input);",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/compile-codec-direction.ts",
+        "qualified_name": "unifiedNestedBranch"
+      },
+      "reason": "Calls the module-level function unifiedNestedBranch defined in the same file."
+    },
+    {
+      "path": "packages/bench/compile-output.ts",
+      "line": 262,
+      "col": 1,
+      "callee_text": "console.log",
+      "snippet": "console.log(\"Original:\", multiTest);\nconsole.log(\"Mutate:\", multiMutate({ ...multiTest }));\nconsole.log(\"Build new:\", multiBuildNew(multiTest));\nconsole.log(\"\");\n\nconst bench5 = metabench(\"multiple transforms (3 props)\", {\n  \"mutate in place\"() {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "console.log is a runtime built-in."
+    },
+    {
+      "path": "packages/bench/failing-safeparse.ts",
+      "line": 22,
+      "col": 13,
+      "callee_text": "shape",
+      "snippet": "const shape = (z: any) => z.object({ username: z.string(), bio: z.string(), xp: z.number() });\nconst P44 = shape(z44);\nif (require(\"zod443/package.json\").version !== \"4.4.3\") throw new Error(\"zod443 must resolve to 4.4.3\");\nconst P45 = shape(z45);\nconst bad = { username: 42, bio: \"hello\", xp: 12 };\nif (P44.safeParse(bad).success !== false || P45.safeParse(bad).success !== false)\n  throw new Error(\"input must fail on both\");",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/failing-safeparse.ts",
+        "qualified_name": "shape"
+      },
+      "reason": "shape is a module-level arrow function const defined in the same file and called here with z45."
+    },
+    {
+      "path": "packages/bench/ipv4-regex.ts",
+      "line": 17,
+      "col": 15,
+      "callee_text": "metabench(\"ipv4 regex\")\n  .add(\"A\", () => {\n    return ipv4RegexA.test(DATA);\n  })\n  .add",
+      "snippet": "const ipv4RegexI =\n  /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;\n\nconst bench = metabench(\"ipv4 regex\")\n  .add(\"A\", () => {\n    return ipv4RegexA.test(DATA);\n  })",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/metabench.ts",
+        "qualified_name": "Metabench.add"
+      },
+      "reason": "The outermost call in the chain is .add on the Metabench returned by metabench(); add is defined on the abstract class Metabench and returns this."
+    },
+    {
+      "path": "packages/bench/libs.ts",
+      "line": 34,
+      "col": 13,
+      "callee_text": "v.parse",
+      "snippet": "\nconsole.log(z.parse(schema, DATA[0]));\nconsole.log(atschema(DATA[0]));\nconsole.log(v.parse(vschema, DATA[0]));\n\nconst bench = metabench(\"zod vs arktype\", {\n  zod4() {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "v.parse is valibot's parse (import * as v from valibot)."
+    },
+    {
+      "path": "packages/bench/memory/calibrate.ts",
+      "line": 14,
+      "col": 33,
+      "callee_text": "Set",
+      "snippet": "  [\"{}\", \"~32 B\", () => ({})],\n  [\"{a:1,b:2,c:3}\", \"~56 B\", () => ({ a: 1, b: 2, c: 3 })],\n  [\"new Array(10)\", \"~120 B\", () => new Array(10).fill(0)],\n  [\"new Set()\", \"~100 B\", () => new Set()],\n  [\"new Set(['a','b','c'])\", \"~200 B\", () => new Set([\"a\", \"b\", \"c\"])],\n  [\"new Map()\", \"~100 B\", () => new Map()],\n  [\"closure over 1 var\", \"~100 B\", (i) => () => i],",
+      "node_type": "new_expression",
+      "expected": "external",
+      "reason": "new Set is the built-in Set constructor."
+    },
+    {
+      "path": "packages/bench/object-safe.ts",
+      "line": 4,
+      "col": 15,
+      "callee_text": "metabench",
+      "snippet": "import { metabench } from \"./metabench.js\";\nimport { DATA, zod3, zod4 } from \"./object-setup.js\";\n\nconst bench = metabench(\"small: z.object().safeParse\", {\n  zod3() {\n    for (const _ of DATA) zod3.safeParse(_);\n  },",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/bench/metabench.ts",
+        "qualified_name": "metabench"
+      },
+      "reason": "metabench is imported from ./metabench.js and resolves to the exported function in metabench.ts."
+    },
+    {
+      "path": "packages/bench/object-setup.ts",
+      "line": 14,
+      "col": 13,
+      "callee_text": "Math.random",
+      "snippet": "\nexport const DATA: any[] = makeData(1000, () => {\n  return Object.freeze({\n    number: Math.random(),\n    string: `${Math.random()}`,\n    boolean: Math.random() > 0.5,\n  });",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Math.random is a JavaScript built-in."
+    },
+    {
+      "path": "packages/bench/safe.ts",
+      "line": 21,
+      "col": 12,
+      "callee_text": "Math.random",
+      "snippet": "const bench = benchWithData({\n  name: \"safe return\",\n  data() {\n    return Math.random() > 0.5 ? randomString(15) : Math.random();\n  },\n  batch: 1000,\n  benchmarks: {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Math.random is a JavaScript built-in."
+    },
+    {
+      "path": "packages/bench/union.ts",
+      "line": 5,
+      "col": 19,
+      "callee_text": "z.object",
+      "snippet": "import { metabench } from \"./metabench.js\";\n\nconst { zod3, zod4 } = makeSchema((z) => {\n  const aSchema = z.object({\n    type: z.literal(\"a\"),\n  });\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "z is a callback parameter typed typeof zod4, and makeSchema only ever passes the npm-aliased published zod@3.24 and zod@4.0.8 packages, so every possible target is third-party code, never repo source."
+    },
+    {
+      "path": "packages/docs/app/api/search/route.ts",
+      "line": 4,
+      "col": 24,
+      "callee_text": "createFromSource",
+      "snippet": "import { source } from \"@/loaders/source\";\nimport { createFromSource } from \"fumadocs-core/search/server\";\n\nexport const { GET } = createFromSource(source);",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "createFromSource comes from the third-party fumadocs-core/search/server package."
+    },
+    {
+      "path": "packages/docs/components/gold.tsx",
+      "line": 11,
+      "col": 21,
+      "callee_text": "() => {\n  const companies: Company[] = [\n    {\n      name: \"CodeRabbit\",\n      description: \"Cut code review time & bugs in half\",\n      logoDark: \"https://github.com/user-attachments/assets/eea24edb-ff20-4532-b57c-e8719f455d6d\",\n      logoLight: \"https://github.com/user-attachments/assets/d791bc7d-dc60-4d55-9c31-97779839cb74\",\n      url: \"coderabbit.ai\",\n      href: \"https://www.coderabbit.ai/\",\n    },\n  ];\n\n  return (\n    <div className=\"max-w-4xl mt-4\">\n      <div className=\"border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-md\">\n        <div className={`grid grid-cols-1 ${companies.length > 1 ? \"sm:grid-cols-2\" : \"\"}",
+      "snippet": "  logoClassName?: string;\n};\n\nexport const Gold = () => {\n  const companies: Company[] = [\n    {\n      name: \"CodeRabbit\",",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/docs/components/gold.tsx",
+        "qualified_name": "Gold"
+      },
+      "reason": "Not a real call: the node is the arrow function expression that defines the exported Gold component; the best label is the function that node is."
+    },
+    {
+      "path": "packages/docs/loaders/source.ts",
+      "line": 33,
+      "col": 21,
+      "callee_text": "Date",
+      "snippet": "export function latestPosts(count: number): PostSummary[] {\n  return (blog.getPages() as any[])\n    .filter((post) => !post.data?.draft)\n    .sort((a, b) => new Date(b.data?.date ?? 0).getTime() - new Date(a.data?.date ?? 0).getTime())\n    .slice(0, count)\n    .map((post) => ({\n      url: post.url,",
+      "node_type": "new_expression",
+      "expected": "external",
+      "reason": "new Date is the built-in Date constructor."
+    },
+    {
+      "path": "packages/integration/fixtures/ai-sdk/index.ts",
+      "line": 13,
+      "col": 10,
+      "callee_text": "z.number",
+      "snippet": "  prompt: \"Who is or was the greatest scientist of all time?\",\n  schema: z.object({\n    name: z.string(),\n    age: z.number(),\n  }),\n});\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/zod/src/v4/classic/schemas.ts",
+        "qualified_name": "number"
+      },
+      "reason": "z is imported from the workspace zod package (source condition), whose z namespace re-exports number from classic/schemas.ts."
+    },
+    {
+      "path": "packages/treeshake/zod-default-import.ts",
+      "line": 3,
+      "col": 16,
+      "callee_text": "z.object",
+      "snippet": "import z from \"zod\";\n\nconst schema = z.object({ title: z.string().min(5) });\nconsole.log(schema.safeParse({ title: \"hi\" }).error?.issues[0].message);",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/zod/src/v4/classic/schemas.ts",
+        "qualified_name": "object"
+      },
+      "reason": "Default import z from workspace zod is the classic namespace re-exporting object from classic/schemas.ts."
+    },
+    {
+      "path": "packages/treeshake/zod3-string.ts",
+      "line": 4,
+      "col": 1,
+      "callee_text": "console.log",
+      "snippet": "import * as z from \"zod3\";\n\nconst schema = z.string().min(5);\nconsole.log(schema.parse(\"hi\"));",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "console.log is a runtime built-in."
+    },
+    {
+      "path": "packages/zod/src/v3/benchmarks/index.ts",
+      "line": 28,
+      "col": 7,
+      "callee_text": "argv.includes",
+      "snippet": "  if (argv.includes(\"--realworld\")) {\n    suites.push(...realworld.suites);\n  }\n  if (argv.includes(\"--primitives\")) {\n    suites.push(...primitiveBenchmarks.suites);\n  }\n  if (argv.includes(\"--string\")) {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "argv is process.argv.slice(2), an array, so includes is Array.prototype.includes."
+    },
+    {
+      "path": "packages/zod/src/v3/benchmarks/object.ts",
+      "line": 6,
+      "col": 20,
+      "callee_text": "Benchmark.Suite",
+      "snippet": "import { z } from \"zod/v3\";\n\nconst emptySuite = new Benchmark.Suite(\"z.object: empty\");\nconst shortSuite = new Benchmark.Suite(\"z.object: short\");\nconst longSuite = new Benchmark.Suite(\"z.object: long\");\n\nconst empty = z.object({});",
+      "node_type": "new_expression",
+      "expected": "external",
+      "reason": "Benchmark.Suite is the constructor from the third-party benchmark package."
+    },
+    {
+      "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+      "line": 85,
+      "col": 3,
+      "callee_text": "ctx.common.issues.push",
+      "snippet": "      overrideMap === defaultErrorMap ? undefined : defaultErrorMap, // then global default map\n    ].filter((x) => !!x),\n  });\n  ctx.common.issues.push(issue);\n}\n\nexport type ObjectPair = {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "ctx.common.issues is a ZodIssue[] array, so push is Array.prototype.push."
+    },
+    {
+      "path": "packages/zod/src/v4/core/errors.ts",
+      "line": 385,
+      "col": 18,
+      "callee_text": "Object.prototype.hasOwnProperty.call",
+      "snippet": "            // assignment of \"__proto__\" hits the setter instead of creating an\n            // own key. Guard the read with hasOwnProperty and create the node\n            // with defineProperty so any path element becomes a real own key.\n            if (!Object.prototype.hasOwnProperty.call(curr, el)) {\n              Object.defineProperty(curr, el, {\n                value: { _errors: [] },\n                enumerable: true,",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Object.prototype.hasOwnProperty.call is a JavaScript built-in."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/cs.ts",
+      "line": 89,
+      "col": 24,
+      "callee_text": "getSizing",
+      "snippet": "      }\n      case \"too_small\": {\n        const adj = issue.inclusive ? \">=\" : \">\";\n        const sizing = getSizing(issue.origin);\n        if (sizing) {\n          return `Hodnota je příliš malá: ${issue.origin ?? \"hodnota\"} musí mít ${adj}${issue.minimum.toString()} ${sizing.unit ?? \"prvků\"}`;\n        }",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/zod/src/v4/locales/cs.ts",
+        "qualified_name": "getSizing"
+      },
+      "reason": "Calls the local function getSizing declared inside the error factory in the same file."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/is.ts",
+      "line": 83,
+      "col": 91,
+      "callee_text": "issue.maximum.toString",
+      "snippet": "        const sizing = getSizing(issue.origin);\n        if (sizing)\n          return `Of stórt: gert er ráð fyrir að ${issue.origin ?? \"gildi\"} hafi ${adj}${issue.maximum.toString()} ${sizing.unit ?? \"hluti\"}`;\n        return `Of stórt: gert er ráð fyrir að ${issue.origin ?? \"gildi\"} sé ${adj}${issue.maximum.toString()}`;\n      }\n      case \"too_small\": {\n        const adj = issue.inclusive ? \">=\" : \">\";",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/ja.ts",
+      "line": 82,
+      "col": 66,
+      "callee_text": "issue.maximum.toString",
+      "snippet": "        const sizing = getSizing(issue.origin);\n        if (sizing)\n          return `大きすぎる値: ${issue.origin ?? \"値\"}は${issue.maximum.toString()}${sizing.unit ?? \"要素\"}${adj}必要があります`;\n        return `大きすぎる値: ${issue.origin ?? \"値\"}は${issue.maximum.toString()}${adj}必要があります`;\n      }\n      case \"too_small\": {\n        const adj = issue.inclusive ? \"以上である\" : \"より大きい\";",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/km.ts",
+      "line": 89,
+      "col": 91,
+      "callee_text": "issue.minimum.toString",
+      "snippet": "        const adj = issue.inclusive ? \">=\" : \">\";\n        const sizing = getSizing(issue.origin);\n        if (sizing) {\n          return `តូចពេក៖ ត្រូវការ ${issue.origin} ${adj} ${issue.minimum.toString()} ${sizing.unit}`;\n        }\n\n        return `តូចពេក៖ ត្រូវការ ${issue.origin} ${adj} ${issue.minimum.toString()}`;",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "issue.minimum is number | bigint, so toString is the built-in method."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/ne.ts",
+      "line": 79,
+      "col": 83,
+      "callee_text": "issue.maximum.toString",
+      "snippet": "        const sizing = getSizing(issue.origin);\n        if (sizing)\n          return `धेरै ठूलो: ${issue.origin ?? \"मान\"} मा ${adj}${issue.maximum.toString()} ${sizing.unit} ${sizing.verb}`;\n        return `धेरै ठूलो: ${issue.origin ?? \"मान\"} ${adj}${issue.maximum.toString()} हुनुपर्छ`;\n      }\n\n      case \"too_small\": {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "issue.maximum is number | bigint, so toString is the built-in method."
+    },
+    {
+      "path": "packages/zod/src/v4/locales/yo.ts",
+      "line": 108,
+      "col": 42,
+      "callee_text": "util.joinValues",
+      "snippet": "        return `Nọ́mbà aṣìṣe: gbọ́dọ̀ jẹ́ èyà pípín ti ${issue.divisor}`;\n\n      case \"unrecognized_keys\":\n        return `Bọtìnì àìmọ̀: ${util.joinValues(issue.keys, \", \")}`;\n\n      case \"invalid_key\":\n        return `Bọtìnì aṣìṣe nínú ${issue.origin}`;",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/zod/src/v4/core/util.ts",
+        "qualified_name": "joinValues"
+      },
+      "reason": "util is import * as util from ../core/util.js, and joinValues is an exported function there."
+    },
+    {
+      "path": "packages/zod/src/v4/mini/in-out.ts",
+      "line": 32,
+      "col": 45,
+      "callee_text": "schemas.optional",
+      "snippet": "  return visit(schema, {\n    pipe: (s) => inSide(s._zod.def),\n    // A default value belongs to the output side, so a rewritten inner type leaves it stranded. `.default()` widens the declared input type with `undefined`, and `optional` is what carries that across.\n    default: (s, rewritten) => (rewritten ? schemas.optional(s._zod.def.innerType) : s),\n    // A catch value is output-side too, but `.catch()` leaves the declared input type alone, so the inner schema stands on its own.\n    catch: (s, rewritten) => (rewritten ? s._zod.def.innerType : s),\n  }) as schemas.ZodMiniType<core.input<T>, core.input<T>>;",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "packages/zod/src/v4/mini/schemas.ts",
+        "qualified_name": "optional"
+      },
+      "reason": "schemas is import * as schemas from ./schemas.js (mini), which exports the function optional."
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: labeler + a different reviewer session (VERDICT: approved); executor did not read labels (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

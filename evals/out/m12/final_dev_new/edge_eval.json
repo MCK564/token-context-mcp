@@ -1,0 +1,96 @@
+{
+  "tag": "new",
+  "repo_id": "tc-pinned",
+  "index_run_id": "run_20260930T174019Z_0c48ef2d",
+  "reviewed_gold": true,
+  "part_a": {
+    "total_samples": 150,
+    "correct_predictions": 86,
+    "accuracy": 0.5733,
+    "active_false_positives": 0,
+    "active_true_positives": 50,
+    "scope_breakdown": {
+      "scope:exact_receiver_type": {
+        "total": 30,
+        "correct": 21,
+        "fp": 0,
+        "tp": 21
+      },
+      "scope:import_match": {
+        "total": 40,
+        "correct": 26,
+        "fp": 0,
+        "tp": 12
+      },
+      "scope:same_class": {
+        "total": 22,
+        "correct": 8,
+        "fp": 0,
+        "tp": 8
+      },
+      "scope:same_file": {
+        "total": 23,
+        "correct": 8,
+        "fp": 0,
+        "tp": 8
+      },
+      "scope:global": {
+        "total": 25,
+        "correct": 21,
+        "fp": 0,
+        "tp": 1
+      },
+      "scope:import_module_match": {
+        "total": 5,
+        "correct": 0,
+        "fp": 0,
+        "tp": 0
+      },
+      "scope:same_package": {
+        "total": 5,
+        "correct": 2,
+        "fp": 0,
+        "tp": 0
+      }
+    }
+  },
+  "part_b": {
+    "total_call_sites": 60,
+    "resolved_call_sites": 18,
+    "overall_recall": 0.3,
+    "pattern_recalls": {
+      "pattern_1_same_class": 0.1,
+      "pattern_2_same_file": 0.2,
+      "pattern_3_imported_func": 0.2,
+      "pattern_4_instantiation": 0.4,
+      "pattern_5_receiver_typed": 0.0,
+      "pattern_6_module_qualified": 0.9
+    },
+    "pattern_breakdown": {
+      "pattern_1_same_class": {
+        "total": 10,
+        "found": 1
+      },
+      "pattern_2_same_file": {
+        "total": 10,
+        "found": 2
+      },
+      "pattern_3_imported_func": {
+        "total": 10,
+        "found": 2
+      },
+      "pattern_4_instantiation": {
+        "total": 10,
+        "found": 4
+      },
+      "pattern_5_receiver_typed": {
+        "total": 10,
+        "found": 0
+      },
+      "pattern_6_module_qualified": {
+        "total": 10,
+        "found": 9
+      }
+    }
+  }
+}

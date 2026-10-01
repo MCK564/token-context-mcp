@@ -1,0 +1,335 @@
+{
+  "repo_id": "bench-csvhelper",
+  "total_symbols": 14460,
+  "total_edges": 3178,
+  "unresolved_edges": 2871,
+  "total_suspicious_edges": 1,
+  "suspicious_edges_ratio": 0.0003,
+  "status_counts": {
+    "ambiguous": 2871,
+    "resolved": 307
+  },
+  "scope_counts": {
+    "scope:unresolved_receiver": 2532,
+    "scope:same_file": 198,
+    "scope:same_file_ambiguous": 76,
+    "scope:receiver_match": 79,
+    "scope:exact_receiver_type": 28,
+    "scope:receiver_type_ambiguous": 13,
+    "scope:builtin_receiver_skipped": 55,
+    "scope:same_package": 2,
+    "scope:tainted_poly_receiver": 7,
+    "scope:global_ambiguous": 188
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.CheckHasBeenRead:c83aa9e3663d8b8b",
+      "name": "CheckHasBeenRead",
+      "qualified_name": "CsvReader.CheckHasBeenRead",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 37,
+      "resolved_count": 37,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 37
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ConfigurationFunctions.cs:ConfigurationFunctions.GetConstructor:a62292dd6c077a40",
+      "name": "GetConstructor",
+      "qualified_name": "ConfigurationFunctions.GetConstructor",
+      "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+      "in_degree": 25,
+      "resolved_count": 25,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 25
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ConfigurationFunctions.cs:ConfigurationFunctions.GetDelimiter:04e81ed6c2fb239b",
+      "name": "GetDelimiter",
+      "qualified_name": "ConfigurationFunctions.GetDelimiter",
+      "path": "src/CsvHelper/Configuration/ConfigurationFunctions.cs",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 16
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/TypeConversion/TypeConverterOptions.cs:TypeConverterOptions.Merge:477a487d1d08caac",
+      "name": "Merge",
+      "qualified_name": "TypeConverterOptions.Merge",
+      "path": "src/CsvHelper/TypeConversion/TypeConverterOptions.cs",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 9
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.ReadHeader:6b07676035a3cc45",
+      "name": "ReadHeader",
+      "qualified_name": "CsvReader.ReadHeader",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 1,
+        "scope:same_file": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/ArrayHelper.cs:ArrayHelper.Trim:a928061d94a0f015",
+      "name": "Trim",
+      "qualified_name": "ArrayHelper.Trim",
+      "path": "src/CsvHelper/ArrayHelper.cs",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.Read:4f10a71962ad48ba",
+      "name": "Read",
+      "qualified_name": "CsvReader.Read",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.167,
+      "scopes": {
+        "scope:exact_receiver_type": 1,
+        "scope:same_file": 5
+      },
+      "reasons": {
+        "receiver_mismatch:csv_vs_csvreader": 1
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/ArrayHelper.cs:ArrayHelper.Contains:df8949761b55cbc9",
+      "name": "Contains",
+      "qualified_name": "ArrayHelper.Contains",
+      "path": "src/CsvHelper/ArrayHelper.cs",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:receiver_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ClassMap.cs:ClassMap.GetMaxIndex:605d2e20fe519316",
+      "name": "GetMaxIndex",
+      "qualified_name": "ClassMap.GetMaxIndex",
+      "path": "src/CsvHelper/Configuration/ClassMap.cs",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4,
+        "scope:exact_receiver_type": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.GetTypeInfoForRecord:3f3b409c3088fab7",
+      "name": "GetTypeInfoForRecord",
+      "qualified_name": "CsvWriter.GetTypeInfoForRecord",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 6
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.WriteHeaderFromRecord:76a25e72dea3ac4e",
+      "name": "WriteHeaderFromRecord",
+      "qualified_name": "CsvWriter.WriteHeaderFromRecord",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvParser.cs:CsvParser.AddField:1e5b5b7dfba4c216",
+      "name": "AddField",
+      "qualified_name": "CsvParser.AddField",
+      "path": "src/CsvHelper/CsvParser.cs",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ClassMap.cs:ClassMap.ReIndex:9782a1e608ee82ca",
+      "name": "ReIndex",
+      "qualified_name": "ClassMap.ReIndex",
+      "path": "src/CsvHelper/Configuration/ClassMap.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ClassMap.cs:ClassMap.GetGenericType:3d97f9e74ac96e5e",
+      "name": "GetGenericType",
+      "qualified_name": "ClassMap.GetGenericType",
+      "path": "src/CsvHelper/Configuration/ClassMap.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:exact_receiver_type": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/ReflectionHelper.cs:ReflectionHelper.GetMember:6e4a09f686647743",
+      "name": "GetMember",
+      "qualified_name": "ReflectionHelper.GetMember",
+      "path": "src/CsvHelper/ReflectionHelper.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.ReadAsync:ea4d5b08c1d30a02",
+      "name": "ReadAsync",
+      "qualified_name": "CsvReader.ReadAsync",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.WriteToBuffer:609b8aa9ab082b9b",
+      "name": "WriteToBuffer",
+      "qualified_name": "CsvWriter.WriteToBuffer",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.NextRecordAsync:502b96e35fa29dd9",
+      "name": "NextRecordAsync",
+      "qualified_name": "CsvWriter.NextRecordAsync",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Expressions/ExpressionManager.cs:ExpressionManager.CreateInstanceAndAssignMembers:ec3d1df62732aaf7",
+      "name": "CreateInstanceAndAssignMembers",
+      "qualified_name": "ExpressionManager.CreateInstanceAndAssignMembers",
+      "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 2,
+        "scope:receiver_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/FastDynamicObject.cs:FastDynamicObject.SetValue:a4564030bc37ad08",
+      "name": "SetValue",
+      "qualified_name": "FastDynamicObject.SetValue",
+      "path": "src/CsvHelper/FastDynamicObject.cs",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    }
+  ]
+}

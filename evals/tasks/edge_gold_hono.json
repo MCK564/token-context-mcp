@@ -3,7 +3,7 @@
   "repo_url": "https://github.com/honojs/hono",
   "reviewed": true,
   "reviewed_by": "Independent reviewer (Antigravity M12 session)",
-  "review_note": "Annotated following Appendix D guidelines from AST call sites.",
+  "review_note": "Annotated following Appendix D guidelines from AST call sites. | M12-fix: 4 labels corrected after checking the source (dev set; see evals/out/m12/edge_gold_hono_corrections.md).",
   "sites": [
     {
       "path": "benchmarks/jsx/src/benchmark.ts",
@@ -36,10 +36,10 @@
       "snippet": "import { renderToString } from 'preact-render-to-string'\nimport { buildPage } from './page-preact'\n\nexport const render = () => renderToString(buildPage()() as any)",
       "node_type": "call_expression",
       "expected": {
-        "path": "benchmarks/jsx/src/react-jsx/page-preact.ts",
+        "path": "benchmarks/jsx/src/react-jsx/page-preact.tsx",
         "qualified_name": "buildPage"
       },
-      "reason": "Local benchmark page builder"
+      "reason": "Local benchmark page builder | corrected M12-fix: file is page-preact.tsx, not .ts"
     },
     {
       "path": "build/remove-private-fields.ts",
@@ -115,10 +115,10 @@
       "snippet": "  open(ws) {\n    const websocketListeners = ws.data.events\n    if (websocketListeners.onOpen) {\n      websocketListeners.onOpen(new Event('open'), createWSContext(ws))\n    }\n  },\n  close(ws, code, reason) {",
       "node_type": "call_expression",
       "expected": {
-        "path": "src/helper/websocket/index.ts",
+        "path": "src/adapter/bun/websocket.ts",
         "qualified_name": "createWSContext"
       },
-      "reason": "WebSocket context creator function"
+      "reason": "WebSocket context creator function | corrected M12-fix: createWSContext is defined in the same file (line 33), not in helper/websocket"
     },
     {
       "path": "src/adapter/lambda-edge/handler.ts",
@@ -220,10 +220,10 @@
       "snippet": "    return app.request(input, init, Env, executionCtx)\n  }\n\n  return hc<typeof app>('http://localhost', { ...options, fetch: customFetch })\n}",
       "node_type": "call_expression",
       "expected": {
-        "path": "src/client/index.ts",
+        "path": "src/client/client.ts",
         "qualified_name": "hc"
       },
-      "reason": "Hono RPC client factory hc"
+      "reason": "Hono RPC client factory hc | corrected M12-fix: hc is defined in client.ts; client/index.ts only re-exports it"
     },
     {
       "path": "src/jsx/base.ts",
@@ -233,10 +233,10 @@
       "snippet": "      children\n    )\n  } else if (tag === 'svg' || tag === 'head') {\n    nameSpaceContext ||= createContext('')\n    return new JSXNode(tag, props, [\n      new JSXFunctionNode(\n        nameSpaceContext,",
       "node_type": "call_expression",
       "expected": {
-        "path": "src/jsx/base.ts",
+        "path": "src/jsx/context.ts",
         "qualified_name": "createContext"
       },
-      "reason": "JSX createContext function"
+      "reason": "JSX createContext function | corrected M12-fix: createContext is imported from ./context (defined at context.ts:15)"
     },
     {
       "path": "src/jsx/constants.ts",

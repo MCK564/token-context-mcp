@@ -1,0 +1,19 @@
+==========================================================================================
+LATENCY BENCHMARK (Section 3 Protocol): repo='bench-hono'  runs=2  iters=15
+Environment: Linux-6.18.44-fc-v50-x86_64-with-glibc2.39 | Python 3.12.3
+==========================================================================================
+Tool                      |  Med p50 | p50 Runs             | Noisy  |  Med p95 | sha256_file
+------------------------------------------------------------------------------------------
+list_repositories         |     0.03 | [0.03, 0.03]         | no     |     0.04 |         0.0
+get_index_status          |     2.48 | [2.52, 2.44]         | no     |     2.77 |         0.0
+get_repo_map@1024         |    14.21 | [14.09, 14.34]       | no     |    16.27 |         0.0
+find_symbols              |     3.69 | [3.61, 3.77]         | no     |     8.14 |         0.0
+search_source             |     1.17 | [1.16, 1.17]         | no     |     1.31 |         0.0
+get_file_skeleton         |     3.50 | [3.54, 3.45]         | no     |     3.67 |         0.0
+get_symbol_context        |     0.72 | [0.73, 0.71]         | no     |     0.90 |         0.0
+get_impact_slice          |     0.33 | [0.31, 0.34]         | no     |     0.40 |         0.0
+get_module_dependents     |     0.00 | [0.0, 0.0]           | no     |     0.00 |         0.0
+inspect_symbol            |     6.79 | [6.78, 6.8]          | no     |     8.81 |         0.0
+inspect_symbol[full@4096]x10 |   104.62 | [105.81, 103.44]     | no     |   132.28 |         0.0
+==========================================================================================
+Saved benchmark results to /home/claude/work/out/dev_base/latency_hono.json

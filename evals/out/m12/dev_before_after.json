@@ -1,0 +1,1164 @@
+{
+ "rich": {
+  "base": {
+   "R0-grep": {
+    "file_acc_at_5": 0.9333,
+    "sym_recall_at_10": 0.2222,
+    "wire_tokens": 17552.7667,
+    "file_acc_at_5_ci": [
+     0.8333,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.0889,
+     0.3778
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.9667,
+    "sym_recall_at_10": 0.5222,
+    "wire_tokens": 1896.5333,
+    "file_acc_at_5_ci": [
+     0.9,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.3444,
+     0.6889
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.9,
+    "sym_recall_at_10": 0.5444,
+    "wire_tokens": 1885.9667,
+    "file_acc_at_5_ci": [
+     0.8,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.3667,
+     0.7111
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.9833,
+    "sig_coverage": 0.9833,
+    "savings_vs_read": 0.9146,
+    "wire_tokens": 2204.1,
+    "ref_coverage_ci": [
+     0.95,
+     1.0
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 1.0,
+     "R2": 1.0
+    },
+    "b_hidden_dep": {
+     "R1": 0.9,
+     "R2": 0.9
+    },
+    "c_multi_file": {
+     "R1": 1.0,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       -0.1667,
+       0.0
+      ],
+      "mean": -0.0667,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       -0.1,
+       0.1444
+      ],
+      "mean": 0.0222,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": true,
+      "threshold": 0.8,
+      "value": 0.9833
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.9146
+     },
+     "sig_coverage": {
+      "met": true,
+      "threshold": 0.6,
+      "value": 0.9833
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      -0.1667,
+      0.0667
+     ],
+     "mean": -0.0333,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.1333,
+      0.5333
+     ],
+     "mean": 0.3333,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.1074
+    }
+   },
+   "edges": {
+    "total": 3797,
+    "ambiguous": 629,
+    "ambiguous_rate": 0.1657,
+    "symbols": 2096
+   }
+  },
+  "new": {
+   "R0-grep": {
+    "file_acc_at_5": 0.9333,
+    "sym_recall_at_10": 0.2222,
+    "wire_tokens": 17552.7667,
+    "file_acc_at_5_ci": [
+     0.8333,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.0889,
+     0.3778
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.9667,
+    "sym_recall_at_10": 0.5222,
+    "wire_tokens": 1896.5333,
+    "file_acc_at_5_ci": [
+     0.9,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.3444,
+     0.6889
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.9,
+    "sym_recall_at_10": 0.5444,
+    "wire_tokens": 1885.9667,
+    "file_acc_at_5_ci": [
+     0.8,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.3667,
+     0.7111
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.9833,
+    "sig_coverage": 0.9833,
+    "savings_vs_read": 0.9146,
+    "wire_tokens": 2204.1,
+    "ref_coverage_ci": [
+     0.95,
+     1.0
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 1.0,
+     "R2": 1.0
+    },
+    "b_hidden_dep": {
+     "R1": 0.9,
+     "R2": 0.9
+    },
+    "c_multi_file": {
+     "R1": 1.0,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       -0.1667,
+       0.0
+      ],
+      "mean": -0.0667,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       -0.1,
+       0.1444
+      ],
+      "mean": 0.0222,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": true,
+      "threshold": 0.8,
+      "value": 0.9833
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.9146
+     },
+     "sig_coverage": {
+      "met": true,
+      "threshold": 0.6,
+      "value": 0.9833
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      -0.1667,
+      0.0667
+     ],
+     "mean": -0.0333,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.1333,
+      0.5333
+     ],
+     "mean": 0.3333,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.1074
+    }
+   },
+   "edges": {
+    "total": 3797,
+    "ambiguous": 629,
+    "ambiguous_rate": 0.1657,
+    "symbols": 2096
+   }
+  }
+ },
+ "hono": {
+  "base": {
+   "R0-grep": {
+    "file_acc_at_5": 0.6333,
+    "sym_recall_at_10": 0.1278,
+    "wire_tokens": 20934.3333,
+    "file_acc_at_5_ci": [
+     0.4333,
+     0.8
+    ],
+    "sym_recall_at_10_ci": [
+     0.0306,
+     0.25
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.8,
+    "sym_recall_at_10": 0.5528,
+    "wire_tokens": 1878.4,
+    "file_acc_at_5_ci": [
+     0.6333,
+     0.9333
+    ],
+    "sym_recall_at_10_ci": [
+     0.3917,
+     0.7056
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.8,
+    "sym_recall_at_10": 0.6639,
+    "wire_tokens": 1887.6667,
+    "file_acc_at_5_ci": [
+     0.6333,
+     0.9333
+    ],
+    "sym_recall_at_10_ci": [
+     0.5028,
+     0.8083
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.575,
+    "sig_coverage": 0.575,
+    "savings_vs_read": 0.5687,
+    "wire_tokens": 1237.8,
+    "ref_coverage_ci": [
+     0.405,
+     0.74
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 0.8,
+     "R2": 0.8
+    },
+    "b_hidden_dep": {
+     "R1": 0.8,
+     "R2": 0.8
+    },
+    "c_multi_file": {
+     "R1": 0.8,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "mean": 0.0,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       0.0056,
+       0.2333
+      ],
+      "mean": 0.1111,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.575
+     },
+     "savings_vs_read": {
+      "met": false,
+      "threshold": 0.7,
+      "value": 0.5687
+     },
+     "sig_coverage": {
+      "met": false,
+      "threshold": 0.6,
+      "value": 0.575
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      0.0,
+      0.3333
+     ],
+     "mean": 0.1667,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.4,
+      0.7333
+     ],
+     "mean": 0.5667,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.0902
+    }
+   },
+   "edges": {
+    "total": 1365,
+    "ambiguous": 617,
+    "ambiguous_rate": 0.452,
+    "symbols": 2122
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 7,
+     "correct_edges": 7,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 14,
+     "resolved_correctly": 7,
+     "recall": 0.5
+    },
+    "internal_sites": 14
+   }
+  },
+  "new": {
+   "R0-grep": {
+    "file_acc_at_5": 0.6333,
+    "sym_recall_at_10": 0.1278,
+    "wire_tokens": 20934.3333,
+    "file_acc_at_5_ci": [
+     0.4333,
+     0.8
+    ],
+    "sym_recall_at_10_ci": [
+     0.0306,
+     0.25
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.8,
+    "sym_recall_at_10": 0.5528,
+    "wire_tokens": 1883.8667,
+    "file_acc_at_5_ci": [
+     0.6333,
+     0.9333
+    ],
+    "sym_recall_at_10_ci": [
+     0.3917,
+     0.7056
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.7667,
+    "sym_recall_at_10": 0.6528,
+    "wire_tokens": 1878.0333,
+    "file_acc_at_5_ci": [
+     0.6,
+     0.9
+    ],
+    "sym_recall_at_10_ci": [
+     0.4861,
+     0.7944
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.755,
+    "sig_coverage": 0.755,
+    "savings_vs_read": 0.552,
+    "wire_tokens": 1281.8,
+    "ref_coverage_ci": [
+     0.645,
+     0.86
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 0.8,
+     "R2": 0.8
+    },
+    "b_hidden_dep": {
+     "R1": 0.8,
+     "R2": 0.7
+    },
+    "c_multi_file": {
+     "R1": 0.8,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       -0.1,
+       0.0
+      ],
+      "mean": -0.0333,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       0.0,
+       0.225
+      ],
+      "mean": 0.1,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.755
+     },
+     "savings_vs_read": {
+      "met": false,
+      "threshold": 0.7,
+      "value": 0.552
+     },
+     "sig_coverage": {
+      "met": true,
+      "threshold": 0.6,
+      "value": 0.755
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      -0.0333,
+      0.3
+     ],
+     "mean": 0.1333,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.3333,
+      0.7
+     ],
+     "mean": 0.5333,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.0897
+    }
+   },
+   "edges": {
+    "total": 1492,
+    "ambiguous": 508,
+    "ambiguous_rate": 0.3405,
+    "symbols": 2093
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 9,
+     "correct_edges": 9,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 14,
+     "resolved_correctly": 10,
+     "recall": 0.7143
+    },
+    "internal_sites": 14
+   }
+  }
+ },
+ "fastify": {
+  "base": {
+   "R0-grep": {
+    "file_acc_at_5": 0.5667,
+    "sym_recall_at_10": 0.2733,
+    "wire_tokens": 26241.2,
+    "file_acc_at_5_ci": [
+     0.3667,
+     0.7333
+    ],
+    "sym_recall_at_10_ci": [
+     0.1333,
+     0.44
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.9,
+    "sym_recall_at_10": 0.6911,
+    "wire_tokens": 1892.6333,
+    "file_acc_at_5_ci": [
+     0.8,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.5267,
+     0.8444
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.9,
+    "sym_recall_at_10": 0.6911,
+    "wire_tokens": 1888.1,
+    "file_acc_at_5_ci": [
+     0.8,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.5333,
+     0.8356
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.4633,
+    "sig_coverage": 0.4633,
+    "savings_vs_read": 0.8839,
+    "wire_tokens": 971.8,
+    "ref_coverage_ci": [
+     0.2417,
+     0.675
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 1.0,
+     "R2": 1.0
+    },
+    "b_hidden_dep": {
+     "R1": 0.9,
+     "R2": 0.9
+    },
+    "c_multi_file": {
+     "R1": 0.8,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "mean": 0.0,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       -0.0333,
+       0.0333
+      ],
+      "mean": 0.0,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.4633
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.8839
+     },
+     "sig_coverage": {
+      "met": false,
+      "threshold": 0.6,
+      "value": 0.4633
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      0.1667,
+      0.5333
+     ],
+     "mean": 0.3333,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.4667,
+      0.8
+     ],
+     "mean": 0.6333,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.072
+    }
+   },
+   "edges": {
+    "total": 771,
+    "ambiguous": 551,
+    "ambiguous_rate": 0.7147,
+    "symbols": 1165
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 1,
+     "correct_edges": 1,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 10,
+     "resolved_correctly": 1,
+     "recall": 0.1
+    },
+    "internal_sites": 10
+   }
+  },
+  "new": {
+   "R0-grep": {
+    "file_acc_at_5": 0.5667,
+    "sym_recall_at_10": 0.2733,
+    "wire_tokens": 26241.2,
+    "file_acc_at_5_ci": [
+     0.3667,
+     0.7333
+    ],
+    "sym_recall_at_10_ci": [
+     0.1333,
+     0.44
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.9,
+    "sym_recall_at_10": 0.68,
+    "wire_tokens": 1885.3,
+    "file_acc_at_5_ci": [
+     0.8,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.5156,
+     0.8356
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.9333,
+    "sym_recall_at_10": 0.6022,
+    "wire_tokens": 1882.9333,
+    "file_acc_at_5_ci": [
+     0.8333,
+     1.0
+    ],
+    "sym_recall_at_10_ci": [
+     0.4444,
+     0.7689
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.4883,
+    "sig_coverage": 0.4883,
+    "savings_vs_read": 0.8842,
+    "wire_tokens": 975.1,
+    "ref_coverage_ci": [
+     0.2667,
+     0.685
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 1.0,
+     "R2": 1.0
+    },
+    "b_hidden_dep": {
+     "R1": 0.9,
+     "R2": 1.0
+    },
+    "c_multi_file": {
+     "R1": 0.8,
+     "R2": 0.8
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       0.0,
+       0.1
+      ],
+      "mean": 0.0333,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       -0.1889,
+       0.0111
+      ],
+      "mean": -0.0778,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.4883
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.8842
+     },
+     "sig_coverage": {
+      "met": false,
+      "threshold": 0.6,
+      "value": 0.4883
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      0.2,
+      0.5333
+     ],
+     "mean": 0.3667,
+     "met": true,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      0.5,
+      0.8333
+     ],
+     "mean": 0.6667,
+     "met": true,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.0718
+    }
+   },
+   "edges": {
+    "total": 824,
+    "ambiguous": 523,
+    "ambiguous_rate": 0.6347,
+    "symbols": 1213
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 1,
+     "correct_edges": 1,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 10,
+     "resolved_correctly": 1,
+     "recall": 0.1
+    },
+    "internal_sites": 10
+   }
+  }
+ },
+ "csvhelper": {
+  "base": {
+   "R0-grep": {
+    "file_acc_at_5": 0.7667,
+    "sym_recall_at_10": 0.0611,
+    "wire_tokens": 52879.9333,
+    "file_acc_at_5_ci": [
+     0.6,
+     0.9
+    ],
+    "sym_recall_at_10_ci": [
+     0.0,
+     0.1444
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.6,
+    "sym_recall_at_10": 0.3167,
+    "wire_tokens": 1862.8,
+    "file_acc_at_5_ci": [
+     0.4333,
+     0.7667
+    ],
+    "sym_recall_at_10_ci": [
+     0.1667,
+     0.4833
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.6,
+    "sym_recall_at_10": 0.3278,
+    "wire_tokens": 1874.0667,
+    "file_acc_at_5_ci": [
+     0.4333,
+     0.7667
+    ],
+    "sym_recall_at_10_ci": [
+     0.1778,
+     0.4944
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.4733,
+    "sig_coverage": 0.4733,
+    "savings_vs_read": 0.8186,
+    "wire_tokens": 1690.0,
+    "ref_coverage_ci": [
+     0.3233,
+     0.63
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 1.0,
+     "R2": 1.0
+    },
+    "b_hidden_dep": {
+     "R1": 0.1,
+     "R2": 0.1
+    },
+    "c_multi_file": {
+     "R1": 0.7,
+     "R2": 0.7
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       0.0,
+       0.0
+      ],
+      "mean": 0.0,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       0.0,
+       0.0333
+      ],
+      "mean": 0.0111,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.4733
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.8186
+     },
+     "sig_coverage": {
+      "met": false,
+      "threshold": 0.6,
+      "value": 0.4733
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      -0.3333,
+      -0.0333
+     ],
+     "mean": -0.1667,
+     "met": false,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      -0.0667,
+      0.4
+     ],
+     "mean": 0.1667,
+     "met": false,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.0354
+    }
+   },
+   "edges": {
+    "total": 3178,
+    "ambiguous": 2871,
+    "ambiguous_rate": 0.9034,
+    "symbols": 14460
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 1,
+     "correct_edges": 1,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 10,
+     "resolved_correctly": 1,
+     "recall": 0.1
+    },
+    "internal_sites": 10
+   }
+  },
+  "new": {
+   "R0-grep": {
+    "file_acc_at_5": 0.7667,
+    "sym_recall_at_10": 0.0611,
+    "wire_tokens": 52879.9333,
+    "file_acc_at_5_ci": [
+     0.6,
+     0.9
+    ],
+    "sym_recall_at_10_ci": [
+     0.0,
+     0.1444
+    ]
+   },
+   "R1": {
+    "file_acc_at_5": 0.6,
+    "sym_recall_at_10": 0.4972,
+    "wire_tokens": 1873.0333,
+    "file_acc_at_5_ci": [
+     0.4333,
+     0.7667
+    ],
+    "sym_recall_at_10_ci": [
+     0.3333,
+     0.6611
+    ]
+   },
+   "R2": {
+    "file_acc_at_5": 0.5667,
+    "sym_recall_at_10": 0.4833,
+    "wire_tokens": 1868.4333,
+    "file_acc_at_5_ci": [
+     0.4,
+     0.7333
+    ],
+    "sym_recall_at_10_ci": [
+     0.3278,
+     0.6444
+    ]
+   },
+   "R3": {
+    "ref_coverage": 0.6933,
+    "sig_coverage": 0.6933,
+    "savings_vs_read": 0.7668,
+    "wire_tokens": 2327.0,
+    "ref_coverage_ci": [
+     0.5933,
+     0.7867
+    ]
+   },
+   "by_group": {
+    "a_keyword": {
+     "R1": 0.9,
+     "R2": 0.9
+    },
+    "b_hidden_dep": {
+     "R1": 0.2,
+     "R2": 0.1
+    },
+    "c_multi_file": {
+     "R1": 0.7,
+     "R2": 0.7
+    }
+   },
+   "kpis": {
+    "R2_vs_R1": {
+     "file_acc_at_5": {
+      "ci95": [
+       -0.1,
+       0.0
+      ],
+      "mean": -0.0333,
+      "pairs": 30
+     },
+     "note": "report only, no threshold",
+     "sym_recall_at_10": {
+      "ci95": [
+       -0.1,
+       0.0417
+      ],
+      "mean": -0.0139,
+      "pairs": 30
+     }
+    },
+    "R3": {
+     "ref_coverage": {
+      "met": false,
+      "threshold": 0.8,
+      "value": 0.6933
+     },
+     "savings_vs_read": {
+      "met": true,
+      "threshold": 0.7,
+      "value": 0.7668
+     },
+     "sig_coverage": {
+      "met": true,
+      "threshold": 0.6,
+      "value": 0.6933
+     }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+     "ci95": [
+      -0.3667,
+      -0.0667
+     ],
+     "mean": -0.2,
+     "met": false,
+     "pairs": 30,
+     "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+     "ci95": [
+      -0.1,
+      0.3667
+     ],
+     "mean": 0.1333,
+     "met": false,
+     "pairs": 30,
+     "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+     "note": "report only",
+     "value": 0.0353
+    }
+   },
+   "edges": {
+    "total": 6510,
+    "ambiguous": 2299,
+    "ambiguous_rate": 0.3531,
+    "symbols": 14460
+   },
+   "edge_gold": {
+    "precision": {
+     "threshold": 0.6,
+     "total_edges_ge_06": 4,
+     "correct_edges": 4,
+     "false_positives": 0,
+     "precision": 1.0
+    },
+    "recall": {
+     "total_internal_sites": 10,
+     "resolved_correctly": 4,
+     "recall": 0.4
+    },
+    "internal_sites": 10
+   }
+  }
+ }
+}

@@ -1,4 +1,4 @@
-"""SCIP import contract; binary index ingestion is intentionally disabled in 0.2.0."""
+"""SCIP import contract; binary index ingestion is intentionally disabled in 0.3.0."""
 
 from __future__ import annotations
 

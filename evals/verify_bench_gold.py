@@ -29,8 +29,10 @@ def main() -> int:
     by_id = {s.symbol_id: s for s in by_key.values()}
     data = json.loads(args.tasks.read_text(encoding="utf-8"))
 
-    def check(path: str, qname: str) -> dict:
+    def check(path: str, qname: str, pending: bool = False) -> dict:
         s = by_key.get((path, qname))
+        if s is None and pending:
+            return {"path": path, "qualified_name": qname, "found": False, "pending": True}
         if s is None:
             return {"path": path, "qualified_name": qname, "found": False}
         resp = svc.symbol_context(args.repo_id, symbol_id=s.symbol_id, depth=0, include_body=True, max_tokens=4000)
@@ -48,9 +50,13 @@ def main() -> int:
 
     out: dict = {"tasks_file": str(args.tasks), "repo_id": args.repo_id, "loc": [], "packet": []}
     for t in data.get("tasks", []):
-        out["loc"].append({"id": t["id"], "gold": [check(g["path"], g["qualified_name"]) for g in t["gold_symbols"]]})
+        out["loc"].append({"id": t["id"], "gold": [
+            check(g["path"], g["qualified_name"], bool(g.get("gold_pending_indexer"))) for g in t["gold_symbols"]]})
     reach_total = reach_hit = 0
     for t in data.get("packet_tasks", []):
+        if t["target"].get("gold_pending_indexer") and (t["target"]["path"], t["target"]["qualified_name"]) not in by_key:
+            out["packet"].append({"id": t["id"], "target": {**t["target"], "found": False, "pending": True}, "gold": []})
+            continue
         tgt = by_key[(t["target"]["path"], t["target"]["qualified_name"])]
         rel = svc.symbol_relationships(args.repo_id, symbol_id=tgt.symbol_id, min_confidence=0.5)
         near = set()
@@ -62,7 +68,7 @@ def main() -> int:
         cls = tgt.qualified_name.rsplit(".", 1)[0] + "." if "." in tgt.qualified_name else None
         entry = {"id": t["id"], "target": check(tgt.path, tgt.qualified_name), "gold": []}
         for g in t["gold_context"]:
-            c = check(g["path"], g["qualified_name"])
+            c = check(g["path"], g["qualified_name"], bool(g.get("gold_pending_indexer")))
             s = by_key.get((g["path"], g["qualified_name"]))
             in_hop = bool(s and s.symbol_id in near)
             same_cls = bool(s and cls and s.path == tgt.path and (s.qualified_name or "").startswith(cls))
@@ -73,8 +79,8 @@ def main() -> int:
             reach_hit += 1 if c["reachable"] else 0
             entry["gold"].append(c)
         out["packet"].append(entry)
-    missing = [g for t in out["loc"] for g in t["gold"] if not g["found"]] + [
-        g for t in out["packet"] for g in t["gold"] if not g["found"]]
+    missing = [g for t in out["loc"] for g in t["gold"] if not g["found"] and not g.get("pending")] + [
+        g for t in out["packet"] for g in t["gold"] if not g["found"] and not g.get("pending")]
     out["summary"] = {
         "loc_tasks": len(out["loc"]), "packet_tasks": len(out["packet"]),
         "missing_gold": len(missing), "packet_reach_items": reach_total, "packet_reach_hit": reach_hit,

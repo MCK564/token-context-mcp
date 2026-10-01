@@ -1,0 +1,19 @@
+==========================================================================================
+LATENCY BENCHMARK (Section 3 Protocol): repo='bench-rich'  runs=2  iters=15
+Environment: Linux-6.18.44-fc-v50-x86_64-with-glibc2.39 | Python 3.12.3
+==========================================================================================
+Tool                      |  Med p50 | p50 Runs             | Noisy  |  Med p95 | sha256_file
+------------------------------------------------------------------------------------------
+list_repositories         |     0.04 | [0.03, 0.04]         | no     |     0.04 |         0.0
+get_index_status          |     2.63 | [2.6, 2.66]          | no     |     4.80 |         0.0
+get_repo_map@1024         |     9.32 | [9.56, 9.09]         | no     |    10.23 |         0.0
+find_symbols              |     4.94 | [5.01, 4.87]         | no     |     5.21 |         0.0
+search_source             |     2.00 | [2.03, 1.97]         | no     |     2.25 |         0.0
+get_file_skeleton         |     5.59 | [5.48, 5.69]         | no     |    10.04 |         0.0
+get_symbol_context        |     0.67 | [0.67, 0.67]         | no     |     0.73 |         0.0
+get_impact_slice          |     0.29 | [0.29, 0.28]         | no     |     0.33 |         0.0
+get_module_dependents     |     0.00 | [0.0, 0.0]           | no     |     0.00 |         0.0
+inspect_symbol            |     8.21 | [8.17, 8.25]         | no     |    10.64 |         0.0
+inspect_symbol[full@4096]x10 |   168.12 | [168.17, 168.08]     | no     |   204.06 |         0.0
+==========================================================================================
+Saved benchmark results to /home/claude/work/out/dev_base/latency_rich.json

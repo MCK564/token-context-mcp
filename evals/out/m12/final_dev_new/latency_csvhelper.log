@@ -1,0 +1,19 @@
+==========================================================================================
+LATENCY BENCHMARK (Section 3 Protocol): repo='bench-csvhelper'  runs=2  iters=15
+Environment: Linux-6.18.44-fc-v50-x86_64-with-glibc2.39 | Python 3.12.3
+==========================================================================================
+Tool                      |  Med p50 | p50 Runs             | Noisy  |  Med p95 | sha256_file
+------------------------------------------------------------------------------------------
+list_repositories         |     0.03 | [0.03, 0.03]         | no     |     0.04 |         0.0
+get_index_status          |     3.09 | [3.11, 3.07]         | no     |     3.67 |         0.0
+get_repo_map@1024         |    69.21 | [69.63, 68.79]       | no     |   116.30 |         0.0
+find_symbols              |    11.12 | [11.05, 11.2]        | no     |    14.28 |         0.0
+search_source             |     2.67 | [2.0, 3.34]          | YES    |     3.81 |         0.0
+get_file_skeleton         |     4.30 | [4.21, 4.39]         | no     |     5.30 |         0.0
+get_symbol_context        |     0.87 | [0.85, 0.89]         | no     |     0.94 |         0.0
+get_impact_slice          |     0.41 | [0.39, 0.42]         | no     |     0.68 |         0.0
+get_module_dependents     |     0.00 | [0.0, 0.0]           | no     |     0.00 |         0.0
+inspect_symbol            |    16.20 | [17.07, 15.34]       | no     |    33.05 |         0.0
+inspect_symbol[full@4096]x10 |   253.13 | [255.89, 250.37]     | no     |   301.29 |         0.0
+==========================================================================================
+Saved benchmark results to /home/claude/work/out/dev_new/latency_csvhelper.json

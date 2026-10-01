@@ -105,12 +105,20 @@ def lint_task_data(
         # Rule 1: Existence in index
         if store is not None:
             for gf in gold_files:
-                if gf not in indexed_files:
+                if gf not in indexed_files and not task.get("gold_pending_indexer") and not any(
+                    g.get("gold_pending_indexer") and g.get("path") == gf for g in gold_symbols
+                ):
                     errors.append(f"[{tid}] Rule 1: gold_file '{gf}' not found in index")
 
             for gs in gold_symbols:
                 gp = gs.get("path", "")
                 gq = gs.get("qualified_name", "")
+                if gs.get("gold_pending_indexer"):
+                    # Declared as "the old indexer cannot see this symbol yet" (assigned JS methods); the author
+                    # verifies def_line by hand. The rest of the task is still linted.
+                    if not gs.get("def_line"):
+                        errors.append(f"[{tid}] Rule 1: pending gold_symbol '{gp}::{gq}' needs a def_line")
+                    continue
                 if (gp, gq) not in indexed_symbols:
                     errors.append(f"[{tid}] Rule 1: gold_symbol '{gp}::{gq}' not found in index")
 

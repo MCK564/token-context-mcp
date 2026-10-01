@@ -1,0 +1,345 @@
+{
+  "repo_id": "heldout-express",
+  "repo_url": "https://github.com/expressjs/express",
+  "tag": "v5.2.1",
+  "commit_sha": "dbac741a49a5a64336b70c06e85c2e2706e36336",
+  "reviewed": true,
+  "review_note": "Author labels from source reading only; awaiting independent review.",
+  "sites": [
+    {
+      "path": "benchmarks/middleware.js",
+      "line": 3,
+      "col": 11,
+      "callee_text": "express",
+      "snippet": "\nvar express = require('..');\nvar app = express();\n\n// number of middleware\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/express.js",
+        "qualified_name": "createApplication"
+      },
+      "reason": "`express` is require('..') -> index.js -> lib/express.js whose module.exports is createApplication."
+    },
+    {
+      "path": "examples/content-negotiation/users.js",
+      "line": 6,
+      "col": 21,
+      "callee_text": "users.map(function(user){\n    return '<li>' + user.name + '</li>';\n  }).join",
+      "snippet": "var users = require('./db');\n\nexports.html = function(req, res){\n  res.send('<ul>' + users.map(function(user){\n    return '<li>' + user.name + '</li>';\n  }).join('') + '</ul>');\n};",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Array.prototype.join on the result of Array.prototype.map over the plain array exported by ./db."
+    },
+    {
+      "path": "examples/cookie-sessions/index.js",
+      "line": 23,
+      "col": 3,
+      "callee_text": "app.listen",
+      "snippet": "\n/* istanbul ignore next */\nif (!module.parent) {\n  app.listen(3000);\n  console.log('Express started on port 3000');\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.listen"
+      },
+      "reason": "`app` is the result of express() (createApplication), which mixes in application.js so app.listen is the internal method."
+    },
+    {
+      "path": "examples/cookies/index.js",
+      "line": 13,
+      "col": 38,
+      "callee_text": "app.use",
+      "snippet": "var cookieParser = require('cookie-parser');\n\n// custom log format\nif (process.env.NODE_ENV !== 'test') app.use(logger(':method :url'))\n\n// parses request cookies, populating\n// req.cookies and req.signedCookies",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.use"
+      },
+      "reason": "`app` is express(); app.use is mixed in from application.js."
+    },
+    {
+      "path": "examples/downloads/index.js",
+      "line": 13,
+      "col": 17,
+      "callee_text": "path.join",
+      "snippet": "var app = module.exports = express();\n\n// path to where the files are stored on disk\nvar FILES_DIR = path.join(__dirname, 'files')\n\napp.get('/', function(req, res){\n  res.send('<ul>' +",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node built-in path.join."
+    },
+    {
+      "path": "examples/ejs/index.js",
+      "line": 36,
+      "col": 1,
+      "callee_text": "app.set",
+      "snippet": "// Without this you would need to\n// supply the extension to res.render()\n// ex: res.render('users.html').\napp.set('view engine', 'html');\n\n// Dummy users\nvar users = [",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.set"
+      },
+      "reason": "`app` is express(); app.set is mixed in from application.js."
+    },
+    {
+      "path": "examples/error-pages/index.js",
+      "line": 9,
+      "col": 28,
+      "callee_text": "express",
+      "snippet": "\nvar express = require('../../');\nvar path = require('node:path');\nvar app = module.exports = express();\nvar logger = require('morgan');\nvar silent = process.env.NODE_ENV === 'test'\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/express.js",
+        "qualified_name": "createApplication"
+      },
+      "reason": "`express` is require('../../') -> root index.js -> lib/express.js createApplication."
+    },
+    {
+      "path": "examples/error/index.js",
+      "line": 8,
+      "col": 14,
+      "callee_text": "require",
+      "snippet": " */\n\nvar express = require('../../');\nvar logger = require('morgan');\nvar app = module.exports = express();\nvar test = app.get('env') === 'test'\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node's CommonJS require loading the third-party morgan package."
+    },
+    {
+      "path": "examples/hello-world/index.js",
+      "line": 14,
+      "col": 3,
+      "callee_text": "console.log",
+      "snippet": "/* istanbul ignore next */\nif (!module.parent) {\n  app.listen(3000);\n  console.log('Express started on port 3000');\n}",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript runtime console.log."
+    },
+    {
+      "path": "examples/markdown/index.js",
+      "line": 13,
+      "col": 28,
+      "callee_text": "express",
+      "snippet": "var marked = require('marked');\nvar path = require('node:path');\n\nvar app = module.exports = express();\n\n// register .md as an engine in express view system\n",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/express.js",
+        "qualified_name": "createApplication"
+      },
+      "reason": "`express` is require('../..') -> root index.js -> lib/express.js createApplication."
+    },
+    {
+      "path": "examples/multi-router/controllers/api_v1.js",
+      "line": 11,
+      "col": 1,
+      "callee_text": "apiv1.get",
+      "snippet": "  res.send('Hello from APIv1 root route.');\n});\n\napiv1.get('/users', function(req, res) {\n  res.send('List of APIv1 users.');\n});\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "`apiv1` is express.Router() which is the Router from the third-party `router` package, so .get is defined outside this repo."
+    },
+    {
+      "path": "examples/multi-router/index.js",
+      "line": 8,
+      "col": 1,
+      "callee_text": "app.use",
+      "snippet": "var app = module.exports = express();\n\napp.use('/api/v1', require('./controllers/api_v1'));\napp.use('/api/v2', require('./controllers/api_v2'));\n\napp.get('/', function(req, res) {\n  res.send('Hello from root route.')",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.use"
+      },
+      "reason": "`app` is express(); app.use is mixed in from application.js (argument is a sub-router but the receiver is the app)."
+    },
+    {
+      "path": "examples/mvc/controllers/main/index.js",
+      "line": 4,
+      "col": 3,
+      "callee_text": "res.redirect",
+      "snippet": "'use strict'\n\nexports.index = function(req, res){\n  res.redirect('/users');\n};",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/response.js",
+        "qualified_name": "res.redirect"
+      },
+      "reason": "Handler is registered on an express app via app[method](url, handler) in mvc boot.js, so `res` is the Express response whose redirect is defined in lib/response.js (resolved by framework convention, not by a static type)."
+    },
+    {
+      "path": "examples/mvc/controllers/user/index.js",
+      "line": 20,
+      "col": 5,
+      "callee_text": "next",
+      "snippet": "    // cant find that user\n    if (!req.user) return next('route');\n    // found it, move on to the routes\n    next();\n  });\n};\n",
+      "node_type": "call_expression",
+      "expected": "dynamic",
+      "reason": "`next` is a callback parameter of the before-middleware supplied by the router at runtime."
+    },
+    {
+      "path": "examples/mvc/db.js",
+      "line": 9,
+      "col": 1,
+      "callee_text": "pets.push",
+      "snippet": "\npets.push({ name: 'Tobi', id: 0 });\npets.push({ name: 'Loki', id: 1 });\npets.push({ name: 'Jane', id: 2 });\npets.push({ name: 'Raul', id: 3 });\n\nvar users = exports.users = [];",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Array.prototype.push on the plain array `pets`."
+    },
+    {
+      "path": "examples/mvc/index.js",
+      "line": 20,
+      "col": 18,
+      "callee_text": "path.join",
+      "snippet": "app.set('view engine', 'ejs');\n\n// set views for error and 404 pages\napp.set('views', path.join(__dirname, 'views'));\n\n// define a custom res.message() method\n// which stores messages in the session",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node built-in path.join."
+    },
+    {
+      "path": "examples/mvc/lib/boot.js",
+      "line": 16,
+      "col": 10,
+      "callee_text": "fs.statSync(file).isDirectory",
+      "snippet": "  var verbose = options.verbose;\n  fs.readdirSync(dir).forEach(function(name){\n    var file = path.join(dir, name)\n    if (!fs.statSync(file).isDirectory()) return;\n    verbose && console.log('\\n   %s:', name);\n    var obj = require(file);\n    var name = obj.name || name;",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "fs.statSync returns a Node fs.Stats object; isDirectory is a runtime method."
+    },
+    {
+      "path": "examples/online/index.js",
+      "line": 51,
+      "col": 3,
+      "callee_text": "online.last",
+      "snippet": " */\n\napp.get('/', function(req, res, next){\n  online.last(5, function(err, ids){\n    if (err) return next(err);\n    res.send('<p>Users online: ' + ids.length + '</p>' + list(ids));\n  });",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "`online` is the third-party `online` npm package (reassigned to online(db)); last is defined outside this repo."
+    },
+    {
+      "path": "examples/params/index.js",
+      "line": 73,
+      "col": 3,
+      "callee_text": "console.log",
+      "snippet": "/* istanbul ignore next */\nif (!module.parent) {\n  app.listen(3000);\n  console.log('Express started on port 3000');\n}",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript runtime console.log."
+    },
+    {
+      "path": "examples/route-separation/index.js",
+      "line": 29,
+      "col": 1,
+      "callee_text": "app.use",
+      "snippet": "  app.use(logger('dev'));\n}\n\napp.use(methodOverride('_method'));\napp.use(cookieParser());\napp.use(express.urlencoded({ extended: true }))\napp.use(express.static(path.join(__dirname, 'public')));",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.use"
+      },
+      "reason": "`app` is express(); app.use is mixed in from application.js (argument is third-party method-override middleware)."
+    },
+    {
+      "path": "examples/route-separation/site.js",
+      "line": 4,
+      "col": 3,
+      "callee_text": "res.render",
+      "snippet": "'use strict'\n\nexports.index = function(req, res){\n  res.render('index', { title: 'Route Separation Example' });\n};",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/response.js",
+        "qualified_name": "res.render"
+      },
+      "reason": "Handler site.index is registered via app.get('/', site.index), so `res` is the Express response whose render is defined in lib/response.js (resolved by framework convention, not by a static type)."
+    },
+    {
+      "path": "examples/search/public/client.js",
+      "line": 14,
+      "col": 3,
+      "callee_text": "xhr.send",
+      "snippet": "      code.textContent = xhr.responseText;\n    }\n  };\n  xhr.send();\n}, false);",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Browser XMLHttpRequest.send, client-side runtime API."
+    },
+    {
+      "path": "examples/session/index.js",
+      "line": 35,
+      "col": 3,
+      "callee_text": "app.listen",
+      "snippet": "\n/* istanbul ignore next */\nif (!module.parent) {\n  app.listen(3000);\n  console.log('Express started on port 3000');\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "lib/application.js",
+        "qualified_name": "app.listen"
+      },
+      "reason": "`app` is express(); app.listen is mixed in from application.js."
+    },
+    {
+      "path": "examples/session/redis.js",
+      "line": 8,
+      "col": 14,
+      "callee_text": "require",
+      "snippet": " */\n\nvar express = require('../..');\nvar logger = require('morgan');\nvar session = require('express-session');\n\n// pass the express to the connect redis module",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node's CommonJS require loading the third-party morgan package."
+    },
+    {
+      "path": "examples/vhost/index.js",
+      "line": 47,
+      "col": 9,
+      "callee_text": "vhost",
+      "snippet": "var app = module.exports = express();\n\napp.use(vhost('*.example.com', redirect)); // Serves all subdomains via Redirect app\napp.use(vhost('example.com', main)); // Serves top level domain via Main server app\n\n/* istanbul ignore next */\nif (!module.parent) {",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "`vhost` is the third-party `vhost` npm package."
+    },
+    {
+      "path": "examples/view-locals/user.js",
+      "line": 32,
+      "col": 1,
+      "callee_text": "users.push",
+      "snippet": "\nvar users = [];\n\nusers.push(new User('Tobi', 2, 'ferret'));\nusers.push(new User('Loki', 1, 'ferret'));\nusers.push(new User('Jane', 6, 'ferret'));\nusers.push(new User('Luna', 1, 'cat'));",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Array.prototype.push on the plain array `users`."
+    },
+    {
+      "path": "index.js",
+      "line": 11,
+      "col": 18,
+      "callee_text": "require",
+      "snippet": "\n'use strict';\n\nmodule.exports = require('./lib/express');",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node's CommonJS require (runtime builtin) loading ./lib/express."
+    },
+    {
+      "path": "lib/application.js",
+      "line": 199,
+      "col": 12,
+      "callee_text": "Array.isArray",
+      "snippet": "  if (typeof fn !== 'function') {\n    var arg = fn;\n\n    while (Array.isArray(arg) && arg.length !== 0) {\n      arg = arg[0];\n    }\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Language built-in Array.isArray."
+    },
+    {
+      "path": "lib/request.js",
+      "line": 290,
+      "col": 8,
+      "callee_text": "trust",
+      "snippet": "    : 'http';\n  var trust = this.app.get('trust proxy fn');\n\n  if (!trust(this.socket.remoteAddress, 0)) {\n    return proto;\n  }\n",
+      "node_type": "call_expression",
+      "expected": "dynamic",
+      "reason": "`trust` is a function read from the app settings table via this.app.get('trust proxy fn'), so the concrete function depends on runtime settings."
+    },
+    {
+      "path": "lib/utils.js",
+      "line": 20,
+      "col": 10,
+      "callee_text": "require",
+      "snippet": "var etag = require('etag');\nvar mime = require('mime-types')\nvar proxyaddr = require('proxy-addr');\nvar qs = require('qs');\nvar querystring = require('node:querystring');\nconst { Buffer } = require('node:buffer');\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node's CommonJS require loading the third-party qs package."
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: labeler + a different reviewer session (VERDICT: approved); executor did not read labels (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

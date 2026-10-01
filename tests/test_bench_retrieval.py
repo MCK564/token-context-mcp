@@ -176,7 +176,7 @@ def test_end_to_end_on_a_fake_repository(bench_env):
     assert code == 0
     summary = json.loads((out / "bench_shop_summary.json").read_text())
     assert set(summary["arms"]) == set(br.ARMS)
-    assert summary["reviewed"] is True and summary["token_context_version"] == "0.2.0"
+    assert summary["reviewed"] is True and summary["token_context_version"] == __import__("token_context_mcp").__version__
     assert summary["corpus_files"] == 5  # the .txt is unsupported and stays out of the corpus
     for arm in br.ARMS:
         rows = [json.loads(line) for line in (out / f"bench_shop_{arm}.jsonl").read_text().splitlines()]
