@@ -176,7 +176,7 @@ def test_end_to_end_on_a_fake_repository(bench_env):
     assert code == 0
     summary = json.loads((out / "bench_shop_summary.json").read_text())
     assert set(summary["arms"]) == set(br.ARMS)
-    assert summary["reviewed"] is True and summary["token_context_version"] == "0.2.0"
+    assert summary["reviewed"] is True and summary["token_context_version"] == __import__("token_context_mcp").__version__
     assert summary["corpus_files"] == 5  # the .txt is unsupported and stays out of the corpus
     for arm in br.ARMS:
         rows = [json.loads(line) for line in (out / f"bench_shop_{arm}.jsonl").read_text().splitlines()]
@@ -209,3 +209,21 @@ def test_results_are_reproducible(bench_env):
     a, b = strip_latency(a), strip_latency(b)
     a["benchmark"] = b["benchmark"] = ""
     assert a == b
+
+
+def test_heldout_role_triggers_rule17_guard(bench_env, tmp_path, monkeypatch):
+    import guard
+
+    monkeypatch.setattr(guard, "REPO_ROOT", tmp_path)  # a directory with no git repo: no freeze tag, whatever the real repo holds
+    config, tasks_file, out = bench_env
+    ns = argparse.Namespace(
+        tasks=tasks_file,
+        config=config,
+        repo_id=None,
+        name="shop",
+        out_dir=out,
+        role="heldout",
+        allow_baseline_code=None,
+    )
+    with pytest.raises(RuntimeError, match="Rule 17 violation"):
+        br.run(ns)

@@ -1,0 +1,339 @@
+{
+  "repo_id": "heldout-serilog",
+  "total_symbols": 1963,
+  "total_edges": 2154,
+  "unresolved_edges": 1477,
+  "total_suspicious_edges": 29,
+  "suspicious_edges_ratio": 0.0135,
+  "status_counts": {
+    "resolved": 677,
+    "ambiguous": 1477
+  },
+  "scope_counts": {
+    "scope:same_file": 287,
+    "scope:unresolved_receiver": 956,
+    "scope:receiver_match": 345,
+    "scope:same_file_ambiguous": 206,
+    "scope:tainted_poly_receiver": 4,
+    "scope:receiver_type_ambiguous": 23,
+    "scope:builtin_receiver_skipped": 144,
+    "scope:exact_receiver_type": 41,
+    "scope:same_package": 3,
+    "scope:receiver_ambiguous": 135,
+    "scope:same_package_ambiguous": 1,
+    "scope:global": 1,
+    "scope:global_ambiguous": 8
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Guard.cs:Guard.AgainstNull:2f059ed8194b3496",
+      "name": "AgainstNull",
+      "qualified_name": "Guard.AgainstNull",
+      "path": "src/Serilog/Guard.cs",
+      "in_degree": 113,
+      "resolved_count": 113,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 113
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/DelegatingSink.cs:DelegatingSink.GetLogEvent:f97a0a3180090182",
+      "name": "GetLogEvent",
+      "qualified_name": "DelegatingSink.GetLogEvent",
+      "path": "test/Serilog.Tests/Support/DelegatingSink.cs",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 30
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Formatting/Display/MessageTemplateTextFormatterTests.cs:MessageTemplateTextFormatterTests.SizeFormatter.Format:21bd19ac4353d305",
+      "name": "Format",
+      "qualified_name": "MessageTemplateTextFormatterTests.SizeFormatter.Format",
+      "path": "test/Serilog.Tests/Formatting/Display/MessageTemplateTextFormatterTests.cs",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 24,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:exact_receiver_type": 24
+      },
+      "reasons": {
+        "receiver_mismatch:formatter_vs_messagetemplatetextformattertests.sizeformatter": 24
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/Some.cs:Some.LogEvent:c97cd8aa3d9ca41b",
+      "name": "LogEvent",
+      "qualified_name": "Some.LogEvent",
+      "path": "test/Serilog.Tests/Support/Some.cs",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 21,
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Debugging/SelfLog.cs:SelfLog.WriteLine:22eaac75c7749349",
+      "name": "WriteLine",
+      "qualified_name": "SelfLog.WriteLine",
+      "path": "src/Serilog/Debugging/SelfLog.cs",
+      "in_degree": 21,
+      "resolved_count": 21,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 21
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Parsing/MessageTemplateParserTests.cs:MessageTemplateParserTests.AssertParsedAs:31f753b5b9f8ea06",
+      "name": "AssertParsedAs",
+      "qualified_name": "MessageTemplateParserTests.AssertParsedAs",
+      "path": "test/Serilog.Tests/Parsing/MessageTemplateParserTests.cs",
+      "in_degree": 20,
+      "resolved_count": 20,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 20
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Parsing/MessageTemplateParserTests.cs:MessageTemplateParserTests.Parse:445ed86d3e16547c",
+      "name": "Parse",
+      "qualified_name": "MessageTemplateParserTests.Parse",
+      "path": "test/Serilog.Tests/Parsing/MessageTemplateParserTests.cs",
+      "in_degree": 18,
+      "resolved_count": 18,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.111,
+      "scopes": {
+        "scope:same_file": 16,
+        "scope:exact_receiver_type": 2
+      },
+      "reasons": {
+        "receiver_mismatch:parser_vs_messagetemplateparsertests": 2
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs:SettingValueConversions.ConvertToType:760972915a178ba4",
+      "name": "ConvertToType",
+      "qualified_name": "SettingValueConversions.ConvertToType",
+      "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+      "in_degree": 18,
+      "resolved_count": 18,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 18
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/Some.cs:Some.String:f0df427d73e2abb0",
+      "name": "String",
+      "qualified_name": "Some.String",
+      "path": "test/Serilog.Tests/Support/Some.cs",
+      "in_degree": 18,
+      "resolved_count": 18,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 15,
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Formatting/Json/JsonFormatterTests.cs:JsonFormatterTests.FormatJson:1cb4e61b6dfc45dc",
+      "name": "FormatJson",
+      "qualified_name": "JsonFormatterTests.FormatJson",
+      "path": "test/Serilog.Tests/Formatting/Json/JsonFormatterTests.cs",
+      "in_degree": 17,
+      "resolved_count": 17,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 17
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Core/LogEventPropertyCapturingTests.cs:LogEventPropertyCapturingTests.Capture:ecbc1df0afe0da26",
+      "name": "Capture",
+      "qualified_name": "LogEventPropertyCapturingTests.Capture",
+      "path": "test/Serilog.Tests/Core/LogEventPropertyCapturingTests.cs",
+      "in_degree": 14,
+      "resolved_count": 14,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 14
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Core/Logger.cs:Logger.IsEnabled:dc11f4cdaad624af",
+      "name": "IsEnabled",
+      "qualified_name": "Logger.IsEnabled",
+      "path": "src/Serilog/Core/Logger.cs",
+      "in_degree": 12,
+      "resolved_count": 12,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 11,
+        "scope:receiver_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Configuration/LoggerConfigurationTests.cs:LoggerConfigurationTests.LogAndGetAsString:326e68ad549e35fb",
+      "name": "LogAndGetAsString",
+      "qualified_name": "LoggerConfigurationTests.LogAndGetAsString",
+      "path": "test/Serilog.Tests/Configuration/LoggerConfigurationTests.cs",
+      "in_degree": 12,
+      "resolved_count": 12,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 12
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Formatting/Json/JsonValueFormatterTests.cs:JsonValueFormatterTests.JsonLiteralTypesAreFormatted:4df0055ecf68c6df",
+      "name": "JsonLiteralTypesAreFormatted",
+      "qualified_name": "JsonValueFormatterTests.JsonLiteralTypesAreFormatted",
+      "path": "test/Serilog.Tests/Formatting/Json/JsonValueFormatterTests.cs",
+      "in_degree": 12,
+      "resolved_count": 12,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 12
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/MethodOverloadConventionTests.cs:MethodOverloadConventionTests.InvokeMethod:9f9969006662b4c9",
+      "name": "InvokeMethod",
+      "qualified_name": "MethodOverloadConventionTests.InvokeMethod",
+      "path": "test/Serilog.Tests/MethodOverloadConventionTests.cs",
+      "in_degree": 11,
+      "resolved_count": 11,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 11
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Context/LogContext.cs:LogContext.PushProperty:196681c069f1f200",
+      "name": "PushProperty",
+      "qualified_name": "LogContext.PushProperty",
+      "path": "src/Serilog/Context/LogContext.cs",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 10
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/Some.cs:Some.Int:1cb817236a22729a",
+      "name": "Int",
+      "qualified_name": "Some.Int",
+      "path": "test/Serilog.Tests/Support/Some.cs",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 6,
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/MethodOverloadConventionTests.cs:MethodOverloadConventionTests.VerifyMethodSignature:82f76f351e2aebe0",
+      "name": "VerifyMethodSignature",
+      "qualified_name": "MethodOverloadConventionTests.VerifyMethodSignature",
+      "path": "test/Serilog.Tests/MethodOverloadConventionTests.cs",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 10
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Rendering/ReusableStringWriter.cs:ReusableStringWriter.GetOrCreate:517a4c38e042634b",
+      "name": "GetOrCreate",
+      "qualified_name": "ReusableStringWriter.GetOrCreate",
+      "path": "src/Serilog/Rendering/ReusableStringWriter.cs",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 9
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/TestDummies/DummyRollingFileSink.cs:DummyRollingFileSink.Reset:afcf13a7c1047f2d",
+      "name": "Reset",
+      "qualified_name": "DummyRollingFileSink.Reset",
+      "path": "test/TestDummies/DummyRollingFileSink.cs",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 9
+      },
+      "reasons": {}
+    }
+  ]
+}

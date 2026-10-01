@@ -1,0 +1,377 @@
+{
+  "repo_id": "bench-hono",
+  "total_symbols": 2093,
+  "total_edges": 1492,
+  "unresolved_edges": 508,
+  "total_suspicious_edges": 61,
+  "suspicious_edges_ratio": 0.0409,
+  "status_counts": {
+    "ambiguous": 508,
+    "resolved": 984
+  },
+  "scope_counts": {
+    "scope:attr_type_unmatched": 8,
+    "scope:same_file": 301,
+    "scope:unresolved_receiver": 441,
+    "scope:tainted_poly_receiver": 35,
+    "scope:global": 55,
+    "scope:import_match": 457,
+    "scope:overload_arity": 9,
+    "scope:global_ambiguous": 9,
+    "scope:overload_group": 116,
+    "scope:same_file_ambiguous": 5,
+    "scope:same_class": 18,
+    "scope:same_package_ambiguous": 1,
+    "scope:same_package": 10,
+    "scope:builtin_receiver_skipped": 5,
+    "scope:cha_inherited": 3,
+    "scope:exact_receiver_type": 12,
+    "scope:receiver_match": 1,
+    "scope:receiver_type_ambiguous": 3,
+    "scope:import_ambiguous": 1,
+    "scope:attr_type": 2
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useState:a8024f30722d010c",
+      "name": "useState",
+      "qualified_name": "useState",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 119,
+      "resolved_count": 119,
+      "ambiguous_count": 0,
+      "suspicious_count": 3,
+      "suspicious_ratio": 0.025,
+      "scopes": {
+        "scope:import_match": 112,
+        "scope:global": 3,
+        "scope:same_file": 3,
+        "scope:same_package": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 3,
+        "scope_global_fallback": 3
+      }
+    },
+    {
+      "target_symbol_id": "tsx:src/jsx/dom/index.test.tsx:setCount:9fe0b01969613e0a",
+      "name": "setCount",
+      "qualified_name": "setCount",
+      "path": "src/jsx/dom/index.test.tsx",
+      "in_degree": 55,
+      "resolved_count": 55,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 55
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/client/types.ts:Response:68373eacd0347554",
+      "name": "Response",
+      "qualified_name": "Response",
+      "path": "src/client/types.ts",
+      "in_degree": 36,
+      "resolved_count": 36,
+      "ambiguous_count": 0,
+      "suspicious_count": 12,
+      "suspicious_ratio": 0.333,
+      "scopes": {
+        "scope:global": 12,
+        "scope:import_match": 24
+      },
+      "reasons": {
+        "low_confidence_0.40": 12,
+        "scope_global_fallback": 12
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/context.ts:useContext:364aa7fde3d77c09",
+      "name": "useContext",
+      "qualified_name": "useContext",
+      "path": "src/jsx/context.ts",
+      "in_degree": 19,
+      "resolved_count": 19,
+      "ambiguous_count": 0,
+      "suspicious_count": 7,
+      "suspicious_ratio": 0.368,
+      "scopes": {
+        "scope:import_match": 10,
+        "scope:global": 7,
+        "scope:same_package": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 7,
+        "scope_global_fallback": 7
+      }
+    },
+    {
+      "target_symbol_id": "tsx:src/jsx/dom/components.test.tsx:resolve:2e3d7a85d1703acd",
+      "name": "resolve",
+      "qualified_name": "resolve",
+      "path": "src/jsx/dom/components.test.tsx",
+      "in_degree": 19,
+      "resolved_count": 19,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 19
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:use:38b3a93f213abb67",
+      "name": "use",
+      "qualified_name": "use",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.062,
+      "scopes": {
+        "scope:import_match": 15,
+        "scope:global": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 1,
+        "scope_global_fallback": 1
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/html.ts:raw:d952c29216c71d68",
+      "name": "raw",
+      "qualified_name": "raw",
+      "path": "src/utils/html.ts",
+      "in_degree": 14,
+      "resolved_count": 14,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 12,
+        "scope:same_file": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useCallback:915bd64bd69fca1f",
+      "name": "useCallback",
+      "qualified_name": "useCallback",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 11,
+      "resolved_count": 11,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.182,
+      "scopes": {
+        "scope:global": 2,
+        "scope:import_match": 7,
+        "scope:same_file": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/children.ts:toArray:a797b89c1f81c4fd",
+      "name": "toArray",
+      "qualified_name": "toArray",
+      "path": "src/jsx/children.ts",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4,
+        "scope:import_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "tsx:src/jsx/hooks/dom.test.tsx:setCount:92553e7d5b71aee8",
+      "name": "setCount",
+      "qualified_name": "setCount",
+      "path": "src/jsx/hooks/dom.test.tsx",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 9
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/http-exception.ts:HTTPException:5c725e64d25c8a0c",
+      "name": "HTTPException",
+      "qualified_name": "HTTPException",
+      "path": "src/http-exception.ts",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 9
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useEffect:0ae7856ed50c5f8f",
+      "name": "useEffect",
+      "qualified_name": "useEffect",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.25,
+      "scopes": {
+        "scope:global": 2,
+        "scope:import_match": 5,
+        "scope:same_file": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/compose.test.ts:onError:0f9f5848971a72ec",
+      "name": "onError",
+      "qualified_name": "onError",
+      "path": "src/compose.test.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/html.ts:resolveCallback:f7708aff72c9b576",
+      "name": "resolveCallback",
+      "qualified_name": "resolveCallback",
+      "path": "src/utils/html.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:startTransition:3bdb114af0d46a98",
+      "name": "startTransition",
+      "qualified_name": "startTransition",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/context.ts:Set:c1170f114c2a9aac",
+      "name": "Set",
+      "qualified_name": "Set",
+      "path": "src/context.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 3,
+      "suspicious_ratio": 0.429,
+      "scopes": {
+        "scope:global": 3,
+        "scope:import_match": 4
+      },
+      "reasons": {
+        "low_confidence_0.40": 3,
+        "scope_global_fallback": 3
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/url.ts:getPath:9fa42069fa191ab0",
+      "name": "getPath",
+      "qualified_name": "getPath",
+      "path": "src/utils/url.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 6,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useRef:1e26ced5592b07a5",
+      "name": "useRef",
+      "qualified_name": "useRef",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/encode.ts:encodeBase64Url:5155a7cc53762913",
+      "name": "encodeBase64Url",
+      "qualified_name": "encodeBase64Url",
+      "path": "src/utils/encode.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/helper/html/index.ts:html:649d093e5a9cce29",
+      "name": "html",
+      "qualified_name": "html",
+      "path": "src/helper/html/index.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.167,
+      "scopes": {
+        "scope:global": 1,
+        "scope:import_match": 5
+      },
+      "reasons": {
+        "low_confidence_0.40": 1,
+        "scope_global_fallback": 1
+      }
+    }
+  ]
+}

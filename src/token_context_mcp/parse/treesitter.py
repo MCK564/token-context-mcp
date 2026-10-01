@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 2  # 2: Go grammar added (M10.2); bump whenever parse output for the same bytes can change
+PARSER_ARTIFACT_VERSION = 7  # 7: object-literal methods passed as arguments indexed again; chained JS assignments; 6: E6 instantiation edges
 
 
 try:
@@ -47,6 +47,7 @@ class CallRecord:
     # (annotation, constructor call, local var, etc.), which keeps the existing
     # "attr_type" scope label in lexical_edges.py.
     receiver_type_source: str | None = None
+    arg_count: int | None = None
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,8 @@ class ParseResult:
     warnings: list[str]
     calls: list[CallRecord] = field(default_factory=list)
     inheritance: dict[str, list[str]] = field(default_factory=dict)
+    namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
 
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
@@ -138,6 +141,12 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
     calls = extract_calls(tree.root_node, raw, language_name)
     inheritance = _extract_inheritance(tree.root_node, raw, language_name)
+    namespaces: list[str] = []
+    if language_name == "c_sharp":
+        namespaces = _extract_csharp_namespaces(tree.root_node, raw)
+    module_bindings: dict[str, str] = {}
+    if language_name in {"javascript", "typescript", "tsx"}:
+        module_bindings = _extract_js_module_bindings(tree.root_node, raw)
     warnings: list[str] = list(import_warnings)
     if tree.root_node.has_error:
         warnings.append("parser_error_node_present")
@@ -150,6 +159,8 @@ def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
         warnings=warnings,
         calls=calls,
         inheritance=inheritance,
+        namespaces=namespaces,
+        module_bindings=module_bindings,
     )
 
 
@@ -184,6 +195,415 @@ def _new_parser(language: Language) -> Parser:
         return Parser(language)
 
 
+_JS_SPECIAL_IDENTIFIERS = {
+    "this", "module", "exports", "prototype",
+    "window", "global", "globalThis", "process",
+    "console", "document",
+}
+
+
+def _js_fn_signature(prop_name: str, fn_node: object, raw: bytes) -> str:
+    params_node = _field(fn_node, "parameters") or _field(fn_node, "parameter")
+    params_text = _node_text(params_node, raw) if params_node else "()"
+    if not params_text.startswith("("):
+        params_text = f"({params_text})"
+    ret_node = _field(fn_node, "return_type")
+    if ret_node is not None:
+        params_text = f"{params_text}{_node_text(ret_node, raw)}"
+    return f"{prop_name}{params_text}"
+
+
+def _extract_js_object_methods(
+    object_node: object,
+    raw: bytes,
+    path: str,
+    language_name: str,
+    parents: list[str],
+    prefix: str,
+    default_kind: str = "method",
+) -> Iterable[SymbolRecord]:
+    for member in object_node.named_children:
+        if member.type == "method_definition":
+            m_name = _node_name(member, raw)
+            if m_name:
+                qname = f"{prefix}.{m_name}" if prefix else m_name
+                yield _symbol_record(
+                    member,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=m_name,
+                    kind=default_kind,
+                    qualified_name=qname,
+                )
+        elif member.type == "pair":
+            k = _field(member, "key")
+            v = _field(member, "value")
+            if k and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                m_name = _node_text(k, raw).strip("'\"`")
+                if m_name:
+                    body_node = _field(v, "body")
+                    sig = _js_fn_signature(m_name, v, raw)
+                    qname = f"{prefix}.{m_name}" if prefix else m_name
+                    yield _symbol_record(
+                        member,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=m_name,
+                        kind=default_kind,
+                        qualified_name=qname,
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+
+def _extract_js_assignment_target(
+    node: object,
+    left: object,
+    right: object,
+    raw: bytes,
+    path: str,
+    language_name: str,
+    parents: list[str],
+    enclosing_func: str | None,
+) -> Iterable[SymbolRecord]:
+    is_fn_value = right.type in {"function_expression", "arrow_function", "generator_function"}
+
+    if left.type == "member_expression":
+        obj = _field(left, "object")
+        prop = _field(left, "property")
+        prop_name = _node_text(prop, raw) if prop else ""
+
+        # Pattern 1 & 7a: X.prototype.m = fn or module.exports.m = fn
+        if obj and obj.type == "member_expression":
+            sub_obj = _field(obj, "object")
+            sub_prop = _field(obj, "property")
+            sub_prop_name = _node_text(sub_prop, raw) if sub_prop else ""
+            if sub_prop_name == "prototype" and sub_obj:
+                class_name = _node_text(sub_obj, raw)
+                if is_fn_value and class_name and prop_name:
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(prop_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=prop_name,
+                        kind="method",
+                        qualified_name=f"{class_name}.{prop_name}",
+                        signature=sig,
+                        body_node=body_node,
+                    )
+            elif _node_text(sub_obj, raw) == "module" and sub_prop_name == "exports":
+                if is_fn_value and prop_name:
+                    body_node = _field(right, "body")
+                    sig = _js_fn_signature(prop_name, right, raw)
+                    yield _symbol_record(
+                        node,
+                        raw,
+                        path,
+                        language_name,
+                        parents,
+                        name=prop_name,
+                        kind="function",
+                        qualified_name=prop_name,
+                        signature=sig,
+                        body_node=body_node,
+                    )
+
+        # Pattern 7b: exports.m = fn
+        elif obj and obj.type == "identifier" and _node_text(obj, raw) == "exports":
+            if is_fn_value and prop_name:
+                body_node = _field(right, "body")
+                sig = _js_fn_signature(prop_name, right, raw)
+                yield _symbol_record(
+                    node,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=prop_name,
+                    kind="function",
+                    qualified_name=prop_name,
+                    signature=sig,
+                    body_node=body_node,
+                )
+
+        # Pattern 5: this.m = fn inside constructor
+        elif obj and obj.type == "this":
+            if is_fn_value and enclosing_func and prop_name:
+                body_node = _field(right, "body")
+                sig = _js_fn_signature(prop_name, right, raw)
+                yield _symbol_record(
+                    node,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=prop_name,
+                    kind="method",
+                    qualified_name=f"{enclosing_func}.{prop_name}",
+                    signature=sig,
+                    body_node=body_node,
+                )
+
+        # Pattern 2: X.prototype = { m() {}, n: fn }
+        elif obj and prop_name == "prototype" and right.type == "object":
+            class_name = _node_text(obj, raw)
+            if class_name:
+                yield from _extract_js_object_methods(
+                    right, raw, path, language_name, parents, prefix=class_name, default_kind="method"
+                )
+
+        # Pattern 7c: module.exports = { m() {}, n: fn }
+        elif obj and _node_text(obj, raw) == "module" and prop_name == "exports":
+            if right.type == "object":
+                yield from _extract_js_object_methods(
+                    right, raw, path, language_name, parents, prefix="", default_kind="function"
+                )
+            elif is_fn_value:
+                fn_name = _node_name(right, raw) or _file_stem(path)
+                body_node = _field(right, "body")
+                sig = _js_fn_signature(fn_name, right, raw)
+                yield _symbol_record(
+                    node,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=fn_name,
+                    kind="function",
+                    qualified_name=fn_name,
+                    signature=sig,
+                    body_node=body_node,
+                )
+
+        # Pattern 4: X.m = fn (where X is an identifier and not special)
+        elif obj and obj.type == "identifier":
+            obj_name = _node_text(obj, raw)
+            if is_fn_value and obj_name not in _JS_SPECIAL_IDENTIFIERS and prop_name:
+                body_node = _field(right, "body")
+                sig = _js_fn_signature(prop_name, right, raw)
+                yield _symbol_record(
+                    node,
+                    raw,
+                    path,
+                    language_name,
+                    parents,
+                    name=prop_name,
+                    kind="method",
+                    qualified_name=f"{obj_name}.{prop_name}",
+                    signature=sig,
+                    body_node=body_node,
+                )
+
+
+def _extract_js_assigned_expression(
+    node: object,
+    raw: bytes,
+    path: str,
+    language_name: str,
+    parents: list[str],
+    enclosing_func: str | None = None,
+) -> Iterable[SymbolRecord]:
+    child = node.named_children[0] if node.named_children else None
+    if child is None:
+        return
+
+    # Assignment: X.prototype.m = fn, X.m = fn, this.m = fn, module.exports.m = fn, exports.m = fn, etc.
+    # A chain `a.x = a.y = function () {}` binds the same function to every left-hand side.
+    if child.type == "assignment_expression":
+        lefts = [_field(child, "left")]
+        right = _field(child, "right")
+        while right is not None and right.type == "assignment_expression":
+            lefts.append(_field(right, "left"))
+            right = _field(right, "right")
+        if right is None:
+            return
+        for left in lefts:
+            if left is not None:
+                yield from _extract_js_assignment_target(node, left, right, raw, path, language_name, parents, enclosing_func)
+
+    # Pattern 3: Object.defineProperty / Object.defineProperties
+    elif child.type == "call_expression":
+        fn = _field(child, "function")
+        fn_text = _node_text(fn, raw) if fn else ""
+        args_node = _field(child, "arguments")
+        args = [c for c in args_node.named_children] if args_node else []
+
+        if fn_text == "Object.defineProperty" and len(args) >= 3:
+            target_obj = args[0]
+            class_name = None
+            kind = "method"
+            if target_obj.type == "member_expression":
+                sub_obj = _field(target_obj, "object")
+                sub_prop = _field(target_obj, "property")
+                if sub_prop and _node_text(sub_prop, raw) == "prototype" and sub_obj:
+                    class_name = _node_text(sub_obj, raw)
+                elif _node_text(sub_obj, raw) == "module" and sub_prop and _node_text(sub_prop, raw) == "exports":
+                    kind = "function"
+                else:
+                    class_name = _node_text(target_obj, raw)
+            elif target_obj.type == "identifier":
+                tname = _node_text(target_obj, raw)
+                if tname == "exports":
+                    kind = "function"
+                elif tname not in _JS_SPECIAL_IDENTIFIERS:
+                    class_name = tname
+            elif target_obj.type == "this" and enclosing_func:
+                class_name = enclosing_func
+
+            prop_name = _node_text(args[1], raw).strip("'\"`")
+            desc = args[2]
+            target_qname = f"{class_name}.{prop_name}" if class_name else prop_name
+            if prop_name and desc.type == "object":
+                for member in desc.named_children:
+                    if member.type == "method_definition":
+                        m_name = _node_name(member, raw)
+                        if m_name in {"get", "set"}:
+                            params_node = _field(member, "parameters")
+                            ptext = _node_text(params_node, raw) if params_node else "()"
+                            sig = f"{m_name} {prop_name}{ptext}"
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                            )
+                    elif member.type == "pair":
+                        k = _field(member, "key")
+                        v = _field(member, "value")
+                        m_name = _node_text(k, raw).strip("'\"`") if k else ""
+                        if m_name in {"get", "set"} and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                            params_node = _field(v, "parameters") or _field(v, "parameter")
+                            ptext = _node_text(params_node, raw) if params_node else "()"
+                            if not ptext.startswith("("):
+                                ptext = f"({ptext})"
+                            sig = f"{m_name} {prop_name}{ptext}"
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                                body_node=_field(v, "body"),
+                            )
+                        elif m_name == "value" and v and v.type in {"function_expression", "arrow_function", "generator_function"}:
+                            sig = _js_fn_signature(prop_name, v, raw)
+                            yield _symbol_record(
+                                member,
+                                raw,
+                                path,
+                                language_name,
+                                parents,
+                                name=prop_name,
+                                kind=kind,
+                                qualified_name=target_qname,
+                                signature=sig,
+                                body_node=_field(v, "body"),
+                            )
+
+        elif fn_text == "Object.defineProperties" and len(args) >= 2:
+            target_obj = args[0]
+            class_name = None
+            kind = "method"
+            if target_obj.type == "member_expression":
+                sub_obj = _field(target_obj, "object")
+                sub_prop = _field(target_obj, "property")
+                if sub_prop and _node_text(sub_prop, raw) == "prototype" and sub_obj:
+                    class_name = _node_text(sub_obj, raw)
+                elif _node_text(sub_obj, raw) == "module" and sub_prop and _node_text(sub_prop, raw) == "exports":
+                    kind = "function"
+                else:
+                    class_name = _node_text(target_obj, raw)
+            elif target_obj.type == "identifier":
+                tname = _node_text(target_obj, raw)
+                if tname == "exports":
+                    kind = "function"
+                elif tname not in _JS_SPECIAL_IDENTIFIERS:
+                    class_name = tname
+            elif target_obj.type == "this" and enclosing_func:
+                class_name = enclosing_func
+
+            desc = args[1]
+            if desc.type == "object":
+                for pair in desc.named_children:
+                    if pair.type == "pair":
+                        k = _field(pair, "key")
+                        v = _field(pair, "value")
+                        prop_name = _node_text(k, raw).strip("'\"`")
+                        target_qname = f"{class_name}.{prop_name}" if class_name else prop_name
+                        if prop_name and v and v.type == "object":
+                            for member in v.named_children:
+                                if member.type == "method_definition":
+                                    m_name = _node_name(member, raw)
+                                    if m_name in {"get", "set"}:
+                                        params_node = _field(member, "parameters")
+                                        ptext = _node_text(params_node, raw) if params_node else "()"
+                                        sig = f"{m_name} {prop_name}{ptext}"
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                        )
+                                elif member.type == "pair":
+                                    mk = _field(member, "key")
+                                    mv = _field(member, "value")
+                                    m_name = _node_text(mk, raw).strip("'\"`") if mk else ""
+                                    if m_name in {"get", "set"} and mv and mv.type in {"function_expression", "arrow_function", "generator_function"}:
+                                        params_node = _field(mv, "parameters") or _field(mv, "parameter")
+                                        ptext = _node_text(params_node, raw) if params_node else "()"
+                                        if not ptext.startswith("("):
+                                            ptext = f"({ptext})"
+                                        sig = f"{m_name} {prop_name}{ptext}"
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                            body_node=_field(mv, "body"),
+                                        )
+                                    elif m_name == "value" and mv and mv.type in {"function_expression", "arrow_function", "generator_function"}:
+                                        sig = _js_fn_signature(prop_name, mv, raw)
+                                        yield _symbol_record(
+                                            member,
+                                            raw,
+                                            path,
+                                            language_name,
+                                            parents,
+                                            name=prop_name,
+                                            kind=kind,
+                                            qualified_name=target_qname,
+                                            signature=sig,
+                                            body_node=_field(mv, "body"),
+                                        )
+
+
 def _walk_symbols(
     node: object,
     raw: bytes,
@@ -191,7 +611,13 @@ def _walk_symbols(
     language_name: str,
     parents: list[str],
     line_offsets: list[int],
+    enclosing_function: str | None = None,
+    consumed: set[int] | None = None,
 ) -> Iterable[SymbolRecord]:
+    if consumed is None:
+        # start bytes of object-literal members already emitted by an owning pattern (const x = {...}, X.prototype = {...},
+        # module.exports = {...}, Object.defineProperty descriptors); the generic method_definition path skips only those
+        consumed = set()
     node_kind = node.type
     mapping = _NODE_KINDS[language_name]
     next_parents = parents
@@ -200,30 +626,61 @@ def _walk_symbols(
         if record is not None:
             yield record
     elif node_kind in mapping:
-        name = _node_name(node, raw) or _anonymous_export_name(node, raw, path) or f"anonymous_{node.start_point[0] + 1}"
-        yield _symbol_record(
-            node,
-            raw,
-            path,
-            language_name,
-            parents,
-            name,
-            mapping[node_kind],
-        )
-        if mapping[node_kind] in {"class", "interface"}:
-            next_parents = [*parents, name]
+        if (
+            language_name in {"javascript", "typescript", "tsx"}
+            and node_kind == "method_definition"
+            and getattr(node.parent, "type", "") == "object"
+            and int(node.start_byte) in consumed
+        ):
+            # already emitted, with its owner-qualified name, by an assigned-method / local-object pattern
+            pass
+        else:
+            name = _node_name(node, raw) or _anonymous_export_name(node, raw, path) or f"anonymous_{node.start_point[0] + 1}"
+            yield _symbol_record(
+                node,
+                raw,
+                path,
+                language_name,
+                parents,
+                name,
+                mapping[node_kind],
+            )
+            if mapping[node_kind] in {"class", "interface"}:
+                next_parents = [*parents, name]
     elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "variable_declarator":
         value = _field(node, "value")
         name = _declarator_name(node, raw)
-        if name and value is not None and value.type in {"arrow_function", "function_expression"}:
-            yield _symbol_record(value, raw, path, language_name, parents, name, "function")
+        if name and value is not None:
+            if value.type in {"arrow_function", "function_expression"}:
+                yield _symbol_record(value, raw, path, language_name, parents, name, "function")
+            elif not parents and not enclosing_function and value.type == "object":
+                for record in _extract_js_object_methods(value, raw, path, language_name, parents, prefix=name, default_kind="method"):
+                    consumed.add(record.start_byte)
+                    yield record
     elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "export_statement":
         declaration = _field(node, "declaration") or _field(node, "value")
         if declaration is not None and declaration.type in {"arrow_function", "function_expression"}:
             name = _file_stem(path)
             yield _symbol_record(declaration, raw, path, language_name, parents, name, "function")
+    elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "expression_statement":
+        for record in _extract_js_assigned_expression(node, raw, path, language_name, parents, enclosing_function):
+            consumed.add(record.start_byte)
+            yield record
+
+    next_enclosing_function = enclosing_function
+    if node_kind == "function_declaration":
+        fn_name = _node_name(node, raw)
+        next_enclosing_function = fn_name or enclosing_function
+    elif node_kind == "variable_declarator":
+        val = _field(node, "value")
+        if val is not None and val.type in {"arrow_function", "function_expression"}:
+            decl_name = _declarator_name(node, raw)
+            next_enclosing_function = decl_name or enclosing_function
+    elif node_kind in {"class_declaration", "interface_declaration", "method_definition"}:
+        next_enclosing_function = None
+
     for child in node.named_children:
-        yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets)
+        yield from _walk_symbols(child, raw, path, language_name, next_parents, line_offsets, next_enclosing_function, consumed)
 
 
 def _go_receiver_type(node: object, raw: bytes) -> str | None:
@@ -286,15 +743,20 @@ def _symbol_record(
     parents: list[str],
     name: str,
     kind: str,
+    qualified_name: str | None = None,
+    signature: str | None = None,
+    body_node: object | None = None,
 ) -> SymbolRecord:
-    qualified_name = ".".join([*parents, name])
+    if qualified_name is None:
+        qualified_name = ".".join([*parents, name])
     start_byte = int(node.start_byte)
     end_byte = int(node.end_byte)
-    body = _field(node, "body")
+    body = body_node if body_node is not None else _field(node, "body")
     body_start = int(body.start_byte) if body else None
     body_end = int(body.end_byte) if body else None
-    signature_end = body_start if body_start is not None else end_byte
-    signature = _signature(raw[start_byte:signature_end])
+    if signature is None:
+        signature_end = body_start if body_start is not None else end_byte
+        signature = _signature(raw[start_byte:signature_end])
     start_line = int(node.start_point[0]) + 1
     end_line = int(node.end_point[0]) + 1
     digest = hashlib.sha256(f"{language_name}:{path}:{qualified_name}:{start_byte}".encode()).hexdigest()[:16]
@@ -582,6 +1044,89 @@ def _string_literal_value(node: object | None, raw: bytes) -> str | None:
     return result if isinstance(result, str) else None
 
 
+def _extract_csharp_namespaces(root: object, raw: bytes) -> list[str]:
+    """Extract C# block-scoped and file-scoped namespace declarations (E3)."""
+    namespaces: list[str] = []
+
+    def visit(node: object, prefix: str = "") -> None:
+        c_type = getattr(node, "type", "")
+        if c_type in {"namespace_declaration", "file_scoped_namespace_declaration"}:
+            name_node = _field(node, "name")
+            if name_node is not None:
+                ns_name = _node_text(name_node, raw)
+                full_ns = f"{prefix}.{ns_name}" if prefix else ns_name
+                namespaces.append(full_ns)
+                for child in getattr(node, "named_children", []):
+                    visit(child, full_ns)
+                return
+        for child in getattr(node, "named_children", []):
+            visit(child, prefix)
+
+    visit(root)
+    return namespaces
+
+
+def _extract_js_module_bindings(root: object, raw: bytes) -> dict[str, str]:
+    """Extract JS/TS CommonJS require and ES6 import bindings (E8)."""
+    bindings: dict[str, str] = {}
+
+    def visit(node: object) -> None:
+        c_type = getattr(node, "type", "")
+        if c_type == "variable_declarator":
+            name_node = _field(node, "name")
+            val_node = _field(node, "value")
+            if val_node and getattr(val_node, "type", "") == "call_expression":
+                fn_node = _field(val_node, "function")
+                if fn_node and _node_text(fn_node, raw).strip() == "require":
+                    args_node = _field(val_node, "arguments")
+                    first_arg = next(iter(getattr(args_node, "named_children", [])), None) if args_node else None
+                    mod_path = _string_literal_value(first_arg, raw) if first_arg else None
+                    if mod_path and name_node:
+                        if getattr(name_node, "type", "") == "identifier":
+                            bindings[_node_text(name_node, raw).strip()] = mod_path
+                        elif getattr(name_node, "type", "") == "object_pattern":
+                            for child in getattr(name_node, "named_children", []):
+                                ch_type = getattr(child, "type", "")
+                                if ch_type == "shorthand_property_identifier_pattern":
+                                    ident = _node_text(child, raw).strip()
+                                    bindings[ident] = f"{mod_path}.{ident}"
+                                elif ch_type == "pair_pattern":
+                                    key_node = _field(child, "key")
+                                    val_sub = _field(child, "value")
+                                    if key_node and val_sub:
+                                        key_name = _node_text(key_node, raw).strip()
+                                        val_name = _node_text(val_sub, raw).strip()
+                                        bindings[val_name] = f"{mod_path}.{key_name}"
+        elif c_type in {"import_statement", "import_declaration"}:
+            source_node = _field(node, "source")
+            mod_path = _string_literal_value(source_node, raw) if source_node else None
+            if mod_path:
+                for child in getattr(node, "named_children", []):
+                    if getattr(child, "type", "") == "import_clause":
+                        for sub in getattr(child, "named_children", []):
+                            s_type = getattr(sub, "type", "")
+                            if s_type == "identifier":
+                                bindings[_node_text(sub, raw).strip()] = mod_path
+                            elif s_type == "namespace_import":
+                                ns_name = _field(sub, "name") or (sub.named_children[0] if getattr(sub, "named_children", None) else None)
+                                if ns_name:
+                                    bindings[_node_text(ns_name, raw).strip()] = mod_path
+                            elif s_type == "named_imports":
+                                for spec in getattr(sub, "named_children", []):
+                                    if getattr(spec, "type", "") == "import_specifier":
+                                        n_node = _field(spec, "name")
+                                        alias_node = _field(spec, "alias")
+                                        orig_name = _node_text(n_node, raw).strip() if n_node else ""
+                                        local_name = _node_text(alias_node, raw).strip() if alias_node else orig_name
+                                        if local_name:
+                                            bindings[local_name] = f"{mod_path}.{orig_name}"
+        for c in getattr(node, "children", []):
+            visit(c)
+
+    visit(root)
+    return bindings
+
+
 _CONTAINER_TYPES = {
     "dict", "Dict", "defaultdict", "Mapping", "MutableMapping",
     "list", "List", "Sequence", "MutableSequence", "Iterable", "Iterator",
@@ -781,9 +1326,10 @@ def _analyze_function_scope(
                     if branch:
                         assigned_in_branch.add(v)
         elif language_name in {"java", "c_sharp"}:
-            if node_type == "local_variable_declaration":
+            if node_type in {"local_variable_declaration", "variable_declaration"}:
                 t_node = _field(node, "type")
-                t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                t_raw = _node_text(t_node, raw) if t_node else ""
+                t_text = _clean_type_name(t_raw) if t_raw and t_raw != "var" else ""
                 for child in getattr(node, "named_children", []):
                     if getattr(child, "type", "") == "variable_declarator":
                         n_node = _field(child, "name")
@@ -794,6 +1340,28 @@ def _analyze_function_scope(
                                 assigned_in_branch.add(v)
                             if t_text:
                                 annotated_types[v] = t_text
+                            named_ch = getattr(child, "named_children", [])
+                            val_node = named_ch[1] if len(named_ch) > 1 else None
+                            if val_node is not None:
+                                if val_node.type == "object_creation_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "cast_expression":
+                                    type_child = _field(val_node, "type")
+                                    if type_child is not None:
+                                        c_type = _clean_type_name(_node_text(type_child, raw))
+                                        if c_type:
+                                            ctor_types[v] = c_type
+                                elif val_node.type == "invocation_expression":
+                                    expr = _field(val_node, "expression")
+                                    if expr is not None and expr.type == "identifier":
+                                        fn_name = _node_text(expr, raw).strip()
+                                        fn_call_assigns[v] = fn_name
+                                        if fn_return_types and fn_name in fn_return_types:
+                                            ctor_types[v] = fn_return_types[fn_name]
             elif node_type == "assignment_expression":
                 left = _field(node, "left")
                 if left is not None and getattr(left, "type", "") == "identifier":
@@ -896,13 +1464,19 @@ def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[s
             if name_node is not None:
                 cls_name = _node_text(name_node, raw).strip()
                 bases = []
-                bl = _field(current, "base_list")
+                bl = _field(current, "base_list") or next(
+                    (c for c in getattr(current, "children", []) if getattr(c, "type", "") == "base_list"),
+                    None,
+                )
                 if bl is not None:
                     for expr in getattr(bl, "named_children", []):
-                        if expr.type in {"identifier", "type_identifier", "generic_name"}:
+                        if expr.type in {"identifier", "type_identifier", "generic_name", "qualified_name"}:
                             b = _node_text(expr, raw).strip()
-                            if b and b not in bases:
-                                bases.append(b)
+                            clean_b = re.split(r"[<\[]", b)[0].strip()
+                            if "." in clean_b:
+                                clean_b = clean_b.rsplit(".", 1)[-1].strip()
+                            if clean_b and clean_b not in bases:
+                                bases.append(clean_b)
                 inheritance[cls_name] = bases
 
         for child in getattr(current, "named_children", []):
@@ -1132,7 +1706,7 @@ def _extract_class_attributes(
                                 if inferred_t and inferred_t not in _BUILTIN_RECEIVERS and inferred_t not in {"None", "Any"}:
                                     class_attr_assigned[next_class][attr_text].append((inferred_t, inferred_source))
             elif language_name in {"javascript", "typescript", "tsx"}:
-                if c_type in {"public_field_definition", "field_definition", "property_definition"}:
+                if c_type in {"public_field_definition", "field_definition", "property_definition", "property_signature"}:
                     name_node = _field(current, "property") or _field(current, "name")
                     t_node = _field(current, "type")
                     if name_node is not None and t_node is not None:
@@ -1157,15 +1731,30 @@ def _extract_class_attributes(
                                 class_attr_assigned[next_class][attr_text].append((inferred_t, "attr_type"))
             elif language_name in {"java", "c_sharp"}:
                 if c_type == "field_declaration":
-                    t_node = _field(current, "type")
-                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
-                    if t_text and t_text not in _BUILTIN_RECEIVERS:
+                    var_decl = None
+                    if language_name == "c_sharp":
                         for child in getattr(current, "named_children", []):
+                            if getattr(child, "type", "") == "variable_declaration":
+                                var_decl = child
+                                break
+                    parent_decl = var_decl or current
+                    t_node = _field(parent_decl, "type")
+                    t_text = _clean_type_name(_node_text(t_node, raw)) if t_node else ""
+                    if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var":
+                        for child in getattr(parent_decl, "named_children", []):
                             if getattr(child, "type", "") in {"variable_declarator", "variable_declaration"}:
                                 n_node = _field(child, "name") or (child.named_children[0] if getattr(child, "named_children", None) else None)
                                 if n_node is not None:
                                     attr_text = _node_text(n_node, raw).strip()
                                     class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
+                elif language_name == "c_sharp" and c_type == "property_declaration":
+                    t_node = _field(current, "type")
+                    n_node = _field(current, "name")
+                    if t_node is not None and n_node is not None:
+                        t_text = _clean_type_name(_node_text(t_node, raw))
+                        attr_text = _node_text(n_node, raw).strip()
+                        if t_text and t_text not in _BUILTIN_RECEIVERS and t_text != "var" and attr_text:
+                            class_attr_assigned[next_class][attr_text].append((t_text, "attr_type"))
 
         for child in getattr(current, "named_children", []):
             visit(child, next_class, param_type_map)
@@ -1237,6 +1826,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 if (curr_cls, attr_name) in class_attr_types:
                     attr_source = class_attr_param_source.get((curr_cls, attr_name))
                     return class_attr_types[(curr_cls, attr_name)], False, None, attr_source
+        if language_name in {"c_sharp", "java"} and class_stack and class_stack[-1]:
+            curr_cls = class_stack[-1]
+            if (curr_cls, receiver) in class_attr_tainted:
+                return None, True, None, None
+            if (curr_cls, receiver) in class_attr_types:
+                return class_attr_types[(curr_cls, receiver)], False, None, "field_type"
         return None, False, None, None
 
     def visit(current: object) -> None:
@@ -1296,6 +1891,8 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                 return
 
         if language_name == "python" and c_type == "call":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "attribute":
@@ -1315,6 +1912,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1325,9 +1923,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name in {"javascript", "typescript", "tsx"} and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "member_expression":
@@ -1347,6 +1948,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1357,9 +1959,48 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+        elif language_name in {"javascript", "typescript", "tsx"} and c_type == "new_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            constr = _field(current, "constructor")
+            if constr is not None:
+                if constr.type == "member_expression":
+                    obj = _field(constr, "object")
+                    prop = _field(constr, "property")
+                    if prop is not None:
+                        rec = _node_text(obj, raw) if obj is not None else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        calls.append(
+                            CallRecord(
+                                name=_node_text(prop, raw),
+                                receiver=rec,
+                                line=int(current.start_point[0]) + 1,
+                                start_byte=int(current.start_byte),
+                                end_byte=int(current.end_byte),
+                                receiver_type=r_type,
+                                is_tainted=is_t,
+                                assigned_from_fn=fn_src,
+                                receiver_type_source=r_src,
+                                arg_count=call_arg_count,
+                            )
+                        )
+                elif constr.type == "identifier":
+                    calls.append(
+                        CallRecord(
+                            name=_node_text(constr, raw),
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "go" and c_type == "call_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             func = _field(current, "function")
             if func is not None:
                 if func.type == "selector_expression":
@@ -1379,6 +2020,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif func.type == "identifier":
@@ -1389,9 +2031,12 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
                         )
                     )
         elif language_name == "java" and c_type == "method_invocation":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
             obj = _field(current, "object")
             name = _field(current, "name")
             if name is not None:
@@ -1408,10 +2053,13 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                         is_tainted=is_t,
                         assigned_from_fn=fn_src,
                         receiver_type_source=r_src,
+                        arg_count=call_arg_count,
                     )
                 )
         elif language_name == "c_sharp" and c_type == "invocation_expression":
-            expr = _field(current, "expression") or (
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            expr = _field(current, "function") or _field(current, "expression") or (
                 current.named_children[0] if getattr(current, "named_children", None) else None
             )
             if expr is not None:
@@ -1419,11 +2067,16 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                     expr_obj = _field(expr, "expression")
                     expr_name = _field(expr, "name")
                     if expr_name is not None:
+                        if expr_name.type == "generic_name":
+                            call_name = _node_text(expr_name.named_children[0], raw) if expr_name.named_children else _node_text(expr_name, raw).split("<")[0].strip()
+                        else:
+                            call_name = _node_text(expr_name, raw)
                         rec = _node_text(expr_obj, raw) if expr_obj is not None else None
-                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec)
+                        clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                        r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
                         calls.append(
                             CallRecord(
-                                name=_node_text(expr_name, raw),
+                                name=call_name,
                                 receiver=rec,
                                 line=int(current.start_point[0]) + 1,
                                 start_byte=int(current.start_byte),
@@ -1432,6 +2085,7 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                                 is_tainted=is_t,
                                 assigned_from_fn=fn_src,
                                 receiver_type_source=r_src,
+                                arg_count=call_arg_count,
                             )
                         )
                 elif expr.type == "identifier":
@@ -1442,6 +2096,80 @@ def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallReco
                             line=int(current.start_point[0]) + 1,
                             start_byte=int(current.start_byte),
                             end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+                elif expr.type == "generic_name":
+                    call_name = _node_text(expr.named_children[0], raw) if expr.named_children else _node_text(expr, raw).split("<")[0].strip()
+                    calls.append(
+                        CallRecord(
+                            name=call_name,
+                            receiver=None,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            arg_count=call_arg_count,
+                        )
+                    )
+                elif expr.type == "conditional_access_expression":
+                    cond = _field(expr, "condition")
+                    binding = None
+                    for child in getattr(expr, "named_children", []):
+                        if child.type == "member_binding_expression":
+                            binding = child
+                            break
+                    if binding is not None:
+                        name_node = _field(binding, "name")
+                        if name_node is not None:
+                            if name_node.type == "generic_name":
+                                call_name = _node_text(name_node.named_children[0], raw) if name_node.named_children else _node_text(name_node, raw).split("<")[0].strip()
+                            else:
+                                call_name = _node_text(name_node, raw)
+                            rec = _node_text(cond, raw) if cond is not None else None
+                            clean_rec = rec.replace("?.", ".").split("<")[0].strip() if rec else None
+                            r_type, is_t, fn_src, r_src = resolve_receiver_meta(clean_rec) if clean_rec else (None, False, None, None)
+                            calls.append(
+                                CallRecord(
+                                    name=call_name,
+                                    receiver=rec,
+                                    line=int(current.start_point[0]) + 1,
+                                    start_byte=int(current.start_byte),
+                                    end_byte=int(current.end_byte),
+                                    receiver_type=r_type,
+                                    is_tainted=is_t,
+                                    assigned_from_fn=fn_src,
+                                    receiver_type_source=r_src,
+                                    arg_count=call_arg_count,
+                                )
+                            )
+        elif language_name == "c_sharp" and c_type == "object_creation_expression":
+            args_node = _field(current, "arguments")
+            call_arg_count = len(args_node.named_children) if args_node is not None else None
+            t_node = _field(current, "type")
+            if t_node is not None:
+                raw_text = _node_text(t_node, raw).strip()
+                clean_text = raw_text.split("<")[0].strip().rstrip("?")
+                if clean_text.startswith("global::"):
+                    clean_text = clean_text[len("global::"):]
+                if clean_text:
+                    if "." in clean_text:
+                        rec, name = clean_text.rsplit(".", 1)
+                    else:
+                        rec = None
+                        name = clean_text
+                    r_type, is_t, fn_src, r_src = resolve_receiver_meta(rec) if rec else (None, False, None, None)
+                    calls.append(
+                        CallRecord(
+                            name=name,
+                            receiver=rec,
+                            line=int(current.start_point[0]) + 1,
+                            start_byte=int(current.start_byte),
+                            end_byte=int(current.end_byte),
+                            receiver_type=r_type,
+                            is_tainted=is_t,
+                            assigned_from_fn=fn_src,
+                            receiver_type_source=r_src,
+                            arg_count=call_arg_count,
                         )
                     )
         for child in getattr(current, "named_children", []):

@@ -92,11 +92,11 @@ def lint_task_data(
 
         # Rule 1: existence
         if store is not None:
-            if (t_path, t_qname) not in indexed_symbols:
+            if not target.get("gold_pending_indexer") and (t_path, t_qname) not in indexed_symbols:
                 errors.append(f"[{tid}] Rule 1: target '{t_path}::{t_qname}' not found in index")
             for gc in gold:
                 gp, gq = gc.get("path", ""), gc.get("qualified_name", "")
-                if (gp, gq) not in indexed_symbols:
+                if not gc.get("gold_pending_indexer") and (gp, gq) not in indexed_symbols:
                     errors.append(f"[{tid}] Rule 1: gold_context '{gp}::{gq}' not found in index")
                 if gc.get("need") not in ("signature", "body"):
                     errors.append(f"[{tid}] Rule: gold_context '{gp}::{gq}' has invalid need={gc.get('need')!r}")

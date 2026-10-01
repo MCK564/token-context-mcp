@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from token_context_mcp.discovery.catalog import TOOL_CATALOG
 from token_context_mcp.discovery.tools import get_tool_schema, list_available_tools, search_tools
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import time
 from collections import deque
@@ -16,6 +17,7 @@ from token_context_mcp.config import (
     AppConfig,
     get_repository,
     index_directory,
+    load_config,
 )
 from token_context_mcp.constants import (
     DEFAULT_MAX_GRAPH_NODES,
@@ -65,6 +67,52 @@ DEFAULT_EXPAND_MIN_CONFIDENCE = 0.6
 NEIGHBOR_BUDGET_SHARE = 0.25
 # Ablation switch for evals only (F9 term-coverage ranking). Not exposed as a tool argument.
 _COVERAGE_RANKING = "off"  # "off" | "name" | "body"; dev ablation 2026-09-27: both on-modes lowered sym MRR
+
+# M12.2 Ablation switches for C# ranking & behavior coverage. Not exposed as tool arguments.
+_IMPL_RANKING = os.environ.get("TOKEN_CONTEXT_IMPL_RANKING", "c_sharp,java")
+_BODY_MODE_BEHAVIOR = os.environ.get("TOKEN_CONTEXT_BODY_MODE_BEHAVIOR", "off")
+_DEP_VENDORED = os.environ.get("TOKEN_CONTEXT_DEP_VENDORED", "1")
+
+
+def _impl_rank(row: dict[str, Any]) -> int:
+    kind = row.get("kind", "")
+    has_body = row.get("body_start_byte") is not None
+    name = row.get("name", "")
+
+    # 1. method/constructor with body
+    if kind in {"method", "constructor", "function"} and has_body:
+        return 1
+
+    # 2. class/struct (not an attribute)
+    if kind in {"class", "struct", "record"}:
+        if name.endswith("Attribute"):
+            return 3
+        return 2
+
+    # 3. interface, member without body (abstract, interface member, extern), class attribute
+    if kind == "interface":
+        return 3
+    if kind in {"method", "constructor", "function"} and not has_body:
+        return 3
+    if name.endswith("Attribute"):
+        return 3
+
+    return 2
+
+
+def _is_vendored_path(path: str) -> bool:
+    if _DEP_VENDORED == "off" or _DEP_VENDORED == "0":
+        return False
+    p = path.replace("\\", "/").lower()
+    if ".min." in p:
+        return True
+    parts = p.split("/")
+    return (
+        any(part in {"vendor", "third_party", "thirdparty", "node_modules"} for part in parts)
+        or "wwwroot/lib/" in p
+        or "/lib/bulma/" in p
+        or p.startswith("lib/bulma/")
+    )
 
 Entry = TypeVar("Entry")
 
@@ -500,16 +548,62 @@ class RetrievalService:
             # <module>, then by number of distinct query terms the symbol covers, then bm25.
             and_ids = {r["symbol_id"] for r in and_rows}
             candidates = list(and_rows) + [r for r in or_rows if r["symbol_id"] not in and_ids]
-            coverage = {
-                r["symbol_id"]: (_term_coverage(r, raw_terms, _COVERAGE_RANKING) if _COVERAGE_RANKING != "off" else 0) for r in candidates
-            }
+
+            # H4: if no query term matches name/qualified_name of any AND row, use coverage mode 'body'
+            use_body_behavior = False
+            target_behavior_langs: set[str] = set()
+            if _BODY_MODE_BEHAVIOR != "off" and _BODY_MODE_BEHAVIOR != "0":
+                target_behavior_langs = {lang.strip() for lang in _BODY_MODE_BEHAVIOR.split(",")}
+                has_target_lang = any(
+                    r.get("file_record") and r["file_record"].language in target_behavior_langs
+                    for r in candidates
+                )
+                if has_target_lang:
+                    has_name_match = False
+                    for r in and_rows:
+                        text = f"{r.get('name', '')} {r.get('qualified_name', '')}".lower()
+                        words = set(_WORD_RE.findall(text))
+                        if any(term in words for term in raw_terms):
+                            has_name_match = True
+                            break
+                    if not has_name_match:
+                        use_body_behavior = True
+
+            target_impl_langs = (
+                {lang.strip() for lang in _IMPL_RANKING.split(",")}
+                if _IMPL_RANKING != "off" and _IMPL_RANKING != "0"
+                else set()
+            )
+
+            coverage: dict[str, int] = {}
+            impl_rank: dict[str, int] = {}
+            for r in candidates:
+                sid = r["symbol_id"]
+                file_rec = r.get("file_record")
+                lang = file_rec.language if file_rec else None
+
+                # Coverage mode
+                if use_body_behavior and lang in target_behavior_langs:
+                    mode = "body"
+                else:
+                    mode = _COVERAGE_RANKING
+                coverage[sid] = _term_coverage(r, raw_terms, mode) if mode != "off" else 0
+
+                # Impl rank (H2)
+                if lang in target_impl_langs:
+                    impl_rank[sid] = _impl_rank(r)
+                else:
+                    impl_rank[sid] = 0
+
             ranked_rows = sorted(
                 candidates,
                 key=lambda r: (
                     1 if _is_test_or_eval_path(r["path"]) else 0,
+                    1 if _is_vendored_path(r["path"]) else 0,
                     1 if r["symbol_id"].endswith(":<module>") else 0,
                     -coverage[r["symbol_id"]],
                     0 if r["symbol_id"] in and_ids else 1,
+                    impl_rank[r["symbol_id"]],
                     r["score"],
                     r["path"],
                     r["start_line"],

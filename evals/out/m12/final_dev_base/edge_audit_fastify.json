@@ -1,0 +1,358 @@
+{
+  "repo_id": "bench-fastify",
+  "total_symbols": 1165,
+  "total_edges": 771,
+  "unresolved_edges": 551,
+  "total_suspicious_edges": 18,
+  "suspicious_edges_ratio": 0.0233,
+  "status_counts": {
+    "resolved": 220,
+    "ambiguous": 551
+  },
+  "scope_counts": {
+    "scope:same_file": 127,
+    "scope:unresolved_receiver": 375,
+    "scope:import_match": 40,
+    "scope:global": 18,
+    "scope:exact_receiver_type": 5,
+    "scope:global_ambiguous": 93,
+    "scope:tainted_poly_receiver": 18,
+    "scope:same_package": 28,
+    "scope:builtin_receiver_skipped": 15,
+    "scope:same_file_ambiguous": 29,
+    "scope:same_class": 2,
+    "scope:same_package_ambiguous": 21
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "javascript:lib/reply.js:cb:1d34286efe46a485",
+      "name": "cb",
+      "qualified_name": "cb",
+      "path": "lib/reply.js",
+      "in_degree": 17,
+      "resolved_count": 17,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 5,
+        "scope:same_package": 11,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:fastify.js:throwIfAlreadyStarted:af106db72f1c5f91",
+      "name": "throwIfAlreadyStarted",
+      "qualified_name": "throwIfAlreadyStarted",
+      "path": "fastify.js",
+      "in_degree": 13,
+      "resolved_count": 13,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.154,
+      "scopes": {
+        "scope:same_file": 11,
+        "scope:global": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "typescript:fastify.d.ts:Fastify:48dc77bda66c5c13",
+      "name": "Fastify",
+      "qualified_name": "Fastify",
+      "path": "fastify.d.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 6,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 6
+      },
+      "reasons": {
+        "low_confidence_0.40": 6,
+        "scope_global_fallback": 6
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/req-id-gen-factory.js:getGenReqId:089e8906ba56c035",
+      "name": "getGenReqId",
+      "qualified_name": "getGenReqId",
+      "path": "lib/req-id-gen-factory.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.4,
+      "scopes": {
+        "scope:global": 2,
+        "scope:same_package": 3
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/logger-factory.js:createChildLogger:ea6920bfd1d774fc",
+      "name": "createChildLogger",
+      "qualified_name": "createChildLogger",
+      "path": "lib/logger-factory.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 4,
+        "scope:same_package": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/validation.js:wrapValidationError:4b3f00d5b031f9a3",
+      "name": "wrapValidationError",
+      "qualified_name": "wrapValidationError",
+      "path": "lib/validation.js",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/error-handler.js:buildErrorHandler:0c1d02defd1b362c",
+      "name": "buildErrorHandler",
+      "qualified_name": "buildErrorHandler",
+      "path": "lib/error-handler.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.5,
+      "scopes": {
+        "scope:global": 2,
+        "scope:same_package": 1,
+        "scope:import_match": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/decorate.js:checkExistence:6e53282a7978aa57",
+      "name": "checkExistence",
+      "qualified_name": "checkExistence",
+      "path": "lib/decorate.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/decorate.js:hasKey:9ee67890f827c7a5",
+      "name": "hasKey",
+      "qualified_name": "hasKey",
+      "path": "lib/decorate.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/validation.js:validate:54da6fb9f79f3a09",
+      "name": "validate",
+      "qualified_name": "validate",
+      "path": "lib/validation.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 1,
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/plugin-utils.js:getMeta:a2ba6faa3e23bff1",
+      "name": "getMeta",
+      "qualified_name": "getMeta",
+      "path": "lib/plugin-utils.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:onErrorHook:58c6843a4771936f",
+      "name": "onErrorHook",
+      "qualified_name": "onErrorHook",
+      "path": "lib/reply.js",
+      "in_degree": 4,
+      "resolved_count": 4,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:fastify.js:ready:360d81cf5602e0f7",
+      "name": "ready",
+      "qualified_name": "ready",
+      "path": "fastify.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.667,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:global": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "javascript:lib/hooks.js:hookRunnerApplication:95d6ccdb9dc0ed8a",
+      "name": "hookRunnerApplication",
+      "qualified_name": "hookRunnerApplication",
+      "path": "lib/hooks.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 2,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/decorate.js:assertNotStarted:ee40d61fa9bb9f7e",
+      "name": "assertNotStarted",
+      "qualified_name": "assertNotStarted",
+      "path": "lib/decorate.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/error-status.js:setErrorStatusCode:4e86f55cd09a2136",
+      "name": "setErrorStatusCode",
+      "qualified_name": "setErrorStatusCode",
+      "path": "lib/error-status.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 1,
+        "scope:import_match": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/logger-factory.js:now:7363e1e556008d2a",
+      "name": "now",
+      "qualified_name": "now",
+      "path": "lib/logger-factory.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:sendTrailer:596f5770d436a285",
+      "name": "sendTrailer",
+      "qualified_name": "sendTrailer",
+      "path": "lib/reply.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/reply.js:logStreamError:58e06e6400d4f4db",
+      "name": "logStreamError",
+      "qualified_name": "logStreamError",
+      "path": "lib/reply.js",
+      "in_degree": 3,
+      "resolved_count": 3,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "javascript:lib/req-id-gen-factory.js:reqIdGenFactory:96e2539d73fdaf17",
+      "name": "reqIdGenFactory",
+      "qualified_name": "reqIdGenFactory",
+      "path": "lib/req-id-gen-factory.js",
+      "in_degree": 2,
+      "resolved_count": 2,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    }
+  ]
+}

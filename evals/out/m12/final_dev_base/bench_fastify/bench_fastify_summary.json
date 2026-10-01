@@ -1,0 +1,1094 @@
+{
+  "arms": {
+    "R0-grep": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.3667,
+          0.7333
+        ],
+        "mean": 0.5667
+      },
+      "file_mrr": {
+        "ci95": [
+          0.2467,
+          0.5446
+        ],
+        "mean": 0.3906
+      },
+      "latency_ms": {
+        "ci95": [
+          709.4277,
+          813.502
+        ],
+        "mean": 761.703
+      },
+      "latency_p50_ms": 773.33,
+      "latency_p95_ms": 962.25,
+      "sym_mrr": {
+        "ci95": [
+          0.1111,
+          0.4111
+        ],
+        "mean": 0.2444
+      },
+      "sym_recall_at_10": {
+        "ci95": [
+          0.1333,
+          0.44
+        ],
+        "mean": 0.2733
+      },
+      "tasks": 30,
+      "wire_tokens": {
+        "ci95": [
+          24358.1333,
+          27758.8667
+        ],
+        "mean": 26241.2
+      }
+    },
+    "R0-grep@R2": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.1333,
+          0.4333
+        ],
+        "mean": 0.2667
+      },
+      "file_mrr": {
+        "ci95": [
+          0.1333,
+          0.4333
+        ],
+        "mean": 0.2667
+      },
+      "latency_ms": {
+        "ci95": [
+          709.4277,
+          813.502
+        ],
+        "mean": 761.703
+      },
+      "latency_p50_ms": 773.33,
+      "latency_p95_ms": 962.25,
+      "sym_mrr": {
+        "ci95": [
+          0.0,
+          0.2333
+        ],
+        "mean": 0.1
+      },
+      "sym_recall_at_10": {
+        "ci95": [
+          0.0,
+          0.2333
+        ],
+        "mean": 0.1
+      },
+      "tasks": 30,
+      "wire_tokens": {
+        "ci95": [
+          1866.0333,
+          1894.0667
+        ],
+        "mean": 1880.0667
+      }
+    },
+    "R0-read": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.3667,
+          0.7333
+        ],
+        "mean": 0.5667
+      },
+      "file_mrr": {
+        "ci95": [
+          0.2289,
+          0.5317
+        ],
+        "mean": 0.3761
+      },
+      "latency_ms": {
+        "ci95": [
+          709.4277,
+          813.502
+        ],
+        "mean": 761.703
+      },
+      "latency_p50_ms": 773.33,
+      "latency_p95_ms": 962.25,
+      "sym_mrr": {
+        "ci95": [
+          0.0833,
+          0.3833
+        ],
+        "mean": 0.2167
+      },
+      "sym_recall_at_10": {
+        "ci95": [
+          0.1,
+          0.4
+        ],
+        "mean": 0.2333
+      },
+      "tasks": 30,
+      "wire_tokens": {
+        "ci95": [
+          36694.4333,
+          46206.7667
+        ],
+        "mean": 41638.4333
+      }
+    },
+    "R1": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.8,
+          1.0
+        ],
+        "mean": 0.9
+      },
+      "file_mrr": {
+        "ci95": [
+          0.6643,
+          0.9
+        ],
+        "mean": 0.7881
+      },
+      "latency_ms": {
+        "ci95": [
+          42.35,
+          53.0287
+        ],
+        "mean": 47.6953
+      },
+      "latency_p50_ms": 46.34,
+      "latency_p95_ms": 72.85,
+      "sym_mrr": {
+        "ci95": [
+          0.4278,
+          0.7344
+        ],
+        "mean": 0.5811
+      },
+      "sym_recall_at_10": {
+        "ci95": [
+          0.5267,
+          0.8444
+        ],
+        "mean": 0.6911
+      },
+      "tasks": 30,
+      "wire_tokens": {
+        "ci95": [
+          1880.4333,
+          1904.5
+        ],
+        "mean": 1892.6333
+      }
+    },
+    "R2": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.8,
+          1.0
+        ],
+        "mean": 0.9
+      },
+      "file_mrr": {
+        "ci95": [
+          0.6643,
+          0.9
+        ],
+        "mean": 0.7881
+      },
+      "latency_ms": {
+        "ci95": [
+          45.0617,
+          56.4323
+        ],
+        "mean": 50.8197
+      },
+      "latency_p50_ms": 51.51,
+      "latency_p95_ms": 76.8,
+      "sym_mrr": {
+        "ci95": [
+          0.3771,
+          0.7056
+        ],
+        "mean": 0.5401
+      },
+      "sym_recall_at_10": {
+        "ci95": [
+          0.5333,
+          0.8356
+        ],
+        "mean": 0.6911
+      },
+      "tasks": 30,
+      "wire_tokens": {
+        "ci95": [
+          1874.2,
+          1902.0667
+        ],
+        "mean": 1888.1
+      }
+    }
+  },
+  "benchmark": "bench_fastify",
+  "bootstrap": {
+    "samples": 2000,
+    "seed": 0,
+    "statistic": "mean"
+  },
+  "by_group": {
+    "a_keyword": {
+      "R0-grep": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.2,
+            0.8
+          ],
+          "mean": 0.5
+        },
+        "file_mrr": {
+          "ci95": [
+            0.085,
+            0.625
+          ],
+          "mean": 0.345
+        },
+        "latency_ms": {
+          "ci95": [
+            605.89,
+            764.275
+          ],
+          "mean": 688.723
+        },
+        "latency_p50_ms": 695.27,
+        "latency_p95_ms": 894.89,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            21209.8,
+            28352.5
+          ],
+          "mean": 25362.4
+        }
+      },
+      "R0-grep@R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.0,
+            0.6
+          ],
+          "mean": 0.3
+        },
+        "file_mrr": {
+          "ci95": [
+            0.0,
+            0.6
+          ],
+          "mean": 0.3
+        },
+        "latency_ms": {
+          "ci95": [
+            605.89,
+            764.275
+          ],
+          "mean": 688.723
+        },
+        "latency_p50_ms": 695.27,
+        "latency_p95_ms": 894.89,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1881.1,
+            1912.6
+          ],
+          "mean": 1896.5
+        }
+      },
+      "R0-read": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.2,
+            0.8
+          ],
+          "mean": 0.5
+        },
+        "file_mrr": {
+          "ci95": [
+            0.085,
+            0.625
+          ],
+          "mean": 0.345
+        },
+        "latency_ms": {
+          "ci95": [
+            605.89,
+            764.275
+          ],
+          "mean": 688.723
+        },
+        "latency_p50_ms": 695.27,
+        "latency_p95_ms": 894.89,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.5
+          ],
+          "mean": 0.2
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            28050.3,
+            45418.5
+          ],
+          "mean": 36433.9
+        }
+      },
+      "R1": {
+        "file_acc_at_5": {
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "mean": 1.0
+        },
+        "file_mrr": {
+          "ci95": [
+            0.65,
+            0.95
+          ],
+          "mean": 0.8
+        },
+        "latency_ms": {
+          "ci95": [
+            29.316,
+            47.62
+          ],
+          "mean": 38.521
+        },
+        "latency_p50_ms": 37.75,
+        "latency_p95_ms": 64.25,
+        "sym_mrr": {
+          "ci95": [
+            0.48,
+            0.9
+          ],
+          "mean": 0.69
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "mean": 1.0
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1880.6,
+            1915.3
+          ],
+          "mean": 1897.3
+        }
+      },
+      "R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "mean": 1.0
+        },
+        "file_mrr": {
+          "ci95": [
+            0.65,
+            0.95
+          ],
+          "mean": 0.8
+        },
+        "latency_ms": {
+          "ci95": [
+            31.613,
+            49.842
+          ],
+          "mean": 40.705
+        },
+        "latency_p50_ms": 41.16,
+        "latency_p95_ms": 64.85,
+        "sym_mrr": {
+          "ci95": [
+            0.35,
+            0.86
+          ],
+          "mean": 0.61
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "mean": 1.0
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1886.5,
+            1921.5
+          ],
+          "mean": 1903.7
+        }
+      }
+    },
+    "b_hidden_dep": {
+      "R0-grep": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "file_mrr": {
+          "ci95": [
+            0.35,
+            0.8125
+          ],
+          "mean": 0.5875
+        },
+        "latency_ms": {
+          "ci95": [
+            719.133,
+            915.589
+          ],
+          "mean": 822.424
+        },
+        "latency_p50_ms": 831.22,
+        "latency_p95_ms": 1135.1,
+        "sym_mrr": {
+          "ci95": [
+            0.2167,
+            0.7667
+          ],
+          "mean": 0.4833
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.3,
+            0.9
+          ],
+          "mean": 0.6
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            21332.7,
+            27491.4
+          ],
+          "mean": 24877.5
+        }
+      },
+      "R0-grep@R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.1,
+            0.7
+          ],
+          "mean": 0.4
+        },
+        "file_mrr": {
+          "ci95": [
+            0.1,
+            0.7
+          ],
+          "mean": 0.4
+        },
+        "latency_ms": {
+          "ci95": [
+            719.133,
+            915.589
+          ],
+          "mean": 822.424
+        },
+        "latency_p50_ms": 831.22,
+        "latency_p95_ms": 1135.1,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.3
+          ],
+          "mean": 0.1
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.3
+          ],
+          "mean": 0.1
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1843.0,
+            1876.7
+          ],
+          "mean": 1858.5
+        }
+      },
+      "R0-read": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "file_mrr": {
+          "ci95": [
+            0.325,
+            0.8
+          ],
+          "mean": 0.575
+        },
+        "latency_ms": {
+          "ci95": [
+            719.133,
+            915.589
+          ],
+          "mean": 822.424
+        },
+        "latency_p50_ms": 831.22,
+        "latency_p95_ms": 1135.1,
+        "sym_mrr": {
+          "ci95": [
+            0.15,
+            0.75
+          ],
+          "mean": 0.45
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.2,
+            0.8
+          ],
+          "mean": 0.5
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            31753.1,
+            43885.1
+          ],
+          "mean": 38265.5
+        }
+      },
+      "R1": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.7,
+            1.0
+          ],
+          "mean": 0.9
+        },
+        "file_mrr": {
+          "ci95": [
+            0.7,
+            1.0
+          ],
+          "mean": 0.9
+        },
+        "latency_ms": {
+          "ci95": [
+            44.159,
+            61.52
+          ],
+          "mean": 53.283
+        },
+        "latency_p50_ms": 54.09,
+        "latency_p95_ms": 72.93,
+        "sym_mrr": {
+          "ci95": [
+            0.5,
+            0.95
+          ],
+          "mean": 0.75
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1856.6,
+            1894.4
+          ],
+          "mean": 1876.3
+        }
+      },
+      "R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.7,
+            1.0
+          ],
+          "mean": 0.9
+        },
+        "file_mrr": {
+          "ci95": [
+            0.7,
+            1.0
+          ],
+          "mean": 0.9
+        },
+        "latency_ms": {
+          "ci95": [
+            47.85,
+            66.738
+          ],
+          "mean": 57.534
+        },
+        "latency_p50_ms": 56.16,
+        "latency_p95_ms": 84.31,
+        "sym_mrr": {
+          "ci95": [
+            0.4667,
+            0.9333
+          ],
+          "mean": 0.7333
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1851.6,
+            1885.0
+          ],
+          "mean": 1867.4
+        }
+      }
+    },
+    "c_multi_file": {
+      "R0-grep": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.1,
+            0.7
+          ],
+          "mean": 0.4
+        },
+        "file_mrr": {
+          "ci95": [
+            0.075,
+            0.4476
+          ],
+          "mean": 0.2393
+        },
+        "latency_ms": {
+          "ci95": [
+            697.981,
+            843.944
+          ],
+          "mean": 773.962
+        },
+        "latency_p50_ms": 802.92,
+        "latency_p95_ms": 943.92,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.15
+          ],
+          "mean": 0.05
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.06
+          ],
+          "mean": 0.02
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            27347.1,
+            29713.0
+          ],
+          "mean": 28483.7
+        }
+      },
+      "R0-grep@R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.0,
+            0.3
+          ],
+          "mean": 0.1
+        },
+        "file_mrr": {
+          "ci95": [
+            0.0,
+            0.3
+          ],
+          "mean": 0.1
+        },
+        "latency_ms": {
+          "ci95": [
+            697.981,
+            843.944
+          ],
+          "mean": 773.962
+        },
+        "latency_p50_ms": 802.92,
+        "latency_p95_ms": 943.92,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "mean": 0.0
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "mean": 0.0
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1856.7,
+            1912.9
+          ],
+          "mean": 1885.2
+        }
+      },
+      "R0-read": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.1,
+            0.7
+          ],
+          "mean": 0.4
+        },
+        "file_mrr": {
+          "ci95": [
+            0.0333,
+            0.425
+          ],
+          "mean": 0.2083
+        },
+        "latency_ms": {
+          "ci95": [
+            697.981,
+            843.944
+          ],
+          "mean": 773.962
+        },
+        "latency_p50_ms": 802.92,
+        "latency_p95_ms": 943.92,
+        "sym_mrr": {
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "mean": 0.0
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "mean": 0.0
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            45007.6,
+            55548.3
+          ],
+          "mean": 50215.9
+        }
+      },
+      "R1": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "file_mrr": {
+          "ci95": [
+            0.4286,
+            0.9
+          ],
+          "mean": 0.6643
+        },
+        "latency_ms": {
+          "ci95": [
+            44.213,
+            59.789
+          ],
+          "mean": 51.282
+        },
+        "latency_p50_ms": 46.3,
+        "latency_p95_ms": 73.13,
+        "sym_mrr": {
+          "ci95": [
+            0.1,
+            0.5533
+          ],
+          "mean": 0.3033
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.1,
+            0.48
+          ],
+          "mean": 0.2733
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1879.9,
+            1926.3
+          ],
+          "mean": 1904.3
+        }
+      },
+      "R2": {
+        "file_acc_at_5": {
+          "ci95": [
+            0.5,
+            1.0
+          ],
+          "mean": 0.8
+        },
+        "file_mrr": {
+          "ci95": [
+            0.4286,
+            0.9
+          ],
+          "mean": 0.6643
+        },
+        "latency_ms": {
+          "ci95": [
+            46.672,
+            62.414
+          ],
+          "mean": 54.22
+        },
+        "latency_p50_ms": 55.36,
+        "latency_p95_ms": 76.8,
+        "sym_mrr": {
+          "ci95": [
+            0.0747,
+            0.5325
+          ],
+          "mean": 0.2769
+        },
+        "sym_recall_at_10": {
+          "ci95": [
+            0.1067,
+            0.4733
+          ],
+          "mean": 0.2733
+        },
+        "tasks": 10,
+        "wire_tokens": {
+          "ci95": [
+            1866.4,
+            1919.2
+          ],
+          "mean": 1893.2
+        }
+      }
+    }
+  },
+  "corpus_files": 291,
+  "estimator": "utf8-bytes-div-4-v1",
+  "freeze_tag": "m12-freeze",
+  "git_head": "24d650d89e2c884fba6342c26218d2fdf1e75462",
+  "index_run_id": "run_20260930T173200Z_09021f43",
+  "index_schema_version": "2.4",
+  "kpis": {
+    "R2_vs_R1": {
+      "file_acc_at_5": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "mean": 0.0,
+        "pairs": 30
+      },
+      "note": "report only, no threshold",
+      "sym_recall_at_10": {
+        "ci95": [
+          -0.0333,
+          0.0333
+        ],
+        "mean": 0.0,
+        "pairs": 30
+      }
+    },
+    "R3": {
+      "ref_coverage": {
+        "met": false,
+        "threshold": 0.8,
+        "value": 0.4633
+      },
+      "savings_vs_read": {
+        "met": true,
+        "threshold": 0.7,
+        "value": 0.8839
+      },
+      "sig_coverage": {
+        "met": false,
+        "threshold": 0.6,
+        "value": 0.4633
+      }
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+      "ci95": [
+        0.1667,
+        0.5333
+      ],
+      "mean": 0.3333,
+      "met": true,
+      "pairs": 30,
+      "threshold": -0.05
+    },
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+      "ci95": [
+        0.4667,
+        0.8
+      ],
+      "mean": 0.6333,
+      "met": true,
+      "pairs": 30,
+      "threshold": 0.1
+    },
+    "token_ratio_R2_over_R0grep": {
+      "note": "report only",
+      "value": 0.072
+    }
+  },
+  "limits": "R0 is a simulated baseline (identifier terms, idf ranking, symbol taken from the index), not a real agent.",
+  "r3": {
+    "body_coverage": {
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0
+    },
+    "budget": 4096,
+    "errors": 0,
+    "reach_ceiling": {
+      "ci95": [
+        0.2417,
+        0.675
+      ],
+      "mean": 0.4633
+    },
+    "read_tokens": {
+      "ci95": [
+        7838.6,
+        12236.2
+      ],
+      "mean": 10014.4
+    },
+    "ref_coverage": {
+      "ci95": [
+        0.2417,
+        0.675
+      ],
+      "mean": 0.4633
+    },
+    "savings_vs_read": {
+      "ci95": [
+        0.8306,
+        0.9215
+      ],
+      "mean": 0.8839
+    },
+    "sig_coverage": {
+      "ci95": [
+        0.2417,
+        0.675
+      ],
+      "mean": 0.4633
+    },
+    "tasks": 10,
+    "wire_tokens": {
+      "ci95": [
+        772.8,
+        1204.0
+      ],
+      "mean": 971.8
+    }
+  },
+  "repo": {
+    "commit_sha": "3983cce8124714242099e8756a7a9a80a0ba0aea",
+    "license": "MIT",
+    "repo_id": "bench-fastify",
+    "repo_url": "https://github.com/fastify/fastify",
+    "tag": "v5.8.5"
+  },
+  "review_note": "Drafted by one Claude session and reviewed by a different Claude session (6 of 40 tasks changed; log in evals/out/m11). All tasks are TEST tasks; no retrieval tool was run to write or review them, so nothing is tuned. The repository owner has not reviewed this set.",
+  "reviewed": true,
+  "role": "dev",
+  "tasks_file": "evals/tasks/bench_fastify.json",
+  "tasks_file_sha256": "ea8ec16e602d89b7cf22ca6a59be3aed6891220151322ba496eb3e2ddef80303",
+  "token_context_version": "0.2.0"
+}

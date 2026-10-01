@@ -157,44 +157,31 @@ def test_tainted_receiver_downgrades_to_ambiguous_010() -> None:
     assert "tainted_poly_receiver" in work_edge.evidence
 
 
-def test_circuit_breaker_timeout_behavior() -> None:
-    # Simulate a file with many calls where circuit breaker fires
+def test_edge_work_budget_is_deterministic() -> None:
+    """The per-file edge budget is counted in work units (not seconds): same input, same edges, any machine."""
+    import token_context_mcp.parse.lexical_edges as le
+
     sym = _make_symbol("caller", "huge.py", "caller_fn", "caller_fn", "function", 0, 1000)
     calls = [
-        CallRecord(
-            name=f"call_{i}",
-            receiver=None,
-            line=i + 1,
-            start_byte=10 + i * 5,
-            end_byte=15 + i * 5,
-        )
+        CallRecord(name=f"call_{i}", receiver=None, line=i + 1, start_byte=10 + i * 5, end_byte=15 + i * 5)
         for i in range(100)
     ]
-
-    # Monkey-patch time.perf_counter in lexical_edges to simulate timeout after first few calls
-    import token_context_mcp.parse.lexical_edges as le
-    orig_perf = le.time.perf_counter
-    counter = 0.0
-
-    def mock_perf():
-        nonlocal counter
-        counter += 0.005 # Each call adds 5ms, so >30ms after 7 calls
-        return counter
-
-    le.time.perf_counter = mock_perf
+    target = _make_symbol("callee", "lib.py", "call_99", "call_99", "function", 0, 50)
+    previous = le.FILE_EDGE_WORK_BUDGET
     try:
-        edges = build_lexical_edges(
-            [sym],
-            {"huge.py": "x" * 2000},
-            calls_by_path={"huge.py": calls},
-        )
-        timed_out_edges = [e for e in edges if "circuit_breaker_timeout" in e.evidence]
-        assert len(timed_out_edges) > 0
-        for edge in timed_out_edges:
-            assert edge.status == "ambiguous"
-            assert edge.confidence == 0.10
+        le.FILE_EDGE_WORK_BUDGET = 10  # one symbol per call: the 11th call and every later one is over budget
+        first = build_lexical_edges([sym, target], {}, calls_by_path={"huge.py": calls})
+        second = build_lexical_edges([sym, target], {}, calls_by_path={"huge.py": calls})
+        assert [(e.target_name, e.status, e.evidence) for e in first] == [(e.target_name, e.status, e.evidence) for e in second]
+        over = [e for e in first if "edge_work_budget" in e.evidence]
+        assert len(over) == 100 - 10
+        assert all(e.status == "ambiguous" and e.confidence == 0.10 and e.target_symbol_id is None for e in over)
+        le.FILE_EDGE_WORK_BUDGET = 10_000
+        unlimited = build_lexical_edges([sym, target], {}, calls_by_path={"huge.py": calls})
+        assert not [e for e in unlimited if "edge_work_budget" in e.evidence]
+        assert any(e.target_name == "call_99" and e.status == "resolved" for e in unlimited)
     finally:
-        le.time.perf_counter = orig_perf
+        le.FILE_EDGE_WORK_BUDGET = previous
 
 
 def test_sqlite_store_class_hierarchy_and_compaction(tmp_path: Path) -> None:

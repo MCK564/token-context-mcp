@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def test_pyproject_and_package_version_agree():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-    assert project["version"] == token_context_mcp.__version__ == "0.2.0"
+    assert project["version"] == token_context_mcp.__version__ == "0.3.1"
 
 
 def test_sbom_uses_the_package_version(tmp_path):

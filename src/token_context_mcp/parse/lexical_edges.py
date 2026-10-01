@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import posixpath
 import re
-import time
 from collections import defaultdict
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -13,14 +13,24 @@ if TYPE_CHECKING:
 
 _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 
-# Per-file wall-clock budget of edge resolution (a guard against pathological files).  Time-based, hence
-# machine-dependent: evals/index_equivalence.py sets it to infinity so that "incremental == full" (I1) is exact.
-FILE_CIRCUIT_BREAKER_SECONDS = 0.030
+# Per-file budget of edge resolution (a guard against pathological files), counted in abstract work units
+# (one unit per symbol scanned to find the enclosing symbol of a call, ``WORK_PER_CANDIDATE`` per candidate handed to
+# the resolver) and NOT in wall-clock time: a time-based breaker made two builds of the same tree differ on a loaded
+# machine (M12 review).  The largest file of the benchmark corpora needs ~2e5 units, so 4e6 never fires on real code.
+FILE_EDGE_WORK_BUDGET = 4_000_000
+WORK_PER_CANDIDATE = 20
+
+RESOLVER_VERSION = 3
 
 # Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
 SCOPE_CONFIDENCE: dict[str, float] = {
     "same_class": 0.95,
+    "same_class_split": 0.85,
+    "implicit_this": 0.90,
+    "implicit_this_partial": 0.85,
+    "overload_arity": 0.85,
+    "overload_group": 0.70,
     "cha_inherited": 0.90,
     "attr_type": 0.95,
     "attr_type_inherited": 0.90,
@@ -29,14 +39,88 @@ SCOPE_CONFIDENCE: dict[str, float] = {
     # methodology once evals/out/m6/edge_eval_attr_param.json has enough samples.
     "attr_param": 0.90,
     "exact_receiver_type": 0.95,
+    "field_type": 0.85,
     "same_file": 0.90,
     "receiver_match": 0.90,
     "import_match": 0.90,
     "import_module_match": 0.75,
     "same_package": 0.75,
+    "same_namespace": 0.80,
+    "namespace_match": 0.80,
     "global": 0.40,
     "virtual_stub": 0.90,
 }
+
+
+def _namespace_ancestors(ns: str) -> list[str]:
+    """Return self and enclosing namespace prefixes for C# (e.g. 'A.B.C' -> ['A.B.C', 'A.B', 'A'])."""
+    parts = ns.split(".")
+    return [".".join(parts[:i]) for i in range(len(parts), 0, -1)]
+
+
+def _count_params(sig: str | None) -> int | None:
+    if not sig:
+        return None
+    start = sig.find("(")
+    end = sig.rfind(")")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    param_str = sig[start + 1 : end].strip()
+    if not param_str:
+        return 0
+    count = 0
+    depth = 0
+    current_token: list[str] = []
+    for ch in param_str:
+        if ch in "([{<":
+            depth += 1
+            current_token.append(ch)
+        elif ch in ")]}>":
+            depth = max(0, depth - 1)
+            current_token.append(ch)
+        elif ch == "," and depth == 0:
+            if "".join(current_token).strip():
+                count += 1
+            current_token = []
+        else:
+            current_token.append(ch)
+    if "".join(current_token).strip():
+        count += 1
+    return count
+
+
+def _try_resolve_overload(
+    candidates: list[SymbolRecord],
+    source: SymbolRecord,
+    call_arg_count: int | None,
+) -> tuple[SymbolRecord | None, str, float] | None:
+    if not candidates or len(candidates) < 2:
+        return None
+    # E2: Only C#, Java, TS. Strictly NOT enabled for Python.
+    is_overload_lang = (
+        source.symbol_id.startswith(("c_sharp:", "java:", "typescript:", "tsx:"))
+        or source.path.endswith((".cs", ".java", ".ts", ".tsx"))
+    )
+    if not is_overload_lang:
+        return None
+
+    # Check if all remaining candidates have the exact same qualified_name
+    qnames = {c.qualified_name for c in candidates}
+    if len(qnames) != 1:
+        return None
+
+    # 1. Overload arity match (matching parameter count with argument count)
+    if call_arg_count is not None:
+        arity_matches = [
+            c for c in candidates
+            if _count_params(c.signature) == call_arg_count
+        ]
+        if len(arity_matches) == 1:
+            return arity_matches[0], "overload_arity", SCOPE_CONFIDENCE.get("overload_arity", 0.85)
+
+    # 2. Overload group match (smallest start_line)
+    best = min(candidates, key=lambda c: c.start_line)
+    return best, "overload_group", SCOPE_CONFIDENCE.get("overload_group", 0.70)
 
 
 
@@ -87,6 +171,8 @@ def build_lexical_edges(
     imports_by_path: dict[str, list[str]] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
     external_stubs: list[ExternalStubRecord] | None = None,
+    file_namespaces: dict[str, list[str]] | None = None,
+    js_module_bindings: dict[str, dict[str, str]] | None = None,
 ) -> list[EdgeRecord]:
     by_name: dict[str, list[SymbolRecord]] = defaultdict(list)
     symbols_by_path: dict[str, list[SymbolRecord]] = defaultdict(list)
@@ -111,7 +197,7 @@ def build_lexical_edges(
                 continue
 
             sorted_symbols = sorted(path_symbols, key=lambda s: (s.start_byte, -s.end_byte))
-            file_start = time.perf_counter()
+            file_work = 0
             file_timed_out = False
 
             for call in calls:
@@ -123,8 +209,9 @@ def build_lexical_edges(
                     continue
                 source = min(enclosing, key=lambda s: s.end_byte - s.start_byte)
 
-                # 30ms circuit breaker per file
-                if not file_timed_out and (time.perf_counter() - file_start > FILE_CIRCUIT_BREAKER_SECONDS):
+                # deterministic per-file work budget (see FILE_EDGE_WORK_BUDGET)
+                file_work += len(sorted_symbols)
+                if not file_timed_out and file_work > FILE_EDGE_WORK_BUDGET:
                     file_timed_out = True
 
                 if file_timed_out:
@@ -139,13 +226,20 @@ def build_lexical_edges(
                             confidence=0.10,
                             source_path=source.path,
                             source_line=call.line,
-                            evidence=["ast_call", "circuit_breaker_timeout"],
+                            evidence=["ast_call", "edge_work_budget"],
                         )
                     )
                     continue
 
+                file_mod_bindings = js_module_bindings.get(source.path) if js_module_bindings else None
                 candidates = [c for c in by_name.get(call.name, []) if c.symbol_id != source.symbol_id]
+                if not candidates and file_mod_bindings and call.name in file_mod_bindings:
+                    bound_target = file_mod_bindings[call.name]
+                    if "." in bound_target and (bound_target.startswith(".") or "/" in bound_target):
+                        _, orig_name = bound_target.rsplit(".", 1)
+                        candidates = [c for c in by_name.get(orig_name, []) if c.symbol_id != source.symbol_id]
 
+                file_work += WORK_PER_CANDIDATE * len(candidates)
                 effective_receiver_type = getattr(call, "receiver_type", None)
                 if effective_receiver_type is None and getattr(call, "assigned_from_fn", None):
                     fn_src = call.assigned_from_fn
@@ -200,6 +294,10 @@ def build_lexical_edges(
                     is_tainted=getattr(call, "is_tainted", False),
                     imports=imports_map.get(path, []),
                     class_hierarchy=class_hierarchy,
+                    call_arg_count=getattr(call, "arg_count", None),
+                    file_namespaces=file_namespaces,
+                    module_bindings=file_mod_bindings,
+                    call_name=call.name,
                 )
                 status = "resolved" if target else "ambiguous"
                 evidence = ["ast_call", f"scope:{scope}"]
@@ -308,10 +406,32 @@ def _import_parts(imp: str) -> tuple[str | None, list[str] | None, list[str]]:
     return member_part, mod_segs, imp_segs
 
 
-def _import_matches_candidate(imp: str, candidate: SymbolRecord) -> bool:
+def _matches_js_module(source_path: str, target_mod: str, candidate_path: str) -> bool:
+    """Normalize relative JS/TS module imports and match against candidate file (E8)."""
+    s_path = source_path.replace("\\", "/")
+    c_path = candidate_path.replace("\\", "/")
+    if target_mod.startswith("."):
+        source_dir = posixpath.dirname(s_path)
+        norm_target = posixpath.normpath(posixpath.join(source_dir, target_mod))
+        exts = [
+            "", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx",
+            "/index.js", "/index.mjs", "/index.cjs", "/index.ts", "/index.tsx"
+        ]
+        expected = {norm_target + ext for ext in exts}
+        return c_path in expected
+    else:
+        cand_segs = c_path.split("/")
+        return target_mod in cand_segs or c_path.startswith(target_mod)
+
+
+def _import_matches_candidate(imp: str, candidate: SymbolRecord, source_path: str | None = None) -> bool:
     """Check if an import string accurately matches a candidate symbol's module or path."""
     if not imp:
         return False
+
+    if source_path and imp.startswith("."):
+        if _matches_js_module(source_path, imp, candidate.path):
+            return True
 
     cand_segs = _path_segments(candidate.path)
     if not cand_segs:
@@ -352,8 +472,24 @@ def _resolve_candidate(
     is_tainted: bool = False,
     imports: list[str] | None = None,
     class_hierarchy: dict[str, list[str]] | None = None,
+    call_arg_count: int | None = None,
+    file_namespaces: dict[str, list[str]] | None = None,
+    module_bindings: dict[str, str] | None = None,
+    call_name: str | None = None,
 ) -> tuple[SymbolRecord | None, str, float]:
     imports_list = imports or []
+
+    is_csharp = source.symbol_id.startswith("c_sharp:") or source.path.endswith(".cs")
+    src_ancestors: set[str] = set()
+    using_namespaces: set[str] = set()
+    if is_csharp and file_namespaces:
+        for ns in file_namespaces.get(source.path, []):
+            src_ancestors.update(_namespace_ancestors(ns))
+        using_namespaces = set(imports_list)
+
+    # E6: Prefer class/struct/interface symbols over constructor symbols
+    if any(c.kind in {"class", "struct", "interface"} for c in candidates):
+        candidates = [c for c in candidates if c.kind != "constructor"]
 
     # Defensive Heuristic: Tainted variable (reassigned >= 2 times or assigned in branch)
     if is_tainted:
@@ -364,7 +500,12 @@ def _resolve_candidate(
         rec_clean = receiver.strip()
         if rec_clean in _BUILTIN_RECEIVERS or (receiver_type and receiver_type in _BUILTIN_RECEIVERS):
             # Check if this receiver is an explicitly imported internal module
-            has_internal_import = any(_import_matches_candidate(imp, c) for imp in imports_list for c in candidates if c.path != source.path)
+            has_internal_import = any(_import_matches_candidate(imp, c, source.path) for imp in imports_list for c in candidates if c.path != source.path)
+            if not has_internal_import and module_bindings and rec_clean in module_bindings:
+                target_mod = module_bindings[rec_clean]
+                if "." in target_mod and not target_mod.startswith("."):
+                    target_mod = target_mod.split(".")[0]
+                has_internal_import = any(_matches_js_module(source.path, target_mod, c.path) for c in candidates if c.path != source.path)
             if not has_internal_import:
                 return None, "builtin_receiver_skipped", 0.10
 
@@ -378,6 +519,11 @@ def _resolve_candidate(
             ]
             if len(same_class) == 1:
                 return same_class[0], "same_class", SCOPE_CONFIDENCE.get("same_class", 0.95)
+            if len(same_class) > 1:
+                ov = _try_resolve_overload(same_class, source, call_arg_count)
+                if ov is not None:
+                    return ov
+                return None, "same_class_ambiguous", 0.10
 
             # Class Hierarchy Analysis (CHA) lookup for inherited method
             if class_hierarchy:
@@ -392,13 +538,37 @@ def _resolve_candidate(
                     if len(ancestor_matches) == 1:
                         return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
                     if len(ancestor_matches) > 1:
+                        ov = _try_resolve_overload(ancestor_matches, source, call_arg_count)
+                        if ov is not None:
+                            return ov
                         return None, "cha_ambiguous", 0.10
+
+            # Receiver this Cross-File Resolution (M12.1.3):
+            # In JS/TS, methods of class X can be split across multiple files.
+            # Add a fallback query for candidates matching c.qualified_name.startswith(f"{class_prefix}.")
+            # across all files, labeled with scope same_class_split and confidence 0.85.
+            # Guard with is_js_ts check so Python is never touched.
+            if source.symbol_id.startswith(("javascript:", "typescript:", "tsx:")) or source.path.endswith((".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")):
+                split_class = [
+                    c for c in candidates
+                    if c.qualified_name.startswith(f"{class_prefix}.")
+                ]
+                if len(split_class) == 1:
+                    return split_class[0], "same_class_split", SCOPE_CONFIDENCE.get("same_class_split", 0.85)
+                if len(split_class) > 1:
+                    ov = _try_resolve_overload(split_class, source, call_arg_count)
+                    if ov is not None:
+                        return ov
+                    return None, "same_class_split_ambiguous", 0.10
 
         # Fallback to same file
         same_file = [c for c in candidates if c.path == source.path]
         if len(same_file) == 1:
             return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
         if len(same_file) > 1:
+            ov = _try_resolve_overload(same_file, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "same_file_ambiguous", 0.10
 
     # 1b. Receiver is an instance attribute (self.x, this.x, cls.x)
@@ -421,6 +591,9 @@ def _resolve_candidate(
                 same_file_type = [c for c in type_matches if c.path == source.path]
                 if len(same_file_type) == 1:
                     return same_file_type[0], attr_scope, SCOPE_CONFIDENCE.get(attr_scope, 0.90)
+                ov = _try_resolve_overload(same_file_type or type_matches, source, call_arg_count)
+                if ov is not None:
+                    return ov
                 return None, "attr_type_ambiguous", 0.10
 
             # Try CHA on receiver_type
@@ -441,8 +614,9 @@ def _resolve_candidate(
         # DO NOT fall back to global or generic methods!
         return None, "unresolved_receiver", 0.10
 
-    # 2. Inferred receiver type from parameter type hint or single-assignment
+    # 2. Inferred receiver type from parameter type hint, single-assignment, or class field
     if receiver_type and receiver_type not in _BUILTIN_RECEIVERS:
+        rec_scope = "field_type" if receiver_type_source == "field_type" else "exact_receiver_type"
         type_matches = [
             c for c in candidates
             if c.qualified_name == f"{receiver_type}.{c.name}"
@@ -450,12 +624,15 @@ def _resolve_candidate(
             or c.qualified_name.endswith(f".{receiver_type}.{c.name}")
         ]
         if len(type_matches) == 1:
-            return type_matches[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
+            return type_matches[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.90)
         if len(type_matches) > 1:
             same_file_type = [c for c in type_matches if c.path == source.path]
             if len(same_file_type) == 1:
-                return same_file_type[0], "exact_receiver_type", SCOPE_CONFIDENCE.get("exact_receiver_type", 0.90)
-            return None, "receiver_type_ambiguous", 0.10
+                return same_file_type[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.90)
+            ov = _try_resolve_overload(same_file_type or type_matches, source, call_arg_count)
+            if ov is not None:
+                return ov[0], rec_scope, SCOPE_CONFIDENCE.get(rec_scope, 0.85)
+            return None, f"{rec_scope}_ambiguous", 0.10
 
         # Try CHA on receiver_type
         if class_hierarchy:
@@ -485,6 +662,9 @@ def _resolve_candidate(
             same_file_rec = [c for c in receiver_matches if c.path == source.path]
             if len(same_file_rec) == 1:
                 return same_file_rec[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
+            ov = _try_resolve_overload(same_file_rec, source, call_arg_count)
+            if ov is not None:
+                return ov
             if imports_list:
                 import_rec = [
                     c for c in receiver_matches
@@ -492,6 +672,37 @@ def _resolve_candidate(
                 ]
                 if len(import_rec) == 1:
                     return import_rec[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
+                ov = _try_resolve_overload(import_rec, source, call_arg_count)
+                if ov is not None:
+                    return ov
+
+            # E3: C# Namespace resolution for receiver matches
+            if is_csharp and file_namespaces:
+                same_ns_rec = [
+                    c for c in receiver_matches
+                    if any(c_ns in src_ancestors for c_ns in file_namespaces.get(c.path, []))
+                ]
+                if len(same_ns_rec) == 1:
+                    return same_ns_rec[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+                if len(same_ns_rec) > 1:
+                    ov = _try_resolve_overload(same_ns_rec, source, call_arg_count)
+                    if ov is not None:
+                        return ov[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+
+                ns_match_rec = [
+                    c for c in receiver_matches
+                    if any(c_ns in using_namespaces for c_ns in file_namespaces.get(c.path, []))
+                ]
+                if len(ns_match_rec) == 1:
+                    return ns_match_rec[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+                if len(ns_match_rec) > 1:
+                    ov = _try_resolve_overload(ns_match_rec, source, call_arg_count)
+                    if ov is not None:
+                        return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+
+            ov = _try_resolve_overload(receiver_matches, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "receiver_ambiguous", 0.10
 
         # Receiver might be an imported module name
@@ -504,6 +715,52 @@ def _resolve_candidate(
             if len(imp_cands) == 1:
                 return imp_cands[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
             if len(imp_cands) > 1:
+                ov = _try_resolve_overload(imp_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov
+                return None, "import_module_ambiguous", 0.10
+
+        # In C#, receiver might match candidate's namespace (e.g. MyNamespace.DataStore)
+        if is_csharp and file_namespaces:
+            ns_cands = [
+                c for c in candidates
+                if any(
+                    c_ns == receiver
+                    or c_ns.endswith(f".{receiver}")
+                    or receiver == c_ns.split(".")[-1]
+                    or receiver in c_ns.split(".")
+                    for c_ns in file_namespaces.get(c.path, [])
+                )
+            ]
+            if len(ns_cands) == 1:
+                return ns_cands[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+            if len(ns_cands) > 1:
+                same_file_ns = [c for c in ns_cands if c.path == source.path]
+                if len(same_file_ns) == 1:
+                    return same_file_ns[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+                ov = _try_resolve_overload(same_file_ns or ns_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+                return None, "namespace_ambiguous", 0.10
+
+        # E8: JS CommonJS require & ES6 import module match (e.g. const X = require('./x'); X.foo())
+        if module_bindings and receiver in module_bindings:
+            target_mod = module_bindings[receiver]
+            if "." in target_mod and not target_mod.startswith("."):
+                target_mod = target_mod.split(".")[0]
+            mod_cands = [
+                c for c in candidates
+                if _matches_js_module(source.path, target_mod, c.path)
+            ]
+            if len(mod_cands) == 1:
+                return mod_cands[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
+            if len(mod_cands) > 1:
+                same_file_mod = [c for c in mod_cands if c.path == source.path]
+                if len(same_file_mod) == 1:
+                    return same_file_mod[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
+                ov = _try_resolve_overload(mod_cands, source, call_arg_count)
+                if ov is not None:
+                    return ov[0], "import_module_match", SCOPE_CONFIDENCE.get("import_module_match", 0.75)
                 return None, "import_module_ambiguous", 0.10
 
         # Check if candidate is a method of an imported/same-file class and receiver name matches class name:
@@ -534,23 +791,127 @@ def _resolve_candidate(
         # DO NOT fall back to global search for a method on an unknown receiver!
         return None, "unresolved_receiver", 0.10
 
+    # E1: Implicit this (C#, Java) for calls without receiver inside a class method
+    if not receiver and (source.symbol_id.startswith(("c_sharp:", "java:")) or source.path.endswith((".cs", ".java"))):
+        if "." in source.qualified_name:
+            class_prefix = source.qualified_name.rsplit(".", 1)[0]
+            # 1. Candidate C.name same path
+            same_class = [
+                c for c in candidates
+                if c.path == source.path and (
+                    c.qualified_name == f"{class_prefix}.{c.name}"
+                    or c.qualified_name.startswith(f"{class_prefix}.")
+                )
+            ]
+            if len(same_class) == 1:
+                return same_class[0], "implicit_this", SCOPE_CONFIDENCE.get("implicit_this", 0.90)
+            if len(same_class) > 1:
+                ov = _try_resolve_overload(same_class, source, call_arg_count)
+                if ov is not None:
+                    return ov
+                return None, "implicit_this_ambiguous", 0.10
+
+            # 2. C.name in other files (partial class)
+            same_class_partial = [
+                c for c in candidates
+                if c.path != source.path and (
+                    c.qualified_name == f"{class_prefix}.{c.name}"
+                    or c.qualified_name.startswith(f"{class_prefix}.")
+                )
+            ]
+            if len(same_class_partial) == 1:
+                return same_class_partial[0], "implicit_this_partial", SCOPE_CONFIDENCE.get("implicit_this_partial", 0.85)
+            if len(same_class_partial) > 1:
+                ov = _try_resolve_overload(same_class_partial, source, call_arg_count)
+                if ov is not None:
+                    return ov
+                return None, "implicit_this_partial_ambiguous", 0.10
+
+            # 3. CHA up to parent class
+            if class_hierarchy:
+                ancestors = _get_ancestors(class_prefix, class_hierarchy)
+                for ancestor in ancestors:
+                    ancestor_matches = [
+                        c for c in candidates
+                        if c.qualified_name == f"{ancestor}.{c.name}"
+                        or c.qualified_name.startswith(f"{ancestor}.")
+                        or c.qualified_name.endswith(f".{ancestor}.{c.name}")
+                    ]
+                    if len(ancestor_matches) == 1:
+                        return ancestor_matches[0], "cha_inherited", SCOPE_CONFIDENCE.get("cha_inherited", 0.90)
+                    if len(ancestor_matches) > 1:
+                        ov = _try_resolve_overload(ancestor_matches, source, call_arg_count)
+                        if ov is not None:
+                            return ov
+                        return None, "cha_ambiguous", 0.10
+
     # 4. Direct candidate resolution: same_file -> imported -> same_package -> global
     # (Only for free function calls, direct identifier invocations without receiver)
     same_file = [candidate for candidate in candidates if candidate.path == source.path]
     if len(same_file) == 1:
         return same_file[0], "same_file", SCOPE_CONFIDENCE.get("same_file", 0.85)
     if len(same_file) > 1:
+        ov = _try_resolve_overload(same_file, source, call_arg_count)
+        if ov is not None:
+            return ov
         return None, "same_file_ambiguous", 0.10
 
     if imports_list:
         imported_cands = [
             c for c in candidates
-            if any(_import_matches_candidate(imp, c) for imp in imports_list)
+            if any(_import_matches_candidate(imp, c, source.path) for imp in imports_list)
         ]
         if len(imported_cands) == 1:
             return imported_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.85)
         if len(imported_cands) > 1:
+            ov = _try_resolve_overload(imported_cands, source, call_arg_count)
+            if ov is not None:
+                return ov
             return None, "import_ambiguous", 0.10
+
+    # E8: JS/TS destructuring require & import match (e.g. const { a } = require('./x'); a())
+    target_lookup_name = call_name or (candidates[0].name if candidates else None)
+    if module_bindings and target_lookup_name and target_lookup_name in module_bindings:
+        bound_target = module_bindings[target_lookup_name]
+        if "." in bound_target and (bound_target.startswith(".") or "/" in bound_target):
+            target_mod, orig_name = bound_target.rsplit(".", 1)
+        else:
+            target_mod, orig_name = bound_target, target_lookup_name
+        mod_cands = [
+            c for c in candidates
+            if c.name == orig_name and _matches_js_module(source.path, target_mod, c.path)
+        ]
+        if len(mod_cands) == 1:
+            return mod_cands[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.90)
+        if len(mod_cands) > 1:
+            ov = _try_resolve_overload(mod_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "import_match", SCOPE_CONFIDENCE.get("import_match", 0.90)
+            return None, "import_ambiguous", 0.10
+
+    # E3: C# Namespace resolution for free calls
+    if is_csharp and file_namespaces:
+        same_ns_cands = [
+            c for c in candidates
+            if any(c_ns in src_ancestors for c_ns in file_namespaces.get(c.path, []))
+        ]
+        if len(same_ns_cands) == 1:
+            return same_ns_cands[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+        if len(same_ns_cands) > 1:
+            ov = _try_resolve_overload(same_ns_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "same_namespace", SCOPE_CONFIDENCE.get("same_namespace", 0.80)
+
+        ns_match_cands = [
+            c for c in candidates
+            if any(c_ns in using_namespaces for c_ns in file_namespaces.get(c.path, []))
+        ]
+        if len(ns_match_cands) == 1:
+            return ns_match_cands[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
+        if len(ns_match_cands) > 1:
+            ov = _try_resolve_overload(ns_match_cands, source, call_arg_count)
+            if ov is not None:
+                return ov[0], "namespace_match", SCOPE_CONFIDENCE.get("namespace_match", 0.80)
 
     source_package = source.path.rsplit("/", 1)[0]
     same_package = [
@@ -562,6 +923,9 @@ def _resolve_candidate(
         if same_package[0].name not in _GENERIC_METHOD_NAMES:
             return same_package[0], "same_package", SCOPE_CONFIDENCE.get("same_package", 0.75)
     if len(same_package) > 1:
+        ov = _try_resolve_overload(same_package, source, call_arg_count)
+        if ov is not None:
+            return ov
         return None, "same_package_ambiguous", 0.10
 
     # Restrict global fallback:
@@ -573,6 +937,10 @@ def _resolve_candidate(
             is_class_method = ("." in cand.qualified_name) and (cand.kind in {"method", "function"})
             if not is_class_method:
                 return cand, "global", SCOPE_CONFIDENCE.get("global", 0.40)
+    if len(candidates) > 1:
+        ov = _try_resolve_overload(candidates, source, call_arg_count)
+        if ov is not None:
+            return ov
 
     return None, "global_ambiguous", 0.10
 

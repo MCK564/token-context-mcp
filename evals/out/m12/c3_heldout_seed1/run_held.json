@@ -1,0 +1,2 @@
+{"agent_command":["claude"],"model":"claude-sonnet-5-5","effort":"medium","max_turns":30,"mcp_config_path":"/home/claude/work/c3/mcp_held.json",
+ "repo_roots":{"starlette":"/home/claude/work/heldout/starlette","zod":"/home/claude/work/heldout/zod","express":"/home/claude/work/heldout/express","serilog":"/home/claude/work/heldout/serilog"}}

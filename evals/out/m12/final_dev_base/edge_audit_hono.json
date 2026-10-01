@@ -1,0 +1,378 @@
+{
+  "repo_id": "bench-hono",
+  "total_symbols": 2122,
+  "total_edges": 1365,
+  "unresolved_edges": 617,
+  "total_suspicious_edges": 191,
+  "suspicious_edges_ratio": 0.1399,
+  "status_counts": {
+    "ambiguous": 617,
+    "resolved": 748
+  },
+  "scope_counts": {
+    "scope:attr_type_unmatched": 10,
+    "scope:unresolved_receiver": 424,
+    "scope:tainted_poly_receiver": 31,
+    "scope:same_file": 287,
+    "scope:global_ambiguous": 73,
+    "scope:import_match": 172,
+    "scope:global": 185,
+    "scope:same_package_ambiguous": 14,
+    "scope:import_ambiguous": 8,
+    "scope:same_file_ambiguous": 48,
+    "scope:same_class": 18,
+    "scope:same_package": 69,
+    "scope:builtin_receiver_skipped": 4,
+    "scope:cha_inherited": 3,
+    "scope:exact_receiver_type": 12,
+    "scope:receiver_type_ambiguous": 3,
+    "scope:attr_type_ambiguous": 2,
+    "scope:attr_type": 2
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useState:a8024f30722d010c",
+      "name": "useState",
+      "qualified_name": "useState",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 119,
+      "resolved_count": 119,
+      "ambiguous_count": 0,
+      "suspicious_count": 100,
+      "suspicious_ratio": 0.84,
+      "scopes": {
+        "scope:global": 100,
+        "scope:same_package": 16,
+        "scope:same_file": 3
+      },
+      "reasons": {
+        "low_confidence_0.40": 100,
+        "scope_global_fallback": 100
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/context.ts:useContext:364aa7fde3d77c09",
+      "name": "useContext",
+      "qualified_name": "useContext",
+      "path": "src/jsx/context.ts",
+      "in_degree": 19,
+      "resolved_count": 19,
+      "ambiguous_count": 0,
+      "suspicious_count": 7,
+      "suspicious_ratio": 0.368,
+      "scopes": {
+        "scope:import_match": 10,
+        "scope:global": 7,
+        "scope:same_package": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 7,
+        "scope_global_fallback": 7
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:use:38b3a93f213abb67",
+      "name": "use",
+      "qualified_name": "use",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 13,
+      "suspicious_ratio": 0.812,
+      "scopes": {
+        "scope:global": 13,
+        "scope:same_package": 3
+      },
+      "reasons": {
+        "low_confidence_0.40": 13,
+        "scope_global_fallback": 13
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/html.ts:raw:d952c29216c71d68",
+      "name": "raw",
+      "qualified_name": "raw",
+      "path": "src/utils/html.ts",
+      "in_degree": 14,
+      "resolved_count": 14,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 12,
+        "scope:same_file": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useCallback:915bd64bd69fca1f",
+      "name": "useCallback",
+      "qualified_name": "useCallback",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 11,
+      "resolved_count": 11,
+      "ambiguous_count": 0,
+      "suspicious_count": 9,
+      "suspicious_ratio": 0.818,
+      "scopes": {
+        "scope:global": 9,
+        "scope:same_file": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 9,
+        "scope_global_fallback": 9
+      }
+    },
+    {
+      "target_symbol_id": "tsx:src/jsx/hooks/dom.test.tsx:setCount:92553e7d5b71aee8",
+      "name": "setCount",
+      "qualified_name": "setCount",
+      "path": "src/jsx/hooks/dom.test.tsx",
+      "in_degree": 9,
+      "resolved_count": 9,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 9
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useEffect:0ae7856ed50c5f8f",
+      "name": "useEffect",
+      "qualified_name": "useEffect",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 7,
+      "suspicious_ratio": 0.875,
+      "scopes": {
+        "scope:global": 7,
+        "scope:same_file": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 7,
+        "scope_global_fallback": 7
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:startTransition:3bdb114af0d46a98",
+      "name": "startTransition",
+      "qualified_name": "startTransition",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 8,
+      "resolved_count": 8,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 8
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useRef:1e26ced5592b07a5",
+      "name": "useRef",
+      "qualified_name": "useRef",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 7,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 7
+      },
+      "reasons": {
+        "low_confidence_0.40": 7,
+        "scope_global_fallback": 7
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/html.ts:resolveCallback:f7708aff72c9b576",
+      "name": "resolveCallback",
+      "qualified_name": "resolveCallback",
+      "path": "src/utils/html.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/url.ts:getPath:9fa42069fa191ab0",
+      "name": "getPath",
+      "qualified_name": "getPath",
+      "path": "src/utils/url.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 6,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/encode.ts:encodeBase64Url:5155a7cc53762913",
+      "name": "encodeBase64Url",
+      "qualified_name": "encodeBase64Url",
+      "path": "src/utils/encode.ts",
+      "in_degree": 7,
+      "resolved_count": 7,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/helper/html/index.ts:html:649d093e5a9cce29",
+      "name": "html",
+      "qualified_name": "html",
+      "path": "src/helper/html/index.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 6,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 6
+      },
+      "reasons": {
+        "low_confidence_0.40": 6,
+        "scope_global_fallback": 6
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/encode.ts:encodeBase64:ea9735186f82dfb5",
+      "name": "encodeBase64",
+      "qualified_name": "encodeBase64",
+      "path": "src/utils/encode.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 5,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/html.ts:escapeToBuffer:92ae3ecf1bc56a4e",
+      "name": "escapeToBuffer",
+      "qualified_name": "escapeToBuffer",
+      "path": "src/utils/html.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 5,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useTransition:15aa25f3fc16fad8",
+      "name": "useTransition",
+      "qualified_name": "useTransition",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 6,
+      "resolved_count": 6,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 6
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useLayoutEffect:acc110cbfc639f7b",
+      "name": "useLayoutEffect",
+      "qualified_name": "useLayoutEffect",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 5,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 5
+      },
+      "reasons": {
+        "low_confidence_0.40": 5,
+        "scope_global_fallback": 5
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/jsx/hooks/index.ts:useInsertionEffect:9c30232a2d61d4aa",
+      "name": "useInsertionEffect",
+      "qualified_name": "useInsertionEffect",
+      "path": "src/jsx/hooks/index.ts",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 5,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 5
+      },
+      "reasons": {
+        "low_confidence_0.40": 5,
+        "scope_global_fallback": 5
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/helper/cookie/index.ts:getCookie:5900e160ae7f3a17",
+      "name": "getCookie",
+      "qualified_name": "getCookie",
+      "path": "src/helper/cookie/index.ts",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 4,
+      "suspicious_ratio": 0.8,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:global": 4
+      },
+      "reasons": {
+        "low_confidence_0.40": 4,
+        "scope_global_fallback": 4
+      }
+    },
+    {
+      "target_symbol_id": "typescript:src/utils/encode.ts:decodeBase64:d84ee953bb922fae",
+      "name": "decodeBase64",
+      "qualified_name": "decodeBase64",
+      "path": "src/utils/encode.ts",
+      "in_degree": 5,
+      "resolved_count": 5,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 4,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    }
+  ]
+}

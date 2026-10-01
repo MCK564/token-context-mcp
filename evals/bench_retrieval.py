@@ -35,6 +35,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import loc_eval  # noqa: E402
+from guard import check_heldout_guard  # noqa: E402
 from token_context_mcp import __version__  # noqa: E402
 from token_context_mcp.retrieve.code_tokens import split_identifier  # noqa: E402
 
@@ -327,6 +328,10 @@ def git_value(*args: str) -> str | None:
 
 
 def run(args: argparse.Namespace) -> int:
+    role = getattr(args, "role", "dev")
+    allow_baseline_code = getattr(args, "allow_baseline_code", None)
+    check_heldout_guard(role, allow_baseline_code=allow_baseline_code)
+
     spec = json.loads(args.tasks.read_text(encoding="utf-8"))
     if spec.get("reviewed") is not True:
         print("bench_retrieval: the task set is not reviewed (reviewed != true); refusing to run.", file=sys.stderr)
@@ -358,9 +363,10 @@ def run(args: argparse.Namespace) -> int:
         "tasks_file_sha256": hashlib.sha256(args.tasks.read_bytes()).hexdigest(),
         "reviewed": True,
         "review_note": spec.get("review_note"),
+        "role": role,
         "token_context_version": __version__,
         "git_head": git_value("rev-parse", "HEAD"),
-        "freeze_tag": git_value("rev-parse", "m10-freeze"),
+        "freeze_tag": git_value("rev-parse", "m12-freeze") or git_value("rev-parse", "m10-freeze"),
         "index_run_id": meta.get("index_run_id"),
         "index_schema_version": meta.get("index_schema_version"),
         "corpus_files": len(corpus.files),
@@ -386,6 +392,8 @@ def main() -> int:
     parser.add_argument("--repo-id", default=None)
     parser.add_argument("--name", required=True, help="short name used in output files, e.g. rich")
     parser.add_argument("--out-dir", type=Path, default=HERE / "out" / "m10")
+    parser.add_argument("--role", default="dev", choices=["dev", "heldout"], help="Run role (dev or heldout)")
+    parser.add_argument("--allow-baseline-code", type=Path, default=None, help="Path to baseline code to allow running before freeze")
     return run(parser.parse_args())
 
 

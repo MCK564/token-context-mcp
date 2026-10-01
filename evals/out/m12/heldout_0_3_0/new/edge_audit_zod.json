@@ -1,0 +1,347 @@
+{
+  "repo_id": "heldout-zod",
+  "total_symbols": 3898,
+  "total_edges": 3263,
+  "unresolved_edges": 1820,
+  "total_suspicious_edges": 112,
+  "suspicious_edges_ratio": 0.0343,
+  "status_counts": {
+    "resolved": 1443,
+    "ambiguous": 1820
+  },
+  "scope_counts": {
+    "scope:same_file": 978,
+    "scope:unresolved_receiver": 1683,
+    "scope:import_module_match": 41,
+    "scope:import_module_ambiguous": 44,
+    "scope:same_package": 89,
+    "scope:overload_arity": 41,
+    "scope:tainted_poly_receiver": 49,
+    "scope:global_ambiguous": 19,
+    "scope:global": 109,
+    "scope:overload_group": 41,
+    "scope:exact_receiver_type": 82,
+    "scope:same_class": 54,
+    "scope:receiver_match": 8,
+    "scope:same_file_ambiguous": 3,
+    "scope:attr_type_unmatched": 4,
+    "scope:builtin_receiver_skipped": 17,
+    "scope:same_package_ambiguous": 1
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/doc.ts:Doc.write:81af8926071e529c",
+      "name": "write",
+      "qualified_name": "Doc.write",
+      "path": "packages/zod/src/v4/core/doc.ts",
+      "in_degree": 49,
+      "resolved_count": 49,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 49
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:processCreateParams:8a2695617abfb3f1",
+      "name": "processCreateParams",
+      "qualified_name": "processCreateParams",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 38,
+      "resolved_count": 38,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 38
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/helpers/parseUtil.ts:addIssueToContext:c1eefeb4878c53bc",
+      "name": "addIssueToContext",
+      "qualified_name": "addIssueToContext",
+      "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+      "in_degree": 28,
+      "resolved_count": 28,
+      "ambiguous_count": 0,
+      "suspicious_count": 28,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 28
+      },
+      "reasons": {
+        "low_confidence_0.40": 28,
+        "scope_global_fallback": 28
+      }
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/compile.ts:newVar:734fdc4565683209",
+      "name": "newVar",
+      "qualified_name": "newVar",
+      "path": "packages/zod/src/v4/core/compile.ts",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 26
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/compile.ts:addConstant:4822eec7a24d8087",
+      "name": "addConstant",
+      "qualified_name": "addConstant",
+      "path": "packages/zod/src/v4/core/compile.ts",
+      "in_degree": 25,
+      "resolved_count": 25,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 25
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:ZodString._addCheck:ca4c999b92b4420f",
+      "name": "_addCheck",
+      "qualified_name": "ZodString._addCheck",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_class": 24
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/compile.ts:ZodCompileUnsupportedError:07b715b7eab93e27",
+      "name": "ZodCompileUnsupportedError",
+      "qualified_name": "ZodCompileUnsupportedError",
+      "path": "packages/zod/src/v4/core/compile.ts",
+      "in_degree": 22,
+      "resolved_count": 22,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 22
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/to-json-schema.ts:processSchema:5df1dadac6b9a861",
+      "name": "processSchema",
+      "qualified_name": "processSchema",
+      "path": "packages/zod/src/v4/core/to-json-schema.ts",
+      "in_degree": 20,
+      "resolved_count": 20,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 18,
+        "scope:same_file": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:_processInputParams:723c47d3ad3c31e4",
+      "name": "_processInputParams",
+      "qualified_name": "_processInputParams",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 17,
+      "resolved_count": 17,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 17
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/classic/tests/cyclic-data.test.ts:object:defd7827e7d11272",
+      "name": "object",
+      "qualified_name": "object",
+      "path": "packages/zod/src/v4/classic/tests/cyclic-data.test.ts",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_module_match": 16
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:_getOrReturnCtx:769c68f8de7b45ac",
+      "name": "_getOrReturnCtx",
+      "qualified_name": "_getOrReturnCtx",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 16
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/to-json-schema.ts:handleUnrepresentable:25d21cc45e3334a7",
+      "name": "handleUnrepresentable",
+      "qualified_name": "handleUnrepresentable",
+      "path": "packages/zod/src/v4/core/to-json-schema.ts",
+      "in_degree": 16,
+      "resolved_count": 16,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_package": 16
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/util.ts:fn:3a2def5f17f3b83f",
+      "name": "fn",
+      "qualified_name": "fn",
+      "path": "packages/zod/src/v4/core/util.ts",
+      "in_degree": 15,
+      "resolved_count": 15,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_arity": 15
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/compile.ts:generateCheck:6805674f81e0db57",
+      "name": "generateCheck",
+      "qualified_name": "generateCheck",
+      "path": "packages/zod/src/v4/core/compile.ts",
+      "in_degree": 14,
+      "resolved_count": 14,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 14
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/doc.ts:Doc.indented:8ecb6d5bfc808e25",
+      "name": "indented",
+      "qualified_name": "Doc.indented",
+      "path": "packages/zod/src/v4/core/doc.ts",
+      "in_degree": 14,
+      "resolved_count": 14,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 14
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:_getType:fa49d4b4c26057d4",
+      "name": "_getType",
+      "qualified_name": "_getType",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 13,
+      "resolved_count": 13,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 13
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/helpers/parseUtil.ts:OK:3111eeb721d8a56a",
+      "name": "OK",
+      "qualified_name": "OK",
+      "path": "packages/zod/src/v3/helpers/parseUtil.ts",
+      "in_degree": 13,
+      "resolved_count": 13,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_arity": 13
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v3/types.ts:ZodObject:2d76b82be35b01b6",
+      "name": "ZodObject",
+      "qualified_name": "ZodObject",
+      "path": "packages/zod/src/v3/types.ts",
+      "in_degree": 11,
+      "resolved_count": 11,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 11
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/util.ts:assignProp:a528fc2e356fe921",
+      "name": "assignProp",
+      "qualified_name": "assignProp",
+      "path": "packages/zod/src/v4/core/util.ts",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.2,
+      "scopes": {
+        "scope:global": 2,
+        "scope:same_package": 6,
+        "scope:same_file": 2
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    },
+    {
+      "target_symbol_id": "typescript:packages/zod/src/v4/core/util.ts:mergeDefs:71a9cebc622904be",
+      "name": "mergeDefs",
+      "qualified_name": "mergeDefs",
+      "path": "packages/zod/src/v4/core/util.ts",
+      "in_degree": 10,
+      "resolved_count": 10,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.2,
+      "scopes": {
+        "scope:global": 2,
+        "scope:same_file": 8
+      },
+      "reasons": {
+        "low_confidence_0.40": 2,
+        "scope_global_fallback": 2
+      }
+    }
+  ]
+}

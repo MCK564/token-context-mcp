@@ -1,0 +1,310 @@
+{
+  "tc-pinned": {
+    "total_edges": 2449,
+    "status_distribution": {
+      "resolved": 2045,
+      "ambiguous": 404
+    },
+    "scope_distribution": {
+      "import_match": 689,
+      "same_file": 493,
+      "exact_receiver_type": 292,
+      "unresolved_receiver": 281,
+      "same_class": 192,
+      "unknown": 190,
+      "attr_type": 65,
+      "tainted_poly_receiver": 51,
+      "global": 50,
+      "import_module_match": 48,
+      "same_file_ambiguous": 47,
+      "attr_param": 25,
+      "builtin_receiver_skipped": 18,
+      "import_ambiguous": 6,
+      "attr_type_unmatched": 1,
+      "receiver_match": 1
+    },
+    "resolved_by_scope": {
+      "import_match": 689,
+      "same_file": 493,
+      "exact_receiver_type": 292,
+      "same_class": 192,
+      "unknown": 190,
+      "attr_type": 65,
+      "global": 50,
+      "import_module_match": 48,
+      "attr_param": 25,
+      "receiver_match": 1
+    },
+    "ambiguous_by_scope": {
+      "unresolved_receiver": 281,
+      "tainted_poly_receiver": 51,
+      "same_file_ambiguous": 47,
+      "builtin_receiver_skipped": 18,
+      "import_ambiguous": 6,
+      "attr_type_unmatched": 1
+    }
+  },
+  "bench-rich": {
+    "total_edges": 3797,
+    "status_distribution": {
+      "resolved": 3168,
+      "ambiguous": 629
+    },
+    "scope_distribution": {
+      "import_match": 1396,
+      "exact_receiver_type": 750,
+      "same_file": 364,
+      "unresolved_receiver": 321,
+      "receiver_match": 270,
+      "same_class": 172,
+      "tainted_poly_receiver": 94,
+      "import_module_match": 90,
+      "import_ambiguous": 89,
+      "unknown": 53,
+      "same_file_ambiguous": 49,
+      "attr_type": 31,
+      "attr_param": 27,
+      "attr_type_unmatched": 19,
+      "same_package_ambiguous": 18,
+      "global_ambiguous": 13,
+      "builtin_receiver_skipped": 12,
+      "global": 7,
+      "receiver_type_ambiguous": 7,
+      "import_module_ambiguous": 7,
+      "cha_inherited": 5,
+      "same_package": 3
+    },
+    "resolved_by_scope": {
+      "import_match": 1396,
+      "exact_receiver_type": 750,
+      "same_file": 364,
+      "receiver_match": 270,
+      "same_class": 172,
+      "import_module_match": 90,
+      "unknown": 53,
+      "attr_type": 31,
+      "attr_param": 27,
+      "global": 7,
+      "cha_inherited": 5,
+      "same_package": 3
+    },
+    "ambiguous_by_scope": {
+      "unresolved_receiver": 321,
+      "tainted_poly_receiver": 94,
+      "import_ambiguous": 89,
+      "same_file_ambiguous": 49,
+      "attr_type_unmatched": 19,
+      "same_package_ambiguous": 18,
+      "global_ambiguous": 13,
+      "builtin_receiver_skipped": 12,
+      "receiver_type_ambiguous": 7,
+      "import_module_ambiguous": 7
+    }
+  },
+  "bench-hono": {
+    "total_edges": 1376,
+    "status_distribution": {
+      "ambiguous": 628,
+      "resolved": 748
+    },
+    "scope_distribution": {
+      "unresolved_receiver": 424,
+      "same_file": 287,
+      "global": 185,
+      "import_match": 172,
+      "global_ambiguous": 73,
+      "same_package": 69,
+      "same_file_ambiguous": 48,
+      "tainted_poly_receiver": 31,
+      "same_class": 18,
+      "same_package_ambiguous": 14,
+      "exact_receiver_type": 12,
+      "unknown": 11,
+      "attr_type_unmatched": 10,
+      "import_ambiguous": 8,
+      "builtin_receiver_skipped": 4,
+      "cha_inherited": 3,
+      "receiver_type_ambiguous": 3,
+      "attr_type_ambiguous": 2,
+      "attr_type": 2
+    },
+    "resolved_by_scope": {
+      "same_file": 287,
+      "global": 185,
+      "import_match": 172,
+      "same_package": 69,
+      "same_class": 18,
+      "exact_receiver_type": 12,
+      "cha_inherited": 3,
+      "attr_type": 2
+    },
+    "ambiguous_by_scope": {
+      "unresolved_receiver": 424,
+      "global_ambiguous": 73,
+      "same_file_ambiguous": 48,
+      "tainted_poly_receiver": 31,
+      "same_package_ambiguous": 14,
+      "unknown": 11,
+      "attr_type_unmatched": 10,
+      "import_ambiguous": 8,
+      "builtin_receiver_skipped": 4,
+      "receiver_type_ambiguous": 3,
+      "attr_type_ambiguous": 2
+    }
+  },
+  "bench-fastify": {
+    "total_edges": 771,
+    "status_distribution": {
+      "resolved": 220,
+      "ambiguous": 551
+    },
+    "scope_distribution": {
+      "unresolved_receiver": 375,
+      "same_file": 127,
+      "global_ambiguous": 93,
+      "import_match": 40,
+      "same_file_ambiguous": 29,
+      "same_package": 28,
+      "same_package_ambiguous": 21,
+      "global": 18,
+      "tainted_poly_receiver": 18,
+      "builtin_receiver_skipped": 15,
+      "exact_receiver_type": 5,
+      "same_class": 2
+    },
+    "resolved_by_scope": {
+      "same_file": 127,
+      "import_match": 40,
+      "same_package": 28,
+      "global": 18,
+      "exact_receiver_type": 5,
+      "same_class": 2
+    },
+    "ambiguous_by_scope": {
+      "unresolved_receiver": 375,
+      "global_ambiguous": 93,
+      "same_file_ambiguous": 29,
+      "same_package_ambiguous": 21,
+      "tainted_poly_receiver": 18,
+      "builtin_receiver_skipped": 15
+    }
+  },
+  "bench-csvhelper": {
+    "total_edges": 3179,
+    "status_distribution": {
+      "ambiguous": 2872,
+      "resolved": 307
+    },
+    "scope_distribution": {
+      "unresolved_receiver": 2529,
+      "same_file": 198,
+      "global_ambiguous": 188,
+      "receiver_match": 79,
+      "same_file_ambiguous": 76,
+      "builtin_receiver_skipped": 55,
+      "exact_receiver_type": 28,
+      "receiver_type_ambiguous": 13,
+      "tainted_poly_receiver": 7,
+      "unknown": 4,
+      "same_package": 2
+    },
+    "resolved_by_scope": {
+      "same_file": 198,
+      "receiver_match": 79,
+      "exact_receiver_type": 28,
+      "same_package": 2
+    },
+    "ambiguous_by_scope": {
+      "unresolved_receiver": 2529,
+      "global_ambiguous": 188,
+      "same_file_ambiguous": 76,
+      "builtin_receiver_skipped": 55,
+      "receiver_type_ambiguous": 13,
+      "tainted_poly_receiver": 7,
+      "unknown": 4
+    }
+  },
+  "csvhelper_group_b_failures": [
+    {
+      "task_id": "t11",
+      "query": "decide whether an outgoing value must be wrapped in the text qualifier: leading or trailing space, a line break, or the separator appears inside",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ConfigurationFunctions.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t12",
+      "query": "turns cell text into true or false, accepting 0 and 1 and user-configured yes/no style words compared case-insensitively",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/BooleanConverter.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t13",
+      "query": "builds the diagnostic block appended to error messages with reader, parser and writer state such as row numbers, column count and raw data, hiding raw data when disabled",
+      "gold_files": [
+        "src/CsvHelper/CsvHelperException.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t14",
+      "query": "renders binary data as uppercase two-digit base-16 pairs, with an optional 0x prefix and optional dash separators",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/ByteArrayConverter.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t15",
+      "query": "compiles a lambda that assigns every mapped property and nested reference on an already existing instance from the current row",
+      "gold_files": [
+        "src/CsvHelper/Expressions/RecordHydrator.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t16",
+      "query": "detects compiler-generated nameless classes, such as those produced by new { A = 1 } expressions, by checking generic-type attributes and the naming prefix",
+      "gold_files": [
+        "src/CsvHelper/ReflectionExtensions.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t17",
+      "query": "shifts the unconsumed characters to the front, grows the character array when a row is longer than it, and pulls more text from the underlying stream",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t19",
+      "query": "find a column position by header text, falling back to a case-insensitive comparison of normalised names, and throw index out of range if missing",
+      "gold_files": [
+        "src/CsvHelper/CsvDataReader.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    },
+    {
+      "task_id": "t20",
+      "query": "finalize the last row when the input ends without a line terminator, adding the remaining cells depending on the previous token",
+      "gold_files": [
+        "src/CsvHelper/CsvParser.cs"
+      ],
+      "top_5_files": [],
+      "reason": "Gold file not in top 5"
+    }
+  ]
+}

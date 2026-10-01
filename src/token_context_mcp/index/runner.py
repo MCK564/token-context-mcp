@@ -13,6 +13,7 @@ import time
 import tomllib
 import uuid
 from bisect import bisect_left, bisect_right
+from collections import defaultdict
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from dataclasses import astuple, dataclass, field, replace
@@ -39,7 +40,7 @@ from token_context_mcp.models import (
     RepositoryConfig,
     SymbolRecord,
 )
-from token_context_mcp.parse.lexical_edges import build_lexical_edges
+from token_context_mcp.parse.lexical_edges import RESOLVER_VERSION, build_lexical_edges
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
 from token_context_mcp.retrieve.code_tokens import path_tokens, split_identifier
@@ -61,6 +62,10 @@ PARSE_POOL_MIN_FILES = 32
 # ... and that much source: measured on the 2-core dev VM, spawning two workers costs ~0.8 s (they re-import the
 # package and the grammars), about what 300 files of parsing cost, so 32 small files alone never pay for a pool.
 PARSE_POOL_MIN_BYTES = 1_000_000
+
+FTS_BUILDER_VERSION = 2  # 1: base, 2: M12.2 doc comment attached to member instead of container own_body
+_FTS_DOC_COMMENTS = os.environ.get("TOKEN_CONTEXT_FTS_DOC_COMMENTS", "c_sharp,java")
+_FTS_INTERFACE_DOC = os.environ.get("TOKEN_CONTEXT_FTS_INTERFACE_DOC", "c_sharp,java")
 # Delta writes (page copy of the previous snapshot + row-level changes of its full-text tables) leave free pages
 # and fragmented FTS segments behind; after this many in a row, or above this free-page ratio, write from scratch.
 MAX_DELTA_GENERATIONS = 25
@@ -186,6 +191,8 @@ class _Outcome:
     symbol_body_rows: list[tuple[str, str, str]] = field(default_factory=list)
     source_body: str | None = None
     fts_rows: list[tuple[str, str, str, str, str, str]] = field(default_factory=list)
+    namespaces: list[str] = field(default_factory=list)
+    module_bindings: dict[str, str] = field(default_factory=dict)
     parse_attempts: int = 0
     read_ms: float = 0.0
     parse_ms: float = 0.0
@@ -265,6 +272,8 @@ def _process_candidate(task: _Task) -> _Outcome:
         parse_attempts=1,
         read_ms=read_ms,
         parse_ms=parse_ms,
+        namespaces=parsed.namespaces,
+        module_bindings=getattr(parsed, "module_bindings", {}),
     )
     outcome.text_ms = (time.perf_counter() - text_started) * 1000.0
     return outcome
@@ -443,7 +452,7 @@ def _parser_fingerprint() -> str:
             parts.append(f"{name}={metadata.version(name)}")
         except metadata.PackageNotFoundError:
             continue
-    return f"artifact-v{PARSER_ARTIFACT_VERSION};" + ";".join(parts)
+    return f"artifact-v{PARSER_ARTIFACT_VERSION};fts-v{FTS_BUILDER_VERSION};resolver-v{RESOLVER_VERSION};" + ";".join(parts)
 
 
 def _load_previous(destination: Path, repository: RepositoryConfig, fingerprint: str) -> _Previous | None:
@@ -555,6 +564,8 @@ def _artifact_row(outcome: _Outcome, language: str) -> tuple:
                 "registry_names": outcome.registry_names,
                 "call_names": sorted({call.name for call in outcome.calls}),
                 "assigned_from": sorted({call.assigned_from_fn for call in outcome.calls if call.assigned_from_fn}),
+                "namespaces": outcome.namespaces,
+                "module_bindings": outcome.module_bindings,
             },
             separators=(",", ":"),
             sort_keys=True,
@@ -754,6 +765,10 @@ def build_index(
             imports[relative] = outcome.imports
             calls_by_path[relative] = outcome.calls
             inheritance_by_path[relative] = outcome.inheritance
+            if outcome.namespaces:
+                facts_by_path.setdefault(relative, {})["namespaces"] = outcome.namespaces
+            if outcome.module_bindings:
+                facts_by_path.setdefault(relative, {})["module_bindings"] = outcome.module_bindings
         registry_names.update(outcome.registry_names)
         artifact_rows.append(_artifact_row(outcome, language))
         symbol_body_rows.extend(outcome.symbol_body_rows)
@@ -817,9 +832,21 @@ def build_index(
                 p_sym_id = class_symbol_map.get(p_name) or class_symbol_map.get(short_p)
                 class_hierarchy_rows.append((symbol.symbol_id, p_name, p_sym_id))
 
+    fts_rows = _inherit_interface_doc_tokens(symbols, fts_rows, class_hierarchy_map)
+
     if progress_callback:
         progress_callback("Resolving lexical graph edges...", files_seen, len(symbols))
     active_stubs = get_relevant_stubs(imports)
+    file_namespaces: dict[str, list[str]] = {
+        path: facts["namespaces"]
+        for path, facts in facts_by_path.items()
+        if facts.get("namespaces")
+    }
+    js_module_bindings: dict[str, dict[str, str]] = {
+        path: facts["module_bindings"]
+        for path, facts in facts_by_path.items()
+        if facts.get("module_bindings")
+    }
     edges, edge_context_sha256, edge_report = _resolve_edges(
         symbols=symbols,
         calls_by_path=calls_by_path,
@@ -830,6 +857,8 @@ def build_index(
         max_edges_per_symbol=max_edges_per_symbol,
         previous=previous,
         reparsed_paths=reparsed_paths,
+        file_namespaces=file_namespaces,
+        js_module_bindings=js_module_bindings,
     )
     timings.add("edges", _t_edges)
 
@@ -858,9 +887,17 @@ def build_index(
             use_delta = False
 
     index_run_id = _new_run_id()
+    ns_to_files: dict[str, list[str]] = defaultdict(list)
+    for p, ns_list in file_namespaces.items():
+        for ns in ns_list:
+            ns_to_files[ns].append(p)
+    csharp_ns_map = {ns: sorted(flist) for ns, flist in sorted(ns_to_files.items())}
+
     manifest: dict[str, object] = {
         "schema_version": "1.0",
         "index_schema_version": INDEX_SCHEMA_VERSION,
+        "csharp_namespaces": csharp_ns_map,
+        "js_module_bindings": js_module_bindings,
         "repo_id": repository.repo_id,
         "repo_root_id": sha256_bytes(str(repository.root).encode()),
         "commit_sha": git_head(repository.root),
@@ -869,6 +906,8 @@ def build_index(
         "parser_versions": {"backend": "tree-sitter", "languages": sorted({item.language for item in files if item.language})},
         "parser_fingerprint": fingerprint,
         "parser_artifact_version": PARSER_ARTIFACT_VERSION,
+        "fts_builder_version": FTS_BUILDER_VERSION,
+        "resolver_version": RESOLVER_VERSION,
         "scan_started_at_ns": scan_started_at_ns,
         "generated_at": datetime.now(UTC).isoformat(),
         "files_seen": files_seen,
@@ -1010,6 +1049,8 @@ def _resolve_edges(
     max_edges_per_symbol: int,
     previous: _Previous | None,
     reparsed_paths: set[str],
+    file_namespaces: dict[str, list[str]] | None = None,
+    js_module_bindings: dict[str, dict[str, str]] | None = None,
 ) -> tuple[list[EdgeRecord], str, dict[str, object]]:
     """Edges of the whole graph, re-resolving only what a change can affect (M7.5).
 
@@ -1036,6 +1077,8 @@ def _resolve_edges(
             imports_by_path=imports,
             class_hierarchy=class_hierarchy_map,
             external_stubs=active_stubs,
+            file_namespaces=file_namespaces,
+            js_module_bindings=js_module_bindings,
         )
 
     if previous is None or previous.edge_context_sha256 != context_sha:
@@ -1389,6 +1432,40 @@ def _atomic_replace(temporary: Path, destination: Path) -> None:
     shutil.move(str(temporary), str(destination))
 
 
+def _find_preceding_doc_block(lines: list[str], start_line: int, min_line: int) -> int:
+    """Find 1-indexed starting line of comment/attribute block immediately preceding start_line.
+    Returns start_line if no preceding comment block exists.
+    """
+    idx = start_line - 2  # 0-indexed line immediately above start_line
+    min_idx = min_line - 1
+    if idx < min_idx or idx >= len(lines):
+        return start_line
+
+    first_comment_idx = start_line - 1
+    curr = idx
+    while curr >= min_idx:
+        raw_l = lines[curr]
+        stripped = raw_l.strip()
+        if not stripped:
+            break
+        if (
+            stripped.startswith("///")
+            or stripped.startswith("//")
+            or stripped.startswith("*")
+            or stripped.startswith("/*")
+            or stripped.endswith("*/")
+        ):
+            first_comment_idx = curr
+            curr -= 1
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            first_comment_idx = curr
+            curr -= 1
+            continue
+        break
+    return first_comment_idx + 1
+
+
 def _fts_rows(
     path: str, language: str | None, source: str, symbols: list[SymbolRecord]
 ) -> list[tuple[str, str, str, str, str, str]]:
@@ -1400,6 +1477,24 @@ def _fts_rows(
     lines = source.splitlines()
     by_start = sorted(symbols, key=lambda item: (item.start_line, item.end_line))
     starts = [item.start_line for item in by_start]
+
+    use_doc_shift = False
+    if _FTS_DOC_COMMENTS != "off" and language is not None:
+        target_langs = {lang.strip() for lang in _FTS_DOC_COMMENTS.split(",")}
+        use_doc_shift = language in target_langs
+
+    preceding_starts: dict[str, int] = {}
+    if use_doc_shift:
+        for i, sym in enumerate(by_start):
+            min_l = 1
+            for other in reversed(by_start[:i]):
+                if other.start_line < sym.start_line and other.end_line >= sym.end_line:
+                    min_l = other.start_line + 1
+                    break
+                elif other.end_line < sym.start_line:
+                    min_l = max(min_l, other.end_line + 1)
+            preceding_starts[sym.symbol_id] = _find_preceding_doc_block(lines, sym.start_line, min_l)
+
     rows: list[tuple[str, str, str, str, str, str]] = []
     for sym in symbols:
         low = bisect_left(starts, sym.start_line)
@@ -1409,12 +1504,18 @@ def _fts_rows(
         for child in by_start[low:high]:
             if child.symbol_id == sym.symbol_id or child.end_line > sym.end_line:
                 continue
-            if child.start_line > cursor:
-                parts.extend(lines[max(cursor - 1, 0) : child.start_line - 1])
+            child_cut = preceding_starts.get(child.symbol_id, child.start_line)
+            if child_cut > cursor:
+                parts.extend(lines[max(cursor - 1, 0) : child_cut - 1])
             if child.end_line + 1 > cursor:
                 cursor = child.end_line + 1
         if cursor <= sym.end_line:
             parts.extend(lines[max(cursor - 1, 0) : sym.end_line])
+
+        sym_p_start = preceding_starts.get(sym.symbol_id, sym.start_line)
+        preceding_lines = lines[sym_p_start - 1 : sym.start_line - 1] if sym_p_start < sym.start_line else []
+        own_body = "\n".join(preceding_lines + parts)
+
         tokens: list[str] = []
         seen_tokens: set[str] = set()
 
@@ -1433,19 +1534,79 @@ def _fts_rows(
                 add_token(piece)
         for piece in path_tokens(sym.path):
             add_token(piece)
-        rows.append((sym.symbol_id, sym.path, sym.name, sym.qualified_name, " ".join(tokens), "\n".join(parts)))
+        rows.append((sym.symbol_id, sym.path, sym.name, sym.qualified_name, " ".join(tokens), own_body))
 
     cursor = 1
     module_parts: list[str] = []
     for item in by_start:
-        if item.start_line > cursor:
-            module_parts.extend(lines[max(cursor - 1, 0) : item.start_line - 1])
+        item_cut = preceding_starts.get(item.symbol_id, item.start_line)
+        if item_cut > cursor:
+            module_parts.extend(lines[max(cursor - 1, 0) : item_cut - 1])
         if item.end_line + 1 > cursor:
             cursor = item.end_line + 1
     if cursor <= len(lines):
         module_parts.extend(lines[max(cursor - 1, 0) :])
     rows.append(_module_fts_row(path, language or "unknown", "\n".join(module_parts)))
     return rows
+
+
+_WORD_RE = re.compile(r"\w+", re.UNICODE)
+
+
+def _inherit_interface_doc_tokens(
+    symbols: list[SymbolRecord],
+    fts_rows: list[tuple[str, str, str, str, str, str]],
+    class_hierarchy_map: dict[str, list[str]],
+) -> list[tuple[str, str, str, str, str, str]]:
+    if _FTS_INTERFACE_DOC == "off":
+        return fts_rows
+
+    target_langs = {lang.strip() for lang in _FTS_INTERFACE_DOC.split(",")}
+    fts_by_id: dict[str, list[str]] = {row[0]: list(row) for row in fts_rows}
+
+    method_symbols: dict[tuple[str, str], SymbolRecord] = {}
+    interface_doc_tokens: dict[tuple[str, str], list[str]] = {}
+
+    for s in symbols:
+        lang = s.symbol_id.split(":", 1)[0]
+        if lang not in target_langs:
+            continue
+        if s.kind in {"method", "constructor"} and "." in s.qualified_name:
+            parent_name, m_name = s.qualified_name.rsplit(".", 1)
+            clean_parent = parent_name.split("`")[0]
+            clean_m = m_name.split("<")[0]
+            method_symbols[(clean_parent, clean_m)] = s
+
+            fts_row = fts_by_id.get(s.symbol_id)
+            if fts_row:
+                body = fts_row[5]
+                words = [w.lower() for w in _WORD_RE.findall(body) if len(w) >= 3 and not w.startswith("http")]
+                if words:
+                    interface_doc_tokens[(clean_parent, clean_m)] = words
+
+    for (cls_name, m_name), sym in method_symbols.items():
+        parents = class_hierarchy_map.get(cls_name, [])
+        if not parents:
+            continue
+        fts_row = fts_by_id.get(sym.symbol_id)
+        if not fts_row:
+            continue
+        own_body = fts_row[5]
+        has_inheritdoc = "<inheritdoc" in own_body.lower()
+        has_doc = "/// <summary>" in own_body or "/**" in own_body or "///" in own_body
+        if has_inheritdoc or not has_doc:
+            for p_name in parents:
+                clean_p = p_name.split("<")[0].split("`")[0]
+                if (clean_p, m_name) in interface_doc_tokens:
+                    inherited = interface_doc_tokens[(clean_p, m_name)]
+                    existing_tokens = fts_row[4].split()
+                    seen = set(existing_tokens)
+                    to_add = [tok for tok in inherited if tok not in seen]
+                    if to_add:
+                        fts_row[4] = fts_row[4] + " " + " ".join(to_add)
+                        break
+
+    return [tuple(r) for r in fts_by_id.values()]
 
 
 def _module_fts_row(path: str, language: str, module_body: str) -> tuple[str, str, str, str, str, str]:

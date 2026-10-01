@@ -73,19 +73,32 @@ class SettingsTab(QWidget):
         grid.addWidget(QLabel("Output Mode:"), 4, 0)
         self.combo_output = QComboBox()
         self.combo_output.addItems(["structured", "auto", "text", "legacy_dual"])
+        self.combo_output.setToolTip(
+            "Controls how MCP tool results are returned:\n"
+            "• text: Recommended for Google Gemini & Antigravity IDE (prevents collapsing array payloads into scalar counts)\n"
+            "• structured: Recommended for Claude Code, Codex, and clients natively consuming JSON tool results\n"
+            "• auto: Automatically selects structured for known clients (claude-code), text for others\n"
+            "• legacy_dual: Sends both text and structured content for backward compatibility"
+        )
         grid.addWidget(self.combo_output, 4, 1)
 
+        self.lbl_output_help = QLabel(
+            "💡 Tip: Select 'text' for Gemini / Antigravity IDE to avoid payload truncation, or 'structured' for Claude Code / Codex."
+        )
+        self.lbl_output_help.setStyleSheet("color: #a5adcb; font-size: 11px;")
+        grid.addWidget(self.lbl_output_help, 5, 1)
+
         # 6. default_view
-        grid.addWidget(QLabel("Default Projection View:"), 5, 0)
+        grid.addWidget(QLabel("Default Projection View:"), 6, 0)
         self.combo_view = QComboBox()
         self.combo_view.addItems(["minimal", "normal", "full"])
-        grid.addWidget(self.combo_view, 5, 1)
+        grid.addWidget(self.combo_view, 6, 1)
 
         # 7. enable_extensions
-        grid.addWidget(QLabel("Extended 19 Tools Suite:"), 6, 0)
+        grid.addWidget(QLabel("Extended 19 Tools Suite:"), 7, 0)
         self.cb_extensions = QCheckBox("Enable Discovery, Episodic Memory & Nested Sampling (Google GenAI)")
         self.cb_extensions.setToolTip("Enables all 19 tools across discovery, episodic memory, and local 7B sampling.")
-        grid.addWidget(self.cb_extensions, 6, 1)
+        grid.addWidget(self.cb_extensions, 7, 1)
 
         c_layout.addLayout(grid)
 

@@ -1,0 +1,1038 @@
+{
+  "repo_id": "heldout-express",
+  "repo_url": "https://github.com/expressjs/express",
+  "tag": "v5.2.1",
+  "commit_sha": "dbac741a49a5a64336b70c06e85c2e2706e36336",
+  "license": "MIT",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Drafted by one Claude author session; awaiting review by a different Claude session. All tasks are TEST tasks; no retrieval tool was run and nothing was tuned. lib/ of this repo has very few plain functions, so tasks t26-t30 and some packet entries use assigned methods (gold_pending_indexer) and a few symbols are reused across tasks with different behaviours. | Reviewed 2026-10-01: author and reviewer were separate sessions without retrieval tools; review log in evals/out/m12/heldout_express_review_log.md.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "split a media type string on semicolons into its value, a numeric q weight defaulting to one, and a map of the remaining key=value parameters",
+      "gold_files": [
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "acceptParams",
+          "def_line": 89
+        }
+      ],
+      "note": "acceptParams slices the value before the first semicolon and loops over the parameters, storing q as a float quality and other keys in params."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "factory returning an ETag generator that converts a non-buffer body to a buffer using the given encoding, then computes the tag with the preset options",
+      "gold_files": [
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "createETagGenerator",
+          "def_line": 249
+        }
+      ],
+      "note": "createETagGenerator returns generateETag(body, encoding), which calls Buffer.from for non-buffers and passes the buffer and options to the etag library."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "parse a query string with the qs library while allowing keys that collide with Object prototype properties",
+      "gold_files": [
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "parseExtendedQueryString",
+          "def_line": 267
+        }
+      ],
+      "note": "parseExtendedQueryString calls qs.parse(str, { allowPrototypes: true })."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "create the callable application function that forwards to handle, mixes in EventEmitter and the application prototype, and derives request and response objects bound to it",
+      "gold_files": [
+        "lib/express.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/express.js",
+          "qualified_name": "createApplication",
+          "def_line": 36
+        }
+      ],
+      "note": "createApplication builds the app function calling app.handle, mixes in EventEmitter.prototype and proto, creates app.request/app.response with an app property, and calls app.init()."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "print the error stack, or its string form when there is no stack, to the console unless the environment setting is test",
+      "gold_files": [
+        "lib/application.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "logerror",
+          "def_line": 615
+        }
+      ],
+      "note": "logerror calls console.error(err.stack || err.toString()) unless this.get('env') is 'test'."
+    },
+    {
+      "id": "t06",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "call render on a view object inside try/catch so a synchronously thrown exception is passed to the callback instead of propagating",
+      "gold_files": [
+        "lib/application.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "tryRender",
+          "def_line": 625
+        }
+      ],
+      "note": "tryRender wraps view.render(options, callback) in try/catch and calls callback(err) on a throw."
+    },
+    {
+      "id": "t07",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "when the response finishes, treat ECONNRESET as an aborted request, pass along other errors, otherwise use setImmediate to check the streaming flag before completing",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onfinish",
+          "def_line": 971
+        }
+      ],
+      "note": "onfinish (nested in sendfile) maps ECONNRESET to onaborted, forwards other errors to onerror and otherwise uses setImmediate to test the streaming flag before calling back."
+    },
+    {
+      "id": "t08",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "helper that adds an enumerable, configurable getter-only property to an object using Object.defineProperty",
+      "gold_files": [
+        "lib/request.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508
+        }
+      ],
+      "note": "defineGetter(obj, name, getter) wraps Object.defineProperty with configurable, enumerable and get; it is the helper used for the request accessors."
+    },
+    {
+      "id": "t09",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "serialize a value to JSON with optional replacer and spaces, optionally escaping angle brackets and ampersands as unicode sequences to prevent HTML sniffing",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "stringify",
+          "def_line": 1029
+        }
+      ],
+      "note": "stringify wraps JSON.stringify and, when escape is set, replaces <, > and & with \\u003c, \\u003e and \\u0026."
+    },
+    {
+      "id": "t10",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "stream a send file object into the response, registering directory, end, error, file and stream listeners, and guarantee the completion callback fires only once",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "sendfile",
+          "def_line": 927
+        }
+      ],
+      "note": "sendfile defines the small handlers with a shared done flag, attaches them to the send stream's events, hooks onFinished and pipes the file to res."
+    },
+    {
+      "id": "t11",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "synchronously fetch filesystem metadata for a path, yielding undefined instead of throwing when the path is missing or unreadable",
+      "gold_files": [
+        "lib/view.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "tryStat",
+          "def_line": 197
+        }
+      ],
+      "note": "tryStat wraps fs.statSync in try/catch and returns undefined on failure; View.resolve uses it to probe candidate files."
+    },
+    {
+      "id": "t12",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "report to the completion callback, at most once, that the client hung up mid-transfer, by building a new error carrying a connection-level code",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onaborted",
+          "def_line": 932
+        }
+      ],
+      "note": "onaborted sets done, builds an Error('Request aborted') with code ECONNABORTED and passes it to callback."
+    },
+    {
+      "id": "t13",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "complete at most once with an error coded EISDIR and the message EISDIR, read when the requested path turns out to be a folder",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "ondirectory",
+          "def_line": 942
+        }
+      ],
+      "note": "ondirectory sets done and calls callback with Error('EISDIR, read') whose code is EISDIR."
+    },
+    {
+      "id": "t14",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "hand a failure raised by the source stream to the completion callback unchanged, unless the transfer was already marked complete",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onerror",
+          "def_line": 952
+        }
+      ],
+      "note": "onerror(err) returns if done, otherwise sets done and calls callback(err) with the original error."
+    },
+    {
+      "id": "t15",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "mark the transfer complete and invoke the completion callback with no arguments, unless completion was already recorded",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onend",
+          "def_line": 959
+        }
+      ],
+      "note": "onend returns if done, otherwise sets done = true and calls callback() without an error."
+    },
+    {
+      "id": "t16",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "reset the local indicator of ongoing body streaming to false once the source reports that it has resolved the item to be served",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onfile",
+          "def_line": 966
+        }
+      ],
+      "note": "onfile is the single statement streaming = false, attached to the send stream's 'file' event."
+    },
+    {
+      "id": "t17",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "set the local indicator of in-flight body delivery to true once the source reports that it has begun piping the content out",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "onstream",
+          "def_line": 989
+        }
+      ],
+      "note": "onstream is the single statement streaming = true, attached to the send stream's 'stream' event."
+    },
+    {
+      "id": "t18",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "just before the body goes out, copy every entry of a caller-supplied header map onto the outgoing reply using a listener on the source",
+      "gold_files": [
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "sendfile",
+          "def_line": 927
+        }
+      ],
+      "note": "the options.headers branch of sendfile registers a 'headers' listener that calls res.setHeader for each key; the listener is a function expression inside sendfile, so sendfile is the smallest indexed symbol containing it."
+    },
+    {
+      "id": "t19",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "lazily load the template engine module named by the extension, cache it in a shared map, and fail if it lacks an express-style render handler",
+      "gold_files": [
+        "lib/view.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View",
+          "def_line": 52
+        }
+      ],
+      "note": "the View constructor requires the module named by the extension when opts.engines has no entry, checks that __express is a function, and stores it in opts.engines."
+    },
+    {
+      "id": "t20",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "if a template name has no extension, derive one from the default engine setting, prefixing a dot if needed, and throw if neither exists",
+      "gold_files": [
+        "lib/view.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View",
+          "def_line": 52
+        }
+      ],
+      "note": "the View constructor throws when there is neither extension nor defaultEngine, otherwise builds ext from defaultEngine (adding a leading dot) and appends it to the file name to look up."
+    },
+    {
+      "id": "t21",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "guard a render call so synchronous exceptions reach the callback, plus the constructor that loads the engine module for an extension and resolves the file",
+      "gold_files": [
+        "lib/application.js",
+        "lib/view.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "tryRender",
+          "def_line": 625
+        },
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View",
+          "def_line": 52
+        }
+      ],
+      "note": "tryRender (application.js) catches synchronous render failures; View (view.js) resolves ext and engine handler and the path."
+    },
+    {
+      "id": "t22",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "extended nested query strings: the qs-based parse function and the helper that declares the getter-based query property on the request prototype",
+      "gold_files": [
+        "lib/request.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "parseExtendedQueryString",
+          "def_line": 267
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508
+        }
+      ],
+      "note": "parseExtendedQueryString (utils.js) is the extended parser; defineGetter (request.js) is the helper through which the req.query accessor is declared."
+    },
+    {
+      "id": "t23",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "serialize JSON with optional unicode escaping of angle brackets and ampersands, and build an ETag function that buffers string bodies using a given encoding",
+      "gold_files": [
+        "lib/response.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "stringify",
+          "def_line": 1029
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "createETagGenerator",
+          "def_line": 249
+        }
+      ],
+      "note": "stringify (response.js) produces the JSON text with optional escaping of <, > and &; the generator returned by createETagGenerator (utils.js) buffers a non-buffer body with the given encoding before computing the tag."
+    },
+    {
+      "id": "t24",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "listeners that hand file transfer failures to a one-shot completion callback, and the default application error hook logging the stack unless in test",
+      "gold_files": [
+        "lib/application.js",
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "sendfile",
+          "def_line": 927
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "logerror",
+          "def_line": 615
+        }
+      ],
+      "note": "sendfile (response.js) reports stream failures through its callback; logerror (application.js) is the default finalhandler error hook that prints to console.error."
+    },
+    {
+      "id": "t25",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "request accessors that read application settings: a per-app request prototype carrying an app back-reference, plus the helper that declares each getter",
+      "gold_files": [
+        "lib/express.js",
+        "lib/request.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508
+        },
+        {
+          "path": "lib/express.js",
+          "qualified_name": "createApplication",
+          "def_line": 36
+        }
+      ],
+      "note": "createApplication (express.js) creates app.request with an app property that accessors use via this.app.get; defineGetter (request.js) declares the accessors."
+    },
+    {
+      "id": "t26",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "compile the etag setting (true, weak, strong, false or a custom function) into a generator, recomputed by the setter whenever the setting changes",
+      "gold_files": [
+        "lib/application.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "compileETag",
+          "def_line": 130,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "gold_pending_indexer": true
+        }
+      ],
+      "note": "compileETag (utils.js) maps the setting to a generator; app.set (application.js) calls it for the 'etag' case and stores the result as 'etag fn'.",
+      "tags": [
+        "js_assigned_method"
+      ]
+    },
+    {
+      "id": "t27",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "normalize a proxy trust setting (boolean, hop count, address list or function) into a predicate, and make mounted sub-apps inherit the parent's value unless overridden",
+      "gold_files": [
+        "lib/application.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "compileTrust",
+          "def_line": 194,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "gold_pending_indexer": true
+        }
+      ],
+      "note": "compileTrust (utils.js) builds the predicate; app.set (application.js) stores it as 'trust proxy fn' and marks the value as explicitly set; the 'mount' listener in app.defaultConfiguration drops the child's default trust proxy so the parent's applies.",
+      "tags": [
+        "js_assigned_method"
+      ]
+    },
+    {
+      "id": "t28",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "respond with the handler whose mime type best matches the Accept header, expanding extension shorthands to full types, or fail with 406 listing supported types",
+      "gold_files": [
+        "lib/response.js",
+        "lib/utils.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.format",
+          "def_line": 576,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeType",
+          "def_line": 61,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeTypes",
+          "def_line": 75,
+          "gold_pending_indexer": true
+        }
+      ],
+      "note": "res.format (response.js) picks the key through req.accepts, sets Content-Type with normalizeType and lists normalizeTypes values in the 406 error (utils.js).",
+      "tags": [
+        "js_assigned_method"
+      ]
+    },
+    {
+      "id": "t29",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "render a template from a response: merge its locals, default the callback to sending the result, and have the application find or cache the view",
+      "gold_files": [
+        "lib/application.js",
+        "lib/response.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.render",
+          "def_line": 900,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.render",
+          "def_line": 522,
+          "gold_pending_indexer": true
+        }
+      ],
+      "note": "res.render (response.js) merges res.locals and supplies the default callback; app.render (application.js) merges settings, builds or reads the cached view and renders.",
+      "tags": [
+        "js_assigned_method"
+      ]
+    },
+    {
+      "id": "t30",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "mount a nested app under a path: set its mountpath and parent, restore prototypes afterwards, and where the app-specific prototypes get created",
+      "gold_files": [
+        "lib/application.js",
+        "lib/express.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.use",
+          "def_line": 190,
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/express.js",
+          "qualified_name": "createApplication",
+          "def_line": 36
+        }
+      ],
+      "note": "app.use (application.js) sets mountpath/parent and restores the request/response prototypes after the sub-app; createApplication (express.js) creates the per-app prototypes.",
+      "tags": [
+        "js_assigned_method"
+      ]
+    }
+  ],
+  "packet_tasks": [
+    {
+      "id": "p01",
+      "split": "test",
+      "target": {
+        "path": "lib/express.js",
+        "qualified_name": "createApplication",
+        "def_line": 36
+      },
+      "gold_context": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.init",
+          "def_line": 59,
+          "need": "body",
+          "why": "createApplication ends with app.init(); init seeds cache, engines and settings and calls defaultConfiguration, so it relies on the mixins and prototypes set up just before.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.handle",
+          "def_line": 152,
+          "need": "signature",
+          "why": "the returned app function simply forwards (req, res, next) to app.handle, so that signature must stay in sync.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "need": "body",
+          "why": "registers a 'mount' listener through this.on (EventEmitter mixin) that rewires this.request and this.response, which createApplication creates.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.use",
+          "def_line": 190,
+          "need": "body",
+          "why": "recognises mounted sub-apps by duck-typing handle and set (supplied through mixin(app, proto)) and emits 'mount' through the EventEmitter mixin.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508,
+          "need": "signature",
+          "why": "request accessors declared with it are inherited by app.request (Object.create(req, { app })) and read this.app, the property createApplication defines."
+        }
+      ]
+    },
+    {
+      "id": "p02",
+      "split": "test",
+      "target": {
+        "path": "lib/application.js",
+        "qualified_name": "tryRender",
+        "def_line": 625
+      },
+      "gold_context": [
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.render",
+          "def_line": 522,
+          "need": "body",
+          "why": "sole caller: passes (view, renderOptions, done) as its last step and relies on tryRender to turn synchronous throws into done(err).",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View.render",
+          "def_line": 133,
+          "need": "body",
+          "why": "tryRender calls view.render(options, callback); render forces synchronous engine callbacks async, which defines what the try/catch can and cannot catch.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View",
+          "def_line": 52,
+          "need": "signature",
+          "why": "type of the view argument: the object app.render builds with new View(name, { defaultEngine, root, engines })."
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.render",
+          "def_line": 900,
+          "need": "body",
+          "why": "supplies the default callback (forward err to req.next, else send(str)) that ultimately receives the error tryRender hands over.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p03",
+      "split": "test",
+      "target": {
+        "path": "lib/view.js",
+        "qualified_name": "View",
+        "def_line": 52
+      },
+      "gold_context": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View.lookup",
+          "def_line": 104,
+          "need": "body",
+          "why": "the constructor ends with this.path = this.lookup(fileName); lookup returns undefined when nothing is found and accepts root as string or array.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/view.js",
+          "qualified_name": "tryStat",
+          "def_line": 197,
+          "need": "signature",
+          "why": "lookup resolves candidates through View.resolve, which probes the disk with tryStat; its undefined result leaves this.path unset."
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.render",
+          "def_line": 522,
+          "need": "body",
+          "why": "constructs the view with { defaultEngine, root, engines } and raises 'Failed to lookup view' when view.path is falsy, so option names and the path property must stay compatible.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.engine",
+          "def_line": 294,
+          "need": "signature",
+          "why": "registers engine functions under a dot-prefixed extension in this.engines, the same key that the constructor checks in opts.engines[this.ext].",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "need": "body",
+          "why": "sets the default 'view' setting to this constructor and the default 'views' root that app.render passes in.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p04",
+      "split": "test",
+      "target": {
+        "path": "lib/utils.js",
+        "qualified_name": "createETagGenerator",
+        "def_line": 249
+      },
+      "gold_context": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "compileETag",
+          "def_line": 130,
+          "need": "body",
+          "why": "maps the etag setting to exports.wetag or exports.etag, which are built by this factory with { weak: true } and { weak: false }, so the option names must match.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "need": "body",
+          "why": "for the 'etag' setting it calls compileETag(val) and stores the result as 'etag fn'; for weak or strong that is a function returned by this factory.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.send",
+          "def_line": 125,
+          "need": "body",
+          "why": "the consumer: calls etagFn(chunk, encoding) on the body (a Buffer with undefined encoding after conversion) and only uses a truthy string result.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p05",
+      "split": "test",
+      "target": {
+        "path": "lib/utils.js",
+        "qualified_name": "acceptParams",
+        "def_line": 89
+      },
+      "gold_context": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeType",
+          "def_line": 61,
+          "need": "body",
+          "why": "the only caller: returns acceptParams(type) for slash-containing types and mimics the { value, params } shape for bare extensions.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "normalizeTypes",
+          "def_line": 75,
+          "need": "signature",
+          "why": "maps normalizeType over an array, so the shape returned by acceptParams reaches array callers too.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.format",
+          "def_line": 576,
+          "need": "body",
+          "why": "reads normalizeType(key).value and normalizeTypes(keys).map(o => o.value), so the value field produced by acceptParams must be preserved.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p06",
+      "split": "test",
+      "target": {
+        "path": "lib/utils.js",
+        "qualified_name": "parseExtendedQueryString",
+        "def_line": 267
+      },
+      "gold_context": [
+        {
+          "path": "lib/utils.js",
+          "qualified_name": "compileQueryParser",
+          "def_line": 162,
+          "need": "body",
+          "why": "returns this function for the 'extended' setting and querystring.parse for simple, so the (str) -> object contract must hold.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "need": "body",
+          "why": "for the 'query parser' setting stores compileQueryParser(val) as 'query parser fn'.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "need": "body",
+          "why": "sets the default 'query parser' to 'simple'; the extended parser is used only when an application opts in.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508,
+          "need": "signature",
+          "why": "the req.query accessor is declared through it; the getter reads 'query parser fn' and calls it with the raw query string, so any change of return type reaches req.query."
+        }
+      ]
+    },
+    {
+      "id": "p07",
+      "split": "test",
+      "target": {
+        "path": "lib/response.js",
+        "qualified_name": "stringify",
+        "def_line": 1029
+      },
+      "gold_context": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.json",
+          "def_line": 239,
+          "need": "body",
+          "why": "calls stringify(obj, replacer, spaces, escape) with the 'json replacer', 'json spaces' and 'json escape' settings, so the positional parameter order must be kept.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.jsonp",
+          "def_line": 267,
+          "need": "body",
+          "why": "second caller with the same argument order; it handles a body of undefined, which stringify can return for unserializable values.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.send",
+          "def_line": 125,
+          "need": "body",
+          "why": "receives the returned text and derives Content-Length and ETag from it, so the string contract matters.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.set",
+          "def_line": 351,
+          "need": "signature",
+          "why": "the json settings passed into stringify are read with app.get, whose one-argument form returns this.settings[setting] through app.set.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p08",
+      "split": "test",
+      "target": {
+        "path": "lib/response.js",
+        "qualified_name": "res.sendFile",
+        "def_line": 378,
+        "gold_pending_indexer": true
+      },
+      "gold_context": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "sendfile",
+          "def_line": 927,
+          "need": "body",
+          "why": "sendFile's completion callback depends on its error codes: without a user callback EISDIR leads to next(), ECONNABORTED and write errors are swallowed, other errors go to next(err)."
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.download",
+          "def_line": 440,
+          "need": "body",
+          "why": "caller that passes opts with a headers object carrying Content-Disposition and forwards the user callback, so sendFile's options and callback handling must stay compatible.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.enabled",
+          "def_line": 420,
+          "need": "signature",
+          "why": "sendFile sets opts.etag = this.app.enabled('etag') before handing the options to send.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p09",
+      "split": "test",
+      "target": {
+        "path": "lib/application.js",
+        "qualified_name": "app.render",
+        "def_line": 522,
+        "gold_pending_indexer": true
+      },
+      "gold_context": [
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View",
+          "def_line": 52,
+          "need": "signature",
+          "why": "constructed here as new View(name, { defaultEngine, root, engines }); the resulting view.path decides the 'Failed to lookup view' error."
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "tryRender",
+          "def_line": 625,
+          "need": "body",
+          "why": "the final step of app.render; the callback done receives errors thrown synchronously by the engine."
+        },
+        {
+          "path": "lib/view.js",
+          "qualified_name": "View.render",
+          "def_line": 133,
+          "need": "body",
+          "why": "the view.render(options, callback) contract that tryRender invokes; it makes synchronous callbacks asynchronous.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.render",
+          "def_line": 900,
+          "need": "body",
+          "why": "main caller: sets opts._locals from res.locals and supplies the default callback, so the option merge order ({ ...locals, ..._locals, ...opts }) interacts with it.",
+          "gold_pending_indexer": true
+        }
+      ]
+    },
+    {
+      "id": "p10",
+      "split": "test",
+      "target": {
+        "path": "lib/response.js",
+        "qualified_name": "res.jsonp",
+        "def_line": 267,
+        "gold_pending_indexer": true
+      },
+      "gold_context": [
+        {
+          "path": "lib/response.js",
+          "qualified_name": "stringify",
+          "def_line": 1029,
+          "need": "signature",
+          "why": "called with (obj, replacer, spaces, escape) and may return undefined, which jsonp turns into an empty argument when it wraps the body in a callback."
+        },
+        {
+          "path": "lib/response.js",
+          "qualified_name": "res.send",
+          "def_line": 125,
+          "need": "body",
+          "why": "jsonp ends with this.send(body), which sets Content-Length and ETag for the wrapped callback text.",
+          "gold_pending_indexer": true
+        },
+        {
+          "path": "lib/request.js",
+          "qualified_name": "defineGetter",
+          "def_line": 508,
+          "need": "signature",
+          "why": "the req.query accessor that jsonp reads (this.req.query[callbackName]) is declared through it."
+        },
+        {
+          "path": "lib/application.js",
+          "qualified_name": "app.defaultConfiguration",
+          "def_line": 90,
+          "need": "body",
+          "why": "sets the default 'jsonp callback name' to 'callback' that jsonp reads.",
+          "gold_pending_indexer": true
+        }
+      ]
+    }
+  ],
+  "reviewed_by": "independent Claude Sonnet 5.5 sessions: one author session and a different reviewer session (VERDICT: approved); executor did not read content (Rule 16)",
+  "reviewed_at": "2026-10-01"
+}

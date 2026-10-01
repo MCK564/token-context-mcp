@@ -23,7 +23,7 @@ Configuration commands: see `docs/SETUP.en.md` §5. The flags are added to the s
 | Claude (Cowork session, `remote-devices` bridge to this server) | **yes** — the model quotes the full JSON of `get_index_status(repo_id="token-context")` | `--output-mode structured` (default) | `docs/SETUP.en.md` §5.1-style `stdio` entry | 2026-09-29 (also 2026-09-27/28) | the Claude agent that ran M9 (D4). Note: that server ran pre-M9 code, so the `clientInfo.name` was not recorded |
 | Claude desktop bridge (earlier check) | **no** — only the summary line reached the model | `--output-mode text` | as above | 2026-09-26 | M5 report |
 | Claude Code (CLI / IDE) | not checked | start with `--output-mode structured`, then confirm | `docs/SETUP.en.md` §5.1 | — | owner, at the checkpoint |
-| Antigravity | not checked | `--schema-profile gemini_safe` (also chosen by `auto`); `--output-mode text` until checked | `docs/SETUP.en.md` §5.5 | — | owner, at the checkpoint |
+| Antigravity | **no** — structured mode causes the client environment to summarize array payloads (e.g., `matches=14 items`); `text` mode delivers the complete JSON payload intact to the model | `--output-mode text --schema-profile gemini_safe` | `docs/SETUP.en.md` §5.5 | 2026-09-30 | Gemini / Antigravity session (verified in M12.0) |
 | VS Code Copilot Chat | not checked | `--output-mode text` until checked | `docs/SETUP.en.md` §5.3 | — | owner, at the checkpoint |
 | Codex CLI | not checked | `--output-mode text` until checked | `docs/SETUP.en.md` §5.2 | — | owner, at the checkpoint |
 

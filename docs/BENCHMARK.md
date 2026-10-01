@@ -315,3 +315,153 @@ Packet tasks (10): `sig_coverage` 0.473, `ref_coverage` 0.473, `reach_ceiling` 0
 ### Limits
 
 One repository per language, wide intervals, task sets reviewed by another Claude session but not by the owner, a simulated grep baseline (its latency is not that of `rg`), retrieval only, no end-to-end (C3) run. The four repositories differ in size, test share and coding style, so language and repository effects cannot be separated.
+
+## C3 v2 Multi-Agent Benchmark (M12.5)
+
+> **Status:** the harness supports three agent CLIs, but only Claude Code (Sonnet 5.5, medium effort) was run, seed 1 only (60 of 120 runs), on the held-out suite. Seed 2, the development suite, Gemini CLI and Codex were not run (cost, tool not installed). Results and caveats: [M12](#m12--held-out-evaluation-of-030-and-the-031-follow-up), last subsection; deviations from this protocol: `evals/c3_protocol_v2.md` section 6.
+
+C3 v2 extends the end-to-end agent evaluation harness to support multi-agent benchmarking across three agent CLIs:
+1. **Claude Code (`claude`):** streaming via `claude -p --output-format stream-json --verbose` with `--strict-mcp-config`.
+2. **Gemini CLI (`gemini`):** streaming via `gemini -p ... --output-format stream-json` with `--allowed-mcp-server-names`.
+3. **Codex CLI (`codex`):** streaming via `codex exec --ephemeral --json --sandbox read-only`.
+
+### Benchmark Suite (`locate_v2`)
+- **Corpus:** 4 repositories across Python, TypeScript, JavaScript, and C#.
+- **Tasks:** 20 counted tasks (5 per repository: 1 `a_keyword`, 2 `b_hidden_dep`, 2 `c_multi_file`) + 1 uncounted probe task (`evals/c3/locate_v2_manifest.json`).
+- **Matrix:** 3 arms (`B0` native, `B1` hybrid, `B2` MCP-first) × 2 seeds = **120 runs per agent**.
+- **Deterministic arm order shuffling:** Seed `20261001` permutes arm order per `(task, seed)` to remove execution order bias.
+- **Automated Grading:** Answers are automatically parsed from fenced JSON (`files` and `symbols`) and graded against gold files (top 3 for group a/b; recall ≥ 0.50 in top 5 for group c).
+- **Harness Scripts:**
+  - `evals/run_c3.py`: single-run driver with health gate and protocol enforcement.
+  - `evals/run_c3_matrix.py`: matrix orchestrator supporting `--agent {codex,claude,gemini}`, `--suite {c3_v1,locate_v2}`, `--dry-run`, `--resume`.
+  - `evals/c3_report.py`: statistical aggregator reporting paired reductions and bootstrap CI95.
+
+
+## M12 — held-out evaluation of 0.3.0 and the 0.3.1 follow-up
+
+**Status:** retrieval benchmark complete (development sets and four held-out repositories, old code against new code). The end-to-end C3 run is **incomplete and unvalidated**: only seed 1 of 2 was run on the held-out suite (60 of 120 runs) and the development-suite C3 was not run, because the owner stopped further paid runs. Raw outputs: `evals/out/m12/` (`heldout_0_3_0/`, `followup_0_3_1/`, `c3_heldout_seed1/`, `final_dev_{base,new}/`, review logs).
+
+### Protocol
+
+- **Code under test.** `m12-base` (the 0.2.0 tree, `main` at `70d8e8f`) is "old"; tag `m12-freeze` (commit `7172665`, version 0.3.0) is "new". The held-out measurement was made on exactly that tree; `evals/guard.py` (Rule 17) checks that the tag exists and that `src/`, `bench_retrieval.py`, `edge_gold_eval.py`, `loc_eval.py` and `guard.py` have an empty diff against it (or, for the baseline run, that the tree is byte-identical to `m12-base`).
+- **Held-out repositories** (none was used to develop 0.3.0): `encode/starlette` (Python, 88 indexed files), `colinhacks/zod` (TypeScript, 517), `expressjs/express` (JavaScript, 154), `serilog/serilog` (C#, 216). Each has 30 locate tasks (10 `a_keyword`, 10 `b_hidden_dep`, 10 `c_multi_file`) and 10 packet tasks, plus edge-gold labels for zod, express and serilog. Task sets were written by one independent session and reviewed by a second one without retrieval tools (Rule 16); the executor read none of them before the freeze. Express tasks 26 to 30 are `js_assigned_method` tasks whose gold is pending the indexer (`gold_pending_indexer`) and are skipped by the gold-verification scripts. Review logs: `evals/out/m12/*_review_log.md`. No human reviewed the task sets.
+- **Arms** (deterministic, no model in the loop): `R0-grep` (simulated unbounded grep), `R0-grep@R2` (grep cut to the wire size of R2), `R1` (`search_source`), `R2` (`search_source(profile="locate")`, about 1.9k tokens), `R3` (packet from `inspect_symbol(view="full")` against reading the files). CI95 is a bootstrap over tasks (2,000 resamples).
+- **Rule 18.** Each held-out set was measured once with each code version. Anything done after that (the 0.3.1 fix) was checked on development sets only.
+
+### Held-out results (0.3.0 against the 0.2.0 baseline)
+
+File Acc@5 (old → new), `R2` at about 1.9k tokens, with the baselines:
+
+| Repository | grep, unbounded (tokens read) | grep, same size as R2 | R1 | R2 | R2 paired difference new − old |
+| --- | ---: | ---: | ---: | ---: | --- |
+| starlette (Python) | 0.77 (23.8k) | 0.47 | 0.73 → 0.73 | 0.77 → 0.77 | 0.00 (CI95 0.00 to 0.00) |
+| zod (TypeScript) | 0.60 (43.9k) | 0.43 | 0.77 → 0.73 | 0.73 → 0.73 | 0.00 (0.00 to 0.00) |
+| express (JavaScript) | 0.97 (15.9k) | 0.67 | 0.80 → **0.97** | 0.80 → **0.93** | **+0.13** (0.00 to +0.30) |
+| serilog (C#) | 0.80 (29.5k) | 0.50 | 0.73 → 0.73 | 0.73 → 0.70 | −0.03 (−0.13 to 0.00) |
+
+Symbol Recall@10 (old → new):
+
+| Repository | grep, unbounded | R1 | R2 | R2 paired difference |
+| --- | ---: | ---: | ---: | --- |
+| starlette | 0.28 | 0.44 → 0.44 | 0.44 → 0.44 | 0.00 |
+| zod | 0.13 | 0.49 → 0.53 | 0.56 → 0.61 | +0.04 (0.00 to +0.12) |
+| express | 0.13 → 0.16 | 0.68 → 0.70 | 0.68 → 0.67 | −0.01 (−0.18 to +0.16) |
+| serilog | 0.09 | 0.45 → **0.68** | 0.43 → **0.64** | **+0.21** (+0.08 to +0.36) |
+
+`R2` at equal cost against `R0-grep`: starlette 0.00 (CI95 −0.13 to +0.13), zod +0.13 (−0.03 to +0.33), express −0.03 (−0.13 to +0.07), serilog −0.10 (−0.30 to +0.10). Against unbounded grep nothing is significant in either direction at 30 tasks; the tool reads 8 to 23 times fewer tokens.
+
+`R2` File Acc@5 by group (old → new; `a_keyword` / `b_hidden_dep` / `c_multi_file`): starlette 1.0 / 0.4 / 0.9 (unchanged); zod 1.0 / 0.4 / 0.8 (unchanged); express 1.0 → 0.9 / 0.7 → **0.9** / 0.7 → **1.0**; serilog 0.9 → 0.8 / 0.4 / 0.9 (unchanged). Behavioural queries without a name in the query (`b_hidden_dep`) are the weak group everywhere except JavaScript.
+
+Packet (`R3`, 10 tasks) and call graph:
+
+| Repository | Reference coverage (old → new) | Saving against reading | Edges (old → new) | Ambiguous (old → new) | Symbols (old → new) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| starlette | 0.52 → 0.52 | 0.86 | 3,487 → 3,487 | 31.0 % → 31.0 % | 2,063 |
+| zod | 0.34 → 0.42 (+0.08, 0.00 to +0.18) | 0.93 | 3,622 → 3,263 | 65.5 % → 55.8 % | 4,386 → 3,898 |
+| express | 0.00 → **0.39** (+0.28, +0.12 to +0.42) | 0.93 | 11 → 191 | 63.6 % → 43.5 % | 165 → 259 |
+| serilog | 0.30 → **0.47** (+0.17, +0.07 to +0.28) | 0.75 → 0.72 | 2,154 → 2,988 | 68.6 % → 39.7 % | 1,963 |
+
+Edge gold (hand-labelled internal call sites; recall counts a site as correct if the right target is resolved at any confidence, precision counts only edges with confidence ≥ 0.6):
+
+| Repository | Sites | Correct, old → new | Edges ≥ 0.6, old → new | Precision at ≥ 0.6 |
+| --- | ---: | ---: | ---: | ---: |
+| zod | 12 | 2 → **0** | 2 → 0 | 1.00 → 1.00 (vacuous) |
+| express | 11 | 0 → 2 | 0 → 2 | 1.00 |
+| serilog | 17 | 5 → **13** | 5 → 11 | 1.00 → 1.00 |
+
+### Predeclared KPIs (K1 to K10), held-out, 0.3.0
+
+| | Target | Result | Met |
+| --- | --- | --- | :-: |
+| K1 | JS assigned-method recall in the index ≥ 0.95 and 0 wrong in a 30-symbol sample (`evals/js_assigned_scan.py`) | 0.933 (84 of 90 scanned assigned methods indexed), 0 wrong; every miss is a chained assignment, recall without them 1.00 | no |
+| K2 | JS `R2` File Acc@5, new − old ≥ 0 | +0.13 (CI95 0.00 to +0.30) | yes |
+| K3 | C# `R2` − unbounded grep ≥ −0.05 | −0.10 (−0.30 to +0.10) | no |
+| K4 | C# `R2` File Acc@5, new − old ≥ +0.10 | −0.03 (−0.13 to 0.00) | no |
+| K5 | C# `b_hidden_dep` `R2` ≥ 0.40 | 0.40 (the old code also scored 0.40) | yes |
+| K6 | ambiguous-edge ratio new/old ≤ 0.70 for JS, TS and C# | express 0.68, zod **0.85**, serilog 0.58 | no |
+| K7 | `R3` reference coverage new − old ≥ +0.10 for JS, TS and C# | +0.28, zod **+0.08**, +0.17 | no |
+| K8 | edge precision ≥ 0.95 at confidence ≥ 0.6 | 1.00 in all three, from 2, 0 and 11 edges (**no evidence for zod**) | yes |
+| K9 | Python File Acc@5 and Symbol Recall@10 identical | identical (and byte-identical output) | yes |
+| K10 | median `search_source` latency ≤ +20 % on a fixed query set | zod `$ZodError` +25 % (13.1 → 16.4 ms), serilog `LogEvent` +27 % (10.2 → 12.9 ms); the other ten queries within +13 % | no |
+
+**Result: 4 met (K2, K5, K8, K9), 6 not met (K1, K3, K4, K6, K7, K10).** K8 is met only formally for TypeScript. K1 detail: `evals/js_assigned_scan.py` finds 90 assigned methods in express by a syntactic scan and checks them against the index; the 6 chained-assignment symbols were missing (`evals/out/m12/heldout_0_3_0/new/js_assigned_scan_express.json`).
+
+K10 note: `bench_latency.py` picks the first symbol of the index as its query, and the two code versions index a different first symbol for zod (`zod3` against `$ZodError`), so its zod `search_source` comparison (4.83 → 15.89 ms, 3.3x) compares two different queries and is **not** a regression figure. `evals/k10_latency.py` runs the same queries on both versions; its outputs are in `evals/out/m12/heldout_0_3_0/k10/`. Other tools: `get_symbol_context` on serilog 0.78 → 2.58 ms and `inspect_symbol(full)` x10 on serilog +10 %; everything else within noise.
+
+### Development sets (informative, not held-out)
+
+The development repositories informed the M12 changes, so these figures can only show that nothing broke and where the changes landed. Columns: 0.2.0 baseline / 0.3.0 / 0.3.1.
+
+| Repository | Symbols | Edges | Ambiguous | `R2` File Acc@5 | `R2` Symbol Recall@10 | `R3` ref. coverage | Edge-gold sites resolved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rich` (Python) | 2,096 / 2,096 / 2,096 | 3,797 (all) | 16.6 % (all) | 0.90 (all) | 0.544 (all) | 0.983 (all) | n/a |
+| `hono` (TypeScript) | 2,122 / 2,093 / **2,146** | 1,365 / 1,492 / 1,595 | 45.2 / 34.0 / 37.5 % | 0.80 / 0.77 / 0.77 | 0.664 / 0.653 / 0.664 | 0.575 / **0.755** / 0.755 | 7/14 / 10/14 / 10/14 |
+| `fastify` (JavaScript) | 1,165 / 1,213 / **1,408** | 771 / 824 / 955 | 71.5 / 63.5 / 68.3 % | 0.90 / 0.93 / 0.93 | 0.691 / 0.602 / **0.596** | 0.463 / 0.488 / 0.488 | 1/10 (all) |
+| `CsvHelper` (C#) | 14,460 (all) | 3,178 / 6,510 / 6,510 | 90.3 / 35.3 / 35.3 % | 0.60 / 0.57 / 0.57 | 0.328 / **0.483** / 0.483 | 0.473 / **0.693** / 0.693 | 1/10 / 4/10 / 4/10 |
+
+Python is identical in all three columns. The regression gate of Rule 19 (`tc-pinned` loc A1final/A2 at 8,192 tokens and `edge_eval`, `rich` bench) shows 0 differences. Raw: `evals/out/m12/final_dev_{base,new}/`, `evals/out/m12/followup_0_3_1/dev/`.
+
+### 0.3.1 follow-up (development evidence only)
+
+After the held-out run, a scan of symbol counts showed that 0.3.0 indexed fewer JS/TS symbols than the 0.2.0 baseline in places (hono 2,122 → 2,093, zod 4,386 → 3,898): M12.1 skipped every `method_definition` inside an object literal to avoid double indexing, which also dropped methods of objects passed as arguments (`run("s", { test() {} })`), returned objects, nested objects and objects inside functions, with the edges that start in them. 0.3.1 skips only members that an owning pattern has already emitted, and binds chained assignments (`res.set = res.header = function …`, `exports = module.exports = {…}`). Evidence: `tests/test_js_object_methods.py` (12 cases), full suite green, `PARSER_ARTIFACT_VERSION` 7.
+
+- Symbols restored: hono 2,093 → 2,146, fastify 1,213 → 1,408; on the held-out repositories zod 3,898 → 4,465 and express 259 → 265 (index counts only, no retrieval measured).
+- K1 scan on express: 90 of 90 assigned methods indexed, 0 wrong in the 30-symbol sample.
+- zod ambiguous-edge rate with 0.3.1: 57.2 % (2,250 of 3,932), ratio 0.87 against the baseline, so K6 would still not be met for TypeScript.
+- Not re-measured: held-out retrieval and edge gold for 0.3.1. Whether the zod edge-gold sample (2/12 → 0/12) recovers is therefore **unknown**; that is a hypothesis, not a result.
+- Effect on retrieval in the development sets: none on `rich`, `CsvHelper`; hono Symbol Recall@10 0.653 → 0.664; fastify 0.602 → 0.596 (no recovery).
+
+### Known issues after M12
+
+1. **fastify `R2` Symbol Recall@10** fell from 0.691 (0.2.0) to 0.602 (0.3.0) and 0.596 (0.3.1): the new symbols from assigned methods crowd the top ten. Not investigated further.
+2. **C# file accuracy did not improve** and behavioural queries stay weak (held-out `b_hidden_dep` 0.40, development CsvHelper 0.10); `R2` is below unbounded grep by 0.10 (not significant) on serilog and by 0.20 on CsvHelper. M12.2 improved symbol ranking, not file ranking.
+3. **TypeScript call graph:** 56 to 57 % of zod edges are ambiguous and no edge reached confidence 0.6 on the gold sample, so packets can only return what the graph reaches (reference coverage 0.42).
+4. **Python hidden-dependency queries** find the file in 4 of 10 cases on starlette (31 % ambiguous edges).
+5. **Latency:** two of twelve fixed `search_source` queries are 25 to 27 % slower in 0.3.0 (≤ 3.3 ms in absolute terms).
+6. **Guard loophole (not fixed, guard is a protected path):** a run with the baseline package on `PYTHONPATH` and a clean tree passes `evals/guard.py` without `--allow-baseline-code`. The baseline runs of this report used the flag.
+7. **Dev edge gold:** four hono labels were wrong (the tool was right) and were corrected before the final development measurement (`evals/out/m12/edge_gold_hono_corrections.md`); the development hono gold is therefore not independent of the tool.
+
+### Corrections to earlier statements
+
+- An early statement in the review of the M12 run that M12.2 changed Python output (the `rich` artifact in `evals/out/m12/m12_2_rich`) was wrong for committed code: that artifact came from an uncommitted tree. On the committed code Python output is identical to the baseline.
+- The run ledger written by the first M12 agent marked M12.0 to M12.6 "done"; at that point no held-out task set had been written or measured, the freeze tag had been made before any held-out review, and the edge resolver kept a per-file wall-clock breaker that made graphs depend on machine load. These were corrected afterwards (deterministic work budget, `RESOLVER_VERSION` in the fingerprint, tag recreated at `7172665` after the independent reviews); the ledger and checkpoint now carry corrective rows.
+
+### C3 (end to end), seed 1 only, **not validated**
+
+- **Setup:** Claude Code headless (`claude -p`), `claude-sonnet-5-5`, `--effort medium`, tools `Read,Grep,Glob`, held-out suite `locate_v2` (20 counted tasks on starlette, zod, express, serilog), arms B0 native only, B1 hybrid with MCP optional, B2 MCP-first, seed 1: 60 of the planned 120 runs. MCP server: frozen 0.3.0 code on the held-out indexes. 0 protocol violations, 0 infrastructure failures. Record: `evals/out/m12/c3_heldout_seed1/` (`c3_report_seed1.md`, `usage_seed1.jsonl`, raw session logs). Protocol and deviations: `evals/c3_protocol_v2.md` section 6.
+- **Stopped:** seed 2, the development-suite run and any other model were not run (cost). Gemini CLI was not installed and Codex was not run. Everything below comes from seed 1 alone.
+
+| Arm (20 runs each) | Success | Retrieved tokens (estimated) | Total tokens | MCP calls / run | Native calls / run | Latency | Provider cost (20 runs) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| B0 native | 100 % | 753 (CI95 504 to 1,031) | 82,211 (74,350 to 90,607) | 0 | 2.1 | 12.2 s | US$1.08 |
+| B1 hybrid, MCP optional | 100 % | 468 (285 to 669) | 84,507 (71,449 to 98,866) | **0.0** | 2.0 | 12.5 s | US$1.04 |
+| B2 MCP-first | 100 % | 1,387 (1,049 to 1,780) | 65,464 (59,205 to 72,782) | 1.1 | 0.1 | 10.6 s | US$1.08 |
+
+Paired differences (20 pairs): B2 against B0 total tokens −16,747 per run (CI95 −25,065 to −8,586, **−20 %**), retrieved tokens +634 (+294 to +975); B1 against B0 total tokens +2,296 (−9,019 to +14,202).
+
+How to read it:
+1. **Ceiling effect.** Every arm solved all 20 tasks, so success rate cannot separate the arms and there is no evidence of a quality difference in either direction. The four repositories are well known and the model may know part of the answers.
+2. **B1 never used the MCP server** (0 of 20 runs), so B1 is a second sample of the native-only behaviour. Its difference from B0 (retrieved tokens −285 per run, CI95 −561 to −52, although the agent behaved identically in both arms; total tokens +2.8 %, within noise) shows that paired intervals on 20 runs understate run-to-run variation, so narrow intervals in this section should be read with caution. No statement about the hybrid protocol follows.
+3. **B2 used 20 % fewer total tokens** and was about 13 % faster, because it answers in about one MCP call and one turn fewer. It also retrieved *more* content (1,387 against 753 estimated tokens), and the provider-reported cost is the same: B2 had 17 % more uncached input (181k against 154k tokens over 20 runs) and 24 % fewer cache-read tokens (1.12M against 1.48M). The total-token difference is therefore mostly cheaper cache reads, not less new information.
+4. A fixed overhead of about 25,000 cached input tokens per run (system and tool prompt) dominates every total, which is why total tokens measure the number of turns more than the amount of code read.
+5. **What it does and does not show:** on tasks this easy, an MCP-first agent locates files in fewer turns at equal billed cost and equal success. It does not show that token-context raises success, that it helps on hard tasks or on weaker models, or anything about the hybrid mode.

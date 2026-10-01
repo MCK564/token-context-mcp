@@ -1,0 +1,29 @@
+{
+  "repo_id": "heldout-starlette",
+  "queries": {
+    "unreadable_receive": {
+      "p50_ms": 1.284,
+      "p50_runs": [
+        1.281,
+        1.287,
+        1.284
+      ]
+    },
+    "Request": {
+      "p50_ms": 7.249,
+      "p50_runs": [
+        7.249,
+        7.225,
+        7.302
+      ]
+    },
+    "middleware": {
+      "p50_ms": 6.727,
+      "p50_runs": [
+        6.706,
+        6.727,
+        6.73
+      ]
+    }
+  }
+}

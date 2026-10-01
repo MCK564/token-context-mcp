@@ -60,21 +60,23 @@ _TABLE_QUERIES: dict[str, str] = {
 }
 _METADATA_KEYS = (
     "index_schema_version", "files_indexed", "files_skipped", "symbols_indexed", "edges_indexed", "stubs_indexed",
-    "entry_points", "role_counts", "derived_defaults", "warnings", "parser_artifact_version",
+    "entry_points", "role_counts", "derived_defaults", "warnings", "parser_artifact_version", "fts_builder_version",
+    "resolver_version",
 )
 
 
-# The per-file circuit breaker of edge resolution is wall-clock based, so two builds of the same tree can differ
-# on a loaded machine.  I1 is about the incremental logic, not about timing: switch the breaker off here.
+# The per-file edge budget is counted in work units since M12 (it used to be wall-clock based), so two builds of
+# the same tree agree on any machine.  The context manager is kept for callers and switches the budget off, which
+# keeps I1 independent of the budget value.
 @contextlib.contextmanager
 def deterministic_edges() -> Iterator[None]:
     """Switch the breaker off for the duration of the block and restore it (never at import time)."""
-    previous = lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS
-    lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS = math.inf
+    previous = lexical_edges.FILE_EDGE_WORK_BUDGET
+    lexical_edges.FILE_EDGE_WORK_BUDGET = math.inf
     try:
         yield
     finally:
-        lexical_edges.FILE_CIRCUIT_BREAKER_SECONDS = previous
+        lexical_edges.FILE_EDGE_WORK_BUDGET = previous
 
 
 def dump_snapshot(db_path: Path) -> dict[str, Any]:

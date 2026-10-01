@@ -1,0 +1,351 @@
+{
+  "repo_id": "bench-hono",
+  "repo_url": "https://github.com/honojs/hono",
+  "reviewed": true,
+  "reviewed_by": "Independent reviewer (Antigravity M12 session)",
+  "review_note": "Annotated following Appendix D guidelines from AST call sites. | M12-fix: 4 labels corrected after checking the source (dev set; see evals/out/m12/edge_gold_hono_corrections.md).",
+  "sites": [
+    {
+      "path": "benchmarks/jsx/src/benchmark.ts",
+      "line": 21,
+      "col": 5,
+      "callee_text": "renderHono",
+      "snippet": "\nsuite\n  .add('Hono', () => {\n    renderHono()\n  })\n  .add('React', () => {\n    renderReact()",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "benchmarks/jsx/src/hono-jsx/index.ts",
+        "qualified_name": "renderHono"
+      },
+      "reason": "Benchmark helper function renderHono"
+    },
+    {
+      "path": "benchmarks/jsx/src/react-jsx/benchmark.ts",
+      "line": 12,
+      "col": 16,
+      "callee_text": "render",
+      "snippet": "const suite = new Suite()\n\n;[renderHono, renderReact, renderPreact, renderNano].forEach((render) => {\n  const html = render()\n  const doc = parse(html)\n  if (doc.querySelector('p#c').textContent !== '3\\nc') {\n    throw new Error('Invalid output')",
+      "node_type": "call_expression",
+      "expected": "dynamic",
+      "reason": "Callback parameter render function"
+    },
+    {
+      "path": "benchmarks/jsx/src/react-jsx/preact.ts",
+      "line": 4,
+      "col": 44,
+      "callee_text": "buildPage()",
+      "snippet": "import { renderToString } from 'preact-render-to-string'\nimport { buildPage } from './page-preact'\n\nexport const render = () => renderToString(buildPage()() as any)",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "benchmarks/jsx/src/react-jsx/page-preact.tsx",
+        "qualified_name": "buildPage"
+      },
+      "reason": "Local benchmark page builder | corrected M12-fix: file is page-preact.tsx, not .ts"
+    },
+    {
+      "path": "build/remove-private-fields.ts",
+      "line": 32,
+      "col": 5,
+      "callee_text": "worker.postMessage",
+      "snippet": "      },\n      { signal: abortController.signal }\n    )\n    worker.postMessage({ file, taskId: currentTaskId } satisfies WorkerInput)\n  })\n}\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js worker_threads Worker.postMessage"
+    },
+    {
+      "path": "perf-measures/bundle-check/scripts/check-bundle-size.ts",
+      "line": 46,
+      "col": 9,
+      "callee_text": "fs.existsSync",
+      "snippet": "  } catch (error) {\n    console.error('Build failed:', error)\n  } finally {\n    if (fs.existsSync(tempFilePath)) {\n      fs.unlinkSync(tempFilePath)\n    }\n  }",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Node.js fs.existsSync"
+    },
+    {
+      "path": "perf-measures/type-check/client.ts",
+      "line": 5,
+      "col": 16,
+      "callee_text": "hc",
+      "snippet": "import type { app } from './generated/app'\n\n// eslint-disable-next-line @typescript-eslint/no-unused-vars\nconst client = hc<typeof app>('/')",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/client/index.ts",
+        "qualified_name": "hc"
+      },
+      "reason": "Hono RPC client factory hc"
+    },
+    {
+      "path": "perf-measures/type-check/scripts/generate-app.ts",
+      "line": 26,
+      "col": 3,
+      "callee_text": "console.log",
+      "snippet": "  if (err) {\n    throw err\n  }\n  console.log(`${count} routes have been written to app.ts`)\n})",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript console.log runtime"
+    },
+    {
+      "path": "src/adapter/bun/conninfo.ts",
+      "line": 17,
+      "col": 11,
+      "callee_text": "TypeError",
+      "snippet": "    throw new TypeError('env has to include the 2nd argument of fetch.')\n  }\n  if (typeof server.requestIP !== 'function') {\n    throw new TypeError('server.requestIP is not a function.')\n  }\n  const info = server.requestIP(c.req.raw)\n",
+      "node_type": "new_expression",
+      "expected": "external",
+      "reason": "JavaScript built-in TypeError"
+    },
+    {
+      "path": "src/adapter/bun/serve-static.ts",
+      "line": 25,
+      "col": 12,
+      "callee_text": "baseServeStatic",
+      "snippet": "      } catch {}\n      return isDir\n    }\n    return baseServeStatic({\n      ...options,\n      getContent,\n      join,",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/middleware/serve-static/index.ts",
+        "qualified_name": "serveStatic"
+      },
+      "reason": "Internal baseServeStatic middleware"
+    },
+    {
+      "path": "src/adapter/bun/websocket.ts",
+      "line": 70,
+      "col": 52,
+      "callee_text": "createWSContext",
+      "snippet": "  open(ws) {\n    const websocketListeners = ws.data.events\n    if (websocketListeners.onOpen) {\n      websocketListeners.onOpen(new Event('open'), createWSContext(ws))\n    }\n  },\n  close(ws, code, reason) {",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/adapter/bun/websocket.ts",
+        "qualified_name": "createWSContext"
+      },
+      "reason": "WebSocket context creator function | corrected M12-fix: createWSContext is defined in the same file (line 33), not in helper/websocket"
+    },
+    {
+      "path": "src/adapter/lambda-edge/handler.ts",
+      "line": 145,
+      "col": 14,
+      "callee_text": "convertHeaders",
+      "snippet": "\n  return {\n    status: res.status.toString(),\n    headers: convertHeaders(res.headers),\n    body,\n    ...(isBase64Encoded && { bodyEncoding: 'base64' }),\n  }",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/adapter/lambda-edge/handler.ts",
+        "qualified_name": "convertHeaders"
+      },
+      "reason": "Internal handler helper convertHeaders"
+    },
+    {
+      "path": "src/adapter/netlify/handler.ts",
+      "line": 8,
+      "col": 12,
+      "callee_text": "app.fetch",
+      "snippet": "  app: Hono<any, any>\n): ((req: Request, context: any) => Response | Promise<Response>) => {\n  return (req: Request, context: any) => {\n    return app.fetch(req, { context })\n  }\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/hono-base.ts",
+        "qualified_name": "HonoBase.fetch"
+      },
+      "reason": "HonoBase instance fetch method"
+    },
+    {
+      "path": "src/helper/adapter/index.ts",
+      "line": 61,
+      "col": 11,
+      "callee_text": "checkUserAgentEquals",
+      "snippet": "  // if supported, check the user agent\n  if (userAgentSupported) {\n    for (const [runtimeKey, userAgent] of Object.entries(knownUserAgents)) {\n      if (checkUserAgentEquals(userAgent)) {\n        return runtimeKey as Runtime\n      }\n    }",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/helper/adapter/index.ts",
+        "qualified_name": "checkUserAgentEquals"
+      },
+      "reason": "Internal helper checkUserAgentEquals"
+    },
+    {
+      "path": "src/helper/css/index.ts",
+      "line": 107,
+      "col": 9,
+      "callee_text": "contextMap.set",
+      "snippet": "\n    const addClassNameToContext: HtmlEscapedCallback = ({ context }) => {\n      if (!contextMap.has(context)) {\n        contextMap.set(context, [{}, {}])\n      }\n      const [toAdd, added] = contextMap.get(context) as usedClassNameData\n      let allAdded = true",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Map.prototype.set runtime method"
+    },
+    {
+      "path": "src/helper/proxy/index.ts",
+      "line": 129,
+      "col": 5,
+      "callee_text": "resHeaders.delete",
+      "snippet": "    resHeaders.delete(header)\n  })\n  if (resHeaders.has('content-encoding')) {\n    resHeaders.delete('content-encoding')\n    // Content-Length is the size of the compressed content, not the size of the original content\n    resHeaders.delete('content-length')\n  }",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Headers.prototype.delete web standard"
+    },
+    {
+      "path": "src/helper/ssg/middleware.ts",
+      "line": 79,
+      "col": 10,
+      "callee_text": "isSSGContext",
+      "snippet": " */\nexport const onlySSG = (): MiddlewareHandler =>\n  async function onlySSG(c, next) {\n    if (!isSSGContext(c)) {\n      return c.notFound()\n    }\n    await next()",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/helper/ssg/middleware.ts",
+        "qualified_name": "isSSGContext"
+      },
+      "reason": "Internal SSG helper isSSGContext"
+    },
+    {
+      "path": "src/helper/ssg/utils.ts",
+      "line": 53,
+      "col": 18,
+      "callee_text": "paths.join('/').split",
+      "snippet": "export const joinPaths = (...paths: string[]): string => {\n  paths = paths.map(normalizePath)\n  const resultPaths: string[] = []\n  handleSegments(paths.join('/').split('/'), resultPaths)\n  return (paths[0][0] === '/' ? '/' : '') + resultPaths.join('/')\n}\n",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "String.prototype.split runtime method"
+    },
+    {
+      "path": "src/helper/streaming/utils.ts",
+      "line": 7,
+      "col": 18,
+      "callee_text": "version.startsWith",
+      "snippet": "  if (version === undefined) {\n    return false\n  }\n  const result = version.startsWith('1.1') || version.startsWith('1.0') || version.startsWith('0.')\n  // Avoid running this check on every call\n  isOldBunVersion = () => result\n  return result",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "String.prototype.startsWith runtime method"
+    },
+    {
+      "path": "src/helper/testing/index.ts",
+      "line": 26,
+      "col": 10,
+      "callee_text": "hc",
+      "snippet": "    return app.request(input, init, Env, executionCtx)\n  }\n\n  return hc<typeof app>('http://localhost', { ...options, fetch: customFetch })\n}",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/client/client.ts",
+        "qualified_name": "hc"
+      },
+      "reason": "Hono RPC client factory hc | corrected M12-fix: hc is defined in client.ts; client/index.ts only re-exports it"
+    },
+    {
+      "path": "src/jsx/base.ts",
+      "line": 334,
+      "col": 26,
+      "callee_text": "createContext",
+      "snippet": "      children\n    )\n  } else if (tag === 'svg' || tag === 'head') {\n    nameSpaceContext ||= createContext('')\n    return new JSXNode(tag, props, [\n      new JSXFunctionNode(\n        nameSpaceContext,",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/jsx/context.ts",
+        "qualified_name": "createContext"
+      },
+      "reason": "JSX createContext function | corrected M12-fix: createContext is imported from ./context (defined at context.ts:15)"
+    },
+    {
+      "path": "src/jsx/constants.ts",
+      "line": 4,
+      "col": 33,
+      "callee_text": "Symbol",
+      "snippet": "export const DOM_RENDERER = Symbol('RENDERER')\nexport const DOM_ERROR_HANDLER = Symbol('ERROR_HANDLER')\nexport const DOM_STASH = Symbol('STASH')\nexport const DOM_INTERNAL_TAG = Symbol('INTERNAL')\nexport const DOM_MEMO = Symbol('MEMO')\nexport const PERMALINK = Symbol('PERMALINK')",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "JavaScript Symbol built-in"
+    },
+    {
+      "path": "src/jsx/dom/jsx-dev-runtime.ts",
+      "line": 22,
+      "col": 70,
+      "callee_text": "jsxDEV",
+      "snippet": "  } as JSXNode\n}\n\nexport const Fragment = (props: Record<string, unknown>): JSXNode => jsxDEV('', props, undefined)",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/jsx/dom/jsx-dev-runtime.ts",
+        "qualified_name": "jsxDEV"
+      },
+      "reason": "JSX dev runtime function jsxDEV"
+    },
+    {
+      "path": "src/jsx/dom/server.ts",
+      "line": 25,
+      "col": 15,
+      "callee_text": "element?.toString",
+      "snippet": "  if (Object.keys(options).length > 0) {\n    console.warn('options are not supported yet')\n  }\n  const res = element?.toString() ?? ''\n  if (typeof res !== 'string') {\n    throw new Error('Async component is not supported in renderToString')\n  }",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Object.prototype.toString runtime method"
+    },
+    {
+      "path": "src/middleware/compress/index.ts",
+      "line": 45,
+      "col": 7,
+      "callee_text": "ctx.res.headers.has",
+      "snippet": "    // Check if response should be compressed\n    if (\n      ctx.res.headers.has('Content-Encoding') || // already encoded\n      ctx.res.headers.has('Transfer-Encoding') || // already encoded or chunked\n      ctx.req.method === 'HEAD' || // HEAD request\n      (contentLength && Number(contentLength) < threshold) || // content-length below threshold\n      !shouldCompress(ctx.res) || // not compressible type",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "Headers.prototype.has web standard"
+    },
+    {
+      "path": "src/middleware/etag/digest.ts",
+      "line": 41,
+      "col": 42,
+      "callee_text": "x.toString(16).padStart",
+      "snippet": "  }\n\n  return Array.prototype.map\n    .call(new Uint8Array(result), (x) => x.toString(16).padStart(2, '0'))\n    .join('')\n}",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "String.prototype.padStart runtime method"
+    },
+    {
+      "path": "src/middleware/serve-static/index.ts",
+      "line": 121,
+      "col": 11,
+      "callee_text": "options.onNotFound",
+      "snippet": "      return c.body(content)\n    }\n\n    await options.onNotFound?.(path, c)\n    await next()\n    return\n  }",
+      "node_type": "call_expression",
+      "expected": "dynamic",
+      "reason": "Dynamic callback options.onNotFound"
+    },
+    {
+      "path": "src/preset/tiny.ts",
+      "line": 18,
+      "col": 19,
+      "callee_text": "PatternRouter",
+      "snippet": "> extends HonoBase<E, S, BasePath> {\n  constructor(options: HonoOptions<E> = {}) {\n    super(options)\n    this.router = new PatternRouter()\n  }\n}",
+      "node_type": "new_expression",
+      "expected": {
+        "path": "src/router/pattern-router/router.ts",
+        "qualified_name": "PatternRouter"
+      },
+      "reason": "Router implementation PatternRouter"
+    },
+    {
+      "path": "src/router/linear-router/router.ts",
+      "line": 62,
+      "col": 29,
+      "callee_text": "path.indexOf",
+      "snippet": "                continue ROUTES_LOOP\n              }\n            } else {\n              const index = path.indexOf('/', pos)\n              if (index === -1) {\n                continue ROUTES_LOOP\n              }",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "String.prototype.indexOf runtime method"
+    },
+    {
+      "path": "src/utils/jwt/jws.ts",
+      "line": 93,
+      "col": 17,
+      "callee_text": "exportPublicJwkFrom",
+      "snippet": "    const privateKey = await crypto.subtle.importKey('pkcs8', pemToBinary(key), alg, true, [\n      CryptoKeyUsage.Sign,\n    ])\n    key = await exportPublicJwkFrom(privateKey)\n  }\n  const usages = [CryptoKeyUsage.Verify]\n  if (typeof key === 'object') {",
+      "node_type": "call_expression",
+      "expected": {
+        "path": "src/utils/jwt/jws.ts",
+        "qualified_name": "exportPublicJwkFrom"
+      },
+      "reason": "Internal JWT utility exportPublicJwkFrom"
+    },
+    {
+      "path": "src/utils/stream.ts",
+      "line": 38,
+      "col": 37,
+      "callee_text": "controller.enqueue",
+      "snippet": "    this.responseReadable = new ReadableStream({\n      async pull(controller) {\n        const { done, value } = await reader.read()\n        done ? controller.close() : controller.enqueue(value)\n      },\n      cancel: () => {\n        this.abort()",
+      "node_type": "call_expression",
+      "expected": "external",
+      "reason": "ReadableStreamDefaultController.enqueue web standard"
+    }
+  ]
+}

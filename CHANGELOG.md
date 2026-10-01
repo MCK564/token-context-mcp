@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.1 — fix: object-literal methods and chained assignments in JS/TS (2026-10-01)
+
+**Upgrade:** `PARSER_ARTIFACT_VERSION` 6 → 7; the first `token-context index --all` after upgrading re-parses JS/TS/TSX files (other languages produce the same artifact). Python results are unchanged.
+
+- **Regression introduced in 0.3.0 (M12.1), now fixed** — to avoid indexing a method twice, the parser skipped *every* `method_definition` inside an object literal. Methods of object literals that no pattern owns (an object passed as an argument such as `run("s", { test() {} })`, a returned object, a nested object, an object inside a function) therefore vanished from the index (0.3.0 holds 53 fewer symbols than 0.3.1 in hono, 195 fewer in fastify and 567 fewer in zod) and so did the edges that start in them. The generic path now skips only members that an owning pattern (`const x = {…}`, `X.prototype = {…}`, `module.exports = {…}`, `Object.defineProperty` descriptors) has already emitted. Tests: `tests/test_js_object_methods.py`.
+- **Chained assignments** — `res.set = res.header = function () {}` and `exports = module.exports = {…}` now bind the function (or the methods) to every left-hand side. 0.3.0 indexed none of them (K1 recall 0.933 on express, all misses chained); the same scan on 0.3.1 finds 90 of 90 assigned methods in express with 0 wrong in the 30-symbol sample (K1 met).
+- **Evidence** — 0.3.0 was measured on the held-out sets before this fix; those numbers belong to 0.3.0 (tag `m12-freeze`). 0.3.1 was re-measured on the development sets only, see `docs/BENCHMARK.md` (M12, "0.3.1 follow-up"). Rule 17's guard compares against the freeze tag and is expected to fail for this tree.
+
+## 0.3.0 — M12: JavaScript assigned methods, C# ranking, fewer ambiguous call edges (2026-10-01)
+
+**Upgrade:** the parser artifact (6), FTS builder (2) and edge resolver (3) versions changed; the first `token-context index --all` after upgrading re-parses and re-indexes every repository. Python results are unchanged byte for byte (`tc-pinned` loc/edge gate and `rich` bench: 0 differences).
+
+- **JS (M12.1)** — methods assigned through `X.prototype.m = function…`, `X.prototype = {…}`, `Object.defineProperty(X.prototype, …)`, `X.m = …`, `this.m = …` in constructor functions, `exports.m`/`module.exports.m` and module-level object literals are indexed as symbols (`docs/SYMBOL_NAMING.md`).
+- **C# (M12.2)** — implementation ranking over interface/abstract declarations, doc comments attached to the member instead of the container (`FTS_BUILDER_VERSION` 2) and interface doc inheritance.
+- **Call edges (M12.3)** — E1 implicit `this`, E2 overload resolution by arity/group, E3 C# namespaces, E4 local variable types, E5 fields without `this.`, E6 instantiation edges (`new X`, `new X()`), E7 missing C# call forms, E8 CommonJS module bindings, E10 TS property-signature field types (`RESOLVER_VERSION` 3).
+- **Fix after review of the M12 run** — the per-file wall-clock circuit breaker in the edge resolver made edge counts depend on machine load (the same repository indexed alone or with `--all` gave different graphs). It is replaced by a deterministic work budget (`FILE_EDGE_WORK_BUDGET`); `RESOLVER_VERSION` joins the parser fingerprint and the manifest, so a resolver change re-indexes (it did not before); the I1 test (incremental equals full) now also holds across a version bump.
+- **Harness** — Rule 17 guard hardened (`evals/guard.py`: held-out runs need tag `m12-freeze` and an empty diff on every protected path, or a baseline tree byte-identical to `m12-base`; real-git tests in `tests/test_guard.py`); `evals/edge_gold_eval.py`, `evals/sample_call_sites.py`; C3 v2 (`evals/run_c3*.py`, `c3_adapters.py`, `c3_grade.py`, `c3_locate_suite.py`): watchdog timeout, turn limit, case-preserving path grading, explicit dev/held-out suite roles; lint scripts honour `gold_pending_indexer`.
+- **Evidence** — dev before/after, held-out old/new, C3 with Claude Sonnet 5.5: `docs/BENCHMARK.md` (M12), `evals/out/m12/`. Four dev edge-gold labels for hono were wrong and were corrected (`evals/out/m12/edge_gold_hono_corrections.md`).
+
 ## 0.2.0 — M6–M10: context packets, incremental index, client compatibility, GUI, Go (2026-09-29)
 
 Pushed to `main` on the owner's instruction; not tagged. Details are in the milestone sections below; the run ledger is `docs/progress/RUN_LEDGER_M6_M10.md`, the report `docs/reports/M6_M10_REPORT.vi.md`.

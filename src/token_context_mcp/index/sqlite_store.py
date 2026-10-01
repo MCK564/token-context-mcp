@@ -766,7 +766,7 @@ class SQLiteStore:
                 rows = connection.execute(
                     """
                     SELECT f.symbol_id, f.path, f.name, f.qualified_name, f.code_tokens, f.own_body,
-                           s.kind, s.signature,
+                           s.kind, s.signature, s.body_start_byte,
                            COALESCE(s.start_line, 1) AS start_line,
                            COALESCE(s.end_line, 1) AS end_line,
                            fl.sha256, fl.size, fl.mtime_ns, fl.language, fl.parse_status, fl.warnings_json,
@@ -805,6 +805,7 @@ class SQLiteStore:
                     "own_body": str(row["own_body"] or ""),
                     "kind": str(row["kind"]) if row["kind"] is not None else "module",
                     "signature": str(row["signature"]) if row["signature"] is not None else "",
+                    "body_start_byte": row["body_start_byte"],
                     "start_line": int(row["start_line"]),
                     "end_line": int(row["end_line"]),
                     "score": float(row["score"]),

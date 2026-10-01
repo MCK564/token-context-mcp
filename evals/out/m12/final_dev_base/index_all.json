@@ -1,0 +1,61 @@
+{
+  "failed": 0,
+  "indexed": 5,
+  "repositories": [
+    {
+      "edges_indexed": 3178,
+      "files_indexed": 603,
+      "files_reparsed": 446,
+      "incremental": false,
+      "index_run_id": "run_20260930T173157Z_6f7e5a75",
+      "ok": true,
+      "repo_id": "bench-csvhelper",
+      "seconds": 5.858,
+      "symbols_indexed": 14460
+    },
+    {
+      "edges_indexed": 771,
+      "files_indexed": 388,
+      "files_reparsed": 291,
+      "incremental": false,
+      "index_run_id": "run_20260930T173200Z_09021f43",
+      "ok": true,
+      "repo_id": "bench-fastify",
+      "seconds": 2.176,
+      "symbols_indexed": 1165
+    },
+    {
+      "edges_indexed": 1365,
+      "files_indexed": 467,
+      "files_reparsed": 359,
+      "incremental": false,
+      "index_run_id": "run_20260930T173202Z_40c51f09",
+      "ok": true,
+      "repo_id": "bench-hono",
+      "seconds": 2.709,
+      "symbols_indexed": 2122
+    },
+    {
+      "edges_indexed": 3797,
+      "files_indexed": 532,
+      "files_reparsed": 213,
+      "incremental": false,
+      "index_run_id": "run_20260930T173204Z_d8ef6d06",
+      "ok": true,
+      "repo_id": "bench-rich",
+      "seconds": 1.911,
+      "symbols_indexed": 2096
+    },
+    {
+      "edges_indexed": 2449,
+      "files_indexed": 319,
+      "files_reparsed": 137,
+      "incremental": false,
+      "index_run_id": "run_20260930T173206Z_91347b23",
+      "ok": true,
+      "repo_id": "tc-pinned",
+      "seconds": 1.271,
+      "symbols_indexed": 1021
+    }
+  ]
+}

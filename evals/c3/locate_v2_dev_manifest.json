@@ -1,0 +1,706 @@
+{
+  "suite": "locate_v2",
+  "role": "dev",
+  "seed": 20261001,
+  "total_tasks": 21,
+  "counted_tasks": 20,
+  "tasks": [
+    {
+      "id": "rich_t04",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "a_keyword",
+      "query": "guess pygments lexer from file name or code",
+      "gold_files": [
+        "rich/syntax.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/syntax.py",
+          "qualified_name": "Syntax.guess_lexer"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: guess pygments lexer from file name or code\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "0941aa43f7b80b6b4374071377a93642cd005c12ebc00351b8ae608a433bbb75",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    },
+    {
+      "id": "rich_t16",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "b_hidden_dep",
+      "query": "animated loading indicator picks its frame sequence and interval from a lookup table by name",
+      "gold_files": [
+        "rich/spinner.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/spinner.py",
+          "qualified_name": "Spinner.__init__"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: animated loading indicator picks its frame sequence and interval from a lookup table by name\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "9853572e7a9efe995caf75d49d49a9c0284434d1917e8923ca007d323d8fabb3",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    },
+    {
+      "id": "rich_t20",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "b_hidden_dep",
+      "query": "replaces indentation made of hard tab characters with spaces up to the next stop while keeping styled ranges aligned",
+      "gold_files": [
+        "rich/text.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.expand_tabs"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: replaces indentation made of hard tab characters with spaces up to the next stop while keeping styled ranges aligned\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "c9bdb3fc86d66e0b2e12eb083c65a6a0ff15221a8103b779993d623f20e47332",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    },
+    {
+      "id": "rich_t29",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "c_multi_file",
+      "query": "splitting the screen into rectangular regions and rendering each child into lines",
+      "gold_files": [
+        "rich/layout.py",
+        "rich/region.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout._make_region_map"
+        },
+        {
+          "path": "rich/layout.py",
+          "qualified_name": "Layout.render"
+        },
+        {
+          "path": "rich/region.py",
+          "qualified_name": "Region"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: splitting the screen into rectangular regions and rendering each child into lines\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "64102f816843206b06205023f3b5a707d33327e19fee82b8e6881b82e1a3c4bc",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    },
+    {
+      "id": "rich_t27",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "c_multi_file",
+      "query": "wrapping text into lines while counting wide unicode glyphs by their terminal columns",
+      "gold_files": [
+        "rich/text.py",
+        "rich/_wrap.py",
+        "rich/cells.py"
+      ],
+      "gold_symbols": [
+        {
+          "path": "rich/text.py",
+          "qualified_name": "Text.wrap"
+        },
+        {
+          "path": "rich/_wrap.py",
+          "qualified_name": "divide_line"
+        },
+        {
+          "path": "rich/cells.py",
+          "qualified_name": "cell_len"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: wrapping text into lines while counting wide unicode glyphs by their terminal columns\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "9852450996378a782a01d9235167a29e32bc9dfb41758bbe9bfd1892f65823b8",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    },
+    {
+      "id": "hono_t02",
+      "repo_id": "bench-hono",
+      "repo_name": "hono",
+      "language": "TypeScript",
+      "group": "a_keyword",
+      "query": "map a request filename to a file path, appending index.html when it ends with a slash or has no extension",
+      "gold_files": [
+        "src/utils/filepath.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/utils/filepath.ts",
+          "qualified_name": "getFilePath"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"hono\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: map a request filename to a file path, appending index.html when it ends with a slash or has no extension\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "a753014df6adaf5604760a123628a97083bb209940d320809d946bce0051ab58",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-hono\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-hono\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "40a608342ad7e087a2db44acd884032c8a3065ce97f16f4c6adc95fe95aab462",
+        "B2": "2f3bb673191cc3a621da9d691d40fee43ffc8a6a8b56e5c8c510aaa32ef5ae8e"
+      }
+    },
+    {
+      "id": "hono_t20",
+      "repo_id": "bench-hono",
+      "repo_name": "hono",
+      "language": "TypeScript",
+      "group": "b_hidden_dep",
+      "query": "prints one line when a request arrives and another when the response is ready, showing method, path, status and elapsed time",
+      "gold_files": [
+        "src/middleware/logger/index.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/logger/index.ts",
+          "qualified_name": "logger"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"hono\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: prints one line when a request arrives and another when the response is ready, showing method, path, status and elapsed time\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "b672bfd1c9952526c74a6e8debeb5a67abee20ac3bb0b18978149319b2890fa2",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-hono\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-hono\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "40a608342ad7e087a2db44acd884032c8a3065ce97f16f4c6adc95fe95aab462",
+        "B2": "2f3bb673191cc3a621da9d691d40fee43ffc8a6a8b56e5c8c510aaa32ef5ae8e"
+      }
+    },
+    {
+      "id": "hono_t13",
+      "repo_id": "bench-hono",
+      "repo_name": "hono",
+      "language": "TypeScript",
+      "group": "b_hidden_dep",
+      "query": "sets browser hardening fields on responses such as CSP, HSTS, frame options and permissions policy, with an optional per-request nonce",
+      "gold_files": [
+        "src/middleware/secure-headers/secure-headers.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/secure-headers/secure-headers.ts",
+          "qualified_name": "secureHeaders"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"hono\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: sets browser hardening fields on responses such as CSP, HSTS, frame options and permissions policy, with an optional per-request nonce\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "17f152d9d06a25b3d44bcba034fce4d3c7597b5920869dd4e6732deac3bebac5",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-hono\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-hono\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "40a608342ad7e087a2db44acd884032c8a3065ce97f16f4c6adc95fe95aab462",
+        "B2": "2f3bb673191cc3a621da9d691d40fee43ffc8a6a8b56e5c8c510aaa32ef5ae8e"
+      }
+    },
+    {
+      "id": "hono_t24",
+      "repo_id": "bench-hono",
+      "repo_name": "hono",
+      "language": "TypeScript",
+      "group": "c_multi_file",
+      "query": "stream server-sent events to the client, formatting event, data, id and retry lines and writing them to an encoded stream",
+      "gold_files": [
+        "src/helper/streaming/sse.ts",
+        "src/utils/stream.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "streamSSE"
+        },
+        {
+          "path": "src/helper/streaming/sse.ts",
+          "qualified_name": "SSEStreamingApi.writeSSE"
+        },
+        {
+          "path": "src/utils/stream.ts",
+          "qualified_name": "StreamingApi.write"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"hono\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: stream server-sent events to the client, formatting event, data, id and retry lines and writing them to an encoded stream\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "35c51f115032cd7dc00759e0cb07babc63b9fa172a87a53ebc6ea379ddbc144c",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-hono\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-hono\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "40a608342ad7e087a2db44acd884032c8a3065ce97f16f4c6adc95fe95aab462",
+        "B2": "2f3bb673191cc3a621da9d691d40fee43ffc8a6a8b56e5c8c510aaa32ef5ae8e"
+      }
+    },
+    {
+      "id": "hono_t22",
+      "repo_id": "bench-hono",
+      "repo_name": "hono",
+      "language": "TypeScript",
+      "group": "c_multi_file",
+      "query": "protect routes by reading a token from the Authorization header or a cookie, checking its signature against a shared secret plus expiry and not-before claims, and storing the payload on the context",
+      "gold_files": [
+        "src/middleware/jwt/jwt.ts",
+        "src/utils/jwt/jwt.ts",
+        "src/utils/jwt/jws.ts"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/middleware/jwt/jwt.ts",
+          "qualified_name": "jwt"
+        },
+        {
+          "path": "src/utils/jwt/jwt.ts",
+          "qualified_name": "verify"
+        },
+        {
+          "path": "src/utils/jwt/jws.ts",
+          "qualified_name": "verifying"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"hono\" (TypeScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: protect routes by reading a token from the Authorization header or a cookie, checking its signature against a shared secret plus expiry and not-before claims, and storing the payload on the context\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "056400b00617ea3136b8dca33065b1f84b661f0a4b58104de08201e398b1d562",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-hono\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-hono\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "40a608342ad7e087a2db44acd884032c8a3065ce97f16f4c6adc95fe95aab462",
+        "B2": "2f3bb673191cc3a621da9d691d40fee43ffc8a6a8b56e5c8c510aaa32ef5ae8e"
+      }
+    },
+    {
+      "id": "fastify_t03",
+      "repo_id": "bench-fastify",
+      "repo_name": "fastify",
+      "language": "JavaScript",
+      "group": "a_keyword",
+      "query": "copy headers from an error object onto the reply and choose the status code from error status or statusCode, defaulting to 500",
+      "gold_files": [
+        "lib/error-handler.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/error-handler.js",
+          "qualified_name": "setErrorHeaders"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"fastify\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: copy headers from an error object onto the reply and choose the status code from error status or statusCode, defaulting to 500\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "fbf0102e72118161f103fc8d11d29df692f6f39139b7747da2e3ee78d5de7210",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-fastify\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-fastify\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5af983929452dc492b667e5298c1eaf427096580e9c9e238b09a9e02c7845e6f",
+        "B2": "dd37841be8792c7fcfcf983b333f1c7d8f57cbc7e1a0091cbd5c26a58cec1062"
+      }
+    },
+    {
+      "id": "fastify_t11",
+      "repo_id": "bench-fastify",
+      "repo_name": "fastify",
+      "language": "JavaScript",
+      "group": "b_hidden_dep",
+      "query": "when a TCP connection reports an idle timeout or oversized headers before a request is parsed, write a raw 408, 431 or 400 JSON response to the socket and destroy it",
+      "gold_files": [
+        "fastify.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "fastify.js",
+          "qualified_name": "defaultClientErrorHandler"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"fastify\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: when a TCP connection reports an idle timeout or oversized headers before a request is parsed, write a raw 408, 431 or 400 JSON response to the socket and destroy it\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "4819e997fe5b2c26585e31f90b8eb2925bee06a8ac796c373ad4f6a49e388105",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-fastify\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-fastify\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5af983929452dc492b667e5298c1eaf427096580e9c9e238b09a9e02c7845e6f",
+        "B2": "dd37841be8792c7fcfcf983b333f1c7d8f57cbc7e1a0091cbd5c26a58cec1062"
+      }
+    },
+    {
+      "id": "fastify_t13",
+      "repo_id": "bench-fastify",
+      "repo_name": "fastify",
+      "language": "JavaScript",
+      "group": "b_hidden_dep",
+      "query": "last-resort router branch that warns this is likely a framework bug, prints the route table and replies with a 404 error object",
+      "gold_files": [
+        "lib/four-oh-four.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/four-oh-four.js",
+          "qualified_name": "fourOhFourFallBack"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"fastify\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: last-resort router branch that warns this is likely a framework bug, prints the route table and replies with a 404 error object\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "17c856c5d565d6c5694edbc8b8b203217096e7cb80b527814dbd83e50392a2be",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-fastify\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-fastify\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5af983929452dc492b667e5298c1eaf427096580e9c9e238b09a9e02c7845e6f",
+        "B2": "dd37841be8792c7fcfcf983b333f1c7d8f57cbc7e1a0091cbd5c26a58cec1062"
+      }
+    },
+    {
+      "id": "fastify_t28",
+      "repo_id": "bench-fastify",
+      "repo_name": "fastify",
+      "language": "JavaScript",
+      "group": "c_multi_file",
+      "query": "how a per-request identifier is produced, optionally taken from an incoming header, and attached to the request-scoped logger",
+      "gold_files": [
+        "lib/logger-factory.js",
+        "lib/req-id-gen-factory.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "reqIdGenFactory"
+        },
+        {
+          "path": "lib/req-id-gen-factory.js",
+          "qualified_name": "buildOptionalHeaderReqId"
+        },
+        {
+          "path": "lib/logger-factory.js",
+          "qualified_name": "createChildLogger"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"fastify\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: how a per-request identifier is produced, optionally taken from an incoming header, and attached to the request-scoped logger\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "117320d9cd0a0ddda28e25ca7207bc601d80c480c6320da3942330578fb7d320",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-fastify\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-fastify\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5af983929452dc492b667e5298c1eaf427096580e9c9e238b09a9e02c7845e6f",
+        "B2": "dd37841be8792c7fcfcf983b333f1c7d8f57cbc7e1a0091cbd5c26a58cec1062"
+      }
+    },
+    {
+      "id": "fastify_t27",
+      "repo_id": "bench-fastify",
+      "repo_name": "fastify",
+      "language": "JavaScript",
+      "group": "c_multi_file",
+      "query": "what happens after the server starts listening on localhost: binding the extra resolved addresses, logging the address and running the onListen hooks",
+      "gold_files": [
+        "lib/hooks.js",
+        "lib/server.js"
+      ],
+      "gold_symbols": [
+        {
+          "path": "lib/server.js",
+          "qualified_name": "multipleBindings"
+        },
+        {
+          "path": "lib/server.js",
+          "qualified_name": "listenCallback"
+        },
+        {
+          "path": "lib/hooks.js",
+          "qualified_name": "onListenHookRunner"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"fastify\" (JavaScript). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: what happens after the server starts listening on localhost: binding the extra resolved addresses, logging the address and running the onListen hooks\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "9b1e96aaa061aab45741e9e771d38276fb007d8bacb895e959fbaceef47218fa",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-fastify\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-fastify\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "5af983929452dc492b667e5298c1eaf427096580e9c9e238b09a9e02c7845e6f",
+        "B2": "dd37841be8792c7fcfcf983b333f1c7d8f57cbc7e1a0091cbd5c26a58cec1062"
+      }
+    },
+    {
+      "id": "csvhelper_t04",
+      "repo_id": "bench-csvhelper",
+      "repo_name": "csvhelper",
+      "language": "C#",
+      "group": "a_keyword",
+      "query": "trim characters from the start and end of a char buffer by adjusting the start and length arguments",
+      "gold_files": [
+        "src/CsvHelper/ArrayHelper.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/ArrayHelper.cs",
+          "qualified_name": "ArrayHelper.Trim"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"csvhelper\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: trim characters from the start and end of a char buffer by adjusting the start and length arguments\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "e61b8c0cb11b4bb43d2b996e6f4868f08b0b1814edbb032cd85ed08860780a76",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a42696265919c6918a5dfcc8843ead444619edf65b7c5e90af94403e1c613e67",
+        "B2": "3eff98fdc7218af24dcaa043b5ce2627a77f9c62d63157175160ef5929a6353c"
+      }
+    },
+    {
+      "id": "csvhelper_t16",
+      "repo_id": "bench-csvhelper",
+      "repo_name": "csvhelper",
+      "language": "C#",
+      "group": "b_hidden_dep",
+      "query": "detects compiler-generated nameless classes, such as those produced by new { A = 1 } expressions, by checking generic-type attributes and the naming prefix",
+      "gold_files": [
+        "src/CsvHelper/ReflectionExtensions.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/ReflectionExtensions.cs",
+          "qualified_name": "ReflectionExtensions.IsAnonymous"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"csvhelper\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: detects compiler-generated nameless classes, such as those produced by new { A = 1 } expressions, by checking generic-type attributes and the naming prefix\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "48bdaa5c3dea19e4215a9ca907ac59d63fd9ed747bef0f755e4efa50ef5d15c2",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a42696265919c6918a5dfcc8843ead444619edf65b7c5e90af94403e1c613e67",
+        "B2": "3eff98fdc7218af24dcaa043b5ce2627a77f9c62d63157175160ef5929a6353c"
+      }
+    },
+    {
+      "id": "csvhelper_t14",
+      "repo_id": "bench-csvhelper",
+      "repo_name": "csvhelper",
+      "language": "C#",
+      "group": "b_hidden_dep",
+      "query": "renders binary data as uppercase two-digit base-16 pairs, with an optional 0x prefix and optional dash separators",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/ByteArrayConverter.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/ByteArrayConverter.cs",
+          "qualified_name": "ByteArrayConverter.ByteArrayToHexString"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"csvhelper\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: renders binary data as uppercase two-digit base-16 pairs, with an optional 0x prefix and optional dash separators\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "081cfcf9a59393e068847a67d21933602c850123bf742f0352e9e444bad68ee8",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a42696265919c6918a5dfcc8843ead444619edf65b7c5e90af94403e1c613e67",
+        "B2": "3eff98fdc7218af24dcaa043b5ce2627a77f9c62d63157175160ef5929a6353c"
+      }
+    },
+    {
+      "id": "csvhelper_t30",
+      "repo_id": "bench-csvhelper",
+      "repo_name": "csvhelper",
+      "language": "C#",
+      "group": "c_multi_file",
+      "query": "how text becomes an enum value: custom names from attributes on enum members, case-insensitive matching, and when the factory defers to a user-registered generic enum converter",
+      "gold_files": [
+        "src/CsvHelper/TypeConversion/EnumConverter.cs",
+        "src/CsvHelper/TypeConversion/EnumConverterFactory.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.ConvertFromString"
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverter.cs",
+          "qualified_name": "EnumConverter.EnumConverter"
+        },
+        {
+          "path": "src/CsvHelper/TypeConversion/EnumConverterFactory.cs",
+          "qualified_name": "EnumConverterFactory.Create"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"csvhelper\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: how text becomes an enum value: custom names from attributes on enum members, case-insensitive matching, and when the factory defers to a user-registered generic enum converter\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "a58d901ecd8410d69ab90d4a678ccd74b4c80ab06760ebd7ad637b2c28f31a9b",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a42696265919c6918a5dfcc8843ead444619edf65b7c5e90af94403e1c613e67",
+        "B2": "3eff98fdc7218af24dcaa043b5ce2627a77f9c62d63157175160ef5929a6353c"
+      }
+    },
+    {
+      "id": "csvhelper_t25",
+      "repo_id": "bench-csvhelper",
+      "repo_name": "csvhelper",
+      "language": "C#",
+      "group": "c_multi_file",
+      "query": "auto-mapping a class's members by reflection: collecting properties up the base classes with hidden-by-new handling, finding the declaring type, and skipping ignored members",
+      "gold_files": [
+        "src/CsvHelper/Configuration/ClassMap.cs",
+        "src/CsvHelper/ReflectionHelper.cs"
+      ],
+      "gold_symbols": [
+        {
+          "path": "src/CsvHelper/Configuration/ClassMap.cs",
+          "qualified_name": "ClassMap.AutoMapMembers"
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetUniqueProperties"
+        },
+        {
+          "path": "src/CsvHelper/ReflectionHelper.cs",
+          "qualified_name": "ReflectionHelper.GetDeclaringProperty"
+        }
+      ],
+      "counted": true,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"csvhelper\" (C#). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: auto-mapping a class's members by reflection: collecting properties up the base classes with hidden-by-new handling, finding the declaring type, and skipping ignored members\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "d1d1851b2766ab5f251eb9ecb7047fc013935ed24a9a825f2fc308f431c0a218",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-csvhelper\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "a42696265919c6918a5dfcc8843ead444619edf65b7c5e90af94403e1c613e67",
+        "B2": "3eff98fdc7218af24dcaa043b5ce2627a77f9c62d63157175160ef5929a6353c"
+      }
+    },
+    {
+      "id": "probe",
+      "repo_id": "bench-rich",
+      "repo_name": "rich",
+      "language": "Python",
+      "group": "probe",
+      "query": "Where does this project parse its command-line arguments or configuration? Give the main file.",
+      "gold_files": [],
+      "gold_symbols": [],
+      "counted": false,
+      "task_prompt": "You are working in a local checkout of the open-source repository \"rich\" (Python). The current directory is its root. Do not create, modify or delete any file.\n\nQuestion: Where does this project parse its command-line arguments or configuration? Give the main file.\n\nFind where this is implemented. When you are done, end your reply with exactly one fenced JSON block and nothing after it:\n```json\n{\"files\": [\"<repo-relative path>\", \"...\"], \"symbols\": [{\"path\": \"<repo-relative path>\", \"name\": \"<Class.method or function name>\"}]}\n```\nList at most 5 files, most likely first, and at most 10 symbols.",
+      "task_prompt_sha256": "8e7186e1b50d2aee8143ee8acbb4c742d779faba5005b920051e29e5ad218c19",
+      "arm_preambles": {
+        "B0": "Use your built-in tools to read and search the code.",
+        "B1": "You can use your built-in tools and the MCP server \"tcbench\" (repo_id \"bench-rich\"). Use at most 12 tcbench calls.",
+        "B2": "Start with the MCP server \"tcbench\" (repo_id \"bench-rich\"). After at least one tcbench call you may make at most one built-in file-reading or search call to verify. Use at most 12 tcbench calls."
+      },
+      "arm_preamble_sha256": {
+        "B0": "b78fdf22e6eea485525cf54586fc5ae62f0af7ce26317996b1275f793c52f89b",
+        "B1": "0dd4c1490252e4b3b35469b2ddcf2fff5c81a495eb1332f95a586c5e8198e55f",
+        "B2": "f07eca81062ca20530a37fde115ff7dc86d99aa89abd839c266274370f9a2702"
+      }
+    }
+  ]
+}

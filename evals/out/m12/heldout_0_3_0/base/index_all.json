@@ -1,0 +1,50 @@
+{
+  "failed": 0,
+  "indexed": 4,
+  "repositories": [
+    {
+      "edges_indexed": 11,
+      "files_indexed": 217,
+      "files_reparsed": 154,
+      "incremental": false,
+      "index_run_id": "run_20261001T005701Z_deeb20ec",
+      "ok": true,
+      "repo_id": "heldout-express",
+      "seconds": 1.38,
+      "symbols_indexed": 165
+    },
+    {
+      "edges_indexed": 2154,
+      "files_indexed": 282,
+      "files_reparsed": 216,
+      "incremental": false,
+      "index_run_id": "run_20261001T005703Z_613bbc9a",
+      "ok": true,
+      "repo_id": "heldout-serilog",
+      "seconds": 2.169,
+      "symbols_indexed": 1963
+    },
+    {
+      "edges_indexed": 3487,
+      "files_indexed": 146,
+      "files_reparsed": 88,
+      "incremental": false,
+      "index_run_id": "run_20261001T005705Z_66fdf44d",
+      "ok": true,
+      "repo_id": "heldout-starlette",
+      "seconds": 1.537,
+      "symbols_indexed": 2063
+    },
+    {
+      "edges_indexed": 3622,
+      "files_indexed": 688,
+      "files_reparsed": 517,
+      "incremental": false,
+      "index_run_id": "run_20261001T005710Z_cab4b115",
+      "ok": true,
+      "repo_id": "heldout-zod",
+      "seconds": 5.443,
+      "symbols_indexed": 4386
+    }
+  ]
+}
