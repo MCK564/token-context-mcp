@@ -28,12 +28,14 @@ FREEZE_TAG = f"{MILESTONE}-freeze"
 BASELINE_TAG = f"{MILESTONE}-base"
 BASELINE_PACKAGE = "src/token_context_mcp"
 
-# Everything that can change a held-out number: the library, both held-out entry points, the modules they import
+# Everything that can change a held-out number: the library, held-out entry points, the modules they import
 # (``loc_eval`` is imported by ``bench_retrieval``) and this guard itself.
 PROTECTED_PATHS = (
     "src",
     "evals/bench_retrieval.py",
     "evals/edge_gold_eval.py",
+    "evals/edge_oracle_eval.py",
+    "evals/dispatch_eval.py",
     "evals/loc_eval.py",
     "evals/guard.py",
 )
