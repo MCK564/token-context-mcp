@@ -92,6 +92,39 @@ def test_memory_consolidate() -> None:
     assert service.memory_get("step_1", scope="session")["status"] == "not_found"
 
 
+def test_memory_consolidate_prunes_namespaced_entries() -> None:
+    service = MemoryService(":memory:")
+    service.memory_put("a", {"note": "alpha module wiring"}, scope="project", namespace="repo:x", ttl=0)
+    service.memory_put("a", {"note": "alpha in another repo"}, scope="project", namespace="repo:y", ttl=0)
+    service.memory_put("b", {"note": "beta default namespace"}, scope="project", ttl=0)
+    service.memory_put("keep", {"note": "other scope"}, scope="session", namespace="agent_1")
+
+    res = service.memory_consolidate(scope="project", target_key="insights", prune_transient=True)
+    assert res["status"] == "consolidated"
+    assert res["source_entries_count"] == 3
+    assert sorted(res["pruned_keys"]) == ["a", "a", "b"]
+
+    # every pruned entry is really gone, in every namespace, and no longer searchable
+    assert service.memory_get("a", scope="project", namespace="repo:x")["status"] == "not_found"
+    assert service.memory_get("a", scope="project", namespace="repo:y")["status"] == "not_found"
+    assert service.memory_get("b", scope="project")["status"] == "not_found"
+    assert service.memory_search("alpha", scope="project")["matches_count"] == 0
+
+    # other scopes and the consolidated target are untouched
+    assert service.memory_get("keep", scope="session", namespace="agent_1")["status"] == "found"
+    assert service.memory_get("insights", scope="global")["status"] == "found"
+
+
+def test_memory_consolidate_keeps_sources_by_default() -> None:
+    service = MemoryService(":memory:")
+    service.memory_put("a", {"note": "alpha"}, scope="project", namespace="repo:x", ttl=0)
+
+    res = service.memory_consolidate(scope="project")
+    assert res["status"] == "consolidated"
+    assert res["pruned_keys"] == []
+    assert service.memory_get("a", scope="project", namespace="repo:x")["status"] == "found"
+
+
 def test_memory_search_special_queries() -> None:
     service = MemoryService(":memory:")
     service.memory_put("k1", {"doc": "token-context MCP architectural overview"})

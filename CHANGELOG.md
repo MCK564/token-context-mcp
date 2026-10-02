@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — fix: `memory_consolidate(prune_transient=true)` and discovery documentation (2026-10-02)
+
+- **`memory_consolidate(prune_transient=true)` now deletes the source entries it reports** — the delete ignored each entry's namespace, so only entries in the empty namespace were removed while `pruned_keys` still listed every source key. It now deletes by the entry's own `scope` + `namespace` + `key` (FTS rows included) and lists only the keys it removed. Tests: `tests/test_memory_tools.py` (`test_memory_consolidate_prunes_namespaced_entries`, `test_memory_consolidate_keeps_sources_by_default`).
+- **Tool catalog** — `get_module_dependents` now lists its `path` parameter next to `module` in `search_tools`/`list_available_tools` output, as the server already accepted both.
+- **Docs** — the Dynamic Tool Discovery section of `README.md` and `README.en.md` showed invented output (`score`, `description`), wrong category names and unmeasured token figures; it now shows real response shapes, the six catalog categories and measured sizes (`tools/list`: 10 core tools about 1,750 tokens, 20 tools about 2,860, 22 with admin about 3,170; one category about 110 to 560; unfiltered `list_available_tools` about 1,800; characters divided by 4). The memory tool tables and bullets now describe the three scopes, `namespace`, the `memory_unlock` tool, the real return shapes and the non-blocking lock; `sample_summarize` default `max_tokens` is 512. Tool counts in `docs/SETUP.en.md` (20) and `docs/SETUP.vi.md` (10 extension tools) corrected. `sample_prompt.md` rewritten (VI + EN).
+
 ## 0.3.2 — M13: Java and C# member resolution (overloads, overrides, packages, long identifiers) (2026-10-02)
 
 **Upgrade:** `PARSER_ARTIFACT_VERSION` 7 → 8, `RESOLVER_VERSION` 3 → 4, `FTS_BUILDER_VERSION` 2 → 3; the first `token-context index --all` after upgrading re-parses and re-indexes Java and C# files and rebuilds the search index. Python, JavaScript and TypeScript results are unchanged byte for byte (`rich`, `hono`, `fastify`, `tc-pinned` loc/edge gate: 0 differences).

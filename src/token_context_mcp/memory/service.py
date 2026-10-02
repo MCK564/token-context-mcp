@@ -123,8 +123,10 @@ class MemoryService:
         pruned_keys: list[str] = []
         if prune_transient:
             for e in source_entries:
-                self.store.delete(key=e["key"], scope=scope)
-                pruned_keys.append(e["key"])
+                # Entries live under (scope, namespace, key); deleting without the entry's own
+                # namespace only matched the empty namespace and silently kept the rest.
+                if self.store.delete(key=e["key"], scope=scope, namespace=e["namespace"]):
+                    pruned_keys.append(e["key"])
 
         return {
             "status": "consolidated",

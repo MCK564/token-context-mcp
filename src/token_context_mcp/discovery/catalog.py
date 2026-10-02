@@ -134,7 +134,8 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         summary="Parsed import relationships for an indexed path or module (importers and imported modules).",
         parameters_summary={
             "repo_id": "string (required)",
-            "module": "string (module name or relative path)",
+            "module": "string (module name or relative path; give module or path)",
+            "path": "string (indexed relative path; alternative to module)",
         },
         tags=["imports", "modules", "dependents", "architecture"],
         recommended_followups=["get_file_skeleton"],
