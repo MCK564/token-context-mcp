@@ -21,7 +21,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from token_context_mcp.parse.jvm_types import split_params, type_key, type_ref
+from token_context_mcp.parse.jvm_types import (
+    element_type_of,
+    extract_generic_args,
+    split_params,
+    type_key,
+    type_ref,
+    unwrap_wrapper_type,
+)
 
 _COMMENT_TYPES = frozenset({"comment", "line_comment", "block_comment"})
 
@@ -48,7 +55,7 @@ _SCOPE_NODES = {
     ),
     "c_sharp": frozenset(
         {"block", "for_statement", "foreach_statement", "using_statement", "catch_clause", "lambda_expression",
-         "anonymous_method_expression", "switch_section", "switch_expression_arm", "fixed_statement"}
+         "anonymous_method_expression", "switch_expression_arm", "fixed_statement"}
     ),
 }
 _LAMBDA_NODES = frozenset({"lambda_expression", "anonymous_method_expression"})
@@ -78,6 +85,7 @@ class JvmCallExtractor:
         self.cache: dict[tuple[int, int, str], str | None] = {}
         self.calls: list[Any] = []
         self.fields = self._collect_fields(root)
+        self.type_bounds: dict[str, str] = self._collect_type_bounds(root)
 
     # ------------------------------------------------------------------ helpers
     def text(self, node: object | None) -> str:
@@ -101,6 +109,43 @@ class JvmCallExtractor:
     def _is_anonymous_body(self, node: object) -> bool:
         parent = getattr(node, "parent", None)
         return node.type == "class_body" and parent is not None and parent.type in {"object_creation_expression", "enum_constant"}  # type: ignore[attr-defined]
+
+    # ------------------------------------------------------------------ type bounds
+    def _collect_type_bounds(self, root: object) -> dict[str, str]:
+        bounds: dict[str, str] = {}
+        stack: list[object] = [root]
+        while stack:
+            node = stack.pop()
+            kind = getattr(node, "type", "")
+            if self.java:
+                if kind == "type_parameter":
+                    # type_parameter -> [type_identifier, type_bound]
+                    name_node = self._field(node, "name") or (node.named_children[0] if getattr(node, "named_children", None) else None)
+                    tb = next((c for c in getattr(node, "named_children", []) if c.type == "type_bound"), None)
+                    if name_node is not None and tb is not None:
+                        t_name = self.text(name_node).strip()
+                        types = [type_ref(self.text(c)) for c in getattr(tb, "named_children", []) if type_ref(self.text(c))]
+                        if t_name and types and t_name not in bounds:
+                            bounds[t_name] = types[0]
+            else:
+                if kind == "type_parameter_constraints_clause":
+                    # identifier T followed by type_parameter_constraint
+                    children = getattr(node, "named_children", [])
+                    if children:
+                        t_name = self.text(children[0]).strip()
+                        c_types: list[str] = []
+                        for c in children[1:]:
+                            if c.type == "type_parameter_constraint":
+                                tn = c.child_by_field_name("type") or (c.named_children[0] if getattr(c, "named_children", None) else None)
+                                if tn is not None:
+                                    ref = type_ref(self.text(tn))
+                                    if ref and ref not in {"class", "struct", "new", "notnull", "unmanaged"}:
+                                        c_types.append(ref)
+                        if t_name and c_types and t_name not in bounds:
+                            bounds[t_name] = c_types[0]
+            for child in reversed(getattr(node, "named_children", [])):
+                stack.append(child)
+        return bounds
 
     # ------------------------------------------------------------------ fields
     def _collect_fields(self, root: object) -> dict[tuple[str, str], str | None]:
@@ -133,18 +178,24 @@ class JvmCallExtractor:
                         holder = next((c for c in node.named_children if c.type == "variable_declaration"), None)  # type: ignore[attr-defined]
                     if holder is not None:
                         type_node = self._field(holder, "type")
-                        key = type_ref(self.text(type_node)) if type_node is not None else ""
+                        t_raw = self.text(type_node) if type_node is not None else ""
+                        key = type_ref(t_raw)
+                        elem = element_type_of(t_raw)
+                        texpr = f"T:{key}[{elem}]" if elem else (f"T:{key}" if key else None)
                         for child in holder.named_children:  # type: ignore[attr-defined]
                             if child.type == "variable_declarator":
                                 name_node = self._field(child, "name")
                                 if name_node is not None:
-                                    add(cls, self.text(name_node), f"T:{key}" if key else None)
+                                    add(cls, self.text(name_node), texpr)
                 elif kind == "property_declaration" and not self.java:
                     type_node = self._field(node, "type")
                     name_node = self._field(node, "name")
                     if name_node is not None:
-                        key = type_ref(self.text(type_node)) if type_node is not None else ""
-                        add(cls, self.text(name_node), f"T:{key}" if key else None)
+                        t_raw = self.text(type_node) if type_node is not None else ""
+                        key = type_ref(t_raw)
+                        elem = element_type_of(t_raw)
+                        texpr = f"T:{key}[{elem}]" if elem else (f"T:{key}" if key else None)
+                        add(cls, self.text(name_node), texpr)
             for child in reversed(node.named_children):  # type: ignore[attr-defined]
                 stack.append((child, cls))
         return fields
@@ -180,20 +231,33 @@ class JvmCallExtractor:
                 return True, scope[name]
         return False, None
 
-    def _declare_params(self, params_node: object | None) -> None:
+    def _declare_params(self, params_node: object | None, inferred_types: list[str | None] | None = None) -> None:
         if params_node is None:
             return
         kind = params_node.type  # type: ignore[attr-defined]
         if kind in {"identifier", "implicit_parameter"}:
-            self.declare(self.text(params_node).strip(), None)
+            t = inferred_types[0] if inferred_types and len(inferred_types) > 0 else None
+            self.declare(self.text(params_node).strip(), t)
             return
         if kind == "inferred_parameters":
-            for child in self._named(params_node):
-                self.declare(self.text(child).strip(), None)
+            children = self._named(params_node)
+            for idx, child in enumerate(children):
+                t = inferred_types[idx] if inferred_types and idx < len(inferred_types) else None
+                self.declare(self.text(child).strip(), t)
             return
-        for parameter in split_params(self.text(params_node)) or ():
+        plist = split_params(self.text(params_node)) or ()
+        for idx, parameter in enumerate(plist):
             key = parameter.ref or parameter.type
-            self.declare(parameter.name, f"T:{key}" if key else None)
+            if key in self.type_bounds:
+                texpr = f"T:{self.type_bounds[key]}"
+            elif key:
+                elem = element_type_of(parameter.raw or key)
+                texpr = f"T:{key}[{elem}]" if elem else f"T:{key}"
+            elif inferred_types and idx < len(inferred_types):
+                texpr = inferred_types[idx]
+            else:
+                texpr = None
+            self.declare(parameter.name, texpr)
 
     def _declare_typed(self, type_node: object | None, name_node: object | None, value: object | None = None) -> None:
         if name_node is None:
@@ -206,7 +270,12 @@ class JvmCallExtractor:
             self.declare(name, self.infer(value) if value is not None else None)
             return
         key = type_ref(type_text)
-        self.declare(name, f"T:{key}" if key else None)
+        if key in self.type_bounds:
+            self.declare(name, f"T:{self.type_bounds[key]}")
+            return
+        elem = element_type_of(type_text)
+        texpr = f"T:{key}[{elem}]" if elem else (f"T:{key}" if key else None)
+        self.declare(name, texpr)
 
     # ------------------------------------------------------------------ inference
     def infer(self, node: object | None, depth: int = 0) -> str | None:
@@ -265,9 +334,36 @@ class JvmCallExtractor:
         if kind == "as_expression":
             key = type_ref(self.text(self._field(node, "right")))
             return f"T:{key}" if key else None
+        if kind == "await_expression":
+            sub = next((c for c in getattr(node, "named_children", [])), None)
+            sub_t = self.infer(sub, nxt) if sub is not None else None
+            if sub_t and sub_t.startswith("T:"):
+                raw_k = sub_t[2:].split("[")[0]
+                unwrapped = unwrap_wrapper_type(raw_k)
+                if unwrapped:
+                    return f"T:{unwrapped}"
+            return sub_t
+        if kind in {"element_access_expression", "array_access"}:
+            container = self._field(node, "expression" if kind == "element_access_expression" else "array")
+            cont_t = self.infer(container, nxt)
+            if cont_t and cont_t.startswith("T:"):
+                # Check if it has cached element type e.g. T:List[JToken]
+                if "[" in cont_t and cont_t.endswith("]"):
+                    inner = cont_t[cont_t.find("[") + 1 : -1]
+                    if inner:
+                        return f"T:{inner}"
+                raw_k = cont_t[2:]
+                elem = element_type_of(raw_k)
+                if elem:
+                    return f"T:{elem}"
+            return None
         if kind == "object_creation_expression":
             type_node = self._field(node, "type")
-            key = type_ref(self.text(type_node)) if type_node is not None else ""
+            raw_text = self.text(type_node) if type_node is not None else ""
+            key = type_ref(raw_text)
+            elem = element_type_of(raw_text)
+            if elem:
+                return f"T:{key}[{elem}]"
             return f"T:{key}" if key and not key.endswith("[]") else None
         if kind == "array_creation_expression":
             type_node = self._field(node, "type")
@@ -326,6 +422,10 @@ class JvmCallExtractor:
             obj = self._field(node, "object")
             base = "this" if obj is None else self.infer(obj, nxt)
             name = self.text(self._field(node, "name"))
+            if name in {"get", "getFirst", "getLast"} and base and base.startswith("T:") and "[" in base:
+                inner = base[base.find("[") + 1 : -1]
+                if inner:
+                    return f"T:{inner}"
             return self._extend(base, f"m:{name}/{self._arg_count_text(self._field(node, 'arguments'))}") if name else None
         if kind == "field_access":  # Java
             obj = self._field(node, "object")
@@ -342,6 +442,10 @@ class JvmCallExtractor:
             if fkind == "member_access_expression":
                 base = self.infer(self._field(function, "expression"), nxt)
                 name = self._call_name(self._field(function, "name"))
+                if name in {"First", "FirstOrDefault", "Single", "SingleOrDefault", "ElementAt"} and base and base.startswith("T:") and "[" in base:
+                    inner = base[base.find("[") + 1 : -1]
+                    if inner:
+                        return f"T:{inner}"
             elif fkind in {"identifier", "generic_name"}:
                 base = "this"
                 name = self._call_name(function)
@@ -366,7 +470,7 @@ class JvmCallExtractor:
             return None, None, None
         if "|" not in texpr:
             if texpr.startswith("T:"):
-                key = texpr[2:]
+                key = texpr[2:].split("[")[0]
                 if not key or key.endswith("[]") or key in {"null"}:
                     return None, None, None
                 return key, source, None
@@ -388,7 +492,8 @@ class JvmCallExtractor:
             if texpr == "this":
                 texpr = f"T:{self.class_stack[-1]}" if self.class_stack and self.class_stack[-1] else None
             if texpr and texpr.startswith("T:") and "|" not in texpr:
-                keys.append(texpr[2:].rsplit(".", 1)[-1])  # overloads are compared by simple type name
+                base_t = texpr[2:].split("[")[0]
+                keys.append(base_t.rsplit(".", 1)[-1])  # overloads are compared by simple type name
             else:
                 keys.append("?")
         if not keys or all(key == "?" for key in keys):
@@ -521,7 +626,32 @@ class JvmCallExtractor:
             if kind in self.owner_nodes:
                 self._declare_params(self._field(node, "parameters"))
             elif kind in _LAMBDA_NODES:
-                self._declare_params(self._field(node, "parameters"))
+                inferred_lambda_types: list[str | None] | None = None
+                parent = getattr(node, "parent", None)
+                if parent is not None:
+                    if parent.type == "variable_declarator":
+                        pdecl = getattr(parent, "parent", None)
+                        if pdecl is not None:
+                            t_node = self._field(pdecl, "type")
+                            t_text = self.text(t_node).strip() if t_node else ""
+                            if t_text and t_text != "var":
+                                gargs = extract_generic_args(t_text)
+                                clean_c = clean_type(t_text)
+                                if clean_c in {"Action", "Consumer"} and gargs:
+                                    inferred_lambda_types = [f"T:{type_ref(a)}" for a in gargs]
+                                elif clean_c in {"Func", "Function"} and len(gargs) >= 2:
+                                    inferred_lambda_types = [f"T:{type_ref(a)}" for a in gargs[:-1]]
+                    elif parent.type in {"argument", "argument_list"}:
+                        inv = parent.parent if parent.type == "argument_list" else parent.parent.parent
+                        if inv is not None and getattr(inv, "type", "") in {"invocation_expression", "method_invocation"}:
+                            fn = self._field(inv, "function") if not self.java else inv
+                            rec_expr = self._field(fn, "expression") if not self.java else self._field(inv, "object")
+                            rec_t = self.infer(rec_expr)
+                            if rec_t and rec_t.startswith("T:") and "[" in rec_t:
+                                inner = rec_t[rec_t.find("[") + 1 : -1]
+                                if inner:
+                                    inferred_lambda_types = [f"T:{inner}"]
+                self._declare_params(self._field(node, "parameters") or self._field(node, "parameter"), inferred_lambda_types)
 
         # ---- declarations
         if kind == "variable_declarator":
@@ -542,7 +672,20 @@ class JvmCallExtractor:
         elif kind in {"enhanced_for_statement", "foreach_statement"}:
             name_node = self._field(node, "name") if self.java else self._field(node, "left")
             if name_node is not None and name_node.type == "identifier":  # type: ignore[attr-defined]
-                self._declare_typed(self._field(node, "type"), name_node, None)
+                type_node = self._field(node, "type")
+                type_text = self.text(type_node).strip() if type_node is not None else ""
+                if type_text in {"", "var"} or (type_node is not None and type_node.type == "implicit_type"):
+                    coll_node = self._field(node, "value") if self.java else self._field(node, "right")
+                    coll_t = self.infer(coll_node)
+                    elem_t = None
+                    if coll_t and coll_t.startswith("T:"):
+                        if "[" in coll_t and coll_t.endswith("]"):
+                            elem_t = coll_t[coll_t.find("[") + 1 : -1]
+                        else:
+                            elem_t = element_type_of(coll_t[2:])
+                    self.declare(self.text(name_node).strip(), f"T:{elem_t}" if elem_t else None)
+                else:
+                    self._declare_typed(type_node, name_node, None)
         elif kind in {"catch_declaration", "catch_formal_parameter"}:
             name_node = self._field(node, "name")
             type_node = self._field(node, "type")
@@ -581,11 +724,37 @@ class JvmCallExtractor:
                 )
             elif kind == "object_creation_expression":
                 self._creation(node)
+            elif kind == "explicit_constructor_invocation":
+                ctor_node = self._field(node, "constructor")
+                ctor_name = self.text(ctor_node).strip() if ctor_node else ""
+                target_cls = None
+                if ctor_name == "this" and self.class_stack and self.class_stack[-1]:
+                    target_cls = self.class_stack[-1]
+                elif ctor_name == "super" and self.class_stack and self.class_stack[-1]:
+                    bases = self.inheritance.get(self.class_stack[-1], ())
+                    if bases:
+                        target_cls = bases[0]
+                if target_cls:
+                    self._emit(target_cls, None, node, args=self._field(node, "arguments"), call_kind="new")
         else:
             if kind == "invocation_expression":
                 self._csharp_invocation(node)
             elif kind == "object_creation_expression":
                 self._creation(node)
+            elif kind == "constructor_initializer":
+                for child in getattr(node, "children", []):
+                    if child.type in {"this", "base"}:
+                        init_kind = child.type
+                        target_cls = None
+                        if init_kind == "this" and self.class_stack and self.class_stack[-1]:
+                            target_cls = self.class_stack[-1]
+                        elif init_kind == "base" and self.class_stack and self.class_stack[-1]:
+                            bases = self.inheritance.get(self.class_stack[-1], ())
+                            if bases:
+                                target_cls = bases[0]
+                        if target_cls:
+                            self._emit(target_cls, None, node, args=self._field(node, "arguments") or next((c for c in getattr(node, "named_children", []) if c.type == "argument_list"), None), call_kind="new")
+                        break
         return needs_exit, post
 
     def _csharp_invocation(self, node: object) -> None:

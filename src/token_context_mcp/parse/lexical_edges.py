@@ -22,7 +22,7 @@ _IDENTIFIER_RE = re.compile(r"\b[A-Za-z_][$\w]*\b")
 FILE_EDGE_WORK_BUDGET = 4_000_000
 WORK_PER_CANDIDATE = 20
 
-RESOLVER_VERSION = 4  # 4: M13 Java/C# member resolution (types, overloads, hierarchy, chains); 3: M12
+RESOLVER_VERSION = 5  # 5: M14 Java/C# static types, bounds, chains, switch scope, calibrated extension confidence; 4: M13
 
 # Calibrated confidence scores per scope based on evals/out/m4/edge_eval_final.json
 # Values rounded down to step 0.05. Scopes with n < 10 retain conservative default values.
@@ -627,7 +627,11 @@ def _jvm_eval_chain_uncached(chain: str, prefixes: list[str], ctx: _JvmContext) 
         if kind == "m":
             fitting = [m for m in members if _jvm_accepts(m, count, True)]
             members = fitting or members
-            types = {jt.clean_type(jt.return_type(m.signature, m.name)) for m in members}
+            raw_types = {jt.return_type_full(m.signature, m.name) for m in members}
+            types = set()
+            for rt in raw_types:
+                unwrapped = jt.unwrap_wrapper_type(rt)
+                types.add(jt.clean_type(unwrapped if unwrapped else rt))
         else:
             types = {jt.clean_type(jt.property_type(m.signature, m.name)) for m in members}
         types.discard("")
@@ -814,7 +818,7 @@ def build_lexical_edges(
                         source_symbol_id=source.symbol_id,
                         target_symbol_id=target.symbol_id if target else None,
                         target_name=call.name,
-                        edge_kind="call",
+                        edge_kind=getattr(call, "call_kind", None) or "call",
                         status=status,
                         backend="lexical",
                         confidence=confidence,

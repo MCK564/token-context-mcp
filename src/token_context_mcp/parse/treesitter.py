@@ -16,8 +16,7 @@ from token_context_mcp.models import SymbolRecord
 # inheritance, warnings and parse status as produced by parse_source().  BUMP IT whenever the output of
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
-# with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 8  # 8: M13 Java/C# - lexical scopes, argument types, receiver chains, Java `new`, qualified owners, fixed Java inheritance; 7: object-literal methods passed as arguments indexed again; chained JS assignments; 6: E6 instantiation edges
+PARSER_ARTIFACT_VERSION = 9  # 9: M14 Java/C# static types, bounds, unwrap await, element types, constructor chaining; 8: M13 Java/C# - lexical scopes, argument types, receiver chains
 
 
 try:
