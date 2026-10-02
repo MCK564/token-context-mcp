@@ -77,7 +77,7 @@ Những điểm dễ sai (đã kiểm tra trên mã nguồn):
 4. `memory_search` nối mọi từ khóa bằng AND, không xếp hạng (chỉ cắt theo `limit`) và trả luôn `value`. Dùng 1-3 từ khóa và `limit` nhỏ.
 5. `ttl` mặc định 86400 giây (1 ngày). `ttl=0` hoặc `null` là không hết hạn. Mục hết hạn không được trả về.
 6. Key tối đa 256 byte, value tối đa 1 MB. Chuỗi giống bí mật bị che khi lưu, nhưng vẫn đừng lưu bí mật hay thân hàm.
-7. `memory_consolidate` đọc tối đa 100 mục cũ nhất của `scope` (mọi namespace) và luôn ghi bản tổng hợp vào `scope="global"`. Gọi khi kết thúc việc lớn. Giữ `prune_transient=false`: khi bật, `pruned_keys` liệt kê mọi mục nguồn nhưng chỉ mục ở namespace trống bị xóa thật.
+7. `memory_consolidate` đọc tối đa 100 mục cũ nhất của `scope` (mọi namespace) và luôn ghi bản tổng hợp vào `scope="global"`. Gọi khi kết thúc việc lớn. Giữ `prune_transient=false` làm mặc định: bản tổng hợp là bản nén nên mất chi tiết, còn `prune_transient=true` xóa hẳn các mục nguồn ở mọi namespace của `scope` đó.
 8. `memory_lock` không chờ: nếu người khác đang giữ, nó trả ngay `acquired: false` kèm `held_by` và `remaining_sec`. Gọi lại cùng `agent_id` thì gia hạn. Khóa tự hết hạn sau `timeout_sec` và chỉ là quy ước giữa các agent dùng server này, không chặn việc ghi file.
 9. `memory_unlock` bỏ trống `agent_id` thì lấy từ biến môi trường `TOKEN_CONTEXT_AGENT_ID` hoặc `anonymous`. Luôn truyền đúng `agent_id` đã dùng để khóa. `agent_id` hợp lệ: chữ, số, `_`, `-`, tối đa 64 ký tự.
 
@@ -306,7 +306,7 @@ Easy-to-miss behaviours (verified against the source):
 4. `memory_search` joins all keywords with AND, does not rank (it only cuts at `limit`) and returns the `value` inline. Use 1-3 keywords and a small `limit`.
 5. `ttl` defaults to 86400 seconds (1 day). `ttl=0` or `null` means never expires. Expired entries are not returned.
 6. Keys are at most 256 bytes and values at most 1 MB. Secret-looking strings are redacted on store, but still do not store secrets or function bodies.
-7. `memory_consolidate` reads at most the 100 oldest entries of a `scope` (all namespaces) and always writes the summary into `scope="global"`. Call it at the end of a large task. Keep `prune_transient=false`: when enabled, `pruned_keys` lists every source entry but only entries in the empty namespace are actually deleted.
+7. `memory_consolidate` reads at most the 100 oldest entries of a `scope` (all namespaces) and always writes the summary into `scope="global"`. Call it at the end of a large task. Keep `prune_transient=false` as the default: the summary is a compression and loses detail, while `prune_transient=true` permanently deletes the source entries in every namespace of that `scope`.
 8. `memory_lock` does not wait: if someone else holds the lock it returns `acquired: false` immediately, with `held_by` and `remaining_sec`. Calling it again with the same `agent_id` renews the lock. The lock expires on its own after `timeout_sec` and is only a convention between agents using this server; it does not block file writes.
 9. `memory_unlock` with no `agent_id` falls back to the `TOKEN_CONTEXT_AGENT_ID` environment variable, or `anonymous`. Always pass the same `agent_id` you locked with. A valid `agent_id` uses letters, digits, `_` and `-`, at most 64 characters.
 
