@@ -1,0 +1,58 @@
+[
+  {
+    "repo_id": "bench-csvhelper",
+    "role": "dev",
+    "language": "c_sharp",
+    "repo_url": "https://github.com/JoshClose/CsvHelper.git",
+    "commit": "33970e5183383bdac1fbce3b3fbcdf46b318ca52",
+    "scip_tool": "scip-dotnet"
+  },
+  {
+    "repo_id": "dev-jsoup",
+    "role": "dev",
+    "language": "java",
+    "repo_url": "https://github.com/jhy/jsoup.git",
+    "commit": "088614f4a1454232a1f03c63b7f80742f1f2a854",
+    "scip_tool": "scip-java"
+  },
+  {
+    "repo_id": "heldout-serilog",
+    "role": "dev",
+    "language": "c_sharp",
+    "repo_url": "https://github.com/serilog/serilog.git",
+    "commit": "6d9fc0b84e004418f2677b5961b9c8970349d0be",
+    "scip_tool": "scip-dotnet"
+  },
+  {
+    "repo_id": "fresh-gson",
+    "role": "dev",
+    "language": "java",
+    "repo_url": "https://github.com/google/gson.git",
+    "commit": "854c8255b625cf1e13c701a83ea9ccb4caaa576a",
+    "scip_tool": "scip-java"
+  },
+  {
+    "repo_id": "fresh-newtonsoft",
+    "role": "dev",
+    "language": "c_sharp",
+    "repo_url": "https://github.com/JamesNK/Newtonsoft.Json.git",
+    "commit": "52fa3aef1f2cadcd3a3f874251eddc98d3efbbaa",
+    "scip_tool": "scip-dotnet"
+  },
+  {
+    "repo_id": "fresh-eshop",
+    "role": "fresh",
+    "language": "c_sharp",
+    "repo_url": "https://github.com/dotnet/eShop.git",
+    "commit": "dc7ea499cd356924fb6689b3702964a5869dbae9",
+    "scip_tool": "scip-dotnet"
+  },
+  {
+    "repo_id": "fresh-eventmesh",
+    "role": "fresh",
+    "language": "java",
+    "repo_url": "https://github.com/apache/eventmesh.git",
+    "commit": "c10fd2a481240cbdbc5ed900128ac651c7e9aea0",
+    "scip_tool": "scip-java"
+  }
+]
