@@ -14,7 +14,7 @@ import json
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, parse_source
 
 # (PARSER_ARTIFACT_VERSION, digest of the parse of SAMPLES).  Update both together.
-GOLDEN = (8, "4515da0c86240aa7f8271f2557c27bb612c93ab2652314be08c17a048385998f")
+GOLDEN = (9, "4515da0c86240aa7f8271f2557c27bb612c93ab2652314be08c17a048385998f")
 
 SAMPLES = {
     "python": (
