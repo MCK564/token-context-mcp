@@ -1,0 +1,353 @@
+{
+  "repo_id": "bench-csvhelper",
+  "total_symbols": 14460,
+  "total_edges": 6536,
+  "unresolved_edges": 1493,
+  "total_suspicious_edges": 301,
+  "suspicious_edges_ratio": 0.0461,
+  "status_counts": {
+    "resolved": 5043,
+    "ambiguous": 1493
+  },
+  "scope_counts": {
+    "scope:same_namespace": 1161,
+    "scope:overload_arity": 598,
+    "scope:overload_group": 982,
+    "scope:exact_receiver_type": 372,
+    "scope:implicit_this": 377,
+    "scope:external_receiver_type": 900,
+    "scope:chain_type": 169,
+    "scope:overload_types": 235,
+    "scope:global_ambiguous": 186,
+    "scope:receiver_match": 83,
+    "scope:field_type": 26,
+    "scope:unresolved_receiver": 392,
+    "scope:extension_method": 20,
+    "scope:namespace_match": 916,
+    "scope:same_file": 58,
+    "scope:receiver_type_ambiguous": 2,
+    "scope:type_member_unmatched": 5,
+    "scope:cha_inherited": 46,
+    "scope:builtin_receiver_skipped": 2,
+    "scope:same_file_ambiguous": 3,
+    "scope:same_package_ambiguous": 3
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/CsvConfiguration.cs:CsvConfiguration:b71f806f8698e4c1",
+      "name": "CsvConfiguration",
+      "qualified_name": "CsvConfiguration",
+      "path": "src/CsvHelper/Configuration/CsvConfiguration.cs",
+      "in_degree": 468,
+      "resolved_count": 468,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 1,
+        "scope:same_file": 2,
+        "scope:namespace_match": 465
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader:0339f369c162214b",
+      "name": "CsvReader",
+      "qualified_name": "CsvReader",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 381,
+      "resolved_count": 381,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 381
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.GetRecords:bd3833271da401c6",
+      "name": "GetRecords",
+      "qualified_name": "CsvReader.GetRecords",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 231,
+      "resolved_count": 231,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 231
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter:ffd0456a5d76fb66",
+      "name": "CsvWriter",
+      "qualified_name": "CsvWriter",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 217,
+      "resolved_count": 217,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 217
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvParser.cs:CsvParser:38e37d9c72fac3c6",
+      "name": "CsvParser",
+      "qualified_name": "CsvParser",
+      "path": "src/CsvHelper/CsvParser.cs",
+      "in_degree": 207,
+      "resolved_count": 207,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 207
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvContext.cs:CsvContext.RegisterClassMap:2819a9a127c94ab5",
+      "name": "RegisterClassMap",
+      "qualified_name": "CsvContext.RegisterClassMap",
+      "path": "src/CsvHelper/CsvContext.cs",
+      "in_degree": 205,
+      "resolved_count": 205,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_arity": 205
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvParser.cs:CsvParser.Read:f9c42e47e15ba8d8",
+      "name": "Read",
+      "qualified_name": "CsvParser.Read",
+      "path": "src/CsvHelper/CsvParser.cs",
+      "in_degree": 198,
+      "resolved_count": 198,
+      "ambiguous_count": 0,
+      "suspicious_count": 198,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:overload_group": 198
+      },
+      "reasons": {
+        "receiver_mismatch:parser_vs_csvparser": 196,
+        "receiver_mismatch:csv_vs_csvparser": 2
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:tests/CsvHelper.Tests/Mocks/ParserMock.cs:ParserMock:cd4432f846df4a7e",
+      "name": "ParserMock",
+      "qualified_name": "ParserMock",
+      "path": "tests/CsvHelper.Tests/Mocks/ParserMock.cs",
+      "in_degree": 190,
+      "resolved_count": 190,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:namespace_match": 188,
+        "scope:same_namespace": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/ClassMap`1.cs:ClassMap.Map:35e6db8f89394486",
+      "name": "Map",
+      "qualified_name": "ClassMap.Map",
+      "path": "src/CsvHelper/Configuration/ClassMap`1.cs",
+      "in_degree": 172,
+      "resolved_count": 172,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_types": 3,
+        "scope:overload_arity": 164,
+        "scope:overload_group": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.WriteRecords:0850dd2880e7acd8",
+      "name": "WriteRecords",
+      "qualified_name": "CsvWriter.WriteRecords",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 124,
+      "resolved_count": 124,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 123,
+        "scope:cha_inherited": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.Read:4f10a71962ad48ba",
+      "name": "Read",
+      "qualified_name": "CsvReader.Read",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 91,
+      "resolved_count": 91,
+      "ambiguous_count": 0,
+      "suspicious_count": 80,
+      "suspicious_ratio": 0.879,
+      "scopes": {
+        "scope:overload_group": 91
+      },
+      "reasons": {
+        "receiver_mismatch:csv_vs_csvreader": 46,
+        "receiver_mismatch:reader_vs_csvreader": 34
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/MemberMapData.cs:MemberMapData:15047521859ec91b",
+      "name": "MemberMapData",
+      "qualified_name": "MemberMapData",
+      "path": "src/CsvHelper/Configuration/MemberMapData.cs",
+      "in_degree": 66,
+      "resolved_count": 66,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 2,
+        "scope:namespace_match": 64
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader.ReadHeader:6b07676035a3cc45",
+      "name": "ReadHeader",
+      "qualified_name": "CsvReader.ReadHeader",
+      "path": "src/CsvHelper/CsvReader.cs",
+      "in_degree": 57,
+      "resolved_count": 57,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 57
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvWriter.cs:CsvWriter.Flush:d6a80eda5c1272a1",
+      "name": "Flush",
+      "qualified_name": "CsvWriter.Flush",
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "in_degree": 48,
+      "resolved_count": 48,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 48
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/CsvContext.cs:CsvContext:75225be679289b2d",
+      "name": "CsvContext",
+      "qualified_name": "CsvContext",
+      "path": "src/CsvHelper/CsvContext.cs",
+      "in_degree": 47,
+      "resolved_count": 47,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 47
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:tests/CsvHelper.Tests/TestStringBuilder.cs:TestStringBuilder:e29d7d2d6d11e043",
+      "name": "TestStringBuilder",
+      "qualified_name": "TestStringBuilder",
+      "path": "tests/CsvHelper.Tests/TestStringBuilder.cs",
+      "in_degree": 47,
+      "resolved_count": 47,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 47
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:tests/CsvHelper.Tests/TestStringBuilder.cs:TestStringBuilder.AppendLine:56afbfa968d03480",
+      "name": "AppendLine",
+      "qualified_name": "TestStringBuilder.AppendLine",
+      "path": "tests/CsvHelper.Tests/TestStringBuilder.cs",
+      "in_degree": 47,
+      "resolved_count": 47,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 47
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/MemberMap`1.cs:MemberMap.Name:621bc3df5bfca60b",
+      "name": "Name",
+      "qualified_name": "MemberMap.Name",
+      "path": "src/CsvHelper/Configuration/MemberMap`1.cs",
+      "in_degree": 46,
+      "resolved_count": 46,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:field_type": 1,
+        "scope:chain_type": 45
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/DefaultClassMap`1.cs:DefaultClassMap:825876e6bdd270e6",
+      "name": "DefaultClassMap",
+      "qualified_name": "DefaultClassMap",
+      "path": "src/CsvHelper/Configuration/DefaultClassMap`1.cs",
+      "in_degree": 45,
+      "resolved_count": 45,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:namespace_match": 45
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/CsvHelper/TypeConversion/TypeConverterCache.cs:TypeConverterCache.GetConverter:49af7c11384603ec",
+      "name": "GetConverter",
+      "qualified_name": "TypeConverterCache.GetConverter",
+      "path": "src/CsvHelper/TypeConversion/TypeConverterCache.cs",
+      "in_degree": 40,
+      "resolved_count": 40,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 31,
+        "scope:overload_types": 9
+      },
+      "reasons": {}
+    }
+  ]
+}

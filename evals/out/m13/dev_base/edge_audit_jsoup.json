@@ -1,0 +1,361 @@
+{
+  "repo_id": "dev-jsoup",
+  "total_symbols": 6973,
+  "total_edges": 16181,
+  "unresolved_edges": 6194,
+  "total_suspicious_edges": 185,
+  "suspicious_edges_ratio": 0.0114,
+  "status_counts": {
+    "ambiguous": 6192,
+    "resolved": 9989
+  },
+  "scope_counts": {
+    "scope:unresolved_receiver": 5006,
+    "scope:overload_arity": 643,
+    "scope:receiver_match": 1314,
+    "scope:exact_receiver_type": 4034,
+    "scope:overload_group": 1308,
+    "scope:exact_receiver_type_ambiguous": 277,
+    "scope:tainted_poly_receiver": 522,
+    "scope:receiver_type_ambiguous": 223,
+    "scope:implicit_this": 1228,
+    "scope:cha_inherited": 858,
+    "scope:field_type": 301,
+    "scope:none": 2,
+    "scope:field_type_ambiguous": 38,
+    "scope:builtin_receiver_skipped": 70,
+    "scope:implicit_this_ambiguous": 23,
+    "scope:import_match": 132,
+    "scope:same_file": 83,
+    "scope:cha_ambiguous": 3,
+    "scope:import_module_match": 4,
+    "scope:attr_type": 6,
+    "scope:same_class": 5,
+    "scope:import_ambiguous": 4,
+    "scope:attr_type_inherited": 1,
+    "scope:global_ambiguous": 23,
+    "scope:attr_type_unmatched": 3,
+    "scope:same_package": 70
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/Jsoup.java:Jsoup.parse:31ccd62008b2df3d",
+      "name": "parse",
+      "qualified_name": "Jsoup.parse",
+      "path": "src/main/java/org/jsoup/Jsoup.java",
+      "in_degree": 1080,
+      "resolved_count": 1080,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 1080
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Document.java:Document.body:64a85561c7fe8b44",
+      "name": "body",
+      "qualified_name": "Document.body",
+      "path": "src/main/java/org/jsoup/nodes/Document.java",
+      "in_degree": 284,
+      "resolved_count": 284,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 283,
+        "scope:implicit_this": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Element.java:Element.expectFirst:80a6dc63b969ead7",
+      "name": "expectFirst",
+      "qualified_name": "Element.expectFirst",
+      "path": "src/main/java/org/jsoup/nodes/Element.java",
+      "in_degree": 198,
+      "resolved_count": 198,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:cha_inherited": 195,
+        "scope:exact_receiver_type": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/Parser.java:Parser.htmlParser:897f3cdc1462c543",
+      "name": "htmlParser",
+      "qualified_name": "Parser.htmlParser",
+      "path": "src/main/java/org/jsoup/parser/Parser.java",
+      "in_degree": 191,
+      "resolved_count": 191,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 191
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/test/java/org/jsoup/TextUtil.java:TextUtil.stripNewlines:a2112951fd44d26b",
+      "name": "stripNewlines",
+      "qualified_name": "TextUtil.stripNewlines",
+      "path": "src/test/java/org/jsoup/TextUtil.java",
+      "in_degree": 176,
+      "resolved_count": 176,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 176
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/Parser.java:Parser.xmlParser:4ab640ae219e845e",
+      "name": "xmlParser",
+      "qualified_name": "Parser.xmlParser",
+      "path": "src/main/java/org/jsoup/parser/Parser.java",
+      "in_degree": 121,
+      "resolved_count": 121,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 121
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/helper/Validate.java:Validate.notNull:ec6ce4354ad7e27a",
+      "name": "notNull",
+      "qualified_name": "Validate.notNull",
+      "path": "src/main/java/org/jsoup/helper/Validate.java",
+      "in_degree": 111,
+      "resolved_count": 111,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_arity": 111
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/Jsoup.java:Jsoup.connect:7257441ab21a9f4e",
+      "name": "connect",
+      "qualified_name": "Jsoup.connect",
+      "path": "src/main/java/org/jsoup/Jsoup.java",
+      "in_degree": 110,
+      "resolved_count": 110,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 110
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Node.java:Node.html:1561d8e097e6b260",
+      "name": "html",
+      "qualified_name": "Node.html",
+      "path": "src/main/java/org/jsoup/nodes/Node.java",
+      "in_degree": 107,
+      "resolved_count": 107,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:cha_inherited": 107
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Document.java:Document.outputSettings:68c6bde79b64083b",
+      "name": "outputSettings",
+      "qualified_name": "Document.outputSettings",
+      "path": "src/main/java/org/jsoup/nodes/Document.java",
+      "in_degree": 105,
+      "resolved_count": 105,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 104,
+        "scope:overload_arity": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Element.java:Element.text:fd09dabe3ac0af26",
+      "name": "text",
+      "qualified_name": "Element.text",
+      "path": "src/main/java/org/jsoup/nodes/Element.java",
+      "in_degree": 103,
+      "resolved_count": 103,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 102,
+        "scope:overload_arity": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/test/java/org/jsoup/integration/TestServer.java:TestServer.origin:bf78c61a35325f1f",
+      "name": "origin",
+      "qualified_name": "TestServer.origin",
+      "path": "src/test/java/org/jsoup/integration/TestServer.java",
+      "in_degree": 86,
+      "resolved_count": 86,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 13,
+        "scope:same_package": 68,
+        "scope:implicit_this": 1,
+        "scope:receiver_match": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Element.java:Element.html:7752878e8ced2ef9",
+      "name": "html",
+      "qualified_name": "Element.html",
+      "path": "src/main/java/org/jsoup/nodes/Element.java",
+      "in_degree": 76,
+      "resolved_count": 76,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 2,
+        "scope:exact_receiver_type": 74
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Node.java:Node.childNode:2a6a73fba68ce2c5",
+      "name": "childNode",
+      "qualified_name": "Node.childNode",
+      "path": "src/main/java/org/jsoup/nodes/Node.java",
+      "in_degree": 75,
+      "resolved_count": 75,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:cha_inherited": 74,
+        "scope:exact_receiver_type": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/Tokeniser.java:Tokeniser.transition:110064af6857f732",
+      "name": "transition",
+      "qualified_name": "Tokeniser.transition",
+      "path": "src/main/java/org/jsoup/parser/Tokeniser.java",
+      "in_degree": 64,
+      "resolved_count": 64,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:implicit_this": 2,
+        "scope:exact_receiver_type": 61,
+        "scope:field_type": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/select/Elements.java:Elements.first:0775ef4be5354598",
+      "name": "first",
+      "qualified_name": "Elements.first",
+      "path": "src/main/java/org/jsoup/select/Elements.java",
+      "in_degree": 63,
+      "resolved_count": 63,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:implicit_this": 1,
+        "scope:exact_receiver_type": 62
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/CharacterReader.java:CharacterReader.consume:b1e9645cf5c37b64",
+      "name": "consume",
+      "qualified_name": "CharacterReader.consume",
+      "path": "src/main/java/org/jsoup/parser/CharacterReader.java",
+      "in_degree": 60,
+      "resolved_count": 60,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:field_type": 3,
+        "scope:exact_receiver_type": 57
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/Parser.java:Parser.getErrors:063bb19ecd1c207b",
+      "name": "getErrors",
+      "qualified_name": "Parser.getErrors",
+      "path": "src/main/java/org/jsoup/parser/Parser.java",
+      "in_degree": 58,
+      "resolved_count": 58,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 57,
+        "scope:field_type": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Element.java:Element.parent:c24401ea1b61b47c",
+      "name": "parent",
+      "qualified_name": "Element.parent",
+      "path": "src/main/java/org/jsoup/nodes/Element.java",
+      "in_degree": 51,
+      "resolved_count": 51,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_class": 1,
+        "scope:implicit_this": 7,
+        "scope:exact_receiver_type": 42,
+        "scope:cha_inherited": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:src/main/java/org/jsoup/parser/Tokeniser.java:Tokeniser.error:1e07f859c6207186",
+      "name": "error",
+      "qualified_name": "Tokeniser.error",
+      "path": "src/main/java/org/jsoup/parser/Tokeniser.java",
+      "in_degree": 50,
+      "resolved_count": 50,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 1,
+        "scope:exact_receiver_type": 49
+      },
+      "reasons": {}
+    }
+  ]
+}

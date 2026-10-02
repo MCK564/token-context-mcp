@@ -1,0 +1,518 @@
+{
+  "tag": "baseline",
+  "repo_id": "bench-hono",
+  "role": "dev",
+  "index_run_id": "run_20261002T024321Z_0c39f48d",
+  "reviewed_gold": true,
+  "total_call_sites": 30,
+  "internal_call_sites": 14,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 9,
+    "correct_edges": 9,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 14,
+    "resolved_correctly": 10,
+    "recall": 0.7143
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 0,
+    "resolved_exactly": 0,
+    "recall": null,
+    "precision_ge_06": 1.0
+  },
+  "scope_breakdown": {
+    "import_match": {
+      "total_ge_06": 3,
+      "correct_ge_06": 3,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "overload_group": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "same_file": {
+      "total_ge_06": 5,
+      "correct_ge_06": 5,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": "benchmarks/jsx/src/benchmark.ts",
+      "line": 21,
+      "callee_text": "renderHono",
+      "expected": {
+        "path": "benchmarks/jsx/src/hono-jsx/index.ts",
+        "qualified_name": "renderHono"
+      },
+      "reason": "Benchmark helper function renderHono",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "benchmarks/jsx/src/react-jsx/benchmark.ts",
+      "line": 12,
+      "callee_text": "render",
+      "expected": "dynamic",
+      "reason": "Callback parameter render function",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "benchmarks/jsx/src/react-jsx/preact.ts",
+      "line": 4,
+      "callee_text": "buildPage()",
+      "expected": {
+        "path": "benchmarks/jsx/src/react-jsx/page-preact.tsx",
+        "qualified_name": "buildPage"
+      },
+      "reason": "Local benchmark page builder | corrected M12-fix: file is page-preact.tsx, not .ts",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "buildPage",
+          "target_symbol_id": "tsx:benchmarks/jsx/src/react-jsx/page-preact.tsx:buildPage:0e8090bfd5da6778",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "import_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "build/remove-private-fields.ts",
+      "line": 32,
+      "callee_text": "worker.postMessage",
+      "expected": "external",
+      "reason": "Node.js worker_threads Worker.postMessage",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "perf-measures/bundle-check/scripts/check-bundle-size.ts",
+      "line": 46,
+      "callee_text": "fs.existsSync",
+      "expected": "external",
+      "reason": "Node.js fs.existsSync",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "perf-measures/type-check/client.ts",
+      "line": 5,
+      "callee_text": "hc",
+      "expected": {
+        "path": "src/client/index.ts",
+        "qualified_name": "hc"
+      },
+      "reason": "Hono RPC client factory hc",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "perf-measures/type-check/scripts/generate-app.ts",
+      "line": 26,
+      "callee_text": "console.log",
+      "expected": "external",
+      "reason": "JavaScript console.log runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/adapter/bun/conninfo.ts",
+      "line": 17,
+      "callee_text": "TypeError",
+      "expected": "external",
+      "reason": "JavaScript built-in TypeError",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/adapter/bun/serve-static.ts",
+      "line": 25,
+      "callee_text": "baseServeStatic",
+      "expected": {
+        "path": "src/middleware/serve-static/index.ts",
+        "qualified_name": "serveStatic"
+      },
+      "reason": "Internal baseServeStatic middleware",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "baseServeStatic",
+          "target_symbol_id": "typescript:src/middleware/serve-static/index.ts:serveStatic:4a8644f057fd1f00",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "import_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/adapter/bun/websocket.ts",
+      "line": 70,
+      "callee_text": "createWSContext",
+      "expected": {
+        "path": "src/adapter/bun/websocket.ts",
+        "qualified_name": "createWSContext"
+      },
+      "reason": "WebSocket context creator function | corrected M12-fix: createWSContext is defined in the same file (line 33), not in helper/websocket",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "createWSContext",
+          "target_symbol_id": "typescript:src/adapter/bun/websocket.ts:createWSContext:6c407d5ce5b02a15",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/adapter/lambda-edge/handler.ts",
+      "line": 145,
+      "callee_text": "convertHeaders",
+      "expected": {
+        "path": "src/adapter/lambda-edge/handler.ts",
+        "qualified_name": "convertHeaders"
+      },
+      "reason": "Internal handler helper convertHeaders",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "convertHeaders",
+          "target_symbol_id": "typescript:src/adapter/lambda-edge/handler.ts:convertHeaders:297f429afab7139c",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/adapter/netlify/handler.ts",
+      "line": 8,
+      "callee_text": "app.fetch",
+      "expected": {
+        "path": "src/hono-base.ts",
+        "qualified_name": "HonoBase.fetch"
+      },
+      "reason": "HonoBase instance fetch method",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "fetch",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/helper/adapter/index.ts",
+      "line": 61,
+      "callee_text": "checkUserAgentEquals",
+      "expected": {
+        "path": "src/helper/adapter/index.ts",
+        "qualified_name": "checkUserAgentEquals"
+      },
+      "reason": "Internal helper checkUserAgentEquals",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "checkUserAgentEquals",
+          "target_symbol_id": "typescript:src/helper/adapter/index.ts:checkUserAgentEquals:8b65cf6a9eedb33f",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/helper/css/index.ts",
+      "line": 107,
+      "callee_text": "contextMap.set",
+      "expected": "external",
+      "reason": "Map.prototype.set runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "set",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/helper/proxy/index.ts",
+      "line": 129,
+      "callee_text": "resHeaders.delete",
+      "expected": "external",
+      "reason": "Headers.prototype.delete web standard",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/helper/ssg/middleware.ts",
+      "line": 79,
+      "callee_text": "isSSGContext",
+      "expected": {
+        "path": "src/helper/ssg/middleware.ts",
+        "qualified_name": "isSSGContext"
+      },
+      "reason": "Internal SSG helper isSSGContext",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "isSSGContext",
+          "target_symbol_id": "typescript:src/helper/ssg/middleware.ts:isSSGContext:67f296ceb5b45c55",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/helper/ssg/utils.ts",
+      "line": 53,
+      "callee_text": "paths.join('/').split",
+      "expected": "external",
+      "reason": "String.prototype.split runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/helper/streaming/utils.ts",
+      "line": 7,
+      "callee_text": "version.startsWith",
+      "expected": "external",
+      "reason": "String.prototype.startsWith runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/helper/testing/index.ts",
+      "line": 26,
+      "callee_text": "hc",
+      "expected": {
+        "path": "src/client/client.ts",
+        "qualified_name": "hc"
+      },
+      "reason": "Hono RPC client factory hc | corrected M12-fix: hc is defined in client.ts; client/index.ts only re-exports it",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "hc",
+          "target_symbol_id": "typescript:src/client/client.ts:hc:af5c68f2b5288220",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "import_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/jsx/base.ts",
+      "line": 334,
+      "callee_text": "createContext",
+      "expected": {
+        "path": "src/jsx/context.ts",
+        "qualified_name": "createContext"
+      },
+      "reason": "JSX createContext function | corrected M12-fix: createContext is imported from ./context (defined at context.ts:15)",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "createContext",
+          "target_symbol_id": "typescript:src/jsx/context.ts:createContext:4a2cdc5e62437bf1",
+          "status": "resolved",
+          "confidence": 0.7,
+          "scope": "overload_group",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/jsx/constants.ts",
+      "line": 4,
+      "callee_text": "Symbol",
+      "expected": "external",
+      "reason": "JavaScript Symbol built-in",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/jsx/dom/jsx-dev-runtime.ts",
+      "line": 22,
+      "callee_text": "jsxDEV",
+      "expected": {
+        "path": "src/jsx/dom/jsx-dev-runtime.ts",
+        "qualified_name": "jsxDEV"
+      },
+      "reason": "JSX dev runtime function jsxDEV",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "jsxDEV",
+          "target_symbol_id": "typescript:src/jsx/dom/jsx-dev-runtime.ts:jsxDEV:6d3863a1751bbf47",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/jsx/dom/server.ts",
+      "line": 25,
+      "callee_text": "element?.toString",
+      "expected": "external",
+      "reason": "Object.prototype.toString runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "toString",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/middleware/compress/index.ts",
+      "line": 45,
+      "callee_text": "ctx.res.headers.has",
+      "expected": "external",
+      "reason": "Headers.prototype.has web standard",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/middleware/etag/digest.ts",
+      "line": 41,
+      "callee_text": "x.toString(16).padStart",
+      "expected": "external",
+      "reason": "String.prototype.padStart runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "toString",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/middleware/serve-static/index.ts",
+      "line": 121,
+      "callee_text": "options.onNotFound",
+      "expected": "dynamic",
+      "reason": "Dynamic callback options.onNotFound",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/preset/tiny.ts",
+      "line": 18,
+      "callee_text": "PatternRouter",
+      "expected": {
+        "path": "src/router/pattern-router/router.ts",
+        "qualified_name": "PatternRouter"
+      },
+      "reason": "Router implementation PatternRouter",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "PatternRouter",
+          "target_symbol_id": "typescript:src/router/pattern-router/router.ts:PatternRouter:864e6c069d2c526f",
+          "status": "resolved",
+          "confidence": 0.4,
+          "scope": "global",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/router/linear-router/router.ts",
+      "line": 62,
+      "callee_text": "path.indexOf",
+      "expected": "external",
+      "reason": "String.prototype.indexOf runtime method",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/utils/jwt/jws.ts",
+      "line": 93,
+      "callee_text": "exportPublicJwkFrom",
+      "expected": {
+        "path": "src/utils/jwt/jws.ts",
+        "qualified_name": "exportPublicJwkFrom"
+      },
+      "reason": "Internal JWT utility exportPublicJwkFrom",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/utils/stream.ts",
+      "line": 38,
+      "callee_text": "controller.enqueue",
+      "expected": "external",
+      "reason": "ReadableStreamDefaultController.enqueue web standard",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    }
+  ]
+}

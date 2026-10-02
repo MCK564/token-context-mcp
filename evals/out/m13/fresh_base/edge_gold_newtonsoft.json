@@ -1,0 +1,289 @@
+{
+  "tag": "base",
+  "repo_id": "fresh-newtonsoft",
+  "role": "heldout",
+  "index_run_id": "run_20261002T030145Z_394ef8fb",
+  "reviewed_gold": false,
+  "total_call_sites": 12,
+  "internal_call_sites": 7,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 3,
+    "correct_edges": 3,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 7,
+    "resolved_correctly": 3,
+    "recall": 0.4286
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 7,
+    "resolved_exactly": 2,
+    "recall": 0.2857,
+    "precision_ge_06": 0.6667
+  },
+  "scope_breakdown": {
+    "namespace_match": {
+      "total_ge_06": 2,
+      "correct_ge_06": 2,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "same_file": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": "Src/Newtonsoft.Json/Bson/BsonWriter.cs",
+      "line": 359,
+      "callee_text": "base.WriteValue",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/JsonWriter.cs",
+        "qualified_name": "JsonWriter.WriteValue",
+        "def_line": 1017
+      },
+      "reason": "base.WriteValue(value) with a bool argument binds to the JsonWriter.WriteValue(bool) overload, the nearest ancestor implementation.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "WriteValue",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+      "line": 123,
+      "callee_text": "DateTimeUtils.WriteDateTimeString",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/Utilities/DateTimeUtils.cs",
+        "qualified_name": "DateTimeUtils.WriteDateTimeString",
+        "def_line": 621
+      },
+      "reason": "Five arguments starting with a StringWriter bind to the TextWriter overload of the static DateTimeUtils.WriteDateTimeString, not the six-argument char[] overload.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "WriteDateTimeString",
+          "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Utilities/DateTimeUtils.cs:DateTimeUtils.WriteDateTimeString:b236bb2c3c6a5c00",
+          "status": "resolved",
+          "confidence": 0.8,
+          "scope": "namespace_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/JsonException.cs",
+      "line": 91,
+      "callee_text": "JsonException",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/JsonException.cs",
+        "qualified_name": "JsonException.JsonException",
+        "def_line": 55
+      },
+      "reason": "new JsonException(message) with one string argument calls the JsonException(string message) constructor.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "JsonException",
+          "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonException.cs:JsonException:9dbb82ff03819985",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "same_file",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Linq/JConstructor.Async.cs",
+      "line": 53,
+      "callee_text": "_values[i].WriteToAsync",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/Linq/JToken.Async.cs",
+        "qualified_name": "JToken.WriteToAsync",
+        "def_line": 48
+      },
+      "reason": "_values is a List<JToken>, so the receiver is a JToken and the call with a writer, token and converters binds to the virtual JToken.WriteToAsync(JsonWriter, CancellationToken, params JsonConverter[]).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "WriteToAsync",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Linq/JToken.Async.cs",
+      "line": 157,
+      "callee_text": "v.SetLineInfo",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/Linq/JToken.cs",
+        "qualified_name": "JToken.SetLineInfo",
+        "def_line": 2331
+      },
+      "reason": "v is a JValue, which inherits the internal JToken.SetLineInfo(IJsonLineInfo?, JsonLoadSettings?) overload from JToken (the other overload takes two ints).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Serialization/CamelCasePropertyNamesContractResolver.cs",
+      "line": 72,
+      "callee_text": "cache.TryGetValue",
+      "expected": "external",
+      "reason": "cache is a Dictionary<StructMultiKey<Type, Type>, JsonContract>, so TryGetValue is the BCL dictionary method, not an in-repo TryGetValue.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "TryGetValue",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "tainted_poly_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Serialization/FormatterConverter.cs",
+      "line": 88,
+      "callee_text": "System.Convert.ToSingle",
+      "expected": "external",
+      "reason": "System.Convert.ToSingle is the fully qualified BCL static method, not an in-repo conversion helper.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "ToSingle",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Serialization/ReflectionAttributeProvider.cs",
+      "line": 57,
+      "callee_text": "ReflectionUtils.GetAttributes",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs",
+        "qualified_name": "ReflectionUtils.GetAttributes",
+        "def_line": 785
+      },
+      "reason": "The static call with (object, null, bool) binds to the non-generic GetAttributes(object, Type?, bool) overload rather than the generic GetAttributes<T>(object, bool); line 785 is the branch active for the normal targets.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "GetAttributes",
+          "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs:ReflectionUtils.GetAttributes:831c6baf627b0ea9",
+          "status": "resolved",
+          "confidence": 0.8,
+          "scope": "namespace_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Utilities/DynamicProxyMetaObject.cs",
+      "line": 238,
+      "callee_text": "callArgs.Add",
+      "expected": "external",
+      "reason": "callArgs is declared as IList<Expression>, so Add is the BCL ICollection<T>.Add.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Utilities/DynamicReflectionDelegateFactory.cs",
+      "line": 322,
+      "callee_text": "generator.Return",
+      "expected": {
+        "path": "Src/Newtonsoft.Json/Utilities/ILGeneratorExtensions.cs",
+        "qualified_name": "ILGeneratorExtensions.Return",
+        "def_line": 110
+      },
+      "reason": "generator is a System.Reflection.Emit.ILGenerator, which has no Return member, so the call binds to the in-repo extension method ILGeneratorExtensions.Return(this ILGenerator).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Return",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Utilities/MethodBinder.cs",
+      "line": 338,
+      "callee_text": "candidates\n                .Where(m => FilterParameters(m.GetParameters(), types, enableParamArray))\n                .OrderBy",
+      "expected": "external",
+      "reason": "OrderBy on IEnumerable<TMethod> binds to System.Linq.Enumerable.OrderBy; the in-repo LinqBridge copy is compiled only when HAVE_LINQ is undefined (net20 target).",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Where",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs",
+      "line": 947,
+      "callee_text": "targetType.GetFields",
+      "expected": "external",
+      "reason": "targetType is a System.Type, so the instance method Type.GetFields(BindingFlags) is called; the in-repo ReflectionUtils.GetFields and TypeExtensions overloads are not involved.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "GetFields",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    }
+  ]
+}

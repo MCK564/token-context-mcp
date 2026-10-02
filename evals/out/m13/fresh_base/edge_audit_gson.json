@@ -1,0 +1,359 @@
+{
+  "repo_id": "fresh-gson",
+  "total_symbols": 4246,
+  "total_edges": 7708,
+  "unresolved_edges": 2149,
+  "total_suspicious_edges": 98,
+  "suspicious_edges_ratio": 0.0127,
+  "status_counts": {
+    "ambiguous": 2147,
+    "resolved": 5561
+  },
+  "scope_counts": {
+    "scope:unresolved_receiver": 1577,
+    "scope:exact_receiver_type": 3400,
+    "scope:receiver_match": 207,
+    "scope:field_type_ambiguous": 39,
+    "scope:field_type": 779,
+    "scope:implicit_this": 950,
+    "scope:overload_group": 84,
+    "scope:exact_receiver_type_ambiguous": 49,
+    "scope:tainted_poly_receiver": 262,
+    "scope:builtin_receiver_skipped": 74,
+    "scope:receiver_ambiguous": 42,
+    "scope:receiver_type_ambiguous": 93,
+    "scope:same_file": 39,
+    "scope:import_match": 6,
+    "scope:overload_arity": 47,
+    "scope:attr_type_unmatched": 3,
+    "scope:same_class": 6,
+    "scope:implicit_this_ambiguous": 4,
+    "scope:import_ambiguous": 1,
+    "scope:cha_inherited": 38,
+    "scope:import_module_ambiguous": 3,
+    "scope:attr_type": 3,
+    "scope:none": 2
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/Gson.java:Gson.fromJson:848f55cfab033885",
+      "name": "fromJson",
+      "qualified_name": "Gson.fromJson",
+      "path": "gson/src/main/java/com/google/gson/Gson.java",
+      "in_degree": 536,
+      "resolved_count": 536,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 199,
+        "scope:field_type": 327,
+        "scope:overload_group": 10
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/Gson.java:Gson.toJson:8cc911c0b65efb7d",
+      "name": "toJson",
+      "qualified_name": "Gson.toJson",
+      "path": "gson/src/main/java/com/google/gson/Gson.java",
+      "in_degree": 491,
+      "resolved_count": 491,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 213,
+        "scope:field_type": 272,
+        "scope:overload_group": 6
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/GsonBuilder.java:GsonBuilder.create:08e2bb2d336100c3",
+      "name": "create",
+      "qualified_name": "GsonBuilder.create",
+      "path": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+      "in_degree": 254,
+      "resolved_count": 254,
+      "ambiguous_count": 0,
+      "suspicious_count": 10,
+      "suspicious_ratio": 0.039,
+      "scopes": {
+        "scope:exact_receiver_type": 238,
+        "scope:field_type": 16
+      },
+      "reasons": {
+        "receiver_mismatch:builder_vs_gsonbuilder": 10
+      }
+    },
+    {
+      "target_symbol_id": "java:gson/src/test/java/com/google/gson/stream/JsonReaderTest.java:JsonReaderTest.reader:28c915b7da49a4f4",
+      "name": "reader",
+      "qualified_name": "JsonReaderTest.reader",
+      "path": "gson/src/test/java/com/google/gson/stream/JsonReaderTest.java",
+      "in_degree": 154,
+      "resolved_count": 154,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:implicit_this": 154
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/reflect/TypeToken.java:TypeToken.getType:5d1b63b58a582371",
+      "name": "getType",
+      "qualified_name": "TypeToken.getType",
+      "path": "gson/src/main/java/com/google/gson/reflect/TypeToken.java",
+      "in_degree": 148,
+      "resolved_count": 148,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 144,
+        "scope:field_type": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.peek:8f001a77dd493808",
+      "name": "peek",
+      "qualified_name": "JsonReader.peek",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 118,
+      "resolved_count": 118,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 115,
+        "scope:field_type": 1,
+        "scope:cha_inherited": 1,
+        "scope:implicit_this": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonWriter.java:JsonWriter.value:6f85783efa5dd032",
+      "name": "value",
+      "qualified_name": "JsonWriter.value",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonWriter.java",
+      "in_degree": 117,
+      "resolved_count": 117,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 116,
+        "scope:overload_group": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/GsonBuilder.java:GsonBuilder.registerTypeAdapter:3aed2fada39e4562",
+      "name": "registerTypeAdapter",
+      "qualified_name": "GsonBuilder.registerTypeAdapter",
+      "path": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+      "in_degree": 106,
+      "resolved_count": 106,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 104,
+        "scope:field_type": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.beginArray:159929e97b5023e0",
+      "name": "beginArray",
+      "qualified_name": "JsonReader.beginArray",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 103,
+      "resolved_count": 103,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 103
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.nextString:78c6015e8ec3fe75",
+      "name": "nextString",
+      "qualified_name": "JsonReader.nextString",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 98,
+      "resolved_count": 98,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 98
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.beginObject:7951f9ec7dafce6a",
+      "name": "beginObject",
+      "qualified_name": "JsonReader.beginObject",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 78,
+      "resolved_count": 78,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 78
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/JsonArray.java:JsonArray.add:4e69d5002390867b",
+      "name": "add",
+      "qualified_name": "JsonArray.add",
+      "path": "gson/src/main/java/com/google/gson/JsonArray.java",
+      "in_degree": 75,
+      "resolved_count": 75,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 75
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.setStrictness:909043036a165d87",
+      "name": "setStrictness",
+      "qualified_name": "JsonReader.setStrictness",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 73,
+      "resolved_count": 73,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 69,
+        "scope:field_type": 1,
+        "scope:implicit_this": 1,
+        "scope:cha_inherited": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.skipValue:5e475dd6e52ae23a",
+      "name": "skipValue",
+      "qualified_name": "JsonReader.skipValue",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 59,
+      "resolved_count": 59,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 59
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.nextName:7f391c5ca5196c5a",
+      "name": "nextName",
+      "qualified_name": "JsonReader.nextName",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 58,
+      "resolved_count": 58,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 58
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.endArray:7b2520b1d52ceeec",
+      "name": "endArray",
+      "qualified_name": "JsonReader.endArray",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 52,
+      "resolved_count": 52,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 52
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.endObject:a7f7a22423096adc",
+      "name": "endObject",
+      "qualified_name": "JsonReader.endObject",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 48,
+      "resolved_count": 48,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 48
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonReader.java:JsonReader.nextInt:1d2ff9475e3fea64",
+      "name": "nextInt",
+      "qualified_name": "JsonReader.nextInt",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+      "in_degree": 47,
+      "resolved_count": 47,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 47
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonWriter.java:JsonWriter.beginArray:4ffb3394af10cc11",
+      "name": "beginArray",
+      "qualified_name": "JsonWriter.beginArray",
+      "path": "gson/src/main/java/com/google/gson/stream/JsonWriter.java",
+      "in_degree": 45,
+      "resolved_count": 45,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 45
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "java:gson/src/main/java/com/google/gson/Gson.java:Gson.getAdapter:74003d4b5e425203",
+      "name": "getAdapter",
+      "qualified_name": "Gson.getAdapter",
+      "path": "gson/src/main/java/com/google/gson/Gson.java",
+      "in_degree": 44,
+      "resolved_count": 44,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 24,
+        "scope:field_type": 16,
+        "scope:implicit_this": 1,
+        "scope:overload_group": 3
+      },
+      "reasons": {}
+    }
+  ]
+}

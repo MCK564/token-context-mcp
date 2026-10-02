@@ -465,3 +465,65 @@ How to read it:
 3. **B2 used 20 % fewer total tokens** and was about 13 % faster, because it answers in about one MCP call and one turn fewer. It also retrieved *more* content (1,387 against 753 estimated tokens), and the provider-reported cost is the same: B2 had 17 % more uncached input (181k against 154k tokens over 20 runs) and 24 % fewer cache-read tokens (1.12M against 1.48M). The total-token difference is therefore mostly cheaper cache reads, not less new information.
 4. A fixed overhead of about 25,000 cached input tokens per run (system and tool prompt) dominates every total, which is why total tokens measure the number of turns more than the amount of code read.
 5. **What it does and does not show:** on tasks this easy, an MCP-first agent locates files in fewer turns at equal billed cost and equal success. It does not show that token-context raises success, that it helps on hard tasks or on weaker models, or anything about the hybrid mode.
+
+## M13 — Java and C#: overloads, overrides, many-word identifiers (0.3.2)
+
+**Status:** light, deterministic benchmark (no model in the loop, no API cost) on three development repositories and two fresh repositories, old code (`m13-base` = 0.3.1, `e745d52`) against new code (tag `m13-freeze`, `4ada9ee`, version 0.3.2). Raw outputs: `evals/out/m13/` (`dev_{base,new,base_regold}/`, `fresh_{base,new}/`, review logs). Commands: `evals/out/m13/run_m13_eval.sh`, `run_m13_fresh.sh`.
+
+### Protocol and honesty labels
+
+- **Development sets (informative, tuned on):** `CsvHelper` (C#, 30 tasks, 10 internal call sites), `jsoup` (Java, 12 tasks written by the executing session, 11 internal call sites; three gold labels were corrected after reading the source: `NodeInternals:73`, `QueryParser:231`, `RequestAuthHandler:13`), Serilog (C#, 30 tasks, 17 sites; it was used in M12 as held-out and is **burned**, now exploratory). The base side of the edge-gold comparison was re-run with the corrected labels (`dev_base_regold/`).
+- **Fresh sets (measured once):** `google/gson` @ `854c825` (Java, Apache-2.0) and `JamesNK/Newtonsoft.Json` @ `52fa3ae` (C#, MIT), each 15 locate tasks (5 `a_keyword`, 5 `b_hidden_dep`, 5 `c_multi_file`) and 12 labelled call sites. Authored by one Claude Sonnet 5.5 session from the library source only, with no retrieval tool and no access to anything the tool produced; the executor read neither file before the freeze (SHA-256 of the files as authored: `fresh_gson` 38988ba2…, `fresh_newtonsoft` bfddca8f…, edge gold gson b3d9a721…, Newtonsoft a3102d23…). The retrieval tasks were then reviewed by a **different** Sonnet session (source reading only; 0 of 30 tasks changed, so `reviewed: true` is set; hashes of the reviewed files in `RUN_LEDGER_M13.md`). The call-site labels were **not** reviewed and were measured before that review; they stay as authored. **No human reviewed any of these sets**; the sets are small (n = 15 and 12), so intervals are wide. The gson and Newtonsoft sources were not used to tune any rule.
+- **Guard.** `TC_GUARD_MILESTONE=m13` makes `evals/guard.py` require tag `m13-freeze` (empty diff on `src/` and the three bench scripts) and, for the baseline arm, a tree byte-identical to `m13-base:src/token_context_mcp` (checked). The `freeze_tag` field written into `bench_*_summary.json` still shows the M12 tag because it is hard-coded in the protected `bench_retrieval.py`; `git_head` (`4ada9ee`) is the real reference.
+- **Regression gate.** Python and JavaScript/TypeScript outputs are identical between 0.3.1 and 0.3.2: `tc-pinned` loc A1final/A2 and `edge_eval`, and `rich`, `hono`, `fastify` (all six retrieval arms: 0 differing task records; edge gold and edge audit for hono and fastify equal).
+
+### What changed (summary; details in `CHANGELOG.md`)
+
+Typed receivers and argument types per call site, overload choice by arity then types, nearest override, ancestor search level by level, qualified nested types, Java `package` and wildcard imports, C# `#if` retry, external-library receivers, `new` binding to constructor or class, sub-word and stem search tokens for C#/Java identifiers.
+
+### Fresh sets (measured once)
+
+| | gson base → new | Newtonsoft base → new |
+| --- | --- | --- |
+| Call-site recall (confidence ≥ 0.6) | 2/9 (0.22) → **8/9 (0.89)** | 3/7 (0.43) → **5/7 (0.71)** |
+| Edges at confidence ≥ 0.6, correct | 2/4 → 8/10 | 3/3 → 5/7 |
+| Exact overload (`def_line`) | 2/9 → 7/9 | 2/7 → 5/7 |
+| Edges in the index / ambiguous | 7,708 / 28 % → 9,878 / 15 % | 24,931 / 34 % → 25,262 / 25 % |
+| `R1` File Acc@5 | 0.80 → 0.87 | 0.73 → 0.80 |
+| `R2` File Acc@5 (grep unbounded 0.87 / 0.60) | 0.80 → **0.93** (paired +0.13, CI95 0.00 to +0.33) | 0.73 → 0.80 (paired +0.07, CI95 −0.13 to +0.27) |
+| `R1` Symbol Recall@10 | 0.59 → 0.80 (paired +0.21, CI95 +0.03 to +0.42) | 0.42 → 0.68 (paired +0.26, CI95 +0.04 to +0.50) |
+| `R2` Symbol Recall@10 | 0.59 → 0.66 | 0.52 → 0.66 |
+| File MRR, `R1` / `R2` | 0.64 → 0.63 / 0.59 → 0.67 | 0.58 → 0.54 / 0.55 → 0.52 |
+
+CI95 is a paired bootstrap over tasks (2,000 resamples). With 15 tasks only the `R1` Symbol Recall@10 gains exclude zero; File Acc@5 moves by one or two tasks. File MRR did not improve for Newtonsoft (0.55 → 0.52): the right file is found about as often but not ranked higher. Latency is not reported.
+
+**Misses and wrong edges on the fresh call-site labels (read after the measurement, nothing was tuned):**
+
+- gson `Excluder.java:143` `delegate().write(...)`: the edge for `write` is not produced (the site is credited to the call to `delegate()` itself); a method returning a generic type is not followed.
+- Newtonsoft `JConstructor.Async.cs:53` (`_values[i].WriteToAsync`) and `JToken.Async.cs:157` (`v.SetLineInfo`): receiver from an indexer or a loop variable of a partial class; left unresolved.
+- Edges at confidence ≥ 0.6 that the labels call external: Newtonsoft `MethodBinder.cs:338` `.Where` and `ReflectionUtils.cs:947` `targetType.GetFields` resolve to the repository's own `Enumerable.Where` (LinqBridge) and `TypeExtensions.GetFields`, whereas the labels say the BCL method; gson `JsonPrimitive.java:196` `this.getAsNumber().longValue` resolves `getAsNumber` (correct) while the label marks the whole site external. Both gson edges counted wrong are real edges of the *first* call in a chain (`delegate()`, `getAsNumber()`) scored against a label for the outer call, so they are a labelling-granularity effect; the two Newtonsoft ones are the genuine same-name-extension weakness.
+
+### Development sets (informative)
+
+| | CsvHelper (C#) | jsoup (Java) | Serilog (C#, burned) |
+| --- | --- | --- | --- |
+| Gold recall, ≥ 0.6 | 0.40 → 0.80 | 0.36 → 0.82 | 0.76 → 0.94 |
+| Gold precision, ≥ 0.6 | 1.00 (4/4) → 0.80 (8/10) | 1.00 (4/4) → 1.00 (9/9) | 1.00 (11/11) → 1.00 (14/14) |
+| Ambiguous edges | 35 % → 23 % | 38 % → 16 % | 40 % → 16 % |
+| `R1` File Acc@5 | 0.60 → 0.87 | 0.50 → 0.83 | 0.73 → 0.77 |
+| `R2` File Acc@5 | 0.57 → 0.87 | 0.67 → 0.83 | 0.70 → 0.80 |
+| `R2` Symbol Recall@10 | 0.48 → 0.73 | 0.35 → 0.47 | 0.64 → 0.66 |
+| `R2` minus unbounded grep, File Acc@5 | −0.20 → +0.10 (CI95 −0.07 to +0.27) | −0.25 → −0.08 | −0.10 → 0.00 |
+| `R3` packet reference coverage | 0.69 → 0.67 | – | 0.47 → 0.52 |
+
+CsvHelper's two wrong edges are interface-dispatch calls (`ITypeConverter.ConvertToString`-style) that the tool resolves to the interface member while the label names the implementation. Per call site, jsoup moved from unresolved to resolved at about 6,080 sites, changed target at about 1,980 (about 100 sampled by hand, nearly all corrections) and lost 54 (mostly base guesses on `Map`/`List`/`String` receivers that are now correctly external; a few lucky edges lost to type-parameter bounds such as `T extends Node` and interface `toString`). Serilog's symbol count falls 1,963 → 1,910 because mangled symbols in `ILogger.cs` (131) and a few other `#if` files are replaced by correctly qualified ones (`PropertyBinder.ConstructProperty` instead of an unqualified `ConstructProperty`).
+
+### How to read this
+
+- Resolution of calls on typed receivers in Java and C# is now much better and, on the labelled sites, mostly right; the unresolved share fell by 10 to 22 points. It is still static typing without generics, so a call whose receiver type is only known through a generic or a type-parameter bound stays unresolved (a deliberate choice: unresolved is cheaper than wrong).
+- File-level retrieval moved by one or two tasks per set; the search-token change helps symbol ranking more than file ranking. Packets (`R3`) were measured on the development sets only and did not change much.
+- The suspicious-edge heuristic in `evals/edge_audit.py` is name/receiver based (designed for dynamic languages) and counts typed resolution as "suspicious" more often (jsoup 1.1 % → 1.8 %, gson 1.3 % → 2.0 %); it is not a precision measure and gold precision above is the better guide.
+
+### Limits
+
+Five repositories, two of them fresh with 15 tasks and 12 labelled sites each; one author, no human review; call-site labels not independently reviewed; a simulated grep baseline; retrieval quality only (no agent task success; C3 was not run, to avoid API cost); the jsoup development set was written by the executor; the "family cap" and overload-collapse ideas were tried on the development sets without gain and left off.

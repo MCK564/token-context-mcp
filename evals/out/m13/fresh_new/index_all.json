@@ -1,0 +1,28 @@
+{
+  "failed": 0,
+  "indexed": 2,
+  "repositories": [
+    {
+      "edges_indexed": 9878,
+      "files_indexed": 312,
+      "files_reparsed": 264,
+      "incremental": false,
+      "index_run_id": "run_20261002T030047Z_b26e9909",
+      "ok": true,
+      "repo_id": "fresh-gson",
+      "seconds": 6.08,
+      "symbols_indexed": 4246
+    },
+    {
+      "edges_indexed": 25262,
+      "files_indexed": 1166,
+      "files_reparsed": 951,
+      "incremental": false,
+      "index_run_id": "run_20261002T030112Z_f1d83b8e",
+      "ok": true,
+      "repo_id": "fresh-newtonsoft",
+      "seconds": 27.231,
+      "symbols_indexed": 12025
+    }
+  ]
+}

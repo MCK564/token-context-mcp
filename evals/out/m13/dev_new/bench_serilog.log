@@ -1,0 +1,93 @@
+wrote 10 responses -> /tmp/bench_packet_wihtvyos/raw_P1.jsonl
+{
+  "arms": {
+    "R0-grep": {
+      "file_acc_at_5": 0.8,
+      "sym_recall_at_10": 0.0944,
+      "wire_tokens": 29458.8333
+    },
+    "R0-grep@R2": {
+      "file_acc_at_5": 0.5,
+      "sym_recall_at_10": 0.0111,
+      "wire_tokens": 1871.8667
+    },
+    "R0-read": {
+      "file_acc_at_5": 0.8,
+      "sym_recall_at_10": 0.0528,
+      "wire_tokens": 31981.7333
+    },
+    "R1": {
+      "file_acc_at_5": 0.7667,
+      "sym_recall_at_10": 0.7861,
+      "wire_tokens": 1867.0667
+    },
+    "R2": {
+      "file_acc_at_5": 0.8,
+      "sym_recall_at_10": 0.6583,
+      "wire_tokens": 1884.0667
+    }
+  },
+  "kpis": {
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+      "mean": 0.3,
+      "ci95": [
+        0.1,
+        0.5
+      ],
+      "pairs": 30,
+      "threshold": 0.1,
+      "met": true
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+      "mean": 0.0,
+      "ci95": [
+        -0.2,
+        0.2
+      ],
+      "pairs": 30,
+      "threshold": -0.05,
+      "met": true
+    },
+    "token_ratio_R2_over_R0grep": {
+      "value": 0.064,
+      "note": "report only"
+    },
+    "R2_vs_R1": {
+      "file_acc_at_5": {
+        "mean": 0.0333,
+        "ci95": [
+          0.0,
+          0.1
+        ],
+        "pairs": 30
+      },
+      "sym_recall_at_10": {
+        "mean": -0.1278,
+        "ci95": [
+          -0.25,
+          -0.0028
+        ],
+        "pairs": 30
+      },
+      "note": "report only, no threshold"
+    },
+    "R3": {
+      "sig_coverage": {
+        "value": 0.5217,
+        "threshold": 0.6,
+        "met": false
+      },
+      "ref_coverage": {
+        "value": 0.5217,
+        "threshold": 0.8,
+        "met": false
+      },
+      "savings_vs_read": {
+        "value": 0.702,
+        "threshold": 0.7,
+        "met": true
+      }
+    }
+  }
+}
+-> /home/claude/work/out/m13_new2/bench_serilog/bench_serilog_summary.json

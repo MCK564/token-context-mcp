@@ -1,0 +1,391 @@
+{
+  "tag": "baseline",
+  "repo_id": "dev-jsoup",
+  "role": "dev",
+  "index_run_id": "run_20261001T114217Z_ea5ffce7",
+  "reviewed_gold": true,
+  "total_call_sites": 16,
+  "internal_call_sites": 11,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 4,
+    "correct_edges": 4,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 11,
+    "resolved_correctly": 4,
+    "recall": 0.3636
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 11,
+    "resolved_exactly": 4,
+    "recall": 0.3636,
+    "precision_ge_06": 1.0
+  },
+  "scope_breakdown": {
+    "cha_inherited": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "exact_receiver_type": {
+      "total_ge_06": 2,
+      "correct_ge_06": 2,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "overload_group": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": "src/main/java/org/jsoup/helper/Re2jRegex.java",
+      "line": 29,
+      "callee_text": "re2jPattern.matcher",
+      "expected": "external",
+      "reason": "re2jPattern is a com.google.re2j.Pattern (third-party).",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "matcher",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/internal/ControllableInputStream.java",
+      "line": 283,
+      "callee_text": "progress.emit",
+      "expected": {
+        "path": "src/main/java/org/jsoup/internal/ControllableInputStream.java",
+        "qualified_name": "ControllableInputStream.ProgressState.emit",
+        "def_line": 318
+      },
+      "reason": "progress is a ProgressState<?> (nested class of the same file).",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "emit",
+          "target_symbol_id": "java:src/main/java/org/jsoup/internal/ControllableInputStream.java:ControllableInputStream.ProgressState.emit:596b78f924b9feef",
+          "status": "resolved",
+          "confidence": 0.95,
+          "scope": "exact_receiver_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/internal/SimpleBufferedInput.java",
+      "line": 158,
+      "callee_text": "in.read",
+      "expected": "external",
+      "reason": "in is a java.io.InputStream.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "read",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/internal/StringUtil.java",
+      "line": 152,
+      "callee_text": "string.isEmpty",
+      "expected": "external",
+      "reason": "java.lang.String.isEmpty.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "isEmpty",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/nodes/CDataNode.java",
+      "line": 29,
+      "callee_text": "accum\n            .append(\"<![CDATA[\").append",
+      "expected": {
+        "path": "src/main/java/org/jsoup/internal/QuietAppendable.java",
+        "qualified_name": "QuietAppendable.append",
+        "def_line": 13
+      },
+      "reason": "accum is a QuietAppendable; a String argument binds to append(CharSequence).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "append",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/nodes/Comment.java",
+      "line": 41,
+      "callee_text": "accum\n            .append(\"<!--\")\n            .append(getData()).append",
+      "expected": {
+        "path": "src/main/java/org/jsoup/internal/QuietAppendable.java",
+        "qualified_name": "QuietAppendable.append",
+        "def_line": 13
+      },
+      "reason": "accum is a QuietAppendable; a String argument binds to append(CharSequence).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "append",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/nodes/Entities.java",
+      "line": 385,
+      "callee_text": "encoder.charset().equals",
+      "expected": "external",
+      "reason": "java.lang.Object.equals on a java.nio.charset.Charset.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "charset",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "tainted_poly_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/nodes/NodeInternals.java",
+      "line": 73,
+      "callee_text": "range.isTracked",
+      "expected": {
+        "path": "src/main/java/org/jsoup/nodes/Range.java",
+        "qualified_name": "Range.isTracked",
+        "def_line": 85
+      },
+      "reason": "range is a Range parameter.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "isTracked",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "exact_receiver_type_ambiguous",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/nodes/TextNode.java",
+      "line": 78,
+      "callee_text": "parentNode.addChildren",
+      "expected": {
+        "path": "src/main/java/org/jsoup/nodes/Node.java",
+        "qualified_name": "Node.addChildren",
+        "def_line": 618
+      },
+      "reason": "two arguments (int, Node) bind to addChildren(int index, Node... children), not the one-argument varargs overload.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "addChildren",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java",
+      "line": 389,
+      "callee_text": "tb.tokeniser.transition",
+      "expected": {
+        "path": "src/main/java/org/jsoup/parser/Tokeniser.java",
+        "qualified_name": "Tokeniser.transition",
+        "def_line": 178
+      },
+      "reason": "tb.tokeniser is a Tokeniser field of the tree builder.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "transition",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/parser/ParseErrorList.java",
+      "line": 30,
+      "callee_text": "size",
+      "expected": "external",
+      "reason": "ParseErrorList extends java.util.ArrayList, so size() is inherited from the JDK.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "size",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "global_ambiguous",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/safety/Cleaner.java",
+      "line": 97,
+      "callee_text": "dirtyDocument.baseUri",
+      "expected": {
+        "path": "src/main/java/org/jsoup/nodes/Element.java",
+        "qualified_name": "Element.baseUri",
+        "def_line": 130
+      },
+      "reason": "Document extends Element, and Element is the nearest class declaring baseUri() (Node declares it abstract).",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "baseUri",
+          "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Element.java:Element.baseUri:76a48e7020da2c65",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "cha_inherited",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/select/Evaluator.java",
+      "line": 378,
+      "callee_text": "node.attr",
+      "expected": {
+        "path": "src/main/java/org/jsoup/nodes/Node.java",
+        "qualified_name": "Node.attr",
+        "def_line": 124
+      },
+      "reason": "node is a Node and one argument binds to attr(String).",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "attr",
+          "target_symbol_id": "java:src/main/java/org/jsoup/nodes/Node.java:Node.attr:3fb7df60705c0eeb",
+          "status": "resolved",
+          "confidence": 0.95,
+          "scope": "exact_receiver_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/select/NodeFilter.java",
+      "line": 67,
+      "callee_text": "NodeTraversor.filter",
+      "expected": {
+        "path": "src/main/java/org/jsoup/select/NodeTraversor.java",
+        "qualified_name": "NodeTraversor.filter",
+        "def_line": 115
+      },
+      "reason": "arguments (NodeFilter, Node) bind to filter(NodeFilter, Node), not the Elements overload.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "filter",
+          "target_symbol_id": "java:src/main/java/org/jsoup/select/NodeTraversor.java:NodeTraversor.filter:65acf45f8edbd6f8",
+          "status": "resolved",
+          "confidence": 0.7,
+          "scope": "overload_group",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/org/jsoup/select/QueryParser.java",
+      "line": 231,
+      "callee_text": "CombiningEvaluator.And",
+      "expected": {
+        "path": "src/main/java/org/jsoup/select/CombiningEvaluator.java",
+        "qualified_name": "CombiningEvaluator.And.And",
+        "def_line": 86
+      },
+      "reason": "evaluators is declared ArrayList<Evaluator>, so the most specific constructor And(ArrayList<Evaluator>) applies.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/main/java11/org/jsoup/helper/RequestAuthHandler.java",
+      "line": 13,
+      "callee_text": "AuthenticationHandler",
+      "expected": {
+        "path": "src/main/java/org/jsoup/helper/AuthenticationHandler.java",
+        "qualified_name": "AuthenticationHandler.AuthenticationHandler",
+        "def_line": 36
+      },
+      "reason": "one RequestAuthenticator argument binds to the one-argument constructor.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": []
+    }
+  ]
+}

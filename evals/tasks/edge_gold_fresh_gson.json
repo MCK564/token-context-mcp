@@ -1,0 +1,166 @@
+{
+  "repo_id": "fresh-gson",
+  "repo_url": "https://github.com/google/gson",
+  "tag": null,
+  "commit_sha": "854c8255b625cf1e13c701a83ea9ccb4caaa576a",
+  "reviewed": false,
+  "review_note": "Labelled by one independent Claude session; not yet reviewed.",
+  "sites": [
+    {
+      "path": "gson/src/main/java/com/google/gson/FieldAttributes.java",
+      "line": 117,
+      "col": 12,
+      "callee_text": "field.getAnnotation",
+      "snippet": "   * @return the annotation instance if it is bound to the field; otherwise {@code null}\n   */\n  public <T extends Annotation> T getAnnotation(Class<T> annotation) {\n    return field.getAnnotation(annotation);\n  }\n\n  /**",
+      "node_type": "method_invocation",
+      "expected": "external",
+      "reason": "The receiver field is a java.lang.reflect.Field, so getAnnotation is the JDK method, not FieldAttributes.getAnnotation."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/JsonPrimitive.java",
+      "line": 196,
+      "col": 34,
+      "callee_text": "this.getAsNumber().longValue",
+      "snippet": "    return value instanceof BigInteger\n        ? (BigInteger) value\n        : isIntegral(this)\n            ? BigInteger.valueOf(this.getAsNumber().longValue())\n            : NumberLimits.parseBigInteger(this.getAsString());\n  }\n",
+      "node_type": "method_invocation",
+      "expected": "external",
+      "reason": "getAsNumber() returns java.lang.Number, so longValue is the JDK Number method; LazilyParsedNumber.longValue is only a runtime override."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/LongSerializationPolicy.java",
+      "line": 43,
+      "col": 14,
+      "callee_text": "JsonPrimitive",
+      "snippet": "      if (value == null) {\n        return JsonNull.INSTANCE;\n      }\n      return new JsonPrimitive(value);\n    }\n\n    @Override",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/JsonPrimitive.java",
+        "qualified_name": "JsonPrimitive.JsonPrimitive",
+        "def_line": 58
+      },
+      "reason": "The argument is a Long, which only fits the JsonPrimitive(Number) constructor."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/ReflectionAccessFilter.java",
+      "line": 178,
+      "col": 18,
+      "callee_text": "ReflectionAccessFilterHelper.isAndroidType",
+      "snippet": "      new ReflectionAccessFilter() {\n        @Override\n        public FilterResult check(Class<?> rawClass) {\n          return ReflectionAccessFilterHelper.isAndroidType(rawClass)\n              ? FilterResult.BLOCK_ALL\n              : FilterResult.INDECISIVE;\n        }",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+        "qualified_name": "ReflectionAccessFilterHelper.isAndroidType",
+        "def_line": 41
+      },
+      "reason": "rawClass is a Class<?>, so the public isAndroidType(Class) overload binds; the String overload is private."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+      "line": 145,
+      "col": 5,
+      "callee_text": "write",
+      "snippet": "   */\n  public final void toJson(Writer out, T value) throws IOException {\n    JsonWriter writer = new JsonWriter(out);\n    write(writer, value);\n  }\n\n  /**",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "The unqualified call on this binds to the abstract write(JsonWriter, T) declared in TypeAdapter."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/Excluder.java",
+      "line": 143,
+      "col": 9,
+      "callee_text": "delegate().write",
+      "snippet": "          out.nullValue();\n          return;\n        }\n        delegate().write(out, value);\n      }\n\n      private TypeAdapter<T> delegate() {",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "delegate() returns a TypeAdapter<T>, so the virtual call is typed to TypeAdapter.write."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+      "line": 67,
+      "col": 29,
+      "callee_text": "filter.check",
+      "snippet": "  public static FilterResult getFilterResult(\n      List<ReflectionAccessFilter> reflectionFilters, Class<?> c) {\n    for (ReflectionAccessFilter filter : reflectionFilters) {\n      FilterResult result = filter.check(c);\n      if (result != FilterResult.INDECISIVE) {\n        return result;\n      }",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/ReflectionAccessFilter.java",
+        "qualified_name": "ReflectionAccessFilter.check",
+        "def_line": 227
+      },
+      "reason": "filter is a ReflectionAccessFilter, so the call binds to the interface method check(Class)."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/UnsafeAllocator.java",
+      "line": 57,
+      "col": 23,
+      "callee_text": "f.get",
+      "snippet": "      Class<?> unsafeClass = Class.forName(\"sun.misc.Unsafe\");\n      Field f = unsafeClass.getDeclaredField(\"theUnsafe\");\n      f.setAccessible(true);\n      Object unsafe = f.get(null);\n      Method allocateInstance = unsafeClass.getMethod(\"allocateInstance\", Class.class);\n      return new UnsafeAllocator() {\n        @Override",
+      "node_type": "method_invocation",
+      "expected": "external",
+      "reason": "f is a java.lang.reflect.Field, so get(Object) is the JDK method."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java",
+      "line": 162,
+      "col": 9,
+      "callee_text": "out.name",
+      "snippet": "    } else if (value.isJsonObject()) {\n      out.beginObject();\n      for (Map.Entry<String, JsonElement> e : value.getAsJsonObject().entrySet()) {\n        out.name(e.getKey());\n        write(out, e.getValue());\n      }\n      out.endObject();",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/stream/JsonWriter.java",
+        "qualified_name": "JsonWriter.name",
+        "def_line": 499
+      },
+      "reason": "out is a JsonWriter parameter, so name(String) is the method declared in JsonWriter."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+      "line": 77,
+      "col": 5,
+      "callee_text": "chosen.write",
+      "snippet": "        chosen = runtimeTypeAdapter;\n      }\n    }\n    chosen.write(out, value);\n  }\n\n  /**",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "chosen is a TypeAdapter<T>, so the virtual call is typed to TypeAdapter.write."
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/sql/SqlTimestampTypeAdapter.java",
+      "line": 59,
+      "col": 5,
+      "callee_text": "dateTypeAdapter.write",
+      "snippet": "\n  @Override\n  public void write(JsonWriter out, Timestamp value) throws IOException {\n    dateTypeAdapter.write(out, value);\n  }\n}",
+      "node_type": "method_invocation",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "dateTypeAdapter is declared as TypeAdapter<Date>, so the virtual call is typed to TypeAdapter.write."
+    },
+    {
+      "path": "proto/src/main/java/com/google/gson/protobuf/ProtoTypeAdapter.java",
+      "line": 355,
+      "col": 13,
+      "callee_text": "JsonParseException",
+      "snippet": "      }\n      return protoBuilder.build();\n    } catch (Exception e) {\n      throw new JsonParseException(\"Error while parsing proto\", e);\n    }\n  }\n",
+      "node_type": "object_creation_expression",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/JsonParseException.java",
+        "qualified_name": "JsonParseException.JsonParseException",
+        "def_line": 51
+      },
+      "reason": "The message plus caught Exception arguments select the JsonParseException(String, Throwable) constructor of the imported gson core class."
+    }
+  ]
+}

@@ -1,0 +1,358 @@
+{
+  "repo_id": "fresh-newtonsoft",
+  "total_symbols": 12025,
+  "total_edges": 25262,
+  "unresolved_edges": 6239,
+  "total_suspicious_edges": 441,
+  "suspicious_edges_ratio": 0.0175,
+  "status_counts": {
+    "ambiguous": 6239,
+    "resolved": 19023
+  },
+  "scope_counts": {
+    "scope:external_receiver_type": 1793,
+    "scope:overload_types": 1606,
+    "scope:implicit_this": 2341,
+    "scope:receiver_match": 2123,
+    "scope:unresolved_receiver": 1332,
+    "scope:overload_group": 2233,
+    "scope:global_ambiguous": 570,
+    "scope:overload_arity": 2007,
+    "scope:cha_inherited": 778,
+    "scope:same_file": 377,
+    "scope:same_namespace": 1829,
+    "scope:field_type": 114,
+    "scope:exact_receiver_type": 2254,
+    "scope:extension_method": 670,
+    "scope:global": 43,
+    "scope:namespace_match": 2394,
+    "scope:chain_type": 95,
+    "scope:type_member_unmatched": 94,
+    "scope:same_package_ambiguous": 171,
+    "scope:implicit_this_partial": 98,
+    "scope:builtin_receiver_skipped": 5,
+    "scope:receiver_type_ambiguous": 2251,
+    "scope:receiver_match_ambiguous": 8,
+    "scope:namespace_ambiguous": 1,
+    "scope:same_file_ambiguous": 14,
+    "scope:same_class": 60,
+    "scope:attr_type": 1
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonTextReader.Async.cs:JsonTextReader:d7cd8be72456dd9b",
+      "name": "JsonTextReader",
+      "qualified_name": "JsonTextReader",
+      "path": "Src/Newtonsoft.Json/JsonTextReader.Async.cs",
+      "in_degree": 644,
+      "resolved_count": 644,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 643,
+        "scope:namespace_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonConvert.cs:JsonConvert.DeserializeObject:5d7073dcab558036",
+      "name": "DeserializeObject",
+      "qualified_name": "JsonConvert.DeserializeObject",
+      "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+      "in_degree": 579,
+      "resolved_count": 579,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 579
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json.Tests/TestFixtureBase.cs:StringAssert.AreEqual:7cbe9f503dc2630b",
+      "name": "AreEqual",
+      "qualified_name": "StringAssert.AreEqual",
+      "path": "Src/Newtonsoft.Json.Tests/TestFixtureBase.cs",
+      "in_degree": 556,
+      "resolved_count": 556,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 556
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json.Tests/TestFixtureBase.cs:XUnitAssert.IsTrue:f7fbee3c3e2392f3",
+      "name": "IsTrue",
+      "qualified_name": "XUnitAssert.IsTrue",
+      "path": "Src/Newtonsoft.Json.Tests/TestFixtureBase.cs",
+      "in_degree": 534,
+      "resolved_count": 534,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 534
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonSerializerSettings.cs:JsonSerializerSettings:7c00bcb99bbc4237",
+      "name": "JsonSerializerSettings",
+      "qualified_name": "JsonSerializerSettings",
+      "path": "Src/Newtonsoft.Json/JsonSerializerSettings.cs",
+      "in_degree": 456,
+      "resolved_count": 456,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 455,
+        "scope:namespace_match": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json.Tests/TestFixtureBase.cs:ExceptionAssert.Throws:3a94c98dda47c313",
+      "name": "Throws",
+      "qualified_name": "ExceptionAssert.Throws",
+      "path": "Src/Newtonsoft.Json.Tests/TestFixtureBase.cs",
+      "in_degree": 445,
+      "resolved_count": 445,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 445
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Linq/JObject.Async.cs:JObject:db55f19cfec3f591",
+      "name": "JObject",
+      "qualified_name": "JObject",
+      "path": "Src/Newtonsoft.Json/Linq/JObject.Async.cs",
+      "in_degree": 258,
+      "resolved_count": 258,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 3,
+        "scope:same_file": 1,
+        "scope:namespace_match": 254
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonConvert.cs:JsonConvert.SerializeObject:31741524b4c5b2ac",
+      "name": "SerializeObject",
+      "qualified_name": "JsonConvert.SerializeObject",
+      "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+      "in_degree": 249,
+      "resolved_count": 249,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 249
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonConvert.cs:JsonConvert.DeserializeObject:faee7b92cf5ade3a",
+      "name": "DeserializeObject",
+      "qualified_name": "JsonConvert.DeserializeObject",
+      "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+      "in_degree": 246,
+      "resolved_count": 246,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_types": 226,
+        "scope:overload_group": 20
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Linq/JValue.Async.cs:JValue:25ae73ddc417212d",
+      "name": "JValue",
+      "qualified_name": "JValue",
+      "path": "Src/Newtonsoft.Json/Linq/JValue.Async.cs",
+      "in_degree": 241,
+      "resolved_count": 241,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 25,
+        "scope:namespace_match": 216
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonConvert.cs:JsonConvert.SerializeObject:dbd5682b3648bd00",
+      "name": "SerializeObject",
+      "qualified_name": "JsonConvert.SerializeObject",
+      "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+      "in_degree": 225,
+      "resolved_count": 225,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 225
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json.Tests/TestFixtureBase.cs:XUnitAssert.IsFalse:7ff91d8860a2ccc0",
+      "name": "IsFalse",
+      "qualified_name": "XUnitAssert.IsFalse",
+      "path": "Src/Newtonsoft.Json.Tests/TestFixtureBase.cs",
+      "in_degree": 223,
+      "resolved_count": 223,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 223
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonTextWriter.Async.cs:JsonTextWriter:c6ab5ea84c2413b7",
+      "name": "JsonTextWriter",
+      "qualified_name": "JsonTextWriter",
+      "path": "Src/Newtonsoft.Json/JsonTextWriter.Async.cs",
+      "in_degree": 192,
+      "resolved_count": 192,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 192
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json.Tests/TestFixtureBase.cs:XUnitAssert.IsNotNull:1ece40025f1692ab",
+      "name": "IsNotNull",
+      "qualified_name": "XUnitAssert.IsNotNull",
+      "path": "Src/Newtonsoft.Json.Tests/TestFixtureBase.cs",
+      "in_degree": 187,
+      "resolved_count": 187,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 187
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Linq/JArray.Async.cs:JArray:822b2c1a0342c685",
+      "name": "JArray",
+      "qualified_name": "JArray",
+      "path": "Src/Newtonsoft.Json/Linq/JArray.Async.cs",
+      "in_degree": 183,
+      "resolved_count": 183,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 1,
+        "scope:same_namespace": 4,
+        "scope:namespace_match": 178
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonTextReader.cs:JsonTextReader.Read:daf8ba1698a970c7",
+      "name": "Read",
+      "qualified_name": "JsonTextReader.Read",
+      "path": "Src/Newtonsoft.Json/JsonTextReader.cs",
+      "in_degree": 168,
+      "resolved_count": 168,
+      "ambiguous_count": 0,
+      "suspicious_count": 155,
+      "suspicious_ratio": 0.923,
+      "scopes": {
+        "scope:overload_group": 168
+      },
+      "reasons": {
+        "receiver_mismatch:reader_vs_jsontextreader": 142,
+        "receiver_mismatch:jsonReader_vs_jsontextreader": 11,
+        "receiver_mismatch:r_vs_jsontextreader": 2
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Linq/JObject.cs:JObject.Parse:70ecec8422342a1b",
+      "name": "Parse",
+      "qualified_name": "JObject.Parse",
+      "path": "Src/Newtonsoft.Json/Linq/JObject.cs",
+      "in_degree": 153,
+      "resolved_count": 153,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_arity": 153
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Utilities/ValidationUtils.cs:ValidationUtils.ArgumentNotNull:7e8356bc625a4297",
+      "name": "ArgumentNotNull",
+      "qualified_name": "ValidationUtils.ArgumentNotNull",
+      "path": "Src/Newtonsoft.Json/Utilities/ValidationUtils.cs",
+      "in_degree": 146,
+      "resolved_count": 146,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 146
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/JsonTextReader.Async.cs:JsonTextReader.ReadAsync:95f71f7ac6319778",
+      "name": "ReadAsync",
+      "qualified_name": "JsonTextReader.ReadAsync",
+      "path": "Src/Newtonsoft.Json/JsonTextReader.Async.cs",
+      "in_degree": 145,
+      "resolved_count": 145,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 145
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:Src/Newtonsoft.Json/Linq/JProperty.Async.cs:JProperty:b23e82280ab69d24",
+      "name": "JProperty",
+      "qualified_name": "JProperty",
+      "path": "Src/Newtonsoft.Json/Linq/JProperty.Async.cs",
+      "in_degree": 144,
+      "resolved_count": 144,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 4,
+        "scope:same_file": 1,
+        "scope:namespace_match": 139
+      },
+      "reasons": {}
+    }
+  ]
+}

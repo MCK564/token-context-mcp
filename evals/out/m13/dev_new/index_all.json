@@ -1,0 +1,83 @@
+{
+  "failed": 0,
+  "indexed": 7,
+  "repositories": [
+    {
+      "edges_indexed": 6536,
+      "files_indexed": 603,
+      "files_reparsed": 446,
+      "incremental": false,
+      "index_run_id": "run_20261002T024311Z_ce5451cc",
+      "ok": true,
+      "repo_id": "bench-csvhelper",
+      "seconds": 11.119,
+      "symbols_indexed": 14460
+    },
+    {
+      "edges_indexed": 955,
+      "files_indexed": 388,
+      "files_reparsed": 291,
+      "incremental": false,
+      "index_run_id": "run_20261002T024316Z_3cb2d1c5",
+      "ok": true,
+      "repo_id": "bench-fastify",
+      "seconds": 4.195,
+      "symbols_indexed": 1408
+    },
+    {
+      "edges_indexed": 1595,
+      "files_indexed": 467,
+      "files_reparsed": 359,
+      "incremental": false,
+      "index_run_id": "run_20261002T024321Z_0c39f48d",
+      "ok": true,
+      "repo_id": "bench-hono",
+      "seconds": 4.698,
+      "symbols_indexed": 2146
+    },
+    {
+      "edges_indexed": 3797,
+      "files_indexed": 532,
+      "files_reparsed": 213,
+      "incremental": false,
+      "index_run_id": "run_20261002T024324Z_05a0e07d",
+      "ok": true,
+      "repo_id": "bench-rich",
+      "seconds": 3.294,
+      "symbols_indexed": 2096
+    },
+    {
+      "edges_indexed": 17169,
+      "files_indexed": 253,
+      "files_reparsed": 229,
+      "incremental": false,
+      "index_run_id": "run_20261002T024331Z_99a1b39f",
+      "ok": true,
+      "repo_id": "dev-jsoup",
+      "seconds": 8.588,
+      "symbols_indexed": 6973
+    },
+    {
+      "edges_indexed": 3093,
+      "files_indexed": 282,
+      "files_reparsed": 216,
+      "incremental": false,
+      "index_run_id": "run_20261002T024337Z_0f73bfe7",
+      "ok": true,
+      "repo_id": "heldout-serilog",
+      "seconds": 3.964,
+      "symbols_indexed": 1910
+    },
+    {
+      "edges_indexed": 2449,
+      "files_indexed": 319,
+      "files_reparsed": 137,
+      "incremental": false,
+      "index_run_id": "run_20261002T024339Z_1491844e",
+      "ok": true,
+      "repo_id": "tc-pinned",
+      "seconds": 2.085,
+      "symbols_indexed": 1021
+    }
+  ]
+}

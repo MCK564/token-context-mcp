@@ -1,0 +1,15 @@
+=== Edge Gold Evaluation: repo='fresh-gson', tag='new', role='heldout' ===
+Sites: 12 total (9 internal targets)
+Precision (conf >= 0.6): 80.00% (8/10), FP: 2
+Recall (internal targets): 88.89% (8/9)
+
+Scope Breakdown (conf >= 0.6):
+  exact_receiver_type       Precision:  100.0% (3/3) | FP: 0
+  field_type                Precision:  100.0% (1/1) | FP: 0
+  implicit_this             Precision:   50.0% (1/2) | FP: 1
+  import_match              Precision:  100.0% (1/1) | FP: 0
+  overload_group            Precision:    0.0% (0/1) | FP: 1
+  overload_types            Precision:  100.0% (1/1) | FP: 0
+  same_package              Precision:  100.0% (1/1) | FP: 0
+
+Saved report to /home/claude/work/out/m13f_new/edge_gold_gson.json

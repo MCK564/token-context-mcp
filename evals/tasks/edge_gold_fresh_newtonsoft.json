@@ -1,0 +1,158 @@
+{
+ "repo_id": "fresh-newtonsoft",
+ "repo_url": "https://github.com/JamesNK/Newtonsoft.Json",
+ "tag": null,
+ "commit_sha": "52fa3aef1f2cadcd3a3f874251eddc98d3efbbaa",
+ "reviewed": false,
+ "review_note": "Labelled by one independent Claude session; not yet reviewed.",
+ "sites": [
+  {
+   "path": "Src/Newtonsoft.Json/Bson/BsonWriter.cs",
+   "line": 359,
+   "col": 13,
+   "callee_text": "base.WriteValue",
+   "snippet": "        /// <param name=\"value\">The <see cref=\"Boolean\"/> value to write.</param>\n        public override void WriteValue(bool value)\n        {\n            base.WriteValue(value);\n            AddToken(value ? BsonBoolean.True : BsonBoolean.False);\n        }\n",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/JsonWriter.cs",
+    "qualified_name": "JsonWriter.WriteValue",
+    "def_line": 1017
+   },
+   "reason": "base.WriteValue(value) with a bool argument binds to the JsonWriter.WriteValue(bool) overload, the nearest ancestor implementation."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/JsonConvert.cs",
+   "line": 123,
+   "col": 17,
+   "callee_text": "DateTimeUtils.WriteDateTimeString",
+   "snippet": "            using (StringWriter writer = StringUtils.CreateStringWriter(64))\n            {\n                writer.Write('\"');\n                DateTimeUtils.WriteDateTimeString(writer, updatedDateTime, format, null, CultureInfo.InvariantCulture);\n                writer.Write('\"');\n                return writer.ToString();\n            }",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/Utilities/DateTimeUtils.cs",
+    "qualified_name": "DateTimeUtils.WriteDateTimeString",
+    "def_line": 621
+   },
+   "reason": "Five arguments starting with a StringWriter bind to the TextWriter overload of the static DateTimeUtils.WriteDateTimeString, not the six-argument char[] overload."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/JsonException.cs",
+   "line": 91,
+   "col": 20,
+   "callee_text": "JsonException",
+   "snippet": "        {\n            message = JsonPosition.FormatMessage(lineInfo, path, message);\n\n            return new JsonException(message);\n        }\n    }\n}",
+   "node_type": "object_creation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/JsonException.cs",
+    "qualified_name": "JsonException.JsonException",
+    "def_line": 55
+   },
+   "reason": "new JsonException(message) with one string argument calls the JsonException(string message) constructor."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Linq/JConstructor.Async.cs",
+   "line": 53,
+   "col": 23,
+   "callee_text": "_values[i].WriteToAsync",
+   "snippet": "\n            for (int i = 0; i < _values.Count; i++)\n            {\n                await _values[i].WriteToAsync(writer, cancellationToken, converters).ConfigureAwait(false);\n            }\n\n            await writer.WriteEndConstructorAsync(cancellationToken).ConfigureAwait(false);",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/Linq/JToken.Async.cs",
+    "qualified_name": "JToken.WriteToAsync",
+    "def_line": 48
+   },
+   "reason": "_values is a List<JToken>, so the receiver is a JToken and the call with a writer, token and converters binds to the virtual JToken.WriteToAsync(JsonWriter, CancellationToken, params JsonConverter[])."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Linq/JToken.Async.cs",
+   "line": 157,
+   "col": 21,
+   "callee_text": "v.SetLineInfo",
+   "snippet": "                    return v;\n                case JsonToken.Comment:\n                    v = JValue.CreateComment(reader.Value?.ToString());\n                    v.SetLineInfo(lineInfo, settings);\n                    return v;\n                case JsonToken.Null:\n                    v = JValue.CreateNull();",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/Linq/JToken.cs",
+    "qualified_name": "JToken.SetLineInfo",
+    "def_line": 2331
+   },
+   "reason": "v is a JValue, which inherits the internal JToken.SetLineInfo(IJsonLineInfo?, JsonLoadSettings?) overload from JToken (the other overload takes two ints)."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Serialization/CamelCasePropertyNamesContractResolver.cs",
+   "line": 72,
+   "col": 35,
+   "callee_text": "cache.TryGetValue",
+   "snippet": "            // for backwards compatibility the CamelCasePropertyNamesContractResolver shares contracts between instances\n            StructMultiKey<Type, Type> key = new StructMultiKey<Type, Type>(GetType(), type);\n            Dictionary<StructMultiKey<Type, Type>, JsonContract>? cache = _contractCache;\n            if (cache == null || !cache.TryGetValue(key, out JsonContract? contract))\n            {\n                contract = CreateContract(type);\n",
+   "node_type": "invocation_expression",
+   "expected": "external",
+   "reason": "cache is a Dictionary<StructMultiKey<Type, Type>, JsonContract>, so TryGetValue is the BCL dictionary method, not an in-repo TryGetValue."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Serialization/FormatterConverter.cs",
+   "line": 88,
+   "col": 20,
+   "callee_text": "System.Convert.ToSingle",
+   "snippet": "        public float ToSingle(object value)\n        {\n            ValidationUtils.ArgumentNotNull(value, nameof(value));\n            return System.Convert.ToSingle(value, CultureInfo.InvariantCulture);\n        }\n\n        public string ToString(object value)",
+   "node_type": "invocation_expression",
+   "expected": "external",
+   "reason": "System.Convert.ToSingle is the fully qualified BCL static method, not an in-repo conversion helper."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Serialization/ReflectionAttributeProvider.cs",
+   "line": 57,
+   "col": 20,
+   "callee_text": "ReflectionUtils.GetAttributes",
+   "snippet": "        /// <returns>A collection of <see cref=\"Attribute\"/>s, or an empty collection.</returns>\n        public IList<Attribute> GetAttributes(bool inherit)\n        {\n            return ReflectionUtils.GetAttributes(_attributeProvider, null, inherit);\n        }\n\n        /// <summary>",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs",
+    "qualified_name": "ReflectionUtils.GetAttributes",
+    "def_line": 785
+   },
+   "reason": "The static call with (object, null, bool) binds to the non-generic GetAttributes(object, Type?, bool) overload rather than the generic GetAttributes<T>(object, bool); line 785 is the branch active for the normal targets."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Utilities/DynamicProxyMetaObject.cs",
+   "line": 238,
+   "col": 13,
+   "callee_text": "callArgs.Add",
+   "snippet": "            callArgs.Add(Expression.Convert(Expression, typeof(T)));\n            callArgs.Add(Constant(binder));\n            callArgs.AddRange(args);\n            callArgs.Add(result);\n\n            DynamicMetaObject resultMetaObject = new DynamicMetaObject(result, BindingRestrictions.Empty);\n",
+   "node_type": "invocation_expression",
+   "expected": "external",
+   "reason": "callArgs is declared as IList<Expression>, so Add is the BCL ICollection<T>.Add."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Utilities/DynamicReflectionDelegateFactory.cs",
+   "line": 322,
+   "col": 13,
+   "callee_text": "generator.Return",
+   "snippet": "\n            generator.CallMethod(getMethod);\n            generator.BoxIfNeeded(propertyInfo.PropertyType);\n            generator.Return();\n        }\n\n        [RequiresDynamicCode(MiscellaneousUtils.AotWarning)]",
+   "node_type": "invocation_expression",
+   "expected": {
+    "path": "Src/Newtonsoft.Json/Utilities/ILGeneratorExtensions.cs",
+    "qualified_name": "ILGeneratorExtensions.Return",
+    "def_line": 110
+   },
+   "reason": "generator is a System.Reflection.Emit.ILGenerator, which has no Return member, so the call binds to the in-repo extension method ILGeneratorExtensions.Return(this ILGenerator)."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Utilities/MethodBinder.cs",
+   "line": 338,
+   "col": 20,
+   "callee_text": "candidates\n                .Where(m => FilterParameters(m.GetParameters(), types, enableParamArray))\n                .OrderBy",
+   "snippet": "            // They will be treated like ordinary array arguments\n            const bool enableParamArray = false;\n\n            return candidates\n                .Where(m => FilterParameters(m.GetParameters(), types, enableParamArray))\n                .OrderBy(m => m.GetParameters(), new ParametersMatchComparer(types, enableParamArray))\n                .FirstOrDefault();",
+   "node_type": "invocation_expression",
+   "expected": "external",
+   "reason": "OrderBy on IEnumerable<TMethod> binds to System.Linq.Enumerable.OrderBy; the in-repo LinqBridge copy is compiled only when HAVE_LINQ is undefined (net20 target)."
+  },
+  {
+   "path": "Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs",
+   "line": 947,
+   "col": 64,
+   "callee_text": "targetType.GetFields",
+   "snippet": "        {\n            ValidationUtils.ArgumentNotNull(targetType, nameof(targetType));\n\n            List<MemberInfo> fieldInfos = new List<MemberInfo>(targetType.GetFields(bindingAttr));\n#if !PORTABLE\n            // Type.GetFields doesn't return inherited private fields\n            // manually find private fields from base class",
+   "node_type": "invocation_expression",
+   "expected": "external",
+   "reason": "targetType is a System.Type, so the instance method Type.GetFields(BindingFlags) is called; the in-repo ReflectionUtils.GetFields and TypeExtensions overloads are not involved."
+  }
+ ]
+}

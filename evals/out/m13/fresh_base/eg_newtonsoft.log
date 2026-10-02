@@ -1,0 +1,10 @@
+=== Edge Gold Evaluation: repo='fresh-newtonsoft', tag='base', role='heldout' ===
+Sites: 12 total (7 internal targets)
+Precision (conf >= 0.6): 100.00% (3/3), FP: 0
+Recall (internal targets): 42.86% (3/7)
+
+Scope Breakdown (conf >= 0.6):
+  namespace_match           Precision:  100.0% (2/2) | FP: 0
+  same_file                 Precision:  100.0% (1/1) | FP: 0
+
+Saved report to /home/claude/work/out/m13f_base/edge_gold_newtonsoft.json

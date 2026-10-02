@@ -1,0 +1,354 @@
+{
+  "repo_id": "fresh-gson",
+  "repo_url": "https://github.com/google/gson",
+  "tag": null,
+  "commit_sha": "854c8255b625cf1e13c701a83ea9ccb4caaa576a",
+  "license": "Apache-2.0",
+  "reviewed": true,
+  "split_seed": null,
+  "review_note": "Authored by one independent Claude Sonnet 5.5 session from reading the library source only; no retrieval tool was run. Not yet reviewed. | Reviewed 2026-10-02 by a different Claude Sonnet 5.5 session (no retrieval tool, source reading only); 0 of 15 tasks changed (details in review log). The repository owner has not reviewed this set.",
+  "tasks": [
+    {
+      "id": "t01",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "set the date format the builder uses for serializing and deserializing Date values, given a pattern string or date and time style constants",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/GsonBuilder.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+          "qualified_name": "GsonBuilder.setDateFormat",
+          "def_line": 639
+        }
+      ],
+      "tags": [
+        "overload"
+      ],
+      "note": "GsonBuilder.setDateFormat has three overloads that store either a validated SimpleDateFormat pattern or date and time style constants for Date handling."
+    },
+    {
+      "id": "t02",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "check whether a given type, class or type token is assignable to this one, comparing generic arguments of parameterized types and array components",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/reflect/TypeToken.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/reflect/TypeToken.java",
+          "qualified_name": "TypeToken.isAssignableFrom",
+          "def_line": 186
+        }
+      ],
+      "tags": [
+        "overload"
+      ],
+      "note": "TypeToken.isAssignableFrom (overloads for Class, Type and TypeToken) tests assignability to this token, handling parameterized and generic array types."
+    },
+    {
+      "id": "t03",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "consume the non-execute prefix, a security token placed before the document, if it is present at the beginning of the input",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/stream/JsonReader.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/stream/JsonReader.java",
+          "qualified_name": "JsonReader.consumeNonExecutePrefix",
+          "def_line": 1961
+        }
+      ],
+      "tags": [],
+      "note": "JsonReader.consumeNonExecutePrefix skips leading whitespace and swallows the )]}' plus newline security prefix when it is present."
+    },
+    {
+      "id": "t04",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "get the type adapter for a type, using a cache and per-thread in-progress placeholders so recursive types resolve, trying each registered factory in turn",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/Gson.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/Gson.java",
+          "qualified_name": "Gson.getAdapter",
+          "def_line": 340
+        }
+      ],
+      "tags": [
+        "overload"
+      ],
+      "note": "Gson.getAdapter(TypeToken) returns a cached adapter or asks each factory in turn, using thread-local FutureTypeAdapter placeholders for recursive types; the Class overload delegates to it."
+    },
+    {
+      "id": "t05",
+      "group": "a_keyword",
+      "split": "test",
+      "query": "get the wrapped value as a BigInteger: return it directly if already one, convert integral numbers through long, otherwise parse the text form",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/JsonPrimitive.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/JsonPrimitive.java",
+          "qualified_name": "JsonPrimitive.getAsBigInteger",
+          "def_line": 192
+        }
+      ],
+      "tags": [
+        "override"
+      ],
+      "note": "JsonPrimitive.getAsBigInteger returns the stored BigInteger, converts integral numbers via long, or parses the string form with a length limit."
+    },
+    {
+      "id": "t06",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "make an independent duplicate of an ordered list by recursively duplicating each element; an empty list just gives a fresh empty instance",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/JsonArray.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/JsonArray.java",
+          "qualified_name": "JsonArray.deepCopy",
+          "def_line": 69
+        }
+      ],
+      "tags": [
+        "override"
+      ],
+      "note": "JsonArray.deepCopy builds a new JsonArray whose elements are deep copies of this array's elements, returning an empty array when there are none."
+    },
+    {
+      "id": "t07",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "start collecting deserialized property values by cloning a template array of constructor arguments in which primitive parameters already hold zero-like defaults",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+          "qualified_name": "ReflectiveTypeAdapterFactory.RecordAdapter.createAccumulator",
+          "def_line": 643
+        }
+      ],
+      "tags": [
+        "override"
+      ],
+      "note": "RecordAdapter.createAccumulator clones the constructor-argument defaults array (zero values for primitive parameters) that collects record component values during reading."
+    },
+    {
+      "id": "t08",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "converter for classes skipped when reading or writing: discards input, emits null, lazily delegates the other direction; no converter at all when neither applies",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/Excluder.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/Excluder.java",
+          "qualified_name": "Excluder.create",
+          "def_line": 111
+        }
+      ],
+      "tags": [
+        "override"
+      ],
+      "note": "Excluder.create returns null for classes that are not excluded, otherwise an adapter that skips input and writes null for the excluded direction and lazily delegates the other."
+    },
+    {
+      "id": "t09",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "build a human-readable label for a field, method or constructor, quoting its declaring class and simple parameter type names, optionally capitalizing the first letter",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/reflect/ReflectionHelper.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/reflect/ReflectionHelper.java",
+          "qualified_name": "ReflectionHelper.getAccessibleObjectDescription",
+          "def_line": 89
+        }
+      ],
+      "tags": [],
+      "note": "ReflectionHelper.getAccessibleObjectDescription returns a quoted description such as field 'Class#name', method 'Class#name(Param)' or constructor 'Class(Param)', optionally uppercasing the first letter."
+    },
+    {
+      "id": "t10",
+      "group": "b_hidden_dep",
+      "split": "test",
+      "query": "restore height balance in a binary search structure after an insertion or removal by walking up from the changed node applying rotations",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/LinkedTreeMap.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/LinkedTreeMap.java",
+          "qualified_name": "LinkedTreeMap.rebalance",
+          "def_line": 328
+        }
+      ],
+      "tags": [],
+      "note": "LinkedTreeMap.rebalance walks from an unbalanced node to the root applying AVL rotations and updating heights after an insert or removal."
+    },
+    {
+      "id": "t11",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "parse a JSON document into an element tree, rejecting trailing data, yielding JSON null for an empty document, and building nested values iteratively",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/JsonParser.java",
+        "gson/src/main/java/com/google/gson/internal/Streams.java",
+        "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/JsonParser.java",
+          "qualified_name": "JsonParser.parseReader",
+          "def_line": 107
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/Streams.java",
+          "qualified_name": "Streams.parse",
+          "def_line": 43
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java",
+          "qualified_name": "JsonElementTypeAdapter.read",
+          "def_line": 77
+        }
+      ],
+      "tags": [
+        "overload",
+        "override"
+      ],
+      "note": "JsonParser.parseReader checks for trailing data and wraps errors, Streams.parse maps an empty document to JsonNull, and JsonElementTypeAdapter.read builds the tree with an explicit stack."
+    },
+    {
+      "id": "t12",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "block reflection-based serialization for classes denied by registered access filters: evaluating the filters in order, refusing to build field-based adapters and refusing instance creation",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+        "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/internal/ConstructorConstructor.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+          "qualified_name": "ReflectionAccessFilterHelper.getFilterResult",
+          "def_line": 64
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java",
+          "qualified_name": "ReflectiveTypeAdapterFactory.create",
+          "def_line": 110
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/ConstructorConstructor.java",
+          "qualified_name": "ConstructorConstructor.get",
+          "def_line": 103
+        }
+      ],
+      "tags": [
+        "overload",
+        "override"
+      ],
+      "note": "getFilterResult applies the registered filters in order, ReflectiveTypeAdapterFactory.create throws on BLOCK_ALL, and ConstructorConstructor.get refuses reflective or Unsafe instantiation when the result is not ALLOW."
+    },
+    {
+      "id": "t13",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "serialize maps with object or array keys as a list of key-value pairs instead of a JSON object, enabled through an opt-in builder switch",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+        "gson/src/main/java/com/google/gson/GsonBuilder.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java",
+          "qualified_name": "MapTypeAdapterFactory.Adapter.write",
+          "def_line": 217
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/GsonBuilder.java",
+          "qualified_name": "GsonBuilder.enableComplexMapKeySerialization",
+          "def_line": 360
+        }
+      ],
+      "tags": [
+        "override"
+      ],
+      "note": "MapTypeAdapterFactory.Adapter.write emits an array of [key, value] entries when a key serializes to an array or object in complex-key mode, which GsonBuilder.enableComplexMapKeySerialization turns on."
+    },
+    {
+      "id": "t14",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "reject NaN and infinite floating-point numbers when writing: the strict adapters' validity check, and the text writer's finite-number rule that lenient mode relaxes",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+        "gson/src/main/java/com/google/gson/stream/JsonWriter.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java",
+          "qualified_name": "TypeAdapters.checkValidFloatingPoint",
+          "def_line": 520
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/stream/JsonWriter.java",
+          "qualified_name": "JsonWriter.value",
+          "def_line": 598
+        }
+      ],
+      "tags": [
+        "overload"
+      ],
+      "note": "TypeAdapters.checkValidFloatingPoint throws for NaN or infinity in the strict float and double adapters, and JsonWriter.value(double) throws for them unless the writer is lenient."
+    },
+    {
+      "id": "t15",
+      "group": "c_multi_file",
+      "split": "test",
+      "query": "parse a date by trying each configured format in turn, including a US pattern built from style constants, then falling back to ISO 8601 parsing",
+      "gold_files": [
+        "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+        "gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java",
+        "gson/src/main/java/com/google/gson/internal/PreJava9DateFormatProvider.java"
+      ],
+      "gold_symbols": [
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java",
+          "qualified_name": "DefaultDateTypeAdapter.deserializeToDate",
+          "def_line": 165
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java",
+          "qualified_name": "ISO8601Utils.parse",
+          "def_line": 147
+        },
+        {
+          "path": "gson/src/main/java/com/google/gson/internal/PreJava9DateFormatProvider.java",
+          "qualified_name": "PreJava9DateFormatProvider.getUsDateTimeFormat",
+          "def_line": 30
+        }
+      ],
+      "tags": [],
+      "note": "deserializeToDate tries each configured DateFormat and then ISO8601Utils.parse, while getUsDateTimeFormat builds the US pattern from date and time style constants."
+    }
+  ]
+}

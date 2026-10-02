@@ -1,0 +1,311 @@
+{
+  "tag": "base",
+  "repo_id": "fresh-gson",
+  "role": "heldout",
+  "index_run_id": "run_20261002T030124Z_a21e875e",
+  "reviewed_gold": false,
+  "total_call_sites": 12,
+  "internal_call_sites": 9,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 4,
+    "correct_edges": 2,
+    "false_positives": 2,
+    "precision": 0.5
+  },
+  "recall": {
+    "total_internal_sites": 9,
+    "resolved_correctly": 2,
+    "recall": 0.2222
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 9,
+    "resolved_exactly": 2,
+    "recall": 0.2222,
+    "precision_ge_06": 0.5
+  },
+  "scope_breakdown": {
+    "exact_receiver_type": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "implicit_this": {
+      "total_ge_06": 1,
+      "correct_ge_06": 0,
+      "fp_ge_06": 1,
+      "precision": 0.0
+    },
+    "overload_group": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "same_class": {
+      "total_ge_06": 1,
+      "correct_ge_06": 0,
+      "fp_ge_06": 1,
+      "precision": 0.0
+    }
+  },
+  "sites": [
+    {
+      "path": "gson/src/main/java/com/google/gson/FieldAttributes.java",
+      "line": 117,
+      "callee_text": "field.getAnnotation",
+      "expected": "external",
+      "reason": "The receiver field is a java.lang.reflect.Field, so getAnnotation is the JDK method, not FieldAttributes.getAnnotation.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "getAnnotation",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/JsonPrimitive.java",
+      "line": 196,
+      "callee_text": "this.getAsNumber().longValue",
+      "expected": "external",
+      "reason": "getAsNumber() returns java.lang.Number, so longValue is the JDK Number method; LazilyParsedNumber.longValue is only a runtime override.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "getAsNumber",
+          "target_symbol_id": "java:gson/src/main/java/com/google/gson/JsonPrimitive.java:JsonPrimitive.getAsNumber:589c66f13bfb6005",
+          "status": "resolved",
+          "confidence": 0.95,
+          "scope": "same_class",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/LongSerializationPolicy.java",
+      "line": 43,
+      "callee_text": "JsonPrimitive",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/JsonPrimitive.java",
+        "qualified_name": "JsonPrimitive.JsonPrimitive",
+        "def_line": 58
+      },
+      "reason": "The argument is a Long, which only fits the JsonPrimitive(Number) constructor.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/ReflectionAccessFilter.java",
+      "line": 178,
+      "callee_text": "ReflectionAccessFilterHelper.isAndroidType",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+        "qualified_name": "ReflectionAccessFilterHelper.isAndroidType",
+        "def_line": 41
+      },
+      "reason": "rawClass is a Class<?>, so the public isAndroidType(Class) overload binds; the String overload is private.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "isAndroidType",
+          "target_symbol_id": "java:gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java:ReflectionAccessFilterHelper.isAndroidType:3877b5e0b3977172",
+          "status": "resolved",
+          "confidence": 0.7,
+          "scope": "overload_group",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+      "line": 145,
+      "callee_text": "write",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "The unqualified call on this binds to the abstract write(JsonWriter, T) declared in TypeAdapter.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "write",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "implicit_this_ambiguous",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/Excluder.java",
+      "line": 143,
+      "callee_text": "delegate().write",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "delegate() returns a TypeAdapter<T>, so the virtual call is typed to TypeAdapter.write.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "delegate",
+          "target_symbol_id": "java:gson/src/main/java/com/google/gson/internal/Excluder.java:Excluder.delegate:c2128eccdc446f2c",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "implicit_this",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/ReflectionAccessFilterHelper.java",
+      "line": 67,
+      "callee_text": "filter.check",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/ReflectionAccessFilter.java",
+        "qualified_name": "ReflectionAccessFilter.check",
+        "def_line": 227
+      },
+      "reason": "filter is a ReflectionAccessFilter, so the call binds to the interface method check(Class).",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "check",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "receiver_type_ambiguous",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/UnsafeAllocator.java",
+      "line": 57,
+      "callee_text": "f.get",
+      "expected": "external",
+      "reason": "f is a java.lang.reflect.Field, so get(Object) is the JDK method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "get",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "tainted_poly_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/bind/JsonElementTypeAdapter.java",
+      "line": 162,
+      "callee_text": "out.name",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/stream/JsonWriter.java",
+        "qualified_name": "JsonWriter.name",
+        "def_line": 499
+      },
+      "reason": "out is a JsonWriter parameter, so name(String) is the method declared in JsonWriter.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "site_resolved_overload_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "name",
+          "target_symbol_id": "java:gson/src/main/java/com/google/gson/stream/JsonWriter.java:JsonWriter.name:b59a40e0e3907aac",
+          "status": "resolved",
+          "confidence": 0.95,
+          "scope": "exact_receiver_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/bind/TypeAdapterRuntimeTypeWrapper.java",
+      "line": 77,
+      "callee_text": "chosen.write",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "chosen is a TypeAdapter<T>, so the virtual call is typed to TypeAdapter.write.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "write",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "tainted_poly_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "gson/src/main/java/com/google/gson/internal/sql/SqlTimestampTypeAdapter.java",
+      "line": 59,
+      "callee_text": "dateTypeAdapter.write",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/TypeAdapter.java",
+        "qualified_name": "TypeAdapter.write",
+        "def_line": 131
+      },
+      "reason": "dateTypeAdapter is declared as TypeAdapter<Date>, so the virtual call is typed to TypeAdapter.write.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "write",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "field_type_ambiguous",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "proto/src/main/java/com/google/gson/protobuf/ProtoTypeAdapter.java",
+      "line": 355,
+      "callee_text": "JsonParseException",
+      "expected": {
+        "path": "gson/src/main/java/com/google/gson/JsonParseException.java",
+        "qualified_name": "JsonParseException.JsonParseException",
+        "def_line": 51
+      },
+      "reason": "The message plus caught Exception arguments select the JsonParseException(String, Throwable) constructor of the imported gson core class.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "site_resolved_overload_correctly": false,
+      "resolved_edge": []
+    }
+  ]
+}

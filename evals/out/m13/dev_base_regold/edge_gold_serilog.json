@@ -1,0 +1,584 @@
+{
+  "tag": "base",
+  "repo_id": "heldout-serilog",
+  "role": "dev",
+  "index_run_id": "run_20261001T114221Z_8eeb3962",
+  "reviewed_gold": true,
+  "total_call_sites": 30,
+  "internal_call_sites": 17,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 11,
+    "correct_edges": 11,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 17,
+    "resolved_correctly": 13,
+    "recall": 0.7647
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 0,
+    "resolved_exactly": 0,
+    "recall": null,
+    "precision_ge_06": 1.0
+  },
+  "scope_breakdown": {
+    "field_type": {
+      "total_ge_06": 2,
+      "correct_ge_06": 2,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "implicit_this": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "overload_arity": {
+      "total_ge_06": 2,
+      "correct_ge_06": 2,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "overload_group": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "receiver_match": {
+      "total_ge_06": 5,
+      "correct_ge_06": 5,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": "src/Serilog/Capturing/MessageTemplateProcessor.cs",
+      "line": 35,
+      "callee_text": "_parser.Parse",
+      "expected": {
+        "path": "src/Serilog/Core/Pipeline/MessageTemplateCache.cs",
+        "qualified_name": "MessageTemplateCache.Parse"
+      },
+      "reason": "_parser is declared as MessageTemplateCache, so this resolves to its Parse method.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "Parse",
+          "target_symbol_id": "c_sharp:src/Serilog/Core/Pipeline/MessageTemplateCache.cs:MessageTemplateCache.Parse:93baab911c0bb621",
+          "status": "resolved",
+          "confidence": 0.85,
+          "scope": "field_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Capturing/TrimConfiguration.cs",
+      "line": 13,
+      "callee_text": "AppContext.TryGetSwitch",
+      "expected": "external",
+      "reason": "AppContext.TryGetSwitch is a .NET runtime API.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Configuration/LoggerAuditSinkConfiguration.cs",
+      "line": 99,
+      "callee_text": "_sinkConfiguration.Logger",
+      "expected": {
+        "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+        "qualified_name": "LoggerSinkConfiguration.Logger"
+      },
+      "reason": "_sinkConfiguration is a LoggerSinkConfiguration and the ILogger overload of Logger is called.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "Logger",
+          "target_symbol_id": "c_sharp:src/Serilog/Configuration/LoggerSinkConfiguration.cs:LoggerSinkConfiguration.Logger:4b7a7bc763893114",
+          "status": "resolved",
+          "confidence": 0.85,
+          "scope": "field_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+      "line": 188,
+      "callee_text": "Sink",
+      "expected": {
+        "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+        "qualified_name": "LoggerSinkConfiguration.Sink"
+      },
+      "reason": "Unqualified call to the Sink overload on the same class, LoggerSinkConfiguration.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "Sink",
+          "target_symbol_id": "c_sharp:src/Serilog/Configuration/LoggerSinkConfiguration.cs:LoggerSinkConfiguration.Sink:ee8fbb6ec0311930",
+          "status": "resolved",
+          "confidence": 0.85,
+          "scope": "overload_arity",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Context/EnricherStack.cs",
+      "line": 41,
+      "callee_text": "Enumerator",
+      "expected": {
+        "path": "src/Serilog/Context/EnricherStack.cs",
+        "qualified_name": "EnricherStack.Enumerator"
+      },
+      "reason": "Constructs the nested Enumerator struct declared inside EnricherStack.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "Enumerator",
+          "target_symbol_id": "c_sharp:src/Serilog/Context/EnricherStack.cs:EnricherStack.Enumerator:eba76b1beb04020c",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "implicit_this",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Context/LogContext.cs",
+      "line": 77,
+      "callee_text": "stack.Push",
+      "expected": {
+        "path": "src/Serilog/Context/EnricherStack.cs",
+        "qualified_name": "EnricherStack.Push"
+      },
+      "reason": "stack is the EnricherStack returned by GetOrCreateEnricherStack, so this is EnricherStack.Push.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Push",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Enrichers/ConditionalEnricher.cs",
+      "line": 36,
+      "callee_text": "(_wrapped as IDisposable)?.Dispose",
+      "expected": "external",
+      "reason": "The receiver is cast to the BCL interface IDisposable, so the call is to System.IDisposable.Dispose.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Dispose",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Enrichers/SafeAggregateEnricher.cs",
+      "line": 38,
+      "callee_text": "SelfLog.WriteLine",
+      "expected": {
+        "path": "src/Serilog/Debugging/SelfLog.cs",
+        "qualified_name": "SelfLog.WriteLine"
+      },
+      "reason": "Static call to SelfLog.WriteLine.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "WriteLine",
+          "target_symbol_id": "c_sharp:src/Serilog/Debugging/SelfLog.cs:SelfLog.WriteLine:22eaac75c7749349",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "receiver_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Filters/DelegateFilter.cs",
+      "line": 28,
+      "callee_text": "Guard.AgainstNull",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "AgainstNull",
+          "target_symbol_id": "c_sharp:src/Serilog/Guard.cs:Guard.AgainstNull:2f059ed8194b3496",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "receiver_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Logger.cs",
+      "line": 588,
+      "callee_text": "Write",
+      "expected": {
+        "path": "src/Serilog/Core/Logger.cs",
+        "qualified_name": "Logger.Write"
+      },
+      "reason": "Unqualified call to a Write overload on the same Logger class.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "Write",
+          "target_symbol_id": "c_sharp:src/Serilog/Core/Logger.cs:Logger.Write:65fc3183b8f2dfc4",
+          "status": "resolved",
+          "confidence": 0.7,
+          "scope": "overload_group",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Pipeline/MessageTemplateCache.cs",
+      "line": 53,
+      "callee_text": "_innerParser.Parse",
+      "expected": {
+        "path": "src/Serilog/Core/IMessageTemplateParser.cs",
+        "qualified_name": "IMessageTemplateParser.Parse"
+      },
+      "reason": "_innerParser is typed as the internal IMessageTemplateParser interface, so this resolves to the interface method; the concrete implementer is injected.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Core/PropertiesInlineArray.cs",
+      "line": 24,
+      "callee_text": "ArgumentOutOfRangeException",
+      "expected": "external",
+      "reason": "new ArgumentOutOfRangeException is a System exception type.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/AggregateSink.cs",
+      "line": 46,
+      "callee_text": "AggregateException",
+      "expected": "external",
+      "reason": "new AggregateException is a System exception type.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/DisposingAggregateSink.cs",
+      "line": 41,
+      "callee_text": "SelfLog.WriteLine",
+      "expected": {
+        "path": "src/Serilog/Debugging/SelfLog.cs",
+        "qualified_name": "SelfLog.WriteLine"
+      },
+      "reason": "Static call to SelfLog.WriteLine.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "WriteLine",
+          "target_symbol_id": "c_sharp:src/Serilog/Debugging/SelfLog.cs:SelfLog.WriteLine:22eaac75c7749349",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "receiver_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/Fallback/FailureListenerSink.cs",
+      "line": 26,
+      "callee_text": "sfl.SetFailureListener",
+      "expected": {
+        "path": "src/Serilog/Core/ISetLoggingFailureListener.cs",
+        "qualified_name": "ISetLoggingFailureListener.SetFailureListener"
+      },
+      "reason": "sfl is pattern-matched to the repo's ISetLoggingFailureListener, so this resolves to the interface method.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "SetFailureListener",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/OptionalInterfaceForwardingSink.cs",
+      "line": 46,
+      "callee_text": "innerAsync.DisposeAsync",
+      "expected": "external",
+      "reason": "innerAsync is an IAsyncDisposable, so this is the BCL DisposeAsync.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "DisposeAsync",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Core/Sinks/SecondaryLoggerSink.cs",
+      "line": 40,
+      "callee_text": "Guard.AgainstNull",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "AgainstNull",
+          "target_symbol_id": "c_sharp:src/Serilog/Guard.cs:Guard.AgainstNull:2f059ed8194b3496",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "receiver_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Debugging/SelfLog.cs",
+      "line": 79,
+      "callee_text": "o?.Invoke",
+      "expected": "dynamic",
+      "reason": "o is a delegate (Action<string>) held in a static field and set at runtime via SelfLog.Enable, so the target is not statically known.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Debugging/SelfMetrics.cs",
+      "line": 7,
+      "callee_text": "typeof(Log).Assembly.GetName",
+      "expected": "external",
+      "reason": "typeof(Log).Assembly.GetName() is System.Reflection.Assembly.GetName.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Events/MessageTemplate.cs",
+      "line": 35,
+      "callee_text": "string.Concat",
+      "expected": "external",
+      "reason": "string.Concat is a BCL method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Events/StructureValue.cs",
+      "line": 97,
+      "callee_text": "output.Write",
+      "expected": "external",
+      "reason": "output is a System.IO.TextWriter, so Write is a BCL method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Write",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+      "line": 62,
+      "callee_text": "GetLevelMoniker",
+      "expected": {
+        "path": "src/Serilog/Formatting/Display/LevelOutputFormat.cs",
+        "qualified_name": "LevelOutputFormat.GetLevelMoniker"
+      },
+      "reason": "Call to a GetLevelMoniker overload on the same static class.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "GetLevelMoniker",
+          "target_symbol_id": "c_sharp:src/Serilog/Formatting/Display/LevelOutputFormat.cs:LevelOutputFormat.GetLevelMoniker:8a6b904776723a41",
+          "status": "resolved",
+          "confidence": 0.85,
+          "scope": "overload_arity",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+      "line": 42,
+      "callee_text": "Guard.AgainstNull",
+      "expected": {
+        "path": "src/Serilog/Guard.cs",
+        "qualified_name": "Guard.AgainstNull"
+      },
+      "reason": "Static call to the internal Guard.AgainstNull helper.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "AgainstNull",
+          "target_symbol_id": "c_sharp:src/Serilog/Guard.cs:Guard.AgainstNull:2f059ed8194b3496",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "receiver_match",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/LoggerExtensions.cs",
+      "line": 29,
+      "callee_text": "logger.IsEnabled",
+      "expected": {
+        "path": "src/Serilog/ILogger.cs",
+        "qualified_name": "ILogger.IsEnabled"
+      },
+      "reason": "logger is typed as the repo's ILogger interface, so this resolves to ILogger.IsEnabled.",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "IsEnabled",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "builtin_receiver_skipped",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Policies/EnumScalarConversionPolicy.cs",
+      "line": 23,
+      "callee_text": "ScalarValue",
+      "expected": {
+        "path": "src/Serilog/Events/ScalarValue.cs",
+        "qualified_name": "ScalarValue"
+      },
+      "reason": "Constructor call, so the target is class ScalarValue.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "ScalarValue",
+          "target_symbol_id": "c_sharp:src/Serilog/Events/ScalarValue.cs:ScalarValue:8a17177f105428d5",
+          "status": "resolved",
+          "confidence": 0.4,
+          "scope": "global",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Policies/ReflectionTypesScalarDestructuringPolicy.cs",
+      "line": 25,
+      "callee_text": "ScalarValue",
+      "expected": {
+        "path": "src/Serilog/Events/ScalarValue.cs",
+        "qualified_name": "ScalarValue"
+      },
+      "reason": "Constructor call, so the target is class ScalarValue.",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "ScalarValue",
+          "target_symbol_id": "c_sharp:src/Serilog/Events/ScalarValue.cs:ScalarValue:8a17177f105428d5",
+          "status": "resolved",
+          "confidence": 0.4,
+          "scope": "global",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/Serilog/Rendering/Padding.cs",
+      "line": 47,
+      "callee_text": "output.Write",
+      "expected": "external",
+      "reason": "output is a System.IO.TextWriter, so Write is a BCL method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Rendering/ReusableStringWriter.cs",
+      "line": 48,
+      "callee_text": "GetStringBuilder",
+      "expected": "external",
+      "reason": "ReusableStringWriter derives from System.IO.StringWriter, and GetStringBuilder is inherited from it.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Settings/KeyValuePairs/CallableConfigurationMethodFinder.cs",
+      "line": 22,
+      "callee_text": "configurationAssemblies\n            .SelectMany(\n                [RequiresUnreferencedCode(\"Configuration methods are not trimming safe\")]\n                (a) => a.ExportedTypes\n                .Where(t => t.IsSealed && t.IsAbstract && !t.IsNested))\n            .SelectMany",
+      "expected": "external",
+      "reason": "The outer SelectMany is the System.Linq Enumerable extension method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/Serilog/Settings/KeyValuePairs/SettingValueConversions.cs",
+      "line": 111,
+      "callee_text": "ctor.Invoke",
+      "expected": "external",
+      "reason": "ctor is a System.Reflection.ConstructorInfo, so Invoke is a BCL reflection method.",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    }
+  ]
+}

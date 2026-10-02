@@ -1,0 +1,75 @@
+{
+  "arms": {
+    "R0-grep": {
+      "file_acc_at_5": 0.8667,
+      "sym_recall_at_10": 0.0222,
+      "wire_tokens": 44407.0667
+    },
+    "R0-grep@R2": {
+      "file_acc_at_5": 0.5333,
+      "sym_recall_at_10": 0.0,
+      "wire_tokens": 1874.6667
+    },
+    "R0-read": {
+      "file_acc_at_5": 0.8667,
+      "sym_recall_at_10": 0.0222,
+      "wire_tokens": 48053.9333
+    },
+    "R1": {
+      "file_acc_at_5": 0.8667,
+      "sym_recall_at_10": 0.8,
+      "wire_tokens": 1855.0667
+    },
+    "R2": {
+      "file_acc_at_5": 0.9333,
+      "sym_recall_at_10": 0.6556,
+      "wire_tokens": 1886.3333
+    }
+  },
+  "kpis": {
+    "same_cost_file_acc_at_5_R2_minus_R0grepR2": {
+      "mean": 0.4,
+      "ci95": [
+        0.2,
+        0.6667
+      ],
+      "pairs": 15,
+      "threshold": 0.1,
+      "met": true
+    },
+    "file_acc_at_5_R2_minus_R0grep": {
+      "mean": 0.0667,
+      "ci95": [
+        0.0,
+        0.2
+      ],
+      "pairs": 15,
+      "threshold": -0.05,
+      "met": true
+    },
+    "token_ratio_R2_over_R0grep": {
+      "value": 0.0425,
+      "note": "report only"
+    },
+    "R2_vs_R1": {
+      "file_acc_at_5": {
+        "mean": 0.0667,
+        "ci95": [
+          0.0,
+          0.2
+        ],
+        "pairs": 15
+      },
+      "sym_recall_at_10": {
+        "mean": -0.1444,
+        "ci95": [
+          -0.3111,
+          -0.0222
+        ],
+        "pairs": 15
+      },
+      "note": "report only, no threshold"
+    }
+  }
+}
+-> /home/claude/work/out/m13f_new/bench_gson/bench_gson_summary.json

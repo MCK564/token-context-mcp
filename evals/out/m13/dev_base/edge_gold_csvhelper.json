@@ -1,0 +1,512 @@
+{
+  "tag": "baseline",
+  "repo_id": "bench-csvhelper",
+  "role": "dev",
+  "index_run_id": "run_20261001T114159Z_b9dc4ebc",
+  "reviewed_gold": true,
+  "total_call_sites": 30,
+  "internal_call_sites": 10,
+  "precision": {
+    "threshold": 0.6,
+    "total_edges_ge_06": 4,
+    "correct_edges": 4,
+    "false_positives": 0,
+    "precision": 1.0
+  },
+  "recall": {
+    "total_internal_sites": 10,
+    "resolved_correctly": 4,
+    "recall": 0.4
+  },
+  "overload_strict": {
+    "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+    "sites_with_def_line": 0,
+    "resolved_exactly": 0,
+    "recall": null,
+    "precision_ge_06": 1.0
+  },
+  "scope_breakdown": {
+    "exact_receiver_type": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "implicit_this": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "overload_group": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    },
+    "same_namespace": {
+      "total_ge_06": 1,
+      "correct_ge_06": 1,
+      "fp_ge_06": 0,
+      "precision": 1.0
+    }
+  },
+  "sites": [
+    {
+      "path": "performance/CsvHelper.Benchmarks/BenchmarkEnumerateRecords.cs",
+      "line": 26,
+      "callee_text": "Random",
+      "expected": "external",
+      "reason": "System.Random constructor in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper.Website/TocItem.cs",
+      "line": 26,
+      "callee_text": "data.Get<string>",
+      "expected": "external",
+      "reason": "Dynamic YamlDotNet or website data accessor",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/CultureInfoAttribute.cs",
+      "line": 42,
+      "callee_text": "nameof",
+      "expected": "external",
+      "reason": "C# nameof keyword expression",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/EncodingAttribute.cs",
+      "line": 35,
+      "callee_text": "Encoding.GetEncoding",
+      "expected": "external",
+      "reason": "System.Text.Encoding.GetEncoding in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/Attributes/IgnoreAttribute.cs",
+      "line": 28,
+      "callee_text": "ApplyTo",
+      "expected": {
+        "path": "src/CsvHelper/Configuration/Attributes/IgnoreAttribute.cs",
+        "qualified_name": "IgnoreAttribute.ApplyTo"
+      },
+      "reason": "IgnoreAttribute helper ApplyTo",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "ApplyTo",
+          "target_symbol_id": "c_sharp:src/CsvHelper/Configuration/Attributes/IgnoreAttribute.cs:IgnoreAttribute.ApplyTo:54ee3467ac6fa1f3",
+          "status": "resolved",
+          "confidence": 0.7,
+          "scope": "overload_group",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ClassMap.cs",
+      "line": 255,
+      "callee_text": "indexes.Add",
+      "expected": "external",
+      "reason": "System.Collections.Generic.List.Add",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Add",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ClassMap`1.cs",
+      "line": 83,
+      "callee_text": "stack.Pop",
+      "expected": "external",
+      "reason": "System.Collections.Generic.Stack.Pop",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/CsvConfiguration.cs",
+      "line": 205,
+      "callee_text": "whiteSpaceChars.Contains",
+      "expected": "external",
+      "reason": "System.Collections.Generic.ICollection.Contains",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/MemberMap.cs",
+      "line": 236,
+      "callee_text": "Expression.Call",
+      "expected": "external",
+      "reason": "System.Linq.Expressions.Expression.Call",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Configuration/MemberNameCollection.cs",
+      "line": 94,
+      "callee_text": "names.GetEnumerator",
+      "expected": "external",
+      "reason": "System.Collections.Generic.List.GetEnumerator",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "GetEnumerator",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Configuration/ParameterReferenceMapData.cs",
+      "line": 36,
+      "callee_text": "string.Concat",
+      "expected": "external",
+      "reason": "System.String.Concat in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/CsvContext.cs",
+      "line": 58,
+      "callee_text": "nameof",
+      "expected": "external",
+      "reason": "C# nameof keyword expression",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/CsvReader.cs",
+      "line": 1290,
+      "callee_text": "prepareHeaderForMatch",
+      "expected": "dynamic",
+      "reason": "Dynamic delegate prepareHeaderForMatch invocation",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/CsvWriter.cs",
+      "line": 248,
+      "callee_text": "nameof",
+      "expected": "external",
+      "reason": "C# nameof keyword expression",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/Expressions/ExpressionManager.cs",
+      "line": 442,
+      "callee_text": "Expression.Constant",
+      "expected": "external",
+      "reason": "System.Linq.Expressions.Expression.Constant",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Constant",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Expressions/PrimitiveRecordWriter.cs",
+      "line": 42,
+      "callee_text": "Writer.Context.TypeConverterOptionsCache.GetOptions",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/TypeConverterOptionsCache.cs",
+        "qualified_name": "TypeConverterOptionsCache.GetOptions"
+      },
+      "reason": "TypeConverterOptionsCache method GetOptions",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "GetOptions",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Expressions/RecordCreator.cs",
+      "line": 43,
+      "callee_text": "CreateCreateRecordDelegate",
+      "expected": {
+        "path": "src/CsvHelper/Expressions/RecordCreator.cs",
+        "qualified_name": "RecordCreator.CreateCreateRecordDelegate"
+      },
+      "reason": "Internal RecordCreator method CreateCreateRecordDelegate",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "CreateCreateRecordDelegate",
+          "target_symbol_id": "c_sharp:src/CsvHelper/Expressions/RecordCreator.cs:RecordCreator.CreateCreateRecordDelegate:004a885f8c85be86",
+          "status": "resolved",
+          "confidence": 0.9,
+          "scope": "implicit_this",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/Factory.cs",
+      "line": 70,
+      "callee_text": "CsvReader",
+      "expected": {
+        "path": "src/CsvHelper/CsvReader.cs",
+        "qualified_name": "CsvReader"
+      },
+      "reason": "CsvReader constructor",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "CsvReader",
+          "target_symbol_id": "c_sharp:src/CsvHelper/CsvReader.cs:CsvReader:0339f369c162214b",
+          "status": "resolved",
+          "confidence": 0.8,
+          "scope": "same_namespace",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/FastDynamicObject.cs",
+      "line": 177,
+      "callee_text": "DynamicMetaObject",
+      "expected": "external",
+      "reason": "System.Dynamic.DynamicMetaObject constructor",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/FieldCache.cs",
+      "line": 51,
+      "callee_text": "entry.Value.AsSpan",
+      "expected": "external",
+      "reason": "MemoryExtensions.AsSpan in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/ArrayConverter.cs",
+      "line": 43,
+      "callee_text": "ObjectResolver.Current.Resolve",
+      "expected": {
+        "path": "src/CsvHelper/ObjectResolver.cs",
+        "qualified_name": "ObjectResolver.Resolve"
+      },
+      "reason": "ObjectResolver instance method Resolve",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Resolve",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/DoubleConverter.cs",
+      "line": 26,
+      "callee_text": "memberMapData.TypeConverterOptions.Formats?.FirstOrDefault",
+      "expected": "external",
+      "reason": "System.Linq.Enumerable.FirstOrDefault",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/IDictionaryGenericConverter.cs",
+      "line": 28,
+      "callee_text": "ObjectResolver.Current.Resolve",
+      "expected": {
+        "path": "src/CsvHelper/ObjectResolver.cs",
+        "qualified_name": "ObjectResolver.Resolve"
+      },
+      "reason": "ObjectResolver instance method Resolve",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Resolve",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/Int16Converter.cs",
+      "line": 26,
+      "callee_text": "short.TryParse",
+      "expected": "external",
+      "reason": "System.Int16.TryParse in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/Int32Converter.cs",
+      "line": 26,
+      "callee_text": "int.TryParse",
+      "expected": "external",
+      "reason": "System.Int32.TryParse in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": []
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/NullableConverter.cs",
+      "line": 53,
+      "callee_text": "typeConverterFactory.GetConverter",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/TypeConverterCache.cs",
+        "qualified_name": "TypeConverterCache.GetConverter"
+      },
+      "reason": "TypeConverterCache method GetConverter",
+      "is_internal": true,
+      "site_resolved_correctly": true,
+      "resolved_edge": [
+        {
+          "target_name": "GetConverter",
+          "target_symbol_id": "c_sharp:src/CsvHelper/TypeConversion/TypeConverterCache.cs:TypeConverterCache.GetConverter:49af7c11384603ec",
+          "status": "resolved",
+          "confidence": 0.95,
+          "scope": "exact_receiver_type",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/NullableConverterFactory.cs",
+      "line": 13,
+      "callee_text": "type.GetGenericTypeDefinition().Equals",
+      "expected": "external",
+      "reason": "System.Type.Equals in .NET runtime",
+      "is_internal": false,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "Equals",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": true
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/SByteConverter.cs",
+      "line": 31,
+      "callee_text": "base.ConvertFromString",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "ConvertFromString",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/UInt32Converter.cs",
+      "line": 31,
+      "callee_text": "base.ConvertFromString",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "ConvertFromString",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    },
+    {
+      "path": "src/CsvHelper/TypeConversion/UriConverter.cs",
+      "line": 32,
+      "callee_text": "base.ConvertFromString",
+      "expected": {
+        "path": "src/CsvHelper/TypeConversion/DefaultTypeConverter.cs",
+        "qualified_name": "DefaultTypeConverter.ConvertFromString"
+      },
+      "reason": "Base class DefaultTypeConverter method ConvertFromString",
+      "is_internal": true,
+      "site_resolved_correctly": false,
+      "resolved_edge": [
+        {
+          "target_name": "ConvertFromString",
+          "target_symbol_id": null,
+          "status": "ambiguous",
+          "confidence": 0.1,
+          "scope": "unresolved_receiver",
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}
