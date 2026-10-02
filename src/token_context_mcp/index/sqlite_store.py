@@ -496,6 +496,15 @@ class SQLiteStore:
             rows = connection.execute("SELECT * FROM files ORDER BY path").fetchall()
         return [_file_from_row(row) for row in rows]
 
+    def language_file_counts(self) -> dict[str, int]:
+        """Parsed files per language (the repository's language mix)."""
+        with self.connection() as connection:
+            rows = connection.execute(
+                "SELECT language, COUNT(*) AS n FROM files"
+                " WHERE language IS NOT NULL AND parse_status IN ('parsed', 'parsed_with_warnings') GROUP BY language"
+            ).fetchall()
+        return {str(row["language"]): int(row["n"]) for row in rows}
+
     def file(self, path: str) -> FileRecord | None:
         with self.connection() as connection:
             row = connection.execute("SELECT * FROM files WHERE path = ?", (path,)).fetchone()

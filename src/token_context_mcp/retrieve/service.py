@@ -39,7 +39,7 @@ from token_context_mcp.models import (
     edge_as_dict,
     symbol_as_dict,
 )
-from token_context_mcp.retrieve.code_tokens import split_identifier
+from token_context_mcp.retrieve.code_tokens import QUERY_STOPWORDS, porter_stem, split_identifier
 from token_context_mcp.retrieve.expansion import communities_for, edge_is_traversable, expand_anchors
 from token_context_mcp.retrieve.freshness import FreshnessCache
 from token_context_mcp.retrieve.graph_cache import GraphCache, RepoGraph
@@ -72,6 +72,69 @@ _COVERAGE_RANKING = "off"  # "off" | "name" | "body"; dev ablation 2026-09-27: b
 _IMPL_RANKING = os.environ.get("TOKEN_CONTEXT_IMPL_RANKING", "c_sharp,java")
 _BODY_MODE_BEHAVIOR = os.environ.get("TOKEN_CONTEXT_BODY_MODE_BEHAVIOR", "off")
 _DEP_VENDORED = os.environ.get("TOKEN_CONTEXT_DEP_VENDORED", "1")
+
+# M13: C#/Java.  Identifiers there are long and multi-word and member names are heavily overloaded/overridden.
+# * word forms: for repositories dominated by C#/Java (and indexed with FTS builder >= 3) the query drops English
+#   function words and every plain word also matches its Porter stem, which the C#/Java rows carry ("records" ->
+#   RecordWriter).  "auto" | "on" | "off".  Python/JS/TS repositories are never touched in "auto".
+# * family handling: at most TOKEN_CONTEXT_FAMILY_CAP symbols that share one member name (the override family of
+#   ConvertFromString) stay in the head of the ranking unless the query names the member, and overloads of one
+#   qualified name collapse to the best one; the rest is deferred behind other candidates, never dropped.
+_QUERY_WORD_FORMS = os.environ.get("TOKEN_CONTEXT_QUERY_WORD_FORMS", "auto")
+_FAMILY_CAP = int(os.environ.get("TOKEN_CONTEXT_FAMILY_CAP", "0"))
+_OVERLOAD_COLLAPSE = os.environ.get("TOKEN_CONTEXT_OVERLOAD_COLLAPSE", "off")
+_JVM_LANGUAGES = frozenset({"c_sharp", "java"})
+_WORD_FORMS_MIN_BUILDER = 3
+
+
+def _name_is_targeted(name: str, terms: set[str]) -> bool:
+    """Does the query spell the member name (``ConvertFromString``, ``convert from string``, ``convert``)?"""
+    lowered = name.lower()
+    if lowered in terms:
+        return True
+    parts = [part for part in split_identifier(name) if part != lowered]
+    return bool(parts) and all(part in terms for part in parts)
+
+
+def _defer_family_rows(
+    ranked: list[dict[str, Any]],
+    raw_terms: list[str],
+    cap: int,
+    *,
+    collapse_overloads: bool,
+) -> list[dict[str, Any]]:
+    """M13: move repeated members of C#/Java override and overload families behind the other candidates.
+
+    A name such as ``ConvertFromString`` is declared by every converter; ``CsvReader.GetField`` has eighteen overloads.
+    Left alone they fill the head of the ranking with near-identical hits.  Rows of one qualified name (overloads)
+    collapse to the best-ranked one, and at most ``cap`` rows per member name stay in place unless the query spells
+    that name.  Deferred rows keep their relative order and still fill the tail when nothing else is left."""
+    terms = set(raw_terms)
+    for term in raw_terms:
+        terms.update(split_identifier(term))
+    kept: list[dict[str, Any]] = []
+    deferred: list[dict[str, Any]] = []
+    overload_seen: set[tuple[str, str, str]] = set()
+    per_name: dict[str, int] = {}
+    for row in ranked:
+        file_rec = row.get("file_record")
+        language = file_rec.language if file_rec else None
+        if language not in _JVM_LANGUAGES or row.get("kind") not in {"method", "constructor", "property", "function"}:
+            kept.append(row)
+            continue
+        overload_key = (row["path"], row["qualified_name"], row["kind"])
+        if collapse_overloads and overload_key in overload_seen:
+            deferred.append(row)
+            continue
+        overload_seen.add(overload_key)
+        if cap > 0 and not _name_is_targeted(row["name"], terms):
+            count = per_name.get(row["name"], 0)
+            if count >= cap:
+                deferred.append(row)
+                continue
+            per_name[row["name"]] = count + 1
+        kept.append(row)
+    return kept + deferred
 
 
 def _impl_rank(row: dict[str, Any]) -> int:
@@ -173,6 +236,7 @@ class RetrievalService:
         self._pool = ReadConnectionPool()
         self._graph_cache = GraphCache(capacity=3)
         self._thread_local = threading.local()
+        self._word_forms_cache: dict[tuple[str, str], bool] = {}
 
     @property
     def _active_scope(self) -> _RequestScope | None:
@@ -450,6 +514,27 @@ class RetrievalService:
         self._assert_under_server_cap(response)
         return response
 
+    def _word_forms_enabled(self, repo_id: str, store: SQLiteStore, metadata: dict[str, Any]) -> bool:
+        """M13: is the query-side word-form handling on for this repository (C#/Java dominated, rows carry stems)?"""
+        mode = _QUERY_WORD_FORMS
+        if mode in {"off", "0"}:
+            return False
+        if int(metadata.get("fts_builder_version", 0) or 0) < _WORD_FORMS_MIN_BUILDER:
+            return False
+        if mode in {"on", "1"}:
+            return True
+        key = (repo_id, str(metadata.get("index_run_id", "")))
+        cached = self._word_forms_cache.get(key)
+        if cached is None:
+            counts = store.language_file_counts()
+            total = sum(counts.values())
+            jvm = sum(count for language, count in counts.items() if language in _JVM_LANGUAGES)
+            cached = total > 0 and jvm * 2 >= total
+            if len(self._word_forms_cache) >= 64:
+                self._word_forms_cache.clear()
+            self._word_forms_cache[key] = cached
+        return cached
+
     def search_source(
         self,
         repo_id: str,
@@ -523,8 +608,9 @@ class RetrievalService:
             ]
             lowered_all_terms = [t.lower() for t in all_terms]
 
-            match_query_and = _fts_query(query, op="AND")
-            match_query_or = _fts_query(query, op="OR")
+            word_forms = self._word_forms_enabled(repo_id, store, metadata)
+            match_query_and = _fts_query(query, op="AND", word_forms=word_forms)
+            match_query_or = _fts_query(query, op="OR", word_forms=word_forms)
 
             try:
                 # Run AND query first
@@ -609,6 +695,10 @@ class RetrievalService:
                     r["start_line"],
                 ),
             )
+            if _FAMILY_CAP > 0 or _OVERLOAD_COLLAPSE not in {"off", "0"}:
+                ranked_rows = _defer_family_rows(
+                    ranked_rows, raw_terms, _FAMILY_CAP, collapse_overloads=_OVERLOAD_COLLAPSE not in {"off", "0"}
+                )
             symbols_per_file: dict[str, int] = {}
             selected_rows: list[dict[str, Any]] = []
             seen_symbol_ids: set[str] = set()
@@ -2132,10 +2222,15 @@ def _module_candidates(path: str) -> list[str]:
     return sorted({item for item in candidates if item})
 
 
-def _fts_query(query: str, op: str = "AND") -> str:
+def _fts_query(query: str, op: str = "AND", *, word_forms: bool = False) -> str:
     terms = _fts_terms(query)
     if not terms:
         raise RetrievalError("query must contain searchable text")
+    if word_forms:
+        # M13 (C#/Java repositories): English function words only add low-idf noise; keep them when nothing else is left
+        content = [t for t in terms if t.lower() not in QUERY_STOPWORDS]
+        if content:
+            terms = content
     clauses: list[str] = []
     for t in terms:
         escaped_t = t.replace('"', '""')
@@ -2152,7 +2247,11 @@ def _fts_query(query: str, op: str = "AND") -> str:
             p = sub_parts[0]
             clauses.append(f'("{escaped_t}" OR "{p.replace(chr(34), chr(34) * 2)}")')
         else:
-            clauses.append(f'"{escaped_t}"')
+            stem = porter_stem(t.lower()) if word_forms else t.lower()
+            if stem != t.lower():
+                clauses.append(f'("{escaped_t}" OR "{stem}")')
+            else:
+                clauses.append(f'"{escaped_t}"')
 
     join_op = f" {op.strip().upper()} "
     return join_op.join(clauses)

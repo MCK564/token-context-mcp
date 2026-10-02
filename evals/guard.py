@@ -4,9 +4,9 @@ Guarantees that held-out evaluations cannot be run prematurely or against unfroz
 
 ``--role heldout`` is allowed only when one of the following holds:
 
-1. the git tag ``m12-freeze`` exists and ``git diff m12-freeze`` over every protected path is empty (uncommitted
-   changes count), or
-2. ``--allow-baseline-code <path>`` names a tree that is *byte-identical* to ``m12-base:src/token_context_mcp`` and
+1. the git tag ``<milestone>-freeze`` (``m12``; ``TC_GUARD_MILESTONE`` selects another, e.g. ``m13``) exists and
+   ``git diff <milestone>-freeze`` over every protected path is empty (uncommitted changes count), or
+2. ``--allow-baseline-code <path>`` names a tree that is *byte-identical* to ``<milestone>-base:src/token_context_mcp`` and
    that is the code this process actually imports (the baseline arm of the held-out comparison).  A bare "path
    exists" check would let any caller run held-out tasks on unfrozen code, so it is not accepted.
 """
@@ -14,14 +14,18 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
 
-FREEZE_TAG = "m12-freeze"
-BASELINE_TAG = "m12-base"
+# The milestone whose held-out sets are being measured: ``TC_GUARD_MILESTONE=m13`` makes the guard require ``m13-freeze``
+# (and ``m13-base`` for the baseline arm).  M12 stays the default so that its recorded runs and tests are unchanged.
+MILESTONE = os.environ.get("TC_GUARD_MILESTONE", "m12")
+FREEZE_TAG = f"{MILESTONE}-freeze"
+BASELINE_TAG = f"{MILESTONE}-base"
 BASELINE_PACKAGE = "src/token_context_mcp"
 
 # Everything that can change a held-out number: the library, both held-out entry points, the modules they import
@@ -58,7 +62,7 @@ def _package_dir(path: Path) -> Path:
 
 
 def _verify_baseline_tree(package_dir: Path, root: Path) -> None:
-    """The tree must equal ``m12-base:src/token_context_mcp`` file by file (line endings normalised)."""
+    """The tree must equal ``<milestone>-base:src/token_context_mcp`` file by file (line endings normalised)."""
     tag = _git(["rev-parse", "--verify", f"refs/tags/{BASELINE_TAG}"], root)
     if tag.returncode != 0:
         raise RuntimeError(

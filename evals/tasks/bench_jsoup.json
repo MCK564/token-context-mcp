@@ -1,0 +1,286 @@
+{
+ "repo_id": "dev-jsoup",
+ "repo_url": "https://github.com/jhy/jsoup",
+ "tag": null,
+ "commit_sha": "088614f4a1454232a1f03c63b7f80742f1f2a854",
+ "license": "MIT",
+ "reviewed": true,
+ "split_seed": null,
+ "review_note": "DEV set (M13), written by the executing session from reading the source; it is tuned on and is not independent. 12 tasks (4 a, 4 b, 4 c); no packet tasks. Not reviewed by a second session or by the repository owner.",
+ "reviewed_by": "none (dev set authored by the executor)",
+ "reviewed_at": "2026-10-01",
+ "tasks": [
+  {
+   "id": "t01",
+   "group": "a_keyword",
+   "split": "test",
+   "query": "parse an HTML string together with a base URI and a chosen parser instance into a document tree",
+   "gold_files": [
+    "src/main/java/org/jsoup/Jsoup.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/Jsoup.java",
+     "qualified_name": "Jsoup.parse",
+     "def_line": 50
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "Jsoup.parse(String html, String baseUri, Parser parser) is one of a dozen Jsoup.parse overloads."
+  },
+  {
+   "id": "t02",
+   "group": "a_keyword",
+   "split": "test",
+   "query": "look up a tag by its name, returning a new generic tag when the name is not predefined, with optional settings for case sensitivity",
+   "gold_files": [
+    "src/main/java/org/jsoup/parser/Tag.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/parser/Tag.java",
+     "qualified_name": "Tag.valueOf",
+     "def_line": 240
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "Tag.valueOf has three overloads (name; name+settings; name+namespace+settings)."
+  },
+  {
+   "id": "t03",
+   "group": "a_keyword",
+   "split": "test",
+   "query": "join the string forms of the items of a collection or iterator or array into one string separated by a delimiter",
+   "gold_files": [
+    "src/main/java/org/jsoup/internal/StringUtil.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/internal/StringUtil.java",
+     "qualified_name": "StringUtil.join",
+     "def_line": 31
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "StringUtil.join overloads for Collection, Iterator and String[]."
+  },
+  {
+   "id": "t04",
+   "group": "a_keyword",
+   "split": "test",
+   "query": "evaluator that tests whether an element's id attribute is equal to a given identifier value",
+   "gold_files": [
+    "src/main/java/org/jsoup/select/Evaluator.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/select/Evaluator.java",
+     "qualified_name": "Evaluator.Id.matches",
+     "def_line": 168
+    }
+   ],
+   "tags": [
+    "override"
+   ],
+   "note": "Evaluator.Id.matches; Evaluator has dozens of nested subclasses overriding matches."
+  },
+  {
+   "id": "t05",
+   "group": "b_hidden_dep",
+   "split": "test",
+   "query": "builds a path string that uniquely locates a node in the tree, anchored at an id when one is unique, otherwise chaining parent tag and class names plus a sibling position when needed",
+   "gold_files": [
+    "src/main/java/org/jsoup/nodes/Element.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/nodes/Element.java",
+     "qualified_name": "Element.cssSelector",
+     "def_line": 1114
+    }
+   ],
+   "tags": [],
+   "note": "Element.cssSelector walks up the parents and uses uniqueIdSelector / cssSelectorComponent."
+  },
+  {
+   "id": "t06",
+   "group": "b_hidden_dep",
+   "split": "test",
+   "query": "during a traversal of untrusted markup, copy each node into a fresh tree only when its tag passes the allow list, descend into kept containers, and count what is dropped",
+   "gold_files": [
+    "src/main/java/org/jsoup/safety/Cleaner.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/safety/Cleaner.java",
+     "qualified_name": "Cleaner.CleaningVisitor.head",
+     "def_line": 148
+    }
+   ],
+   "tags": [
+    "override"
+   ],
+   "note": "Cleaner.CleaningVisitor.head implements NodeVisitor.head and copies safe elements, text and data nodes."
+  },
+  {
+   "id": "t07",
+   "group": "b_hidden_dep",
+   "split": "test",
+   "query": "lexer step that decides, after an opening angle bracket in markup, whether a start tag, end tag, comment or declaration begins",
+   "gold_files": [
+    "src/main/java/org/jsoup/parser/TokeniserState.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/parser/TokeniserState.java",
+     "qualified_name": "TokeniserState",
+     "def_line": 13
+    }
+   ],
+   "tags": [
+    "override"
+   ],
+   "note": "TokeniserState.TagOpen (an enum constant with a read override) in TokeniserState.java; the symbol listed is the enum itself, which exists under every naming scheme."
+  },
+  {
+   "id": "t08",
+   "group": "b_hidden_dep",
+   "split": "test",
+   "query": "turn named and numeric character references in text back into the characters they stand for, optionally treating a missing trailing semicolon as an error",
+   "gold_files": [
+    "src/main/java/org/jsoup/nodes/Entities.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/nodes/Entities.java",
+     "qualified_name": "Entities.unescape",
+     "def_line": 315
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "Entities.unescape(String) and unescape(String, boolean strict)."
+  },
+  {
+   "id": "t09",
+   "group": "c_multi_file",
+   "split": "test",
+   "query": "from a CSS query string to matched nodes: the query is tokenised into a chain of evaluators, which are then applied across the tree",
+   "gold_files": [
+    "src/main/java/org/jsoup/select/Selector.java",
+    "src/main/java/org/jsoup/select/QueryParser.java",
+    "src/main/java/org/jsoup/select/Collector.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/select/Selector.java",
+     "qualified_name": "Selector.select",
+     "def_line": 126
+    },
+    {
+     "path": "src/main/java/org/jsoup/select/QueryParser.java",
+     "qualified_name": "QueryParser.parse",
+     "def_line": 60
+    },
+    {
+     "path": "src/main/java/org/jsoup/select/Collector.java",
+     "qualified_name": "Collector.collect",
+     "def_line": 30
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "Selector.select -> QueryParser.parse -> Collector.collect."
+  },
+  {
+   "id": "t10",
+   "group": "c_multi_file",
+   "split": "test",
+   "query": "cleaning untrusted markup against an allow list: the public entry point, the document-level walk that copies safe nodes, and the rules deciding whether a tag is permitted",
+   "gold_files": [
+    "src/main/java/org/jsoup/Jsoup.java",
+    "src/main/java/org/jsoup/safety/Cleaner.java",
+    "src/main/java/org/jsoup/safety/Safelist.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/Jsoup.java",
+     "qualified_name": "Jsoup.clean",
+     "def_line": 346
+    },
+    {
+     "path": "src/main/java/org/jsoup/safety/Cleaner.java",
+     "qualified_name": "Cleaner.clean",
+     "def_line": 62
+    },
+    {
+     "path": "src/main/java/org/jsoup/safety/Safelist.java",
+     "qualified_name": "Safelist.isSafeTag",
+     "def_line": 518
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "Jsoup.clean -> Cleaner.clean -> Safelist.isSafeTag."
+  },
+  {
+   "id": "t11",
+   "group": "c_multi_file",
+   "split": "test",
+   "query": "after an HTTP response arrives, decode the body bytes to text using the declared or sniffed charset and build the document from them",
+   "gold_files": [
+    "src/main/java/org/jsoup/helper/HttpConnection.java",
+    "src/main/java/org/jsoup/helper/DataUtil.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/helper/HttpConnection.java",
+     "qualified_name": "HttpConnection.Response.parse",
+     "def_line": 1050
+    },
+    {
+     "path": "src/main/java/org/jsoup/helper/DataUtil.java",
+     "qualified_name": "DataUtil.parseInputStream",
+     "def_line": 223
+    }
+   ],
+   "tags": [
+    "overload"
+   ],
+   "note": "HttpConnection.Response.parse -> DataUtil.parseInputStream."
+  },
+  {
+   "id": "t12",
+   "group": "c_multi_file",
+   "split": "test",
+   "query": "turning an ampersand sequence in markup text into code points: the tokeniser entry point and the lookup of names in the entity table",
+   "gold_files": [
+    "src/main/java/org/jsoup/parser/Tokeniser.java",
+    "src/main/java/org/jsoup/nodes/Entities.java"
+   ],
+   "gold_symbols": [
+    {
+     "path": "src/main/java/org/jsoup/parser/Tokeniser.java",
+     "qualified_name": "Tokeniser.consumeCharacterReference",
+     "def_line": 201
+    },
+    {
+     "path": "src/main/java/org/jsoup/nodes/Entities.java",
+     "qualified_name": "Entities.codepointsForName",
+     "def_line": 132
+    }
+   ],
+   "tags": [],
+   "note": "Tokeniser.consumeCharacterReference -> Entities.codepointsForName."
+  }
+ ]
+}

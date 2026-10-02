@@ -1,0 +1,214 @@
+{
+ "repo_id": "dev-jsoup",
+ "repo_url": "https://github.com/jhy/jsoup",
+ "tag": null,
+ "commit_sha": "088614f4a1454232a1f03c63b7f80742f1f2a854",
+ "reviewed": true,
+ "review_note": "DEV call-site labels (M13) written by the executing session; sites sampled by evals/sample_call_sites.py --shared-names-only (callee name declared >= 2 times); not independent, not reviewed. M13 corrections (verified from source): NodeInternals:73 -> Range.AttributeRange.isTracked@286; two instantiation sites relabelled to class targets.",
+ "sites": [
+  {
+   "path": "src/main/java/org/jsoup/helper/Re2jRegex.java",
+   "line": 29,
+   "col": 32,
+   "callee_text": "re2jPattern.matcher",
+   "snippet": "\n    @Override\n    public Matcher matcher(CharSequence input) {\n        return new Re2jMatcher(re2jPattern.matcher(input));\n    }\n\n    @Override",
+   "node_type": "method_invocation",
+   "expected": "external",
+   "reason": "re2jPattern is a com.google.re2j.Pattern (third-party)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/internal/ControllableInputStream.java",
+   "line": 283,
+   "col": 9,
+   "callee_text": "progress.emit",
+   "snippet": "        if (progress == null) return;\n        // calculate percent complete if contentLength > 0 (and cap to 100.0 if totalRead > contentLength):\n        float percent = contentLength > 0 ? Math.min(100f, readPos * 100f / contentLength) : 0;\n        progress.emit(readPos, contentLength, percent);\n        if (percent == 100.0f) this.progress = null; // detach once we reach 100%, so that any subsequent buffer hits don't report 100 again\n    }\n",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/internal/ControllableInputStream.java",
+    "qualified_name": "ControllableInputStream.ProgressState.emit",
+    "def_line": 318
+   },
+   "reason": "progress is a ProgressState<?> (nested class of the same file)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/internal/SimpleBufferedInput.java",
+   "line": 158,
+   "col": 20,
+   "callee_text": "in.read",
+   "snippet": "        if (bufPos < bufLength || lookahead >= 0) return true;\n        if (inReadFully) return false;\n\n        int next = in.read();\n        if (next == -1) {\n            inReadFully = true;\n            return false;",
+   "node_type": "method_invocation",
+   "expected": "external",
+   "reason": "in is a java.io.InputStream."
+  },
+  {
+   "path": "src/main/java/org/jsoup/internal/StringUtil.java",
+   "line": 152,
+   "col": 31,
+   "callee_text": "string.isEmpty",
+   "snippet": "     * @return if string is blank\n     */\n    public static boolean isBlank(@Nullable String string) {\n        if (string == null || string.isEmpty())\n            return true;\n\n        int l = string.length();",
+   "node_type": "method_invocation",
+   "expected": "external",
+   "reason": "java.lang.String.isEmpty."
+  },
+  {
+   "path": "src/main/java/org/jsoup/nodes/CDataNode.java",
+   "line": 29,
+   "col": 9,
+   "callee_text": "accum\n            .append(\"<![CDATA[\").append",
+   "snippet": "\n    @Override\n    void outerHtmlHead(QuietAppendable accum, Document.OutputSettings out) {\n        accum\n            .append(\"<![CDATA[\")\n            .append(getWholeText())\n            .append(\"]]>\");",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/internal/QuietAppendable.java",
+    "qualified_name": "QuietAppendable.append",
+    "def_line": 13
+   },
+   "reason": "accum is a QuietAppendable; a String argument binds to append(CharSequence)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/nodes/Comment.java",
+   "line": 41,
+   "col": 9,
+   "callee_text": "accum\n            .append(\"<!--\")\n            .append(getData()).append",
+   "snippet": "\n    @Override\n    void outerHtmlHead(QuietAppendable accum, Document.OutputSettings out) {\n        accum\n            .append(\"<!--\")\n            .append(getData())\n            .append(\"-->\");",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/internal/QuietAppendable.java",
+    "qualified_name": "QuietAppendable.append",
+    "def_line": 13
+   },
+   "reason": "accum is a QuietAppendable; a String argument binds to append(CharSequence)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/nodes/Entities.java",
+   "line": 385,
+   "col": 33,
+   "callee_text": "encoder.charset().equals",
+   "snippet": "    private static final ThreadLocal<CharsetEncoder> LocalEncoder = new ThreadLocal<>();\n    private static CharsetEncoder encoderFor(Charset charset) {\n        CharsetEncoder encoder = LocalEncoder.get();\n        if (encoder == null || !encoder.charset().equals(charset)) {\n            encoder = charset.newEncoder();\n            LocalEncoder.set(encoder);\n        }",
+   "node_type": "method_invocation",
+   "expected": "external",
+   "reason": "java.lang.Object.equals on a java.nio.charset.Charset."
+  },
+  {
+   "path": "src/main/java/org/jsoup/nodes/NodeInternals.java",
+   "line": 73,
+   "col": 45,
+   "callee_text": "range.isTracked",
+   "snippet": "        Validate.notNull(key);\n        Validate.notNull(range);\n        int index = attributes.visibleIndexOfKey(key);\n        if (index != Attributes.NotFound && range.isTracked())\n            attributes.ensureSpans().attributeRange(index, range);\n    }\n}",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/nodes/Range.java",
+    "qualified_name": "Range.AttributeRange.isTracked",
+    "def_line": 286
+   },
+   "reason": "range is a Range.AttributeRange (declared parameter type), which declares its own isTracked() at line 286; the earlier label (Range.isTracked@85) was wrong - corrected from source in M13."
+  },
+  {
+   "path": "src/main/java/org/jsoup/nodes/TextNode.java",
+   "line": 78,
+   "col": 13,
+   "callee_text": "parentNode.addChildren",
+   "snippet": "        text(head);\n        TextNode tailNode = new TextNode(tail);\n        if (parentNode != null)\n            parentNode.addChildren(siblingIndex()+1, tailNode);\n\n        return tailNode;\n    }",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/nodes/Node.java",
+    "qualified_name": "Node.addChildren",
+    "def_line": 618
+   },
+   "reason": "two arguments (int, Node) bind to addChildren(int index, Node... children), not the one-argument varargs overload."
+  },
+  {
+   "path": "src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java",
+   "line": 389,
+   "col": 21,
+   "callee_text": "tb.tokeniser.transition",
+   "snippet": "                        tb.processEndTag(\"p\");\n                    }\n                    tb.insertElementFor(startTag);\n                    tb.tokeniser.transition(TokeniserState.PLAINTEXT); // once in, never gets out\n                    break;\n                case \"button\":\n                    if (tb.inButtonScope(\"button\")) {",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/parser/Tokeniser.java",
+    "qualified_name": "Tokeniser.transition",
+    "def_line": 178
+   },
+   "reason": "tb.tokeniser is a Tokeniser field of the tree builder."
+  },
+  {
+   "path": "src/main/java/org/jsoup/parser/ParseErrorList.java",
+   "line": 30,
+   "col": 16,
+   "callee_text": "size",
+   "snippet": "    }\n    \n    boolean canAddError() {\n        return size() < maxSize;\n    }\n\n    int getMaxSize() {",
+   "node_type": "method_invocation",
+   "expected": "external",
+   "reason": "ParseErrorList extends java.util.ArrayList, so size() is inherited from the JDK."
+  },
+  {
+   "path": "src/main/java/org/jsoup/safety/Cleaner.java",
+   "line": 97,
+   "col": 47,
+   "callee_text": "dirtyDocument.baseUri",
+   "snippet": "    public boolean isValid(Document dirtyDocument) {\n        Validate.notNull(dirtyDocument);\n\n        Document clean = Document.createShell(dirtyDocument.baseUri());\n        int numDiscarded = copySafeNodes(dirtyDocument.body(), clean.body());\n        return numDiscarded == 0\n            && dirtyDocument.head().childNodes().isEmpty(); // because we only look at the body, but we start from a shell, make sure there's nothing in the head",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/nodes/Element.java",
+    "qualified_name": "Element.baseUri",
+    "def_line": 130
+   },
+   "reason": "Document extends Element, and Element is the nearest class declaring baseUri() (Node declares it abstract)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/select/Evaluator.java",
+   "line": 378,
+   "col": 51,
+   "callee_text": "node.attr",
+   "snippet": "        }\n\n        @Override boolean matchesNode(Node node) {\n            return node.hasAttr(key) && lowerCase(node.attr(key)).contains(value); // value is lower case\n        }\n\n        @Override protected int cost() {",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/nodes/Node.java",
+    "qualified_name": "Node.attr",
+    "def_line": 124
+   },
+   "reason": "node is a Node and one argument binds to attr(String)."
+  },
+  {
+   "path": "src/main/java/org/jsoup/select/NodeFilter.java",
+   "line": 67,
+   "col": 9,
+   "callee_text": "NodeTraversor.filter",
+   "snippet": "     @since 1.21.1\n     */\n    default void traverse(Node root) {\n        NodeTraversor.filter(this, root);\n    }\n}",
+   "node_type": "method_invocation",
+   "expected": {
+    "path": "src/main/java/org/jsoup/select/NodeTraversor.java",
+    "qualified_name": "NodeTraversor.filter",
+    "def_line": 115
+   },
+   "reason": "arguments (NodeFilter, Node) bind to filter(NodeFilter, Node), not the Elements overload."
+  },
+  {
+   "path": "src/main/java/org/jsoup/select/QueryParser.java",
+   "line": 231,
+   "col": 16,
+   "callee_text": "CombiningEvaluator.And",
+   "snippet": "        do {\n            evaluators.add(next);\n        } while ((next = parseSubclass()) != null);\n        return new CombiningEvaluator.And(evaluators);\n    }\n\n    static Evaluator combinator(Evaluator left, char combinator, Evaluator right) {",
+   "node_type": "object_creation_expression",
+   "expected": {
+    "path": "src/main/java/org/jsoup/select/CombiningEvaluator.java",
+    "qualified_name": "CombiningEvaluator.And",
+    "def_line": 79
+   },
+   "reason": "instantiation of the nested class CombiningEvaluator.And (class target; its constructor is accepted too)."
+  },
+  {
+   "path": "src/main/java11/org/jsoup/helper/RequestAuthHandler.java",
+   "line": 13,
+   "col": 47,
+   "callee_text": "AuthenticationHandler",
+   "snippet": "    public RequestAuthHandler() {}\n\n    @Override public void enable(RequestAuthenticator auth, Object connOrHttp) {\n        AuthenticationHandler authenticator = new AuthenticationHandler(auth);\n\n        // this is a bit ugly, but a simple way to support setting authentication on both urlconnection and httpclient without more multi-version shims\n        if (connOrHttp instanceof HttpURLConnection) {",
+   "node_type": "object_creation_expression",
+   "expected": {
+    "path": "src/main/java/org/jsoup/helper/AuthenticationHandler.java",
+    "qualified_name": "AuthenticationHandler",
+    "def_line": 14
+   },
+   "reason": "instantiation of AuthenticationHandler (class target; its constructor is accepted too)."
+  }
+ ]
+}

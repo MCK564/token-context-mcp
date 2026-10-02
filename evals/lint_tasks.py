@@ -38,7 +38,11 @@ def split_identifier_tokens(text: str) -> set[str]:
 
 
 def lint_task_data(
-    data: dict[str, Any], store: SQLiteStore | None = None, *, check_split: bool = True
+    data: dict[str, Any],
+    store: SQLiteStore | None = None,
+    *,
+    check_split: bool = True,
+    per_group: int = 10,
 ) -> list[str]:
     errors: list[str] = []
 
@@ -152,10 +156,10 @@ def lint_task_data(
                     f"[{tid}] Rule 4: c_multi_file requires >= 2 distinct gold_files, found {len(distinct_files)}"
                 )
 
-    # Check Rule 5: Exactly 10 tasks per group
+    # Check Rule 5: Exactly ``per_group`` tasks per group (10 for the full sets, fewer for the light M13 sets)
     for grp_name, grp_tasks in group_counts.items():
-        if len(grp_tasks) != 10:
-            errors.append(f"Rule 5: Group '{grp_name}' must have exactly 10 tasks, found {len(grp_tasks)}")
+        if len(grp_tasks) != per_group:
+            errors.append(f"Rule 5: Group '{grp_name}' must have exactly {per_group} tasks, found {len(grp_tasks)}")
 
     # Check Rule 5: Split reproducibility from split_seed (skipped for all-test sets, e.g. M10 bench)
     if not check_split:
@@ -186,6 +190,8 @@ def main() -> int:
     parser.add_argument("--skip-index-check", action="store_true", help="Skip index database checks")
     parser.add_argument("--no-split-check", action="store_true",
                         help="Do not validate the dev/heldout split (all-test sets such as the M10 benchmark)")
+    parser.add_argument("--per-group", type=int, default=10,
+                        help="Expected number of tasks in each of the three groups (default 10; the light M13 sets use 5)")
     args = parser.parse_args()
 
     if not args.tasks.exists():
@@ -208,7 +214,7 @@ def main() -> int:
         else:
             print(f"WARNING: Database not found at {db_p}. Skipping index symbol checks.", file=sys.stderr)
 
-    errors = lint_task_data(data, store=store, check_split=not args.no_split_check)
+    errors = lint_task_data(data, store=store, check_split=not args.no_split_check, per_group=args.per_group)
 
     if errors:
         print(f"FAIL: Found {len(errors)} task lint errors:")

@@ -17,7 +17,7 @@ from token_context_mcp.models import SymbolRecord
 # parse_source changes for the same bytes (new/changed query, new CallRecord field, new symbol kind, a
 # tree-sitter grammar upgrade is detected separately through the package versions).  Snapshots written
 # with another value are re-parsed once.  tests/test_parser_artifact_version.py fails when this is forgotten.
-PARSER_ARTIFACT_VERSION = 7  # 7: object-literal methods passed as arguments indexed again; chained JS assignments; 6: E6 instantiation edges
+PARSER_ARTIFACT_VERSION = 8  # 8: M13 Java/C# - lexical scopes, argument types, receiver chains, Java `new`, qualified owners, fixed Java inheritance; 7: object-literal methods passed as arguments indexed again; chained JS assignments; 6: E6 instantiation edges
 
 
 try:
@@ -48,6 +48,12 @@ class CallRecord:
     # "attr_type" scope label in lexical_edges.py.
     receiver_type_source: str | None = None
     arg_count: int | None = None
+    # M13 (Java/C# only, None elsewhere): inferred simple type of every argument, comma separated, ``?`` = unknown
+    # (``"String,?,int"``); a descriptor of the receiver expression the resolver evaluates against repository
+    # signatures (``"S:Jsoup|m:parse/1"``, see parse/jvm_calls.py); ``"new"`` for object-creation expressions.
+    arg_types: str | None = None
+    chain: str | None = None
+    call_kind: str | None = None
 
 
 @dataclass(frozen=True)
@@ -61,6 +67,9 @@ class ParseResult:
     namespaces: list[str] = field(default_factory=list)
     module_bindings: dict[str, str] = field(default_factory=dict)
 
+
+_JVM_LANGUAGES = frozenset({"java", "c_sharp"})
+_JVM_OWNER_KINDS = frozenset({"struct", "record", "enum", "annotation"})
 
 _NODE_KINDS: dict[str, dict[str, str]] = {
     "python": {
@@ -129,21 +138,91 @@ _NODE_KINDS: dict[str, dict[str, str]] = {
 }
 
 
+_CSHARP_DIRECTIVE_RE = re.compile(
+    rb"^[ \t]*#[ \t]*(?:if|elif|else|endif|region|endregion|pragma|nullable|define|undef|line|error|warning)\b[^\r\n]*",
+    re.MULTILINE,
+)
+
+
+def _blank_csharp_directives(raw: bytes) -> bytes:
+    """``raw`` with every preprocessor directive line replaced by spaces of the same length (offsets stay valid)."""
+    return _CSHARP_DIRECTIVE_RE.sub(lambda match: b" " * len(match.group(0)), raw)
+
+
+_CSHARP_BRANCH_RE = re.compile(rb"^[ \t]*#[ \t]*(if|elif|else|endif)\b")
+
+
+def _prune_csharp_branches(raw: bytes) -> bytes:
+    """``raw`` with directive lines blanked *and* the ``#else`` / ``#elif`` branches blanked too: only the first branch of
+    every conditional stays, which is how ``#if X member #else other-form-of-member #endif`` stays one valid member."""
+    out: list[bytes] = []
+    stack: list[bool] = []  # per open #if: are we inside a later (#elif / #else) branch?
+    for line in raw.splitlines(keepends=True):
+        match = _CSHARP_BRANCH_RE.match(line)
+        directive = _CSHARP_DIRECTIVE_RE.match(line)
+        if match:
+            word = match.group(1)
+            if word == b"if":
+                stack.append(False)
+            elif word in {b"elif", b"else"} and stack:
+                stack[-1] = True
+            elif word == b"endif" and stack:
+                stack.pop()
+        if directive or any(stack):
+            out.append(bytes(b if b in b"\r\n" else 32 for b in line))
+        else:
+            out.append(line)
+    return b"".join(out)
+
+
+def _error_count(root: object, cap: int = 100_000) -> int:
+    """ERROR and MISSING nodes below ``root`` (descends only into subtrees that contain an error)."""
+    count = 0
+    stack = [root]
+    while stack and count < cap:
+        node = stack.pop()
+        if getattr(node, "type", "") == "ERROR" or getattr(node, "is_missing", False):
+            count += 1
+        for child in getattr(node, "children", ()):
+            if getattr(child, "has_error", False) or getattr(child, "is_missing", False):
+                stack.append(child)
+    return count
+
+
 def parse_source(path: str, raw: bytes, language_name: str) -> ParseResult:
     language = _load_language(language_name)
     parser = _new_parser(language)
     tree = parser.parse(raw)
     if tree.root_node is None:
         raise ParseError("Tree-sitter returned no root node")
+    if language_name == "c_sharp" and tree.root_node.has_error and b"#" in raw:
+        # M13: the C# grammar cannot read ``#if`` inside a base list, a parameter list or an expression (Newtonsoft's
+        # ``class JsonWriter : #if X IAsyncDisposable, #endif IDisposable`` became a pseudo class ``X``).  Retry with
+        # the directive lines blanked out (same offsets; every conditional branch is then visible) and keep that
+        # tree only when it parses with fewer errors.  Files that parse cleanly never take this path.
+        best_errors = _error_count(tree.root_node)
+        best_raw = raw
+        for variant in (_blank_csharp_directives(raw), _prune_csharp_branches(raw)):
+            if variant == raw or variant == best_raw:
+                continue
+            retry = parser.parse(variant)
+            if retry.root_node is None:
+                continue
+            errors = _error_count(retry.root_node) if retry.root_node.has_error else 0
+            if errors < best_errors:
+                tree, best_errors, best_raw = retry, errors, variant
+        raw = best_raw
     line_offsets = _line_offsets(raw)
     symbols = list(_walk_symbols(tree.root_node, raw, path, language_name, [], line_offsets))
     symbols = _add_module_entry_roles(tree.root_node, raw, symbols)
     imports, import_warnings = _extract_imports(tree.root_node, raw, path, language_name, language)
-    calls = extract_calls(tree.root_node, raw, language_name)
     inheritance = _extract_inheritance(tree.root_node, raw, language_name)
+    calls = extract_calls(tree.root_node, raw, language_name, inheritance)
     namespaces: list[str] = []
     if language_name == "c_sharp":
         namespaces = _extract_csharp_namespaces(tree.root_node, raw)
+    elif language_name == "java":
+        namespaces = _extract_java_package(tree.root_node, raw)
     module_bindings: dict[str, str] = {}
     if language_name in {"javascript", "typescript", "tsx"}:
         module_bindings = _extract_js_module_bindings(tree.root_node, raw)
@@ -645,8 +724,17 @@ def _walk_symbols(
                 name,
                 mapping[node_kind],
             )
-            if mapping[node_kind] in {"class", "interface"}:
+            if mapping[node_kind] in {"class", "interface"} or (
+                language_name in _JVM_LANGUAGES and mapping[node_kind] in _JVM_OWNER_KINDS
+            ):
+                # M13: members of a C# struct/record/enum and of a Java enum/annotation were left unqualified
+                # (``Distance`` instead of ``Point.Distance``), so every override family shared one name
                 next_parents = [*parents, name]
+    elif language_name == "java" and node_kind == "enum_constant":
+        # M13: the methods of ``Data { void read(...) {...} }`` belong to ``TokeniserState.Data``, not to the enum
+        constant_name = _node_name(node, raw)
+        if constant_name and any(getattr(child, "type", "") == "class_body" for child in node.named_children):
+            next_parents = [*parents, constant_name]
     elif language_name in {"javascript", "typescript", "tsx"} and node_kind == "variable_declarator":
         value = _field(node, "value")
         name = _declarator_name(node, raw)
@@ -756,7 +844,10 @@ def _symbol_record(
     body_end = int(body.end_byte) if body else None
     if signature is None:
         signature_end = body_start if body_start is not None else end_byte
-        signature = _signature(raw[start_byte:signature_end])
+        if language_name in _JVM_LANGUAGES:
+            signature = _signature(_without_comments(node, raw, start_byte, signature_end))
+        else:
+            signature = _signature(raw[start_byte:signature_end])
     start_line = int(node.start_point[0]) + 1
     end_line = int(node.end_point[0]) + 1
     digest = hashlib.sha256(f"{language_name}:{path}:{qualified_name}:{start_byte}".encode()).hexdigest()[:16]
@@ -846,6 +937,38 @@ def _anonymous_export_name(node: object, raw: bytes, path: str) -> str | None:
 def _file_stem(path: str) -> str:
     filename = path.replace("\\", "/").rsplit("/", 1)[-1]
     return filename.rsplit(".", 1)[0] if "." in filename else filename
+
+
+_COMMENT_NODE_TYPES = frozenset({"comment", "line_comment", "block_comment"})
+
+
+def _without_comments(node: object, raw: bytes, start: int, end: int) -> bytes:
+    """``raw[start:end]`` with the comments of the declaration header replaced by one space (M13: a comment between
+    two parameters used to end up in the signature and to confuse the parameter count)."""
+    spans: list[tuple[int, int]] = []
+    stack = [node]
+    while stack:
+        current = stack.pop()
+        for child in getattr(current, "children", ()):
+            if int(child.start_byte) >= end or int(child.end_byte) <= start:
+                continue
+            if getattr(child, "type", "") in _COMMENT_NODE_TYPES:
+                spans.append((int(child.start_byte), int(child.end_byte)))
+            elif child.child_count:
+                stack.append(child)
+    if not spans:
+        return raw[start:end]
+    spans.sort()
+    out: list[bytes] = []
+    cursor = start
+    for comment_start, comment_end in spans:
+        if comment_start < cursor:
+            continue
+        out.append(raw[cursor:comment_start])
+        out.append(b" ")
+        cursor = comment_end
+    out.append(raw[cursor:end])
+    return b"".join(out)
 
 
 def _signature(raw: bytes) -> str:
@@ -1064,6 +1187,16 @@ def _extract_csharp_namespaces(root: object, raw: bytes) -> list[str]:
 
     visit(root)
     return namespaces
+
+
+def _extract_java_package(root: object, raw: bytes) -> list[str]:
+    """The ``package a.b.c;`` of a Java file (a one-element list, empty for the default package)."""
+    for child in getattr(root, "named_children", []):
+        if getattr(child, "type", "") == "package_declaration":
+            for part in getattr(child, "named_children", []):
+                if getattr(part, "type", "") in {"scoped_identifier", "identifier"}:
+                    return [_node_text(part, raw).strip()]
+    return []
 
 
 def _extract_js_module_bindings(root: object, raw: bytes) -> dict[str, str]:
@@ -1399,6 +1532,29 @@ def _analyze_function_scope(
 
 
 
+
+def _java_base_names(clause: object, raw: bytes) -> list[str]:
+    """Simple names of the types an ``extends``/``implements`` clause lists (generic arguments are not parents)."""
+    names: list[str] = []
+    stack = list(reversed(getattr(clause, "named_children", [])))
+    while stack:
+        node = stack.pop()
+        kind = getattr(node, "type", "")
+        if kind == "type_identifier":
+            names.append(_node_text(node, raw).strip())
+        elif kind == "generic_type":
+            head = next(iter(getattr(node, "named_children", [])), None)
+            if head is not None:
+                stack.append(head)
+        elif kind == "scoped_type_identifier":
+            parts = [c for c in getattr(node, "named_children", []) if getattr(c, "type", "") == "type_identifier"]
+            if parts:
+                names.append(_node_text(parts[-1], raw).strip())
+        elif kind == "type_list":
+            stack.extend(reversed(getattr(node, "named_children", [])))
+    return [name for name in names if name]
+
+
 def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[str, list[str]]:
     inheritance: dict[str, list[str]] = {}
 
@@ -1439,24 +1595,18 @@ def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[s
                                 if b and b not in bases:
                                     bases.append(b)
                 inheritance[cls_name] = bases
-        elif language_name == "java" and c_type in {"class_declaration", "record_declaration", "interface_declaration"}:
+        elif language_name == "java" and c_type in {"class_declaration", "record_declaration", "interface_declaration", "enum_declaration"}:
             name_node = _field(current, "name")
             if name_node is not None:
                 cls_name = _node_text(name_node, raw).strip()
                 bases = []
-                sc = _field(current, "superclass")
-                if sc is not None:
-                    for expr in getattr(sc, "named_children", []):
-                        if expr.type == "type_identifier":
-                            b = _node_text(expr, raw).strip()
-                            if b and b not in bases:
-                                bases.append(b)
-                si = _field(current, "super_interfaces") or _field(current, "interfaces")
-                if si is not None:
-                    for expr in _descendants(si):
-                        if getattr(expr, "type", "") == "type_identifier":
-                            b = _node_text(expr, raw).strip()
-                            if b and b not in bases:
+                # M13: ``extends Base<T>`` (generic_type), ``extends a.Base`` (scoped_type_identifier), an interface's
+                # ``extends A, B`` (extends_interfaces) and an enum's ``implements`` were skipped, while the type
+                # arguments of ``implements Comparable<Foo>`` were recorded as parents of the class.
+                for clause in list(getattr(current, "named_children", [])):
+                    if getattr(clause, "type", "") in {"superclass", "super_interfaces", "extends_interfaces"}:
+                        for b in _java_base_names(clause, raw):
+                            if b not in bases:
                                 bases.append(b)
                 inheritance[cls_name] = bases
         elif language_name == "c_sharp" and c_type in {"class_declaration", "struct_declaration", "record_declaration", "interface_declaration"}:
@@ -1470,6 +1620,8 @@ def _extract_inheritance(root: object, raw: bytes, language_name: str) -> dict[s
                 )
                 if bl is not None:
                     for expr in getattr(bl, "named_children", []):
+                        if expr.type == "primary_constructor_base_type":  # ``record R(int X) : Base(X)`` (M13)
+                            expr = _field(expr, "type") or (expr.named_children[0] if getattr(expr, "named_children", None) else expr)
                         if expr.type in {"identifier", "type_identifier", "generic_name", "qualified_name"}:
                             b = _node_text(expr, raw).strip()
                             clean_b = re.split(r"[<\[]", b)[0].strip()
@@ -1778,7 +1930,15 @@ def _extract_class_attributes(
     return resolved_attrs, tainted_attrs, resolved_attrs_source
 
 
-def extract_calls(root: object, raw: bytes, language_name: str) -> list[CallRecord]:
+def extract_calls(
+    root: object, raw: bytes, language_name: str, inheritance: dict[str, list[str]] | None = None
+) -> list[CallRecord]:
+    if language_name in _JVM_LANGUAGES:
+        from token_context_mcp.parse.jvm_calls import extract_calls_jvm
+
+        if inheritance is None:
+            inheritance = _extract_inheritance(root, raw, language_name)
+        return extract_calls_jvm(root, raw, language_name, inheritance, CallRecord)
     calls: list[CallRecord] = []
     scope_stack: list[tuple[dict[str, str], set[str], dict[str, str]]] = []
     class_stack: list[str] = []

@@ -43,7 +43,7 @@ from token_context_mcp.models import (
 from token_context_mcp.parse.lexical_edges import RESOLVER_VERSION, build_lexical_edges
 from token_context_mcp.parse.treesitter import PARSER_ARTIFACT_VERSION, CallRecord, ParseError, parse_source
 from token_context_mcp.stubs import get_relevant_stubs
-from token_context_mcp.retrieve.code_tokens import path_tokens, split_identifier
+from token_context_mcp.retrieve.code_tokens import identifier_subwords, path_tokens, split_identifier, word_stems
 from token_context_mcp.retrieve.edge_stats import edge_precision
 from token_context_mcp.retrieve.ranking import compute_global_ranks
 from token_context_mcp.security.content_policy import is_hard_denied, is_probably_binary
@@ -63,9 +63,16 @@ PARSE_POOL_MIN_FILES = 32
 # package and the grammars), about what 300 files of parsing cost, so 32 small files alone never pay for a pool.
 PARSE_POOL_MIN_BYTES = 1_000_000
 
-FTS_BUILDER_VERSION = 2  # 1: base, 2: M12.2 doc comment attached to member instead of container own_body
+FTS_BUILDER_VERSION = 3  # 1: base, 2: M12.2 doc comment attached to member instead of container own_body, 3: M13 C#/Java sub-words + Porter stems
 _FTS_DOC_COMMENTS = os.environ.get("TOKEN_CONTEXT_FTS_DOC_COMMENTS", "c_sharp,java")
 _FTS_INTERFACE_DOC = os.environ.get("TOKEN_CONTEXT_FTS_INTERFACE_DOC", "c_sharp,java")
+# M13: languages whose ``symbol_fts`` rows also carry the sub-words of the multi-word identifiers in the symbol body and
+# the Porter stem of every word ("off" = the pre-M13 rows).  Ablation switch for evals, not a tool argument.
+_FTS_WORD_FORMS = os.environ.get("TOKEN_CONTEXT_FTS_WORD_FORMS", "c_sharp,java")
+_FTS_SUBWORD_LIMIT = 400  # sub-words kept per symbol body
+_FTS_BODY_STEM_LIMIT = 300  # extra stems of prose words kept per symbol body
+_BODY_WORD_RE = re.compile(r"[A-Za-z]{3,}")
+_CAMEL_BOUNDARY_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 # Delta writes (page copy of the previous snapshot + row-level changes of its full-text tables) leave free pages
 # and fragmented FTS segments behind; after this many in a row, or above this free-page ratio, write from scratch.
 MAX_DELTA_GENERATIONS = 25
@@ -549,6 +556,45 @@ def _calls_from_json(text: str) -> list[CallRecord]:
     return [CallRecord(*row) for row in json.loads(text)]
 
 
+_CHAIN_STEP_RE = re.compile(r"^[mf]:([^/|]+)")
+
+
+def _call_dependency_names(calls: "list[CallRecord]", jvm: bool = False) -> set[str]:
+    """Every symbol name the resolution of ``calls`` looks at, so a change of any of them re-resolves the file (M7.5).
+
+    Besides the called names this is (M13, Java/C# only) the names in the receiver chains the resolver evaluates
+    against repository signatures (``S:Jsoup|m:parse/1`` depends on ``Jsoup`` and ``parse``), the inferred receiver
+    type, a static receiver and the argument types that overload scoring compares with the repository's types."""
+    names = {call.name for call in calls}
+    if not jvm:
+        return names
+
+    def add_type(key: str) -> None:
+        # ``Outer.Inner`` depends on both names; an array type on its element type
+        for part in (key[:-2] if key.endswith("[]") else key).split("."):
+            if part and part != "?":
+                names.add(part)
+
+    for call in calls:
+        if call.receiver_type:
+            add_type(call.receiver_type)
+        if call.receiver:
+            names.add(call.receiver.rsplit(".", 1)[-1])
+        if call.chain:
+            for index, part in enumerate(call.chain.split("|")):
+                if index == 0:
+                    if part[:2] in {"T:", "S:"}:
+                        add_type(part[2:])
+                else:
+                    matched = _CHAIN_STEP_RE.match(part)
+                    if matched:
+                        names.add(matched.group(1))
+        if call.arg_types:
+            for key in call.arg_types.split(","):
+                add_type(key)
+    return names
+
+
 def _artifact_row(outcome: _Outcome, language: str) -> tuple:
     return (
         outcome.relative,
@@ -562,7 +608,7 @@ def _artifact_row(outcome: _Outcome, language: str) -> tuple:
         json.dumps(
             {
                 "registry_names": outcome.registry_names,
-                "call_names": sorted({call.name for call in outcome.calls}),
+                "call_names": sorted(_call_dependency_names(outcome.calls, language in {"java", "c_sharp"})),
                 "assigned_from": sorted({call.assigned_from_fn for call in outcome.calls if call.assigned_from_fn}),
                 "namespaces": outcome.namespaces,
                 "module_bindings": outcome.module_bindings,
@@ -818,9 +864,17 @@ def build_index(
     timings.add("roles", _t_roles)
     _t_edges = time.perf_counter()
     class_hierarchy_map: dict[str, list[str]] = {}
-    for inh in inheritance_by_path.values():
+    for inh_path, inh in inheritance_by_path.items():
+        jvm_file = inh_path.endswith((".java", ".cs"))
         for cls_name, parents in inh.items():
-            class_hierarchy_map[cls_name] = parents
+            if jvm_file and cls_name in class_hierarchy_map:
+                # M13: a C# ``partial`` class lists its base types in only one of its parts (and Java classes of
+                # different packages may share a simple name): keep every file's parents instead of the last file's
+                class_hierarchy_map[cls_name] = class_hierarchy_map[cls_name] + [
+                    parent for parent in parents if parent not in class_hierarchy_map[cls_name]
+                ]
+            else:
+                class_hierarchy_map[cls_name] = parents
 
     class_hierarchy_rows: list[tuple[str, str, str | None]] = []
     class_symbol_map = {s.name: s.symbol_id for s in symbols if s.kind in _CLASS_KINDS}
@@ -1483,6 +1537,10 @@ def _fts_rows(
         target_langs = {lang.strip() for lang in _FTS_DOC_COMMENTS.split(",")}
         use_doc_shift = language in target_langs
 
+    word_forms = _FTS_WORD_FORMS != "off" and language is not None and language in {
+        lang.strip() for lang in _FTS_WORD_FORMS.split(",")
+    }
+
     preceding_starts: dict[str, int] = {}
     if use_doc_shift:
         for i, sym in enumerate(by_start):
@@ -1534,6 +1592,15 @@ def _fts_rows(
                 add_token(piece)
         for piece in path_tokens(sym.path):
             add_token(piece)
+        if word_forms:
+            # M13: sub-words of the body identifiers (HasHeaderRecord -> has, header, record) and Porter stems, so that
+            # "records" finds RecordWriter and "writing" finds Write; the sub-words live in the weight-3 column,
+            # stems of prose words (comments, one-word identifiers) next to the body they come from.
+            for piece in identifier_subwords(own_body, _FTS_SUBWORD_LIMIT):
+                add_token(piece)
+            for stem in word_stems(list(tokens)):
+                add_token(stem)
+            own_body = _with_body_stems(own_body, seen_tokens)
         rows.append((sym.symbol_id, sym.path, sym.name, sym.qualified_name, " ".join(tokens), own_body))
 
     cursor = 1
@@ -1551,6 +1618,19 @@ def _fts_rows(
 
 
 _WORD_RE = re.compile(r"\w+", re.UNICODE)
+
+
+def _with_body_stems(own_body: str, known: set[str]) -> str:
+    """``own_body`` plus the Porter stems of its words that the weight-3 tokens do not already hold."""
+    words: list[str] = []
+    seen_words: set[str] = set()
+    for word in _BODY_WORD_RE.findall(_CAMEL_BOUNDARY_RE.sub(" ", own_body)):
+        lowered = word.lower()
+        if lowered not in seen_words:
+            seen_words.add(lowered)
+            words.append(lowered)
+    extra = [stem for stem in word_stems(words) if stem not in known][:_FTS_BODY_STEM_LIMIT]
+    return f"{own_body}\n{' '.join(extra)}" if extra else own_body
 
 
 def _inherit_interface_doc_tokens(
@@ -1602,6 +1682,8 @@ def _inherit_interface_doc_tokens(
                     existing_tokens = fts_row[4].split()
                     seen = set(existing_tokens)
                     to_add = [tok for tok in inherited if tok not in seen]
+                    if to_add and _FTS_WORD_FORMS != "off":
+                        to_add.extend(stem for stem in word_stems(to_add) if stem not in seen and stem not in to_add)
                     if to_add:
                         fts_row[4] = fts_row[4] + " " + " ".join(to_add)
                         break

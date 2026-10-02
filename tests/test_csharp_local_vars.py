@@ -65,6 +65,8 @@ def test_csharp_local_var_types_inferred():
 
 
 def test_csharp_local_var_taint_reassigned():
+    # M13: C# is statically typed - ``var x = new Foo()`` fixes the type of ``x`` for good (``x = new Bar()`` is only
+    # legal when Bar is a Foo), so a reassignment is no reason to give up on the receiver type any more
     code = b"""
     class Service {
         void Process() {
@@ -83,11 +85,12 @@ def test_csharp_local_var_taint_reassigned():
     assert len(run_calls) == 1
     assert run_calls[0].name == "Run"
     assert run_calls[0].receiver == "x"
-    assert run_calls[0].receiver_type is None
-    assert run_calls[0].is_tainted is True
+    assert run_calls[0].receiver_type == "Foo"
+    assert run_calls[0].is_tainted is False
 
 
 def test_csharp_local_var_taint_branch():
+    # M13: the declared type ``Foo`` holds wherever the variable is assigned (no branch taint for typed languages)
     code = b"""
     class Service {
         void Process(bool cond) {
@@ -108,8 +111,8 @@ def test_csharp_local_var_taint_branch():
     assert len(run_calls) == 1
     assert run_calls[0].name == "Run"
     assert run_calls[0].receiver == "x"
-    assert run_calls[0].receiver_type is None
-    assert run_calls[0].is_tainted is True
+    assert run_calls[0].receiver_type == "Foo"
+    assert run_calls[0].is_tainted is False
 
 
 def test_csharp_local_var_edge_resolution():

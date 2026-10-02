@@ -50,6 +50,18 @@ def callee_matches(callee_text: str, target_name: str) -> bool:
     return last_token == target_name
 
 
+def _constructor_alias(sym_qname: str, exp_qname: str) -> bool:
+    """An instantiation site may be labelled with the class or with one of its constructors: ``A.B`` and ``A.B.B`` are
+    the same target (a JVM/.NET constructor shares its class name; the resolver prefers the class, E6)."""
+    sym_name = sym_qname.split("(")[0].strip()
+    exp_name = exp_qname.split("(")[0].strip()
+    for cls, ctor in ((sym_name, exp_name), (exp_name, sym_name)):
+        parts = ctor.split(".")
+        if len(parts) >= 2 and parts[-1] == parts[-2] and ".".join(parts[:-1]) == cls:
+            return True
+    return False
+
+
 def target_matches(edge: EdgeRecord, expected: dict[str, Any], symbols: dict[str, SymbolRecord]) -> bool:
     if not edge.target_symbol_id:
         return False
@@ -68,7 +80,23 @@ def target_matches(edge: EdgeRecord, expected: dict[str, Any], symbols: dict[str
     # Strip signature/overload parameters e.g. "Method(int)" vs "Method"
     if sym_qname.split("(")[0].strip() == exp_qname.split("(")[0].strip():
         return True
-    return False
+    return _constructor_alias(sym_qname, exp_qname)
+
+
+def target_matches_strict(edge: EdgeRecord, expected: dict[str, Any], symbols: dict[str, SymbolRecord]) -> bool:
+    """Like ``target_matches`` but, when the label carries ``def_line``, the resolved symbol must be the very overload
+    whose span contains that line (overloads share one qualified name, so the name alone cannot tell them apart)."""
+    if not target_matches(edge, expected, symbols):
+        return False
+    def_line = expected.get("def_line")
+    if not def_line:
+        return True
+    sym = symbols.get(edge.target_symbol_id or "")
+    if sym is None:
+        return False
+    if _constructor_alias(sym.qualified_name, str(expected.get("qualified_name") or "")):
+        return True  # class vs constructor: same instantiation target, the def_line only locates one of the two
+    return sym.start_line <= int(def_line) <= sym.end_line
 
 
 def load_gold_set(gold_path: Path) -> dict[str, Any]:
@@ -118,6 +146,10 @@ def run_edge_gold_evaluation(
 
     internal_sites = 0
     internal_resolved_correctly = 0
+    strict_sites = 0  # internal sites whose label carries a def_line (overload-level answer)
+    strict_resolved_correctly = 0
+    total_ge_06_strict = 0
+    correct_ge_06_strict = 0
 
     for site in sites:
         src_path = site["path"]
@@ -139,7 +171,11 @@ def run_edge_gold_evaluation(
                 matched_edges = [cand]
 
         site_correct = False
+        site_correct_strict = False
         resolved_edge = None
+        has_def_line = is_internal and bool(expected.get("def_line"))
+        if has_def_line:
+            strict_sites += 1
 
         if is_internal:
             for e in matched_edges:
@@ -149,6 +185,11 @@ def run_edge_gold_evaluation(
                     break
             if site_correct:
                 internal_resolved_correctly += 1
+            if has_def_line and any(
+                e.status == "resolved" and target_matches_strict(e, expected, symbols) for e in matched_edges
+            ):
+                site_correct_strict = True
+                strict_resolved_correctly += 1
 
         edge_evals = []
         for e in matched_edges:
@@ -158,11 +199,16 @@ def run_edge_gold_evaluation(
 
             if is_internal:
                 is_edge_correct = (e.status == "resolved" and target_matches(e, expected, symbols))
+                is_edge_correct_strict = (e.status == "resolved" and target_matches_strict(e, expected, symbols))
             else:
                 # External / dynamic / unknown: an internal resolution is a false positive
                 is_edge_correct = (e.status != "resolved" or not e.target_symbol_id)
+                is_edge_correct_strict = is_edge_correct
 
             if conf >= 0.6:
+                total_ge_06_strict += 1
+                if is_edge_correct_strict:
+                    correct_ge_06_strict += 1
                 total_ge_06 += 1
                 scope_stats[scope]["total_ge_06"] += 1
                 if is_edge_correct:
@@ -189,6 +235,7 @@ def run_edge_gold_evaluation(
             "reason": reason,
             "is_internal": is_internal,
             "site_resolved_correctly": site_correct,
+            **({"site_resolved_overload_correctly": site_correct_strict} if has_def_line else {}),
             "resolved_edge": edge_evals,
         })
 
@@ -226,6 +273,13 @@ def run_edge_gold_evaluation(
             "total_internal_sites": internal_sites,
             "resolved_correctly": internal_resolved_correctly,
             "recall": recall,
+        },
+        "overload_strict": {
+            "note": "labels with def_line only: the resolved target must be the exact overload (span contains def_line)",
+            "sites_with_def_line": strict_sites,
+            "resolved_exactly": strict_resolved_correctly,
+            "recall": round(strict_resolved_correctly / strict_sites, 4) if strict_sites else None,
+            "precision_ge_06": round(correct_ge_06_strict / total_ge_06_strict, 4) if total_ge_06_strict else 1.0,
         },
         "scope_breakdown": scope_report,
         "sites": site_evaluations,
