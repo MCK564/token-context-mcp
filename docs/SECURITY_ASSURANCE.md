@@ -33,8 +33,8 @@ Sign the release and attest the build in CI before claiming A3.
 
 - `security/governance_store.py`: WAL-mode SQLite with tables `agents`, `emergency`, `server_heartbeats`; busy-timeout 5 s.
 - `AccessControlManager` accepts optional `GovernanceStore`; all mutating calls write through; 1 s monotonic TTL cache.
-- `resolve_effective_agent_id()` reads `TOKEN_CONTEXT_AGENT_ID` env, validates `^[a-zA-Z0-9_-]{1,64}$`, falls back to `"anonymous"`.
-- Anonymous agent is subject to pause/block/halt but exempt from rate limiting.
+- `resolve_effective_agent_id()` reads `TOKEN_CONTEXT_AGENT_ID` env, validates `^[a-zA-Z0-9_-]{1,64}$`, falls back to `"anonymous"`. (0.3.3) When the env id is set, an explicit `agent_id` that differs is rejected; `admin` is reserved and only claimable by the internal `agent_control` call.
+- Anonymous agent is subject to pause/block/halt and (since 0.3.3) to rate limiting. Without `TOKEN_CONTEXT_AGENT_ID` the id is self-declared, so these controls are advisory.
 - Server records heartbeat every ≥15 s per tool call; `server_id = f"server-{pid}-{epoch}"`.
 
 ### M2.3 — Atomic `memory_lock` and `memory_unlock`

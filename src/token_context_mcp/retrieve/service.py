@@ -1290,12 +1290,19 @@ class RetrievalService:
         max_tokens: int | None = None,
         include_omitted_ids: bool = False,
         profile: str | None = None,
+        body_offset_line: int | None = None,
+        body_paging_hint: bool = False,
     ) -> dict[str, Any]:
         profile_settings = self._profile_settings(profile, "symbol_context")
         if max_tokens is None:
             max_tokens = _profile_int(profile_settings, "budget_tokens", 2048)
         if include_body is None:
             include_body = profile_settings.get("include_body") is True
+        if body_offset_line is not None:
+            # Windowed read of a long body: implies include_body.
+            if isinstance(body_offset_line, bool) or body_offset_line < 1:
+                raise ArgumentOutOfRangeError("body_offset_line", int(body_offset_line), 1, 1_000_000)
+            include_body = True
         self._validate_request_bytes(
             repo_id=repo_id,
             symbol_id=symbol_id,
@@ -1303,6 +1310,7 @@ class RetrievalService:
             include_body=include_body,
             max_tokens=max_tokens,
             include_omitted_ids=include_omitted_ids,
+            body_offset_line=body_offset_line,
         )
         self._validate_budget(max_tokens, field_name="max_tokens")
         packing_budget = self._effective_budget(max_tokens)
@@ -1496,14 +1504,60 @@ class RetrievalService:
             file_records=file_records,
         )
 
+        def _root_tokens(packet: dict[str, Any]) -> int:
+            preview = build_response([("symbol", packet)], [], 0)
+            return _payload_tokens(build_response([("symbol", packet)], [], _payload_tokens(preview)))
+
         root_packet_fits = True
-        if include_body:
-            preview_with_body = build_response([("symbol", root_packet)], [], 0)
-            tokens_with_body = _payload_tokens(preview_with_body)
-            final_preview = build_response([("symbol", root_packet)], [], tokens_with_body)
-            needed_with_body = _payload_tokens(final_preview)
+        if body_offset_line is not None and root_packet.get("content") is not None:
+            # Window mode: return the largest run of body lines, starting at body_offset_line, that
+            # fits the budget, and say where the next window starts. Spend the whole budget on the
+            # body with depth=0; neighbours only get what the window leaves over.
+            body_lines = str(root_packet["content"]).split("\n")
+            total_lines = len(body_lines)
+            start_index = body_offset_line - 1
+            if start_index >= total_lines:
+                raise ArgumentOutOfRangeError("body_offset_line", body_offset_line, 1, total_lines)
+
+            def _window_packet(count: int) -> dict[str, Any]:
+                end_index = start_index + count
+                packet = dict(root_packet)
+                packet["content"] = "\n".join(body_lines[start_index:end_index])
+                packet["body_included"] = True
+                packet["body_window"] = {
+                    "start_line": start_index + 1,
+                    "end_line": end_index,
+                    "total_lines": total_lines,
+                    "next_offset": end_index + 1 if end_index < total_lines else None,
+                }
+                return packet
+
+            remaining = total_lines - start_index
+            if _root_tokens(_window_packet(remaining)) <= packing_budget:
+                chosen_count = remaining
+            else:
+                # The warning is part of the payload, so it must be in place while measuring.
+                if "root_body_window_truncated" not in warnings:
+                    warnings.append("root_body_window_truncated")
+                low, high, chosen_count = 1, remaining - 1, 1
+                while low <= high:
+                    mid = (low + high) // 2
+                    if _root_tokens(_window_packet(mid)) <= packing_budget:
+                        chosen_count, low = mid, mid + 1
+                    else:
+                        high = mid - 1
+            root_packet = _window_packet(chosen_count)
+        elif include_body:
+            needed_with_body = _root_tokens(root_packet)
             if needed_with_body > packing_budget:
                 extra_data["root_body_tokens_needed"] = needed_with_body
+                if body_paging_hint:
+                    # Only for direct get_symbol_context callers; inspect_symbol's snapshots stay unchanged.
+                    extra_data["root_body_lines"] = max(1, int(root_symbol.end_line) - int(root_symbol.start_line) + 1)
+                    extra_data["root_body_hint"] = (
+                        "body does not fit max_tokens; call again with body_offset_line=1 (and depth=0) to read it "
+                        "in windows, following body_window.next_offset"
+                    )
                 if "root_body_omitted_budget" not in warnings:
                     warnings.append("root_body_omitted_budget")
                 root_packet = self._symbol_packet(

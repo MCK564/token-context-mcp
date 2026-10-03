@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.3 — fix: identity, governance, memory, windowed reads, Windows file locks (2026-10-03)
+
+**Upgrade:** no index rebuild needed (parser, FTS builder and resolver versions are unchanged). The memory FTS table is rebuilt lazily by the new query builder; existing memory entries stay readable.
+
+Behaviour changes (read before upgrading):
+
+- **Bound identity cannot be overridden** — when `TOKEN_CONTEXT_AGENT_ID` is set, an `agent_id` argument that differs from it is rejected (`agent_id does not match the identity bound to this server process`). Before, the argument silently replaced the bound identity, so any caller could pause-check, rate-limit or lock as someone else.
+- **`admin` is a reserved id** — it can no longer be self-declared or bound by env; only the internal `agent_control` path claims it.
+- **`anonymous` is rate limited** — the exemption is gone; it shares the default budget (120 calls/min) like any other id.
+- **`memory_lock` / `memory_unlock` use the resolved identity** — impersonating the holder to release or steal a lock no longer works.
+- **`memory_put` no longer uses `session_id` as the caller identity** (it only scopes the entry).
+- **`audit_logs`**: the `agent_id` argument is a filter only, not the caller identity.
+
+Fixes and additions:
+
+- **`agent_control(action="set_policy", agent_id, policy, custom_tools)`** — the `policy` argument was accepted but ignored; the action now exists (FULL_ACCESS / READ_ONLY / CUSTOM, CUSTOM needs a non-empty `custom_tools`; `admin` is protected).
+- **`memory_get(session_id=…)`** and **`memory_consolidate(namespace=…)`** — session-scoped entries are readable with the same `session_id` used to write them; consolidate prunes inside the namespace it read and reports a key as pruned only when a row was deleted (`delete` now returns whether anything was removed). Consolidate reads up to 500 entries (was the 100 oldest) and reports `source_entries_truncated`.
+- **Memory search** — `memory_fts` queries are phrase/token matches ranked by bm25 (identifiers with `_` or punctuation no longer fail or match loosely); expired rows are excluded in SQL and TTL cleanup also removes their FTS rows (orphans before).
+- **Windowed symbol bodies (`get_symbol_context(body_offset_line=N)`)** — a body that does not fit the budget is returned as a window (`body_window`: `start_line`, `end_line`, `total_lines`, `next_offset`) instead of being dropped; when the whole body is omitted the response carries `root_body_lines` and a paging hint. `inspect_symbol` output is unchanged.
+- **Windows file locks** — the index pointer swap, manifest replace, legacy-copy replace and snapshot move retry with back-off on `PermissionError` (WinError 32); a failed legacy copy is logged instead of swallowed.
+- **SQLite read pool** — connections owned by threads that have exited are closed when a new connection is registered.
+- **Tests** — `tests/test_guard.py` no longer pipes `git archive` through a shell (`git archive | tar` could hang on Windows); `tests/test_audit_fixes.py` (identity, governance, memory, pool, retry) and `tests/test_parser_unicode_crlf_overloads.py` are new.
+
+Reported but not reproducible (guard tests added, no parser change): non-ASCII byte/char offsets (BUG-08), overloads sharing a symbol id (BUG-12), CRLF changing spans or signatures (BUG-14). On Python, JS, Java, C# and Go the spans, ids and bodies are correct and CRLF output equals LF output.
+
+Known limits: without `TOKEN_CONTEXT_AGENT_ID` the `agent_id` is self-declared, so pause/block/policy are advisory (bind the id per process for enforcement); `agent_control(action="status")` needs no admin token; `audit_logs` has no admin-token check; `tool_schemas_default.json` changed additively (`set_policy`, `custom_tools`, `body_offset_line`, `namespace`, `session_id`).
+
 ## 0.3.2 — M13: Java and C# member resolution (overloads, overrides, packages, long identifiers) (2026-10-02)
 
 **Upgrade:** `PARSER_ARTIFACT_VERSION` 7 → 8, `RESOLVER_VERSION` 3 → 4, `FTS_BUILDER_VERSION` 2 → 3; the first `token-context index --all` after upgrading re-parses and re-indexes Java and C# files and rebuilds the search index. Python, JavaScript and TypeScript results are unchanged byte for byte (`rich`, `hono`, `fastify`, `tc-pinned` loc/edge gate: 0 differences).

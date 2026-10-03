@@ -114,6 +114,61 @@ def test_symbol_context_fallback_omits_body_not_root_symbol(large_func_repo_conf
     assert "root_body_tokens_needed" in ctx["data"]
 
 
+def test_symbol_context_omitted_body_points_to_windowed_read(large_func_repo_config: Path) -> None:
+    svc, _wf = _service_and_wf(large_func_repo_config)
+    symbol_id = svc.find_symbols("test-large", pattern="process_large_workload")["data"]["symbols"][0]["symbol_id"]
+
+    ctx = svc.symbol_context(
+        "test-large", symbol_id=symbol_id, include_body=True, depth=0, max_tokens=500, body_paging_hint=True
+    )
+
+    assert "root_body_omitted_budget" in ctx["warnings"]
+    assert ctx["data"]["root_body_lines"] >= 70
+    assert "body_offset_line" in ctx["data"]["root_body_hint"]
+
+
+def test_symbol_context_body_windows_cover_the_whole_body(large_func_repo_config: Path) -> None:
+    svc, _wf = _service_and_wf(large_func_repo_config)
+    symbol_id = svc.find_symbols("test-large", pattern="process_large_workload")["data"]["symbols"][0]["symbol_id"]
+    whole = svc.symbol_context("test-large", symbol_id=symbol_id, include_body=True, depth=0, max_tokens=4096)
+    expected = whole["data"]["symbols"][0]["content"].split("\n")
+    assert whole["data"]["symbols"][0]["body_included"] is True
+
+    collected: list[str] = []
+    offset: int | None = 1
+    windows = 0
+    while offset is not None:
+        ctx = svc.symbol_context(
+            "test-large", symbol_id=symbol_id, depth=0, max_tokens=500, body_offset_line=offset
+        )
+        root = ctx["data"]["symbols"][0]
+        window = root["body_window"]
+        assert root["body_included"] is True
+        assert window["start_line"] == offset
+        assert window["total_lines"] == len(expected)
+        assert ctx["budget"]["estimated_tokens"] <= 500
+        collected.extend(root["content"].split("\n"))
+        offset = window["next_offset"]
+        if offset is not None:
+            assert "root_body_window_truncated" in ctx["warnings"]
+        windows += 1
+        assert windows < 50
+
+    assert windows >= 2
+    assert collected == expected
+
+
+def test_symbol_context_body_offset_out_of_range(large_func_repo_config: Path) -> None:
+    from token_context_mcp.retrieve.service import ArgumentOutOfRangeError
+
+    svc, _wf = _service_and_wf(large_func_repo_config)
+    symbol_id = svc.find_symbols("test-large", pattern="process_large_workload")["data"]["symbols"][0]["symbol_id"]
+    with pytest.raises(ArgumentOutOfRangeError):
+        svc.symbol_context("test-large", symbol_id=symbol_id, depth=0, max_tokens=500, body_offset_line=0)
+    with pytest.raises(ArgumentOutOfRangeError):
+        svc.symbol_context("test-large", symbol_id=symbol_id, depth=0, max_tokens=500, body_offset_line=10_000)
+
+
 @pytest.fixture()
 def callee_repo_config(tmp_path: Path) -> Path:
     root = tmp_path / "callee-repo"

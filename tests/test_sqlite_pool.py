@@ -64,11 +64,16 @@ def test_pool_parallel_threads_distinct_connections(pool_repo_config: tuple[Path
     conns: list[sqlite3.Connection] = []
     lock = threading.Lock()
 
+    # Both threads must be alive together: a finished thread's ident can be reused by the next one,
+    # which would legitimately hand back the same per-thread connection.
+    barrier = threading.Barrier(2)
+
     def worker() -> None:
         store = service._store("test-pool")
         with store.connection() as conn:
             with lock:
                 conns.append(conn)
+            barrier.wait(timeout=10)
 
     t1 = threading.Thread(target=worker)
     t2 = threading.Thread(target=worker)

@@ -163,8 +163,25 @@ class ReadConnectionPool:
             if key in self._connections:
                 conn.close()
                 return self._connections[key]
+            self._close_dead_threads_locked()
             self._connections[key] = conn
             return conn
+
+    def _close_dead_threads_locked(self) -> None:
+        """Close connections that belong to threads that have exited (caller holds ``self._lock``).
+
+        Connections are per thread, so without this a short-lived worker thread leaves its connection
+        (and its mmap and page cache, and on Windows the file lock on an old snapshot) open for the
+        lifetime of the process.
+        """
+        alive = {thread.ident for thread in threading.enumerate()}
+        for key in [k for k in self._connections if k[0] not in alive]:
+            conn = self._connections.pop(key, None)
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
     def close_db(self, path: Path) -> None:
         resolved = str(path.resolve())
