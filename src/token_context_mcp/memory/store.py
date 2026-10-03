@@ -68,6 +68,20 @@ def _needs_repair(conn: sqlite3.Connection) -> bool:
     return False
 
 
+def _fts_match_query(query: str) -> str | None:
+    """Build an FTS5 MATCH expression: whitespace-separated words are ANDed; each word, and each
+    "double quoted phrase", is matched as an exact token sequence. ``app-config-v2`` or ``models.py``
+    therefore only match where those tokens are adjacent and in order, not anywhere in the entry.
+    Returns ``None`` when the query has no word character at all."""
+    phrases: list[str] = []
+    for quoted, bare in re.findall(r'"([^"]*)"|(\S+)', query):
+        text = quoted or bare.replace('"', "")  # a stray unbalanced quote is noise, not syntax
+        if not re.search(r"\w", text):
+            continue
+        phrases.append('"' + text + '"')
+    return " AND ".join(phrases) if phrases else None
+
+
 def _redact_value(value: Any) -> Any:
     """Recursively redact secrets from leaf strings using content policy."""
     from token_context_mcp.security.content_policy import redact_text
@@ -271,6 +285,12 @@ class MemoryStore:
             # Periodic TTL cleanup every _TTL_CLEANUP_INTERVAL puts
             self._put_count += 1
             if self._put_count % _TTL_CLEANUP_INTERVAL == 0:
+                # Search rows first, while key_values still identifies the expired entries.
+                conn.execute(
+                    "DELETE FROM memory_fts WHERE (scope, namespace, key) IN "
+                    "(SELECT scope, namespace, key FROM key_values WHERE expires_at IS NOT NULL AND expires_at < :now)",
+                    {"now": now},
+                )
                 conn.execute("DELETE FROM key_values WHERE expires_at IS NOT NULL AND expires_at < :now", {"now": now})
 
         return {
@@ -343,15 +363,16 @@ class MemoryStore:
             return False
         effective_ns = namespace if namespace != "" else ((session_id or "default") if scope == "session" and session_id else "")
         with self._connection() as conn:
-            conn.execute(
+            cur = conn.execute(
                 "DELETE FROM key_values WHERE scope = :scope AND namespace = :ns AND key = :key",
                 {"scope": scope, "ns": effective_ns, "key": key},
             )
+            deleted = cur.rowcount > 0
             conn.execute(
                 "DELETE FROM memory_fts WHERE scope = :scope AND namespace = :ns AND key = :key",
                 {"scope": scope, "ns": effective_ns, "key": key},
             )
-        return True
+        return deleted
 
     def search(self, query: str, *, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> dict[str, Any]:
         if self._migration_error:
@@ -363,27 +384,25 @@ class MemoryStore:
                 "warnings": ["memory_store_migration_failed"],
             }
         now = time.time()
-        terms = re.findall(r"\w+", query)
-        if not terms:
+        fts_query = _fts_match_query(query)
+        if fts_query is None:
             return {"query": query, "matches_count": 0, "matches": []}
-
-        formatted_terms = [f'"{term}"' for term in terms]
-        fts_query = " AND ".join(formatted_terms)
 
         sql = """
             SELECT m.scope, m.namespace, m.key, kv.value_json, kv.created_at, kv.expires_at
             FROM memory_fts m
             JOIN key_values kv ON m.scope = kv.scope AND m.namespace = kv.namespace AND m.key = kv.key
             WHERE memory_fts MATCH ?
+              AND (kv.expires_at IS NULL OR kv.expires_at >= ?)
         """
-        params: list[Any] = [fts_query]
+        params: list[Any] = [fts_query, now]
         if scope:
             sql += " AND m.scope = ?"
             params.append(scope)
         if namespace is not None:
             sql += " AND m.namespace = ?"
             params.append(namespace)
-        sql += " LIMIT ?"
+        sql += " ORDER BY bm25(memory_fts) LIMIT ?"
         params.append(limit)
 
         matches: list[dict[str, Any]] = []

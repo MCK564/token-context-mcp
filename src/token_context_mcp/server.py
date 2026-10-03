@@ -149,6 +149,7 @@ def build_server(
         tool_name: str = "tool_call",
         agent_id: str | None = None,
         bypass_halt: bool = False,
+        trusted_identity: bool = False,
     ) -> dict[str, Any]:
         now_mono = time.monotonic()
         if now_mono - last_heartbeat_time[0] >= 15.0:
@@ -162,6 +163,7 @@ def build_server(
             access_control=access_control,
             audit_logger=audit_logger,
             bypass_halt=bypass_halt,
+            trusted_identity=trusted_identity,
         )
 
     server = MCPServer(
@@ -348,7 +350,7 @@ def build_server(
 
     @server.tool(
         title="Symbol context",
-        description="Bounded source packet for indexed symbol and observed edges. Check freshness and ambiguity warnings.",
+        description="Bounded source packet for indexed symbol and observed edges. Check freshness and ambiguity warnings. A body larger than max_tokens is read in windows with body_offset_line.",
     )
     def get_symbol_context(
         repo_id: str,
@@ -358,6 +360,7 @@ def build_server(
         max_tokens: int | None = None,
         include_omitted_ids: bool = False,
         profile: str | None = None,
+        body_offset_line: int | None = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -369,6 +372,8 @@ def build_server(
                     max_tokens=max_tokens,
                     include_omitted_ids=include_omitted_ids,
                     profile=profile,
+                    body_offset_line=body_offset_line,
+                    body_paging_hint=True,
                 ),
                 tool_name="get_symbol_context",
             )
@@ -491,7 +496,6 @@ def build_server(
                 _invoke(
                     lambda: memory_service.memory_put(key=key, value=coerce_memory_value(value, _schema_profile()), scope=scope, namespace=namespace, ttl=ttl, session_id=session_id),
                     tool_name="memory_put",
-                    agent_id=session_id,
                 )
             )
 
@@ -499,8 +503,13 @@ def build_server(
             title="Retrieve memory",
             description="Retrieve a stored value or execution checkpoint from shared memory without prompt bloat.",
         )
-        def memory_get(key: str, scope: str = "session", namespace: str = "") -> CallToolResult:
-            return _wrap(_invoke(lambda: memory_service.memory_get(key=key, scope=scope, namespace=namespace), tool_name="memory_get"))
+        def memory_get(key: str, scope: str = "session", namespace: str = "", session_id: str | None = None) -> CallToolResult:
+            return _wrap(
+                _invoke(
+                    lambda: memory_service.memory_get(key=key, scope=scope, namespace=namespace, session_id=session_id),
+                    tool_name="memory_get",
+                )
+            )
 
         @server.tool(
             title="Search memory",
@@ -514,9 +523,11 @@ def build_server(
             description="Acquire a timed mutex lock on a resource to coordinate multi-agent actions without collisions.",
         )
         def memory_lock(resource_key: str, agent_id: str, timeout_sec: int = 60) -> CallToolResult:
+            # "" when the identity is rejected; _invoke refuses and audits that before the callback runs.
+            effective_id = resolve_effective_agent_id(agent_id)[0]
             return _wrap(
                 _invoke(
-                    lambda: memory_service.memory_lock(resource_key=resource_key, agent_id=agent_id, timeout_sec=timeout_sec),
+                    lambda: memory_service.memory_lock(resource_key=resource_key, agent_id=effective_id, timeout_sec=timeout_sec),
                     tool_name="memory_lock",
                     agent_id=agent_id,
                 )
@@ -544,6 +555,7 @@ def build_server(
             scope: str = "session",
             target_key: str = "project_architectural_insights",
             prune_transient: bool = False,
+            namespace: str | None = None,
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
@@ -551,6 +563,7 @@ def build_server(
                         scope=scope,
                         target_key=target_key,
                         prune_transient=prune_transient,
+                        namespace=namespace,
                     ),
                     tool_name="memory_consolidate",
                 )
@@ -588,11 +601,12 @@ def build_server(
                 description="Manage agent execution state, revoke locks, or trigger emergency stops.",
             )
             def agent_control(
-                action: Literal["status", "pause", "resume", "block", "unblock", "revoke_locks", "emergency_halt", "emergency_resume"],
+                action: Literal["status", "pause", "resume", "block", "unblock", "set_policy", "revoke_locks", "emergency_halt", "emergency_resume"],
                 admin_token: str = "",
                 agent_id: str | None = None,
                 reason: str = "",
                 policy: Literal["FULL_ACCESS", "READ_ONLY", "CUSTOM"] | None = None,
+                custom_tools: list[str] | None = None,
             ) -> CallToolResult:
                 if action != "status":
                     expected_token = os.environ.get("TOKEN_CONTEXT_ADMIN_TOKEN")
@@ -608,7 +622,7 @@ def build_server(
                         audit_logger.log("agent_control", agent_id, "DENIED", duration_ms, {"reason": "invalid_admin_token"})
                         return _wrap(_error("permission_revoked", "Invalid admin token", agent_id=agent_id))
 
-                if action in {"pause", "block"} and agent_id == "admin":
+                if action in {"pause", "block", "set_policy"} and agent_id == "admin":
                     start_denied = time.perf_counter()
                     duration_ms = (time.perf_counter() - start_denied) * 1000
                     audit_logger.log("agent_control", agent_id, "DENIED", duration_ms, {"reason": "cannot_pause_admin"})
@@ -644,6 +658,20 @@ def build_server(
                             raise ValueError("agent_id is required to unblock")
                         access_control.unblock_agent(agent_id)
                         return {"action": "unblock", "agent_id": agent_id, "status": "ACTIVE"}
+                    elif action == "set_policy":
+                        if not agent_id:
+                            raise ValueError("agent_id is required to set_policy")
+                        if policy is None:
+                            raise ValueError("policy is required to set_policy")
+                        profile = PolicyProfile(policy)
+                        if profile == PolicyProfile.CUSTOM and not custom_tools:
+                            raise ValueError("custom_tools is required (non-empty) when policy is CUSTOM")
+                        access_control.set_agent_policy(
+                            agent_id,
+                            profile,
+                            custom_tools=set(custom_tools) if profile == PolicyProfile.CUSTOM else set(),
+                        )
+                        return {"action": "set_policy", "agent_id": agent_id, "policy": profile.value}
                     elif action == "revoke_locks":
                         if agent_id:
                             count = memory_service.revoke_agent_locks(agent_id)
@@ -659,7 +687,7 @@ def build_server(
                         return {"action": "emergency_resume", "status": "ACTIVE", "emergency_halt": False}
                     raise ValueError(f"Unknown action: {action}")
 
-                return _wrap(_invoke(_action, tool_name="agent_control", agent_id="admin", bypass_halt=bypass_halt))
+                return _wrap(_invoke(_action, tool_name="agent_control", agent_id="admin", bypass_halt=bypass_halt, trusted_identity=True))
 
             @server.tool(
                 title="Audit logs query",
@@ -674,7 +702,6 @@ def build_server(
                     _invoke(
                         lambda: {"logs": audit_logger.query_logs(limit=limit, agent_id=agent_id, status=status)},
                         tool_name="audit_logs",
-                        agent_id=agent_id,
                     )
                 )
 
@@ -703,10 +730,11 @@ def _dispatch_invoke(
     access_control: AccessControlManager | None = None,
     audit_logger: AuditLogger | None = None,
     bypass_halt: bool = False,
+    trusted_identity: bool = False,
 ) -> dict[str, Any]:
     start = time.perf_counter()
 
-    effective_agent_id, agent_err = resolve_effective_agent_id(agent_id)
+    effective_agent_id, agent_err = resolve_effective_agent_id(agent_id, trusted=trusted_identity)
     if agent_err is not None:
         duration_ms = (time.perf_counter() - start) * 1000
         if audit_logger is not None:

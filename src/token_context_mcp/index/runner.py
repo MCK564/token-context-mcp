@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import pickle
@@ -127,6 +128,25 @@ class _Timings:
 
 def current_pointer_path(index_directory: Path, repo_id: str) -> Path:
     return index_directory / f"{repo_id}.current.json"
+
+
+logger = logging.getLogger(__name__)
+
+# Windows refuses to replace or delete a file another thread/process has open (WinError 32 / 5).
+# Readers open the pointer, manifest and snapshot files only briefly, so a short back-off clears it.
+_REPLACE_RETRY_DELAYS_SEC = (0.05, 0.1, 0.2, 0.4, 0.8)
+
+
+def _retry_on_permission_error(operation: Callable[[], object]) -> None:
+    """Run ``operation()``; on PermissionError wait and retry, re-raising after the last attempt."""
+    for delay in (*_REPLACE_RETRY_DELAYS_SEC, None):
+        try:
+            operation()
+            return
+        except PermissionError:
+            if delay is None:
+                raise
+            time.sleep(delay)
 
 
 def gc_snapshots(
@@ -1044,7 +1064,7 @@ def build_index(
         }
         pointer_tmp.write_text(json.dumps(pointer_data, indent=2) + "\n", encoding="utf-8")
         secure_file(pointer_tmp)
-        os.replace(str(pointer_tmp), str(pointer_dest))
+        _retry_on_permission_error(lambda: os.replace(str(pointer_tmp), str(pointer_dest)))
 
         # Backward compatibility: <repo>.sqlite next to the versioned snapshot (hardlink, copy if the fs refuses)
         _publish_legacy_copy(run_destination, index_directory / f"{repository.repo_id}.sqlite")
@@ -1057,7 +1077,7 @@ def build_index(
         temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
         temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
         secure_file(temporary_manifest)
-        temporary_manifest.replace(manifest_path(index_directory, repository.repo_id))
+        _retry_on_permission_error(lambda: temporary_manifest.replace(manifest_path(index_directory, repository.repo_id)))
 
         if progress_callback:
             progress_callback("Index snapshot complete!", files_seen, len(symbols))
@@ -1208,8 +1228,10 @@ def _publish_legacy_copy(run_destination: Path, legacy_dest: Path) -> None:
             os.link(run_destination, staging)
         except (OSError, NotImplementedError):
             shutil.copy2(str(run_destination), str(staging))
-        os.replace(staging, legacy_dest)
-    except (PermissionError, OSError):
+        _retry_on_permission_error(lambda: os.replace(staging, legacy_dest))
+    except OSError as error:
+        # The versioned snapshot and the pointer are authoritative; the legacy copy is best effort.
+        logger.warning("legacy index copy %s was not refreshed: %s", legacy_dest.name, error)
         try:
             staging.unlink(missing_ok=True)
         except OSError:
@@ -1483,7 +1505,7 @@ def _gitignore_spec(root: Path) -> pathspec.GitIgnoreSpec:
 def _atomic_replace(temporary: Path, destination: Path) -> None:
     for suffix in ("-wal", "-shm"):
         (destination.parent / f"{destination.name}{suffix}").unlink(missing_ok=True)
-    shutil.move(str(temporary), str(destination))
+    _retry_on_permission_error(lambda: shutil.move(str(temporary), str(destination)))
 
 
 def _find_preceding_doc_block(lines: list[str], start_line: int, min_line: int) -> int:

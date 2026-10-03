@@ -107,6 +107,7 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
             "symbol_id": "string (required)",
             "depth": "integer (0-3)",
             "include_body": "boolean (optional)",
+            "body_offset_line": "integer >= 1 (optional; read a long body in windows)",
         },
         tags=["symbol", "context", "definition", "neighborhood"],
         recommended_followups=["get_impact_slice", "sample_summarize"],

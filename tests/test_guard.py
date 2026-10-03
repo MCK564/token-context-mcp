@@ -1,8 +1,10 @@
 """Rule 17: the held-out guard, exercised against real (temporary) git repositories, not mocks."""
 from __future__ import annotations
 
+import io
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 
 import pytest
@@ -80,7 +82,14 @@ def test_unprotected_changes_do_not_block(sandbox: Path) -> None:
 def baseline_copy(sandbox: Path, tmp_path: Path) -> Path:
     dest = tmp_path / "base_src"
     dest.mkdir()
-    subprocess.run(f"git archive m12-base src | tar -x -C {dest}", shell=True, cwd=sandbox, check=True)
+    # No shell pipeline (`git archive | tar`): cmd.exe hangs on it on Windows. git writes the tar
+    # stream to stdout, Python unpacks it, so this behaves the same on every platform.
+    archive = subprocess.run(
+        ["git", "archive", "--format=tar", "m12-base", "src"],
+        cwd=sandbox, check=True, capture_output=True, timeout=60,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+        tar.extractall(dest, filter="data")
     return dest / "src"
 
 

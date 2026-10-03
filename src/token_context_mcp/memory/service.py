@@ -7,6 +7,10 @@ from typing import Any
 from token_context_mcp.memory.store import MemoryStore
 
 
+# Upper bound of entries read by memory_consolidate (the oldest ones first, see list_entries).
+_CONSOLIDATE_MAX_ENTRIES = 500
+
+
 class MemoryService:
     def __init__(self, storage_path: Path | str | None = None, router: Any | None = None) -> None:
         if storage_path is None:
@@ -29,10 +33,16 @@ class MemoryService:
             raise ValueError("key must be a non-empty string")
         return self.store.put(key=key, value=value, scope=scope, namespace=namespace, ttl=ttl, session_id=session_id)
 
-    def memory_get(self, key: str, scope: str = "session", namespace: str = "") -> dict[str, Any]:
+    def memory_get(
+        self,
+        key: str,
+        scope: str = "session",
+        namespace: str = "",
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         if not key or not isinstance(key, str):
             raise ValueError("key must be a non-empty string")
-        return self.store.get(key=key, scope=scope, namespace=namespace)
+        return self.store.get(key=key, scope=scope, namespace=namespace, session_id=session_id)
 
     def memory_search(self, query: str, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> dict[str, Any]:
         if not query or not isinstance(query, str):
@@ -71,6 +81,7 @@ class MemoryService:
         scope: str = "session",
         target_key: str = "project_architectural_insights",
         prune_transient: bool = False,
+        namespace: str | None = None,
     ) -> dict[str, Any]:
         """Consolidate fragmented memory checkpoints into a unified architectural artifact.
         
@@ -80,7 +91,10 @@ class MemoryService:
         import json
         import time
 
-        entries = self.store.list_entries(scope=scope, limit=100)
+        # ``namespace=None`` covers every namespace of the scope; pass one to limit both the summary
+        # and the pruning to a single agent or session.
+        entries = self.store.list_entries(scope=scope, namespace=namespace, limit=_CONSOLIDATE_MAX_ENTRIES)
+        source_truncated = len(entries) >= _CONSOLIDATE_MAX_ENTRIES
         source_entries = [e for e in entries if e["key"] != target_key]
 
         if not source_entries:
@@ -111,6 +125,7 @@ class MemoryService:
             "source_keys": [e["key"] for e in source_entries],
             "synthesis": summary_res.get("data") or summary_res.get("payload") or {},
             "backend_engine": summary_res.get("engine", "heuristic"),
+            "source_entries_truncated": source_truncated,
         }
 
         self.store.put(
@@ -123,8 +138,9 @@ class MemoryService:
         pruned_keys: list[str] = []
         if prune_transient:
             for e in source_entries:
-                self.store.delete(key=e["key"], scope=scope)
-                pruned_keys.append(e["key"])
+                # Entries live in (scope, namespace, key); delete from the namespace they were read from.
+                if self.store.delete(key=e["key"], scope=e["scope"], namespace=e["namespace"]):
+                    pruned_keys.append(e["key"])
 
         return {
             "status": "consolidated",

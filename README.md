@@ -12,6 +12,7 @@ Chi tiết: [`CHANGELOG.md`](CHANGELOG.md); số đo trong [`docs/BENCHMARK.md`]
 - **C#** — method triển khai xếp trên khai báo interface/abstract, doc comment gắn vào member thay vì container, kế thừa doc từ interface, hạ ưu tiên CSS/JS vendored.
 - **Giảm cạnh gọi mơ hồ (JS/TS/C#)** — `this` ngầm, overload theo số tham số, namespace C#, kiểu biến cục bộ, field không có `this.`, cạnh khởi tạo `new X()`, binding CommonJS và ES module, kiểu property-signature của TypeScript.
 - **Cạnh gọi Java và C# (0.3.2, M13)** — kiểu receiver và kiểu đối số, chọn overload theo số tham số rồi kiểu đối số, override gần nhất, các tầng kế thừa, kiểu `Outer.Inner`, `package`/import wildcard của Java, nhánh `#if` của C#, receiver thư viện ngoài, cùng token tìm kiếm tách từ con/gốc từ cho các tên nhiều từ. Bộ mới gson (Java) và Newtonsoft.Json (C#): recall call site 0,22 → 0,89 và 0,43 → 0,71, cạnh mơ hồ 28 % → 15 % và 34 % → 25 %; `R2` File Acc@5 0,80 → 0,93 và 0,73 → 0,80 (15 tác vụ mỗi bộ, khoảng tin cậy rộng, chưa có người duyệt; 2/10 và 2/7 cạnh tin cậy cao là sai). Xem [`docs/BENCHMARK.md`](docs/BENCHMARK.md) (M13).
+- **Sửa lỗi định danh, governance, memory, đọc theo cửa sổ (0.3.3)** — `TOKEN_CONTEXT_AGENT_ID` không còn bị đối số `agent_id` ghi đè; `admin` là id dành riêng; `anonymous` cũng bị giới hạn tốc độ; `memory_lock`/`unlock` dùng danh tính đã resolve; `agent_control` có action `set_policy` (kèm `custom_tools`); `memory_get(session_id)`, `memory_consolidate(namespace)`; tìm kiếm memory theo cụm từ/bm25; `get_symbol_context(body_offset_line)` đọc thân hàm lớn theo từng cửa sổ; thử lại khi file bị khóa trên Windows. Chi tiết và thay đổi hành vi: [`CHANGELOG.md`](CHANGELOG.md).
 - **Ngân sách cạnh tất định** — cầu dao 30 ms theo đồng hồ làm đồ thị gọi phụ thuộc tải máy; nay thay bằng ngân sách công việc tất định, và phiên bản resolver nằm trong fingerprint của index.
 - **Đánh giá trung thực** — bộ tác vụ cho 4 repo *held-out* (Python `starlette`, TypeScript `zod`, JavaScript `express`, C# `serilog`) do các phiên độc lập soạn và duyệt trước khi đo; code được đóng băng (tag `m12-freeze`), mỗi bộ held-out chỉ đo một lần. Một số mục tiêu khai báo trước **không đạt**; chúng được liệt kê bên dưới, không giấu.
 - **Nâng cấp:** `PARSER_ARTIFACT_VERSION` (7), `FTS_BUILDER_VERSION` (2), `RESOLVER_VERSION` (3) đã đổi, nên lần `token-context index --all` đầu tiên sau khi nâng cấp sẽ index lại toàn bộ repo. Kết quả Python giữ nguyên từng byte.
@@ -799,10 +800,10 @@ Zero-daemon, SQLite-first persistent state storage, multi-agent coordination, an
 | Tool | Parameters | Returns | Purpose |
 | --- | --- | --- | --- |
 | `memory_put` | `key`, `value`, `scope` ("session"\|"global"), `ttl`, `session_id` | `{"stored": true, "key": ...}` | Persist state, plans, or cross-agent artifacts. |
-| `memory_get` | `key`, `scope` ("session"\|"global") | Stored value and metadata, or error if not found | Retrieve state without bloating chat prompt history. |
+| `memory_get` | `key`, `scope` ("session"\|"global"), `namespace`, `session_id` | Stored value and metadata, or error if not found | Retrieve state without bloating chat prompt history. |
 | `memory_search` | `query`, `scope`, `limit` (default: 5) | Matching memory records ranked by FTS5 score | Full-text search over stored memory entries. |
-| `memory_lock` | `resource_key`, `agent_id`, `timeout_sec` (default: 60) | `{"acquired": true/false, "expires_at": ...}` | Timed mutex lock preventing multi-agent collisions. |
-| `memory_consolidate` | `scope`, `target_key`, `prune_transient` | `{"status": "consolidated", "insights": ...}` | Synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent). |
+| `memory_lock` | `resource_key`, `agent_id` (must equal the bound `TOKEN_CONTEXT_AGENT_ID` if set), `timeout_sec` (default: 60) | `{"acquired": true/false, "expires_at": ...}` | Timed mutex lock preventing multi-agent collisions. |
+| `memory_consolidate` | `scope`, `namespace`, `target_key`, `prune_transient` | `{"status": "consolidated", "insights": ...}` | Synthesize scattered memory checkpoints into high-level architectural insights (learned from Google Always-On Memory Agent). |
 
 ### 4. Hardware-Aware LLM Sampling (1 tool)
 

@@ -16,22 +16,50 @@ if TYPE_CHECKING:
 AGENT_ID_REGEX = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
 
 
-def resolve_effective_agent_id(explicit_agent_id: str | None = None) -> tuple[str, str | None]:
+# Identities that only the server itself may act as (``agent_control`` runs as "admin").
+RESERVED_AGENT_IDS: frozenset[str] = frozenset({"admin"})
+
+
+def resolve_effective_agent_id(
+    explicit_agent_id: str | None = None,
+    *,
+    trusted: bool = False,
+) -> tuple[str, str | None]:
     """Resolve and validate the effective agent ID from environment or argument.
 
     Returns (agent_id, error_message).
     If error_message is not None, the caller must reject the request as invalid_request.
+
+    When ``TOKEN_CONTEXT_AGENT_ID`` is set the process identity is bound by whoever launched the
+    server, so a client-supplied ``agent_id`` is only accepted if it equals that value; any other
+    value is rejected instead of being honoured (no impersonation of another agent, no stealing or
+    releasing its locks). Without the variable the identity is self-declared and therefore only
+    advisory, but the reserved identity ``admin`` can still not be claimed through a tool call.
+    ``trusted=True`` is for server-internal callers (``agent_control``) that act as ``admin``.
     """
     env_id = os.environ.get("TOKEN_CONTEXT_AGENT_ID")
     if env_id is not None and env_id != "":
         if not AGENT_ID_REGEX.match(env_id):
             return "", f"Invalid TOKEN_CONTEXT_AGENT_ID '{env_id}': must match ^[a-zA-Z0-9_-]{{1,64}}$"
-        chosen = explicit_agent_id or env_id
+        if trusted and explicit_agent_id:
+            chosen = explicit_agent_id
+        elif explicit_agent_id and explicit_agent_id != env_id:
+            if not AGENT_ID_REGEX.match(explicit_agent_id):
+                return "", f"Invalid agent_id '{explicit_agent_id}': must match ^[a-zA-Z0-9_-]{{1,64}}$"
+            return "", (
+                f"agent_id '{explicit_agent_id}' does not match the identity bound to this server "
+                "process (TOKEN_CONTEXT_AGENT_ID); omit agent_id or pass the bound value"
+            )
+        else:
+            chosen = env_id
     else:
         chosen = explicit_agent_id or "anonymous"
 
     if not AGENT_ID_REGEX.match(chosen):
         return "", f"Invalid agent_id '{chosen}': must match ^[a-zA-Z0-9_-]{{1,64}}$"
+
+    if chosen in RESERVED_AGENT_IDS and not trusted:
+        return "", f"agent_id '{chosen}' is reserved for the server and cannot be claimed by a tool call"
 
     return chosen, None
 
@@ -297,18 +325,17 @@ class AccessControlManager:
             if tool_name not in allowed:
                 return False, f"POLICY_VIOLATION: Tool '{tool_name}' is not in custom permitted list for agent '{effective_agent_id}'."
 
-        # 4. Sliding-window rate limiter (anonymous is exempt from rate limits)
+        # 4. Sliding-window rate limiter (every identity, "anonymous" included: it is one shared bucket)
         now = time.time()
-        if effective_agent_id != "anonymous":
-            history = self._call_history[effective_agent_id]
-            one_min_ago = now - 60.0
-            while history and history[0] < one_min_ago:
-                history.popleft()
+        history = self._call_history[effective_agent_id]
+        one_min_ago = now - 60.0
+        while history and history[0] < one_min_ago:
+            history.popleft()
 
-            if len(history) >= self.max_calls_per_minute:
-                return False, f"RATE_LIMITED: Agent '{effective_agent_id}' exceeded limit of {self.max_calls_per_minute} calls/min."
+        if len(history) >= self.max_calls_per_minute:
+            return False, f"RATE_LIMITED: Agent '{effective_agent_id}' exceeded limit of {self.max_calls_per_minute} calls/min."
 
-            history.append(now)
+        history.append(now)
 
         # Update metadata telemetry
         if effective_agent_id in self._agent_metadata:

@@ -8,6 +8,7 @@
      "resume",
      "block",
      "unblock",
+     "set_policy",
      "revoke_locks",
      "emergency_halt",
      "emergency_resume"
@@ -31,6 +32,21 @@
     ],
     "default": null,
     "title": "Agent Id"
+   },
+   "custom_tools": {
+    "anyOf": [
+     {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Custom Tools"
    },
    "policy": {
     "anyOf": [
@@ -458,6 +474,18 @@
  },
  "get_symbol_context": {
   "properties": {
+   "body_offset_line": {
+    "anyOf": [
+     {
+      "type": "integer"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Body Offset Line"
+   },
    "depth": {
     "default": 1,
     "title": "Depth",
@@ -591,6 +619,18 @@
  },
  "memory_consolidate": {
   "properties": {
+   "namespace": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Namespace"
+   },
    "prune_transient": {
     "default": false,
     "title": "Prune Transient",
@@ -625,6 +665,18 @@
     "default": "session",
     "title": "Scope",
     "type": "string"
+   },
+   "session_id": {
+    "anyOf": [
+     {
+      "type": "string"
+     },
+     {
+      "type": "null"
+     }
+    ],
+    "default": null,
+    "title": "Session Id"
    }
   },
   "required": [
