@@ -139,7 +139,7 @@ class MemoryService:
         if prune_transient:
             for e in source_entries:
                 # Entries live in (scope, namespace, key); delete from the namespace they were read from.
-                if self.store.delete(key=e["key"], scope=e["scope"], namespace=e["namespace"]):
+                if self.store.delete(key=e["key"], scope=e.get("scope", scope), namespace=e["namespace"]):
                     pruned_keys.append(e["key"])
 
         return {

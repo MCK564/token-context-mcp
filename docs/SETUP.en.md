@@ -312,7 +312,7 @@ Steps to enable:
 - If it does not appear: Command Palette → `MCP: Show Output` and read the start-up log. The most common cause is `uv` missing from VS Code's PATH; replace it with the absolute path to `uv.exe`.
 - In Chat, ask: *"list the repositories available from token-context"*. A list of `repo_id`s means the server is wired correctly.
 
-> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **10 core tools** (or **19 tools** when `enable_extensions = true`).
+> **How far this was verified.** On this machine: VS Code **1.135.0** (MCP is GA, uses the `servers` key), Copilot Chat active — it is a **built-in** extension, so it does not appear in `code --list-extensions`. The `.vscode/mcp.json` above ships in the repo and parses. The **launch command** inside it was verified by a real MCP handshake over stdio: `initialize` succeeded and `tools/list` returned all **10 core tools** (or **20 tools** when `enable_extensions = true`).
 >
 > What is **not** verified is the last hop: whether Copilot Chat loads this file and surfaces the tools. Confirm that in-app with `MCP: List Servers`.
 

@@ -17,11 +17,14 @@ Fixes and additions:
 
 - **`agent_control(action="set_policy", agent_id, policy, custom_tools)`** — the `policy` argument was accepted but ignored; the action now exists (FULL_ACCESS / READ_ONLY / CUSTOM, CUSTOM needs a non-empty `custom_tools`; `admin` is protected).
 - **`memory_get(session_id=…)`** and **`memory_consolidate(namespace=…)`** — session-scoped entries are readable with the same `session_id` used to write them; consolidate prunes inside the namespace it read and reports a key as pruned only when a row was deleted (`delete` now returns whether anything was removed). Consolidate reads up to 500 entries (was the 100 oldest) and reports `source_entries_truncated`.
+- **`memory_consolidate(prune_transient=true)` deletes entries in every namespace** — deleting by the entry's own `scope` + `namespace` + `key` (FTS rows included) and listing only the keys removed.
+- **Tool catalog** — `get_module_dependents` now lists its `path` parameter next to `module` in `search_tools`/`list_available_tools` output, as the server already accepted both.
 - **Memory search** — `memory_fts` queries are phrase/token matches ranked by bm25 (identifiers with `_` or punctuation no longer fail or match loosely); expired rows are excluded in SQL and TTL cleanup also removes their FTS rows (orphans before).
 - **Windowed symbol bodies (`get_symbol_context(body_offset_line=N)`)** — a body that does not fit the budget is returned as a window (`body_window`: `start_line`, `end_line`, `total_lines`, `next_offset`) instead of being dropped; when the whole body is omitted the response carries `root_body_lines` and a paging hint. `inspect_symbol` output is unchanged.
 - **Windows file locks** — the index pointer swap, manifest replace, legacy-copy replace and snapshot move retry with back-off on `PermissionError` (WinError 32); a failed legacy copy is logged instead of swallowed.
 - **SQLite read pool** — connections owned by threads that have exited are closed when a new connection is registered.
-- **Tests** — `tests/test_guard.py` no longer pipes `git archive` through a shell (`git archive | tar` could hang on Windows); `tests/test_audit_fixes.py` (identity, governance, memory, pool, retry) and `tests/test_parser_unicode_crlf_overloads.py` are new.
+- **Docs** — Dynamic Tool Discovery and shared memory sections rewritten with real response shapes, catalog categories, measured sizes and comprehensive bilingual prompt templates.
+- **Tests** — `tests/test_guard.py` no longer pipes `git archive` through a shell (`git archive | tar` could hang on Windows); `tests/test_audit_fixes.py` (identity, governance, memory, pool, retry), `tests/test_memory_tools.py` (`test_memory_consolidate_prunes_namespaced_entries`) and `tests/test_parser_unicode_crlf_overloads.py` are new.
 
 Reported but not reproducible (guard tests added, no parser change): non-ASCII byte/char offsets (BUG-08), overloads sharing a symbol id (BUG-12), CRLF changing spans or signatures (BUG-14). On Python, JS, Java, C# and Go the spans, ids and bodies are correct and CRLF output equals LF output.
 

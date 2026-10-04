@@ -200,7 +200,7 @@ network_policy     = "declared-deny-not-enforced"
 enable_extensions  = true    # BẬT 10 EXTENDED AGENTIC TOOLS (TỔNG 20 TOOLS; 22 KHI BẬT enable_admin_tools)
 ```
 
-- `enable_extensions`: Khi đặt `true`, server kích hoạt thêm 9 công cụ hạ tầng agent nâng cao (Dynamic Tool Discovery, Cross-Session Episodic Memory & Consolidation, Structured Nested Sampling 7B). Mặc định là `false` để giữ trọn vẹn bề mặt công cụ tối giản 10 tools nếu người dùng chỉ muốn truy xuất kho mã nguồn thuần túy.
+- `enable_extensions`: Khi đặt `true`, server kích hoạt thêm 10 công cụ hạ tầng agent nâng cao (Dynamic Tool Discovery, Cross-Session Episodic Memory & Consolidation, Structured Nested Sampling 7B). Mặc định là `false` để giữ trọn vẹn bề mặt công cụ tối giản 10 tools nếu người dùng chỉ muốn truy xuất kho mã nguồn thuần túy.
 - `max_result_tokens` là **núm điều khiển chính** cho chi phí token. Mỗi phản hồi được trừ sẵn 96 token cho khung MCP trước khi nhồi nội dung, nên không lời gọi nào vượt trần.
 
 `list_repositories` công bố bốn profile ngân sách dựng sẵn là `locate`, `orient`, `impact` và `read`. Truyền `profile` cho tool phù hợp; các tham số tường minh như `budget_tokens`, `limit`, `depth` hoặc `include_body` sẽ ghi đè profile. `get_impact_slice` nhận `max_tokens`; nếu bỏ qua thì mặc định là giá trị nhỏ hơn giữa 2.048 và trần kết quả của server.
