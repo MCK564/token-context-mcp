@@ -223,6 +223,58 @@ Ví dụ cho việc đọc mã: `search_tools(query="find callers and impact ana
 
 > **Lưu ý:** `search_tools` khớp theo từ khóa (tên tool, tag, summary), không hiểu ngữ nghĩa. Câu hỏi tự nhiên như "save finding for other agents" có thể không ra tool đúng; hãy dùng từ gần tên tool (`memory save checkpoint`, `memory lock`). Điểm số lấy từ `TOOL_CATALOG` hiện tại và có thể đổi khi catalog đổi.
 
+### Ví dụ 4: nén ngữ cảnh lớn bằng `sample_summarize` rồi lưu vào memory
+
+Khi gặp một file mã nguồn, log lỗi hoặc đồ thị phụ thuộc quá dài, thay vì đưa toàn bộ văn bản thô vào context của Agent hoặc lưu hàng nghìn dòng vào memory, Agent gọi `sample_summarize` để nén có cấu trúc (bảo toàn ràng buộc và trích dẫn mã nguồn thực tế).
+
+```text
+Bước 1: nén đoạn mã hoặc log dài
+> sample_summarize(
+    text="class PaymentGateway:\n    def process(self, amount, currency):\n        if amount <= 0:\n            raise ValueError('Invalid amount')\n        ...",
+    intent="Phân tích ràng buộc giao dịch thanh toán và xử lý lỗi",
+    max_tokens=512,
+    target_symbols=["PaymentGateway.process"]
+  )
+< {
+    "backend": "ollama_gpu",
+    "engine": "qwen2.5-coder:7b-instruct-q4_K_M",
+    "status": "success",
+    "latency_ms": 480,
+    "symbol_coverage_rate": 1.0,
+    "context_retention_rate": 0.92,
+    "data": {
+      "intent_alignment": "Phân tích điều kiện đầu vào của giao dịch và xử lý ngoại lệ.",
+      "analyzed_symbols": [
+        {
+          "name": "PaymentGateway.process",
+          "responsibility": "Xử lý giao dịch thanh toán với kiểm tra số tiền hợp lệ",
+          "critical_constraints": [
+            {
+              "verbatim_quote": "if amount <= 0: raise ValueError('Invalid amount')",
+              "rule": "amount phải lớn hơn 0, nếu không ném ValueError",
+              "line": 3
+            }
+          ],
+          "calls_external": [],
+          "line_span": [1, 15]
+        }
+      ],
+      "technical_caveats": ["Cần bổ sung retry khi gặp timeout mạng"]
+    }
+  }
+  -> Kết quả đã được guardrail đối chiếu với AST thật (symbol_coverage_rate: 1.0).
+
+Bước 2: lưu cấu trúc nén này vào memory để các agent khác cùng đọc
+> memory_put(
+    key="payment.gateway_rules",
+    scope="project",
+    namespace="repo:myrepo",
+    ttl=604800,
+    value={"rules": "amount > 0 bắt buộc", "symbol": "PaymentGateway.process", "caveat": "chưa có retry"}
+  )
+< {"status": "stored", "scope": "project", "namespace": "repo:myrepo", "key": "payment.gateway_rules", "ttl": 604800, "expires_at": ...}
+```
+
 ---
 
 ## 5. Hướng Dẫn Chọn Mức Độ Suy Luận (Reasoning Level / Thinking Budget)
@@ -453,6 +505,58 @@ Step 3: call exactly that tool, with no tokens spent on the schemas of tools it 
 An example for reading code: `search_tools(query="find callers and impact analysis", limit=3)` returns `get_impact_slice` (5.0), `find_symbols` (4.5) and `search_source` (3.5). `get_impact_slice` has `prerequisites: ["find_symbols"]`, so the agent calls `find_symbols` first to get a `symbol_id`, then `get_impact_slice`.
 
 > **Note:** `search_tools` matches on keywords (tool name, tags, summary), not on meaning. A natural sentence such as "save finding for other agents" may not return the right tool; use words close to tool names (`memory save checkpoint`, `memory lock`). The scores come from the current `TOOL_CATALOG` and can change when the catalog changes.
+
+### Example 4: compress large context with `sample_summarize` then store in memory
+
+When encountering an overly long source file, traceback log, or large dependency packet, instead of dumping thousands of raw lines into the agent context or SQLite memory, the agent calls `sample_summarize` for structured compression (preserving technical constraints and verbatim quotes).
+
+```text
+Step 1: compress the large code block or log
+> sample_summarize(
+    text="class PaymentGateway:\n    def process(self, amount, currency):\n        if amount <= 0:\n            raise ValueError('Invalid amount')\n        ...",
+    intent="Analyze payment transaction constraints and error handling",
+    max_tokens=512,
+    target_symbols=["PaymentGateway.process"]
+  )
+< {
+    "backend": "ollama_gpu",
+    "engine": "qwen2.5-coder:7b-instruct-q4_K_M",
+    "status": "success",
+    "latency_ms": 480,
+    "symbol_coverage_rate": 1.0,
+    "context_retention_rate": 0.92,
+    "data": {
+      "intent_alignment": "Validates transaction inputs and handles exceptions.",
+      "analyzed_symbols": [
+        {
+          "name": "PaymentGateway.process",
+          "responsibility": "Executes payment transaction with amount validation",
+          "critical_constraints": [
+            {
+              "verbatim_quote": "if amount <= 0: raise ValueError('Invalid amount')",
+              "rule": "amount must be greater than 0, otherwise raises ValueError",
+              "line": 3
+            }
+          ],
+          "calls_external": [],
+          "line_span": [1, 15]
+        }
+      ],
+      "technical_caveats": ["Requires retry handling on network timeout"]
+    }
+  }
+  -> Verified against AST ground truth by guardrails (symbol_coverage_rate: 1.0).
+
+Step 2: store this concise payload in memory for subsequent agent turns
+> memory_put(
+    key="payment.gateway_rules",
+    scope="project",
+    namespace="repo:myrepo",
+    ttl=604800,
+    value={"rules": "amount > 0 required", "symbol": "PaymentGateway.process", "caveat": "no retry yet"}
+  )
+< {"status": "stored", "scope": "project", "namespace": "repo:myrepo", "key": "payment.gateway_rules", "ttl": 604800, "expires_at": ...}
+```
 
 ---
 
