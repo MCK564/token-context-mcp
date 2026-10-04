@@ -18,7 +18,15 @@ from guard import check_heldout_guard  # noqa: E402
 
 def git(root: Path, *args: str) -> None:
     subprocess.run(
-        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "core.autocrlf=false", *args],
+        [
+            "git",
+            "-c", "user.email=t@t",
+            "-c", "user.name=t",
+            "-c", "core.autocrlf=false",
+            "-c", "commit.gpgsign=false",
+            "-c", "tag.gpgsign=false",
+            *args,
+        ],
         cwd=root, check=True, capture_output=True,
     )
 
