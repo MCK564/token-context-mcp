@@ -47,7 +47,11 @@ def callee_matches(callee_text: str, target_name: str) -> bool:
     if callee_id.startswith("new ") and callee_id[4:].strip().split("(")[0].strip() == target_name:
         return True
     last_token = callee_id.split(".")[-1].strip()
-    return last_token == target_name
+    if last_token == target_name:
+        return True
+    # Chained expressions: e.g. "delegate().write" or "foo().bar().baz"
+    last_part = callee.rsplit(".", 1)[-1].split("(")[0].strip()
+    return last_part == target_name
 
 
 def _constructor_alias(sym_qname: str, exp_qname: str) -> bool:

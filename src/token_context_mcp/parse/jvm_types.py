@@ -194,6 +194,88 @@ def clean_type(text: str) -> str:
     return "" if key.endswith("[]") else key
 
 
+def extract_generic_args(text: str) -> list[str]:
+    """Extract top-level generic argument strings from a type text like Map<K, List<V>> -> ['K', 'List<V>']."""
+    cleaned = _strip_annotations(text or "").strip()
+    idx = cleaned.find("<")
+    if idx < 0 or not cleaned.endswith(">"):
+        return []
+    inner = cleaned[idx + 1 : -1].strip()
+    if not inner:
+        return []
+    args: list[str] = []
+    depth = 0
+    cur: list[str] = []
+    for ch in inner:
+        if ch == "<":
+            depth += 1
+            cur.append(ch)
+        elif ch == ">":
+            depth -= 1
+            cur.append(ch)
+        elif ch == "," and depth == 0:
+            arg = "".join(cur).strip()
+            if arg:
+                args.append(arg)
+            cur = []
+        else:
+            cur.append(ch)
+    if cur:
+        arg = "".join(cur).strip()
+        if arg:
+            args.append(arg)
+    return args
+
+
+_COLLECTION_CONTAINERS = frozenset({
+    "List", "IList", "IReadOnlyList", "Collection", "ICollection", "IReadOnlyCollection",
+    "Set", "ISet", "IReadOnlySet", "HashSet", "TreeSet", "SortedSet",
+    "Queue", "Deque", "Stack", "Iterable", "IEnumerable", "IAsyncEnumerable",
+    "Stream", "Flux", "Observable",
+})
+
+_MAP_CONTAINERS = frozenset({
+    "Map", "IDictionary", "IReadOnlyDictionary", "Dictionary", "SortedDictionary",
+    "ConcurrentDictionary", "HashMap", "TreeMap", "LinkedHashMap",
+})
+
+_WRAPPER_CONTAINERS = frozenset({
+    "Task", "ValueTask", "CompletableFuture", "Future", "Optional", "Nullable",
+})
+
+
+def element_type_of(text: str) -> str:
+    """Infer the element type_key of a collection or array type text."""
+    if not text:
+        return ""
+    key = type_key(text)
+    if key.endswith("[]"):
+        return key[:-2]
+    # Check container
+    cont = clean_type(text)
+    if cont in _COLLECTION_CONTAINERS:
+        gargs = extract_generic_args(text)
+        if gargs:
+            return type_key(gargs[0])
+    elif cont in _MAP_CONTAINERS:
+        gargs = extract_generic_args(text)
+        if len(gargs) >= 2:
+            return type_key(gargs[1])
+    return ""
+
+
+def unwrap_wrapper_type(text: str) -> str:
+    """Unwrap Task<T>, ValueTask<T>, CompletableFuture<T>, Optional<T>, Nullable<T> -> T."""
+    if not text:
+        return ""
+    cont = clean_type(text)
+    if cont in _WRAPPER_CONTAINERS:
+        gargs = extract_generic_args(text)
+        if gargs:
+            return type_key(gargs[0])
+    return ""
+
+
 @dataclass(frozen=True)
 class Param:
     type: str  # type_key of the parameter ("" when unknown); element type for varargs is type[:-2]
@@ -202,6 +284,7 @@ class Param:
     optional: bool = False
     is_this: bool = False
     ref: str = ""  # type_ref of the parameter (keeps ``Outer`` of ``Outer.Inner``); only used to type the parameter as a receiver
+    raw: str = ""  # raw type string including generic arguments (e.g. List<Item>)
 
 
 def _find_param_list(signature: str) -> tuple[int, int] | None:
@@ -368,12 +451,13 @@ def split_params(signature: str | None) -> tuple[Param, ...] | None:
         if len(tokens) == 1:  # no type information (TypeScript-like or a bare name)
             params.append(Param("", name, varargs, optional, False))
             continue
-        key = type_key(" ".join(type_tokens))
-        ref = type_ref(" ".join(type_tokens))
+        raw_t = " ".join(type_tokens)
+        key = type_key(raw_t)
+        ref = type_ref(raw_t)
         if varargs and key and not key.endswith("[]"):
             key += "[]"
             ref += "[]"
-        params.append(Param(key, name.rstrip("."), varargs, optional, is_this, ref))
+        params.append(Param(key, name.rstrip("."), varargs, optional, is_this, ref, raw_t))
     return tuple(params)
 
 
@@ -445,6 +529,51 @@ def return_type(signature: str | None, name: str) -> str:
     if not tokens:
         return ""
     return type_key(tokens[-1])
+
+
+@lru_cache(maxsize=65536)
+def return_type_full(signature: str | None, name: str) -> str:
+    """Full return type text (including generics e.g. Task<Worker>) of a method signature."""
+    if not signature:
+        return ""
+    located = _find_param_list(signature)
+    if located is None:
+        return ""
+    head = signature[: located[0]]
+    head = _strip_annotations(head).strip()
+    head = head.strip()
+    if not head.endswith(name) and name:
+        trimmed = re.sub(r"<[^<>]*(?:<[^<>]*>[^<>]*)*>\s*$", "", head).strip()
+        head = trimmed if trimmed.endswith(name) else head
+    if not head.endswith(name):
+        return ""
+    head = head[: len(head) - len(name)].strip()
+    if not head:
+        return ""
+    if head.startswith("<"):
+        depth = 0
+        for pos, ch in enumerate(head):
+            if ch == "<":
+                depth += 1
+            elif ch == ">":
+                depth -= 1
+                if depth == 0:
+                    head = head[pos + 1 :].strip()
+                    break
+    tokens: list[str] = []
+    depth = 0
+    for token in re.split(r"\s+", head):
+        if not token:
+            continue
+        if depth > 0 and tokens:
+            tokens[-1] += " " + token
+        else:
+            tokens.append(token)
+        depth += token.count("<") - token.count(">")
+    tokens = [t for t in tokens if t not in _TYPE_MODIFIERS]
+    if not tokens:
+        return ""
+    return tokens[-1].strip()
 
 
 @lru_cache(maxsize=65536)

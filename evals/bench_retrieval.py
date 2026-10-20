@@ -35,7 +35,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import loc_eval  # noqa: E402
-from guard import check_heldout_guard  # noqa: E402
+from guard import FREEZE_TAG, check_heldout_guard  # noqa: E402
 from token_context_mcp import __version__  # noqa: E402
 from token_context_mcp.retrieve.code_tokens import split_identifier  # noqa: E402
 
@@ -366,7 +366,7 @@ def run(args: argparse.Namespace) -> int:
         "role": role,
         "token_context_version": __version__,
         "git_head": git_value("rev-parse", "HEAD"),
-        "freeze_tag": git_value("rev-parse", "m12-freeze") or git_value("rev-parse", "m10-freeze"),
+        "freeze_tag": git_value("rev-parse", FREEZE_TAG) or git_value("rev-parse", "m12-freeze") or git_value("rev-parse", "m10-freeze"),
         "index_run_id": meta.get("index_run_id"),
         "index_schema_version": meta.get("index_schema_version"),
         "corpus_files": len(corpus.files),

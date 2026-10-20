@@ -1,0 +1,210 @@
+name: SCIP Oracle Generator
+
+on:
+  push:
+    branches:
+      - m14
+    paths:
+      - 'evals/oracle/targets.json'
+      - '.github/workflows/scip-oracle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-oracle:
+    name: SCIP Index (${{ matrix.target.repo_id }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        target:
+          - repo_id: "bench-csvhelper"
+            role: "dev"
+            language: "c_sharp"
+            repo_url: "https://github.com/JoshClose/CsvHelper.git"
+            commit: "33970e5183383bdac1fbce3b3fbcdf46b318ca52"
+            scip_tool: "scip-dotnet"
+          - repo_id: "dev-jsoup"
+            role: "dev"
+            language: "java"
+            repo_url: "https://github.com/jhy/jsoup.git"
+            commit: "088614f4a1454232a1f03c63b7f80742f1f2a854"
+            scip_tool: "scip-java"
+          - repo_id: "heldout-serilog"
+            role: "dev"
+            language: "c_sharp"
+            repo_url: "https://github.com/serilog/serilog.git"
+            commit: "6d9fc0b84e004418f2677b5961b9c8970349d0be"
+            scip_tool: "scip-dotnet"
+          - repo_id: "fresh-gson"
+            role: "dev"
+            language: "java"
+            repo_url: "https://github.com/google/gson.git"
+            commit: "854c8255b625cf1e13c701a83ea9ccb4caaa576a"
+            scip_tool: "scip-java"
+          - repo_id: "fresh-newtonsoft"
+            role: "dev"
+            language: "c_sharp"
+            repo_url: "https://github.com/JamesNK/Newtonsoft.Json.git"
+            commit: "52fa3aef1f2cadcd3a3f874251eddc98d3efbbaa"
+            scip_tool: "scip-dotnet"
+          - repo_id: "fresh-eshop"
+            role: "fresh"
+            language: "c_sharp"
+            repo_url: "https://github.com/dotnet/eShop.git"
+            commit: "dc7ea499cd356924fb6689b3702964a5869dbae9"
+            scip_tool: "scip-dotnet"
+          - repo_id: "fresh-eventmesh"
+            role: "fresh"
+            language: "java"
+            repo_url: "https://github.com/apache/eventmesh.git"
+            commit: "c10fd2a481240cbdbc5ed900128ac651c7e9aea0"
+            scip_tool: "scip-java"
+
+    steps:
+      - name: Checkout token-context-mcp repo (for harness)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up .NET (for C#)
+        if: matrix.target.language == 'c_sharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Set up JDK (for Java)
+        if: matrix.target.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install SCIP CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fL https://github.com/sourcegraph/scip/releases/latest/download/scip-linux-x86_64.tar.gz | tar -xz -C "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install language indexer
+        run: |
+          if [ "${{ matrix.target.scip_tool }}" = "scip-dotnet" ]; then
+            dotnet tool install --global scip-dotnet || true
+          elif [ "${{ matrix.target.scip_tool }}" = "scip-java" ]; then
+            curl -fLo "$HOME/.local/bin/coursier" https://github.com/coursier/launchers/raw/master/coursier
+            chmod +x "$HOME/.local/bin/coursier"
+            "$HOME/.local/bin/coursier" bootstrap --standalone com.sourcegraph:scip-java_2.13:0.8.24 -o "$HOME/.local/bin/scip-java"
+            chmod +x "$HOME/.local/bin/scip-java"
+          fi
+
+      - name: Clone target repository
+        run: |
+          git clone "${{ matrix.target.repo_url }}" target-repo
+          cd target-repo
+          git checkout "${{ matrix.target.commit }}"
+
+      - name: Run indexer
+        working-directory: target-repo
+        run: |
+          if [ "${{ matrix.target.scip_tool }}" = "scip-dotnet" ]; then
+            scip-dotnet index || true
+          elif [ "${{ matrix.target.scip_tool }}" = "scip-java" ]; then
+            scip-java index || true
+          fi
+
+      - name: Convert SCIP to occ.jsonl.gz
+        run: |
+          mkdir -p artifacts
+          if [ -f target-repo/index.scip ]; then
+            scip print --json target-repo/index.scip > scip_raw.json
+            python evals/scip_export.py --input scip_raw.json --output "artifacts/${{ matrix.target.repo_id }}.occ.jsonl.gz"
+            echo "SUCCESS=true" >> $GITHUB_ENV
+          else
+            echo "index.scip not found"
+            echo "SUCCESS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Upload artifact
+        if: env.SUCCESS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.repo_id }}
+          path: artifacts/${{ matrix.target.repo_id }}.occ.jsonl.gz
+          retention-days: 7
+
+  publish-oracle:
+    name: Publish Oracle Data to Branch
+    needs: build-oracle
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Prepare oracle-data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if oracle-data branch exists
+          if git ls-remote --exit-code --heads origin oracle-data; then
+            git checkout oracle-data
+          else
+            git checkout --orphan oracle-data
+            git rm -rf . || true
+          fi
+          
+          mkdir -p dev fresh
+          
+          python3 -c '
+          import os, json, hashlib, shutil
+          manifest = {"timestamp": os.environ.get("GITHUB_RUN_ID"), "artifacts": {}}
+          
+          # Map repo_id to role
+          targets = json.load(open("evals/oracle/targets.json")) if os.path.exists("evals/oracle/targets.json") else []
+          role_map = {t["repo_id"]: t["role"] for t in targets}
+          
+          art_dir = "downloaded-artifacts"
+          if os.path.isdir(art_dir):
+              for root, dirs, files in os.walk(art_dir):
+                  for f in files:
+                      if f.endswith(".occ.jsonl.gz"):
+                          repo_id = f.replace(".occ.jsonl.gz", "")
+                          role = role_map.get(repo_id, "dev")
+                          dest_dir = "fresh" if role == "fresh" else "dev"
+                          src_path = os.path.join(root, f)
+                          dest_path = os.path.join(dest_dir, f)
+                          shutil.copy2(src_path, dest_path)
+                          h = hashlib.sha256(open(dest_path, "rb").read()).hexdigest()
+                          manifest["artifacts"][repo_id] = {
+                              "path": dest_path,
+                              "sha256": h,
+                              "role": role
+                          }
+          with open("MANIFEST.json", "w", encoding="utf-8") as out:
+              json.dump(manifest, out, indent=2)
+          '
+          
+          git add dev/ fresh/ MANIFEST.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore(oracle): update SCIP oracle artifacts from run $GITHUB_RUN_ID"
+            git push origin oracle-data
+          fi
