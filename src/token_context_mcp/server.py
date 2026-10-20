@@ -38,6 +38,14 @@ from token_context_mcp.security.access_control import (
 from token_context_mcp.security.audit import AuditLogger
 from token_context_mcp.security.governance_store import GovernanceStore
 from token_context_mcp.security.path_policy import PathPolicyError
+from token_context_mcp.kernel import (
+    AuthMiddleware,
+    ExecutionMiddleware,
+    GovernanceMiddleware,
+    InvocationContext,
+    InvocationPipeline,
+    format_error,
+)
 
 logger = logging.getLogger("token_context_mcp")
 
@@ -732,79 +740,20 @@ def _dispatch_invoke(
     bypass_halt: bool = False,
     trusted_identity: bool = False,
 ) -> dict[str, Any]:
-    start = time.perf_counter()
-
-    effective_agent_id, agent_err = resolve_effective_agent_id(agent_id, trusted=trusted_identity)
-    if agent_err is not None:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, agent_id or "invalid", "DENIED", duration_ms, {"reason": agent_err})
-        return _error("invalid_request", agent_err)
-
-    if access_control is not None:
-        allowed, reason = access_control.check_access(tool_name, effective_agent_id, bypass_halt=bypass_halt)
-        if not allowed:
-            duration_ms = (time.perf_counter() - start) * 1000
-            if audit_logger is not None:
-                audit_logger.log(tool_name, effective_agent_id, "DENIED", duration_ms, {"reason": reason})
-            return _error("permission_revoked", reason or "Operation denied by access control policy", agent_id=effective_agent_id)
-
-    try:
-        result = callback()
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "SUCCESS", duration_ms)
-        return result
-    except UnknownRepositoryError:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "unknown_repo_id"})
-        logger.warning("tool request rejected: unknown repo_id")
-        return _error(
-            "unknown_repo_id",
-            "repo_id is not registered; call list_repositories and use one returned ID",
-        )
-    except BudgetOutOfRangeError as error:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "budget_out_of_range"})
-        logger.warning("tool request rejected: budget out of range")
-        return _error(
-            "budget_out_of_range",
-            str(error),
-            minimum_tokens=error.minimum,
-            maximum_tokens=error.maximum,
-        )
-    except ArgumentOutOfRangeError as error:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "argument_out_of_range"})
-        logger.warning("tool request rejected: %s out of range", error.field_name)
-        return _error(
-            "argument_out_of_range",
-            str(error),
-            field=error.field_name,
-            minimum=error.minimum,
-            maximum=error.maximum,
-        )
-    except PathPolicyError:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "policy_rejected"})
-        logger.warning("tool request rejected by repository path policy")
-        return _error("policy_rejected", "request rejected by read-only repository policy")
-    except (ConfigError, RetrievalError, ValueError) as error:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "invalid_request", "type": type(error).__name__})
-        logger.warning("tool request rejected: %s", type(error).__name__)
-        return _error("invalid_request", "request violates the read-only retrieval contract")
-    except Exception as exc:
-        duration_ms = (time.perf_counter() - start) * 1000
-        if audit_logger is not None:
-            audit_logger.log(tool_name, effective_agent_id, "ERROR", duration_ms, {"code": "internal_error", "error": str(exc)})
-        logger.exception("tool request failed")
-        return _error("internal_error", "context service could not complete the request")
+    ctx = InvocationContext(
+        tool_name=tool_name,
+        raw_agent_id=agent_id,
+        bypass_halt=bypass_halt,
+        trusted_identity=trusted_identity,
+    )
+    pipeline = InvocationPipeline(
+        [
+            AuthMiddleware(audit_logger=audit_logger),
+            GovernanceMiddleware(access_control=access_control, audit_logger=audit_logger),
+            ExecutionMiddleware(callback=callback, audit_logger=audit_logger),
+        ]
+    )
+    return pipeline.execute(ctx)
 
 
 def _invoke(callback: Any) -> dict[str, Any]:
@@ -812,10 +761,7 @@ def _invoke(callback: Any) -> dict[str, Any]:
 
 
 def _error(code: str, message: str, **details: object) -> dict[str, Any]:
-    error: dict[str, Any] = {"code": code, "message": message}
-    if details:
-        error["details"] = details
-    return {"schema_version": "1.0", "error": error}
+    return format_error(code, message, **details)
 
 
 _default_finalizer = ResultFinalizer()

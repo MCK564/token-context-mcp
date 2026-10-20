@@ -41,3 +41,14 @@
 - [x] **H1.4**: Remove dead code `WRITE_OR_MUTATING_TOOLS` in `security/access_control.py` + added explicit classification regression test.
 - [x] **H1.5**: Backlog E14 fix verified and documented in `docs/BACKLOG.md`.
 - [x] **H1.6**: Version bump to `0.3.4` (single-source in pyproject.toml, `__init__.py`, `CHANGELOG.md`, `test_version_single_source.py`) and verified against golden tests.
+
+---
+
+## Phase H2: Cordis Kernel & Spatiotemporal Composability (v0.4.0-alpha)
+
+- [x] **H2.1**: Implement `kernel/context.py` with `InvocationContext`, reversible `EffectRecord`, and contextvars propagation.
+- [x] **H2.2**: Implement `kernel/tools.py` with `ToolSpec` and `ToolRegistry` single-source specification.
+- [x] **H2.3**: Implement `kernel/pipeline.py` with unified Middleware waterfall (`AuthMiddleware`, `GovernanceMiddleware`, `ExecutionMiddleware`, `format_error`).
+- [x] **H2.4**: Connect `_dispatch_invoke` in `server.py` to `InvocationPipeline` (zero regression, 0.0109 ms dispatch latency).
+- [x] **H2.5**: Verified with `tests/test_kernel.py` and full `tests/golden/` contract suite.
+
