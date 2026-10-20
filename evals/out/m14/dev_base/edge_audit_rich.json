@@ -1,0 +1,372 @@
+{
+  "repo_id": "bench-rich",
+  "total_symbols": 2096,
+  "total_edges": 3797,
+  "unresolved_edges": 682,
+  "total_suspicious_edges": 60,
+  "suspicious_edges_ratio": 0.0158,
+  "status_counts": {
+    "resolved": 3168,
+    "ambiguous": 629
+  },
+  "scope_counts": {
+    "scope:import_match": 1396,
+    "scope:receiver_match": 270,
+    "scope:unresolved_receiver": 321,
+    "scope:exact_receiver_type": 750,
+    "scope:same_class": 172,
+    "scope:attr_type": 31,
+    "scope:import_module_match": 90,
+    "scope:import_ambiguous": 89,
+    "scope:same_file": 364,
+    "scope:tainted_poly_receiver": 94,
+    "scope:same_package_ambiguous": 18,
+    "scope:none": 53,
+    "scope:global_ambiguous": 13,
+    "scope:builtin_receiver_skipped": 12,
+    "scope:same_file_ambiguous": 49,
+    "scope:same_package": 3,
+    "scope:attr_param": 27,
+    "scope:global": 7,
+    "scope:attr_type_unmatched": 19,
+    "scope:exact_receiver_type_ambiguous": 1,
+    "scope:receiver_type_ambiguous": 6,
+    "scope:cha_inherited": 5,
+    "scope:import_module_ambiguous": 7
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "python:rich/console.py:Console:f63ac1c168f85be5",
+      "name": "Console",
+      "qualified_name": "Console",
+      "path": "rich/console.py",
+      "in_degree": 308,
+      "resolved_count": 308,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 308
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Console.print:6c5d4d4c43889556",
+      "name": "print",
+      "qualified_name": "Console.print",
+      "path": "rich/console.py",
+      "in_degree": 220,
+      "resolved_count": 220,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:attr_type": 4,
+        "scope:exact_receiver_type": 132,
+        "scope:import_module_match": 7,
+        "scope:attr_param": 2,
+        "scope:same_class": 6,
+        "scope:import_match": 68,
+        "scope:cha_inherited": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/text.py:Text:b95831f26471248c",
+      "name": "Text",
+      "qualified_name": "Text",
+      "path": "rich/text.py",
+      "in_degree": 157,
+      "resolved_count": 157,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 150,
+        "scope:same_file": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/segment.py:Segment:a5b4596988a1a556",
+      "name": "Segment",
+      "qualified_name": "Segment",
+      "path": "rich/segment.py",
+      "in_degree": 70,
+      "resolved_count": 70,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 69,
+        "scope:same_file": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/style.py:Style:3dde3d9484ae26f8",
+      "name": "Style",
+      "qualified_name": "Style",
+      "path": "rich/style.py",
+      "in_degree": 64,
+      "resolved_count": 64,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 62,
+        "scope:same_file": 2
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/text.py:Span:3d0529c5fca034b4",
+      "name": "Span",
+      "qualified_name": "Span",
+      "path": "rich/text.py",
+      "in_degree": 47,
+      "resolved_count": 47,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 40,
+        "scope:same_file": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Console.begin_capture:e644a6c08d9a826f",
+      "name": "begin_capture",
+      "qualified_name": "Console.begin_capture",
+      "path": "rich/console.py",
+      "in_degree": 46,
+      "resolved_count": 46,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:attr_param": 1,
+        "scope:exact_receiver_type": 34,
+        "scope:import_module_match": 10,
+        "scope:cha_inherited": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Console.end_capture:42051ce4cc9de7d4",
+      "name": "end_capture",
+      "qualified_name": "Console.end_capture",
+      "path": "rich/console.py",
+      "in_degree": 43,
+      "resolved_count": 43,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:attr_param": 1,
+        "scope:exact_receiver_type": 32,
+        "scope:import_module_match": 9,
+        "scope:cha_inherited": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/pretty.py:pretty_repr:9dd8a023bc4d20da",
+      "name": "pretty_repr",
+      "qualified_name": "pretty_repr",
+      "path": "rich/pretty.py",
+      "in_degree": 37,
+      "resolved_count": 37,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 2,
+        "scope:import_match": 35
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/style.py:Style.parse:78d6048918747c22",
+      "name": "parse",
+      "qualified_name": "Style.parse",
+      "path": "rich/style.py",
+      "in_degree": 31,
+      "resolved_count": 31,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.032,
+      "scopes": {
+        "scope:receiver_match": 29,
+        "scope:exact_receiver_type": 1,
+        "scope:same_class": 1
+      },
+      "reasons": {
+        "receiver_mismatch:cls_vs_style": 1
+      }
+    },
+    {
+      "target_symbol_id": "python:rich/measure.py:Measurement:89f260a5b6a1ecad",
+      "name": "Measurement",
+      "qualified_name": "Measurement",
+      "path": "rich/measure.py",
+      "in_degree": 31,
+      "resolved_count": 31,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 26,
+        "scope:same_file": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/text.py:Text.append:e94d948d9000901a",
+      "name": "append",
+      "qualified_name": "Text.append",
+      "path": "rich/text.py",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 14,
+        "scope:attr_type": 2,
+        "scope:exact_receiver_type": 10,
+        "scope:same_file": 4
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Console.get_style:17251dc3689e28a8",
+      "name": "get_style",
+      "qualified_name": "Console.get_style",
+      "path": "rich/console.py",
+      "in_degree": 28,
+      "resolved_count": 28,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 20,
+        "scope:same_class": 2,
+        "scope:attr_param": 1,
+        "scope:import_match": 5
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/_win32_console.py:WindowsCoordinates:5c0ada0a13e243c5",
+      "name": "WindowsCoordinates",
+      "qualified_name": "WindowsCoordinates",
+      "path": "rich/_win32_console.py",
+      "in_degree": 27,
+      "resolved_count": 27,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_file": 9,
+        "scope:import_match": 18
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/_win32_console.py:LegacyWindowsTerm:1f13c7daaf67bede",
+      "name": "LegacyWindowsTerm",
+      "qualified_name": "LegacyWindowsTerm",
+      "path": "rich/_win32_console.py",
+      "in_degree": 27,
+      "resolved_count": 27,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 27
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Console.capture:1958c8d78f7bfb8f",
+      "name": "capture",
+      "qualified_name": "Console.capture",
+      "path": "rich/console.py",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_module_match": 4,
+        "scope:exact_receiver_type": 22
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/console.py:Capture.get:cc9b1ebb4d4f8bc5",
+      "name": "get",
+      "qualified_name": "Capture.get",
+      "path": "rich/console.py",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 26
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/text.py:Text.from_markup:5846db3b20425703",
+      "name": "from_markup",
+      "qualified_name": "Text.from_markup",
+      "path": "rich/text.py",
+      "in_degree": 25,
+      "resolved_count": 25,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 25
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/table.py:Table.add_row:448d5f92f17211b1",
+      "name": "add_row",
+      "qualified_name": "Table.add_row",
+      "path": "rich/table.py",
+      "in_degree": 25,
+      "resolved_count": 25,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:exact_receiver_type": 20,
+        "scope:import_match": 2,
+        "scope:import_module_match": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "python:rich/syntax.py:Syntax:52c113cd0d839af3",
+      "name": "Syntax",
+      "qualified_name": "Syntax",
+      "path": "rich/syntax.py",
+      "in_degree": 23,
+      "resolved_count": 23,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:import_match": 23
+      },
+      "reasons": {}
+    }
+  ]
+}

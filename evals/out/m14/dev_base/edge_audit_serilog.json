@@ -1,0 +1,392 @@
+{
+  "repo_id": "heldout-serilog",
+  "total_symbols": 1910,
+  "total_edges": 3093,
+  "unresolved_edges": 502,
+  "total_suspicious_edges": 554,
+  "suspicious_edges_ratio": 0.1791,
+  "status_counts": {
+    "resolved": 2591,
+    "ambiguous": 502
+  },
+  "scope_counts": {
+    "scope:implicit_this": 338,
+    "scope:overload_types": 397,
+    "scope:receiver_match": 342,
+    "scope:global": 430,
+    "scope:field_type": 71,
+    "scope:unresolved_receiver": 261,
+    "scope:overload_arity": 186,
+    "scope:overload_group": 278,
+    "scope:external_receiver_type": 151,
+    "scope:global_ambiguous": 68,
+    "scope:same_namespace": 175,
+    "scope:same_file": 12,
+    "scope:exact_receiver_type": 99,
+    "scope:namespace_match": 8,
+    "scope:chain_type": 233,
+    "scope:cha_inherited": 9,
+    "scope:type_member_unmatched": 17,
+    "scope:extension_method": 5,
+    "scope:builtin_receiver_skipped": 5,
+    "scope:import_match": 8
+  },
+  "memory_store_get": null,
+  "top_destinations": [
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/LoggerConfiguration.cs:LoggerConfiguration:6a7e0861ab9cd41d",
+      "name": "LoggerConfiguration",
+      "qualified_name": "LoggerConfiguration",
+      "path": "src/Serilog/LoggerConfiguration.cs",
+      "in_degree": 151,
+      "resolved_count": 151,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:same_namespace": 151
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/LoggerConfiguration.cs:LoggerConfiguration.CreateLogger:aa8122176e268f2a",
+      "name": "CreateLogger",
+      "qualified_name": "LoggerConfiguration.CreateLogger",
+      "path": "src/Serilog/LoggerConfiguration.cs",
+      "in_degree": 140,
+      "resolved_count": 140,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:chain_type": 133,
+        "scope:exact_receiver_type": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Guard.cs:Guard.AgainstNull:73ac63f0c11bbc78",
+      "name": "AgainstNull",
+      "qualified_name": "Guard.AgainstNull",
+      "path": "src/Serilog/Guard.cs",
+      "in_degree": 113,
+      "resolved_count": 113,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 113
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Configuration/LoggerSinkConfiguration.cs:LoggerSinkConfiguration.Sink:0ff342e0755c7459",
+      "name": "Sink",
+      "qualified_name": "LoggerSinkConfiguration.Sink",
+      "path": "src/Serilog/Configuration/LoggerSinkConfiguration.cs",
+      "in_degree": 93,
+      "resolved_count": 93,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_types": 86,
+        "scope:overload_group": 7
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.PerformanceTests/Support/Some.cs:Some.InformationEvent:6de456ae591010a0",
+      "name": "InformationEvent",
+      "qualified_name": "Some.InformationEvent",
+      "path": "test/Serilog.PerformanceTests/Support/Some.cs",
+      "in_degree": 76,
+      "resolved_count": 76,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 74,
+        "scope:overload_types": 1,
+        "scope:overload_arity": 1
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/DelegatingSink.cs:DelegatingSink:0d00c6b6373fc542",
+      "name": "DelegatingSink",
+      "qualified_name": "DelegatingSink",
+      "path": "test/Serilog.Tests/Support/DelegatingSink.cs",
+      "in_degree": 58,
+      "resolved_count": 58,
+      "ambiguous_count": 0,
+      "suspicious_count": 57,
+      "suspicious_ratio": 0.983,
+      "scopes": {
+        "scope:global": 57,
+        "scope:same_file": 1
+      },
+      "reasons": {
+        "low_confidence_0.40": 57,
+        "scope_global_fallback": 57
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Events/ScalarValue.cs:ScalarValue:e97154ce3fff72c8",
+      "name": "ScalarValue",
+      "qualified_name": "ScalarValue",
+      "path": "src/Serilog/Events/ScalarValue.cs",
+      "in_degree": 54,
+      "resolved_count": 54,
+      "ambiguous_count": 0,
+      "suspicious_count": 54,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 54
+      },
+      "reasons": {
+        "low_confidence_0.40": 54,
+        "scope_global_fallback": 54
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Core/Logger.cs:Logger.Write:e23bdca6af2fec4a",
+      "name": "Write",
+      "qualified_name": "Logger.Write",
+      "path": "src/Serilog/Core/Logger.cs",
+      "in_degree": 49,
+      "resolved_count": 49,
+      "ambiguous_count": 0,
+      "suspicious_count": 25,
+      "suspicious_ratio": 0.51,
+      "scopes": {
+        "scope:overload_arity": 49
+      },
+      "reasons": {
+        "receiver_mismatch:log_vs_logger": 25
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Capturing/PropertyValueConverter.cs:PropertyValueConverter.CreatePropertyValue:01ad1247cbeff095",
+      "name": "CreatePropertyValue",
+      "qualified_name": "PropertyValueConverter.CreatePropertyValue",
+      "path": "src/Serilog/Capturing/PropertyValueConverter.cs",
+      "in_degree": 38,
+      "resolved_count": 38,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_types": 10,
+        "scope:overload_arity": 10,
+        "scope:overload_group": 18
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Events/LogEventProperty.cs:LogEventProperty:8511ef01f0e1cf4f",
+      "name": "LogEventProperty",
+      "qualified_name": "LogEventProperty",
+      "path": "src/Serilog/Events/LogEventProperty.cs",
+      "in_degree": 31,
+      "resolved_count": 31,
+      "ambiguous_count": 0,
+      "suspicious_count": 31,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 31
+      },
+      "reasons": {
+        "low_confidence_0.40": 31,
+        "scope_global_fallback": 31
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/CollectingSink.cs:CollectingSink:54e572fd7488c12e",
+      "name": "CollectingSink",
+      "qualified_name": "CollectingSink",
+      "path": "test/Serilog.Tests/Support/CollectingSink.cs",
+      "in_degree": 31,
+      "resolved_count": 31,
+      "ambiguous_count": 0,
+      "suspicious_count": 31,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 31
+      },
+      "reasons": {
+        "low_confidence_0.40": 31,
+        "scope_global_fallback": 31
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/DelegatingSink.cs:DelegatingSink.GetLogEvent:2b4cfa95f633cd6e",
+      "name": "GetLogEvent",
+      "qualified_name": "DelegatingSink.GetLogEvent",
+      "path": "test/Serilog.Tests/Support/DelegatingSink.cs",
+      "in_degree": 30,
+      "resolved_count": 30,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 30
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/ILogger.cs:ILogger.Write:b0b05432ab6079e2",
+      "name": "Write",
+      "qualified_name": "ILogger.Write",
+      "path": "src/Serilog/ILogger.cs",
+      "in_degree": 29,
+      "resolved_count": 29,
+      "ambiguous_count": 0,
+      "suspicious_count": 28,
+      "suspicious_ratio": 0.966,
+      "scopes": {
+        "scope:overload_arity": 29
+      },
+      "reasons": {
+        "receiver_mismatch:_logger_vs_ilogger": 2,
+        "receiver_mismatch:Logger_vs_ilogger": 1,
+        "receiver_mismatch:_enrichedLogger_vs_ilogger": 1,
+        "receiver_mismatch:_off_vs_ilogger": 1,
+        "receiver_mismatch:_levelSwitchOff_vs_ilogger": 1,
+        "receiver_mismatch:_minLevel_vs_ilogger": 1,
+        "receiver_mismatch:_levelSwitch_vs_ilogger": 1,
+        "receiver_mismatch:_bare_vs_ilogger": 1,
+        "receiver_mismatch:_enriched_vs_ilogger": 1,
+        "receiver_mismatch:_log_vs_ilogger": 1,
+        "receiver_mismatch:_nested_vs_ilogger": 1,
+        "receiver_mismatch:logger.ForContext(Constants.SourceContextPropertyName, \"Microsoft.AspNet.Something\")_vs_ilogger": 2,
+        "receiver_mismatch:logger\r\n            .ForContext<AuditSinkTests>()_vs_ilogger": 1,
+        "receiver_mismatch:contextLogger_vs_ilogger": 2,
+        "receiver_mismatch:logger\r\n            .ForContext(Constants.SourceContextPropertyName, \"Root.N1.N2\")_vs_ilogger": 4,
+        "receiver_mismatch:sourceContext_vs_ilogger": 1,
+        "receiver_mismatch:log_vs_ilogger": 2,
+        "receiver_mismatch:systemLogger_vs_ilogger": 2,
+        "receiver_mismatch:log.ForContext(\"User\", \"anonymous\")_vs_ilogger": 1,
+        "receiver_mismatch:_inner_vs_ilogger": 1
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Configuration/LoggerSettingsConfiguration.cs:LoggerSettingsConfiguration.KeyValuePairs:b8791bfe3e96a5da",
+      "name": "KeyValuePairs",
+      "qualified_name": "LoggerSettingsConfiguration.KeyValuePairs",
+      "path": "src/Serilog/Configuration/LoggerSettingsConfiguration.cs",
+      "in_degree": 29,
+      "resolved_count": 29,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_group": 29
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs:MessageTemplateTextFormatter:2961a2e8b0d27b65",
+      "name": "MessageTemplateTextFormatter",
+      "qualified_name": "MessageTemplateTextFormatter",
+      "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 26,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:global": 26
+      },
+      "reasons": {
+        "low_confidence_0.40": 26,
+        "scope_global_fallback": 26
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs:MessageTemplateTextFormatter.Format:f52a757170d86fdb",
+      "name": "Format",
+      "qualified_name": "MessageTemplateTextFormatter.Format",
+      "path": "src/Serilog/Formatting/Display/MessageTemplateTextFormatter.cs",
+      "in_degree": 26,
+      "resolved_count": 26,
+      "ambiguous_count": 0,
+      "suspicious_count": 26,
+      "suspicious_ratio": 1.0,
+      "scopes": {
+        "scope:field_type": 2,
+        "scope:exact_receiver_type": 24
+      },
+      "reasons": {
+        "receiver_mismatch:formatter_vs_messagetemplatetextformatter": 25,
+        "receiver_mismatch:Formatter_vs_messagetemplatetextformatter": 1
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/ILogger.cs:ILogger.Write:8a99be09ec066768",
+      "name": "Write",
+      "qualified_name": "ILogger.Write",
+      "path": "src/Serilog/ILogger.cs",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 2,
+      "suspicious_ratio": 0.083,
+      "scopes": {
+        "scope:overload_types": 24
+      },
+      "reasons": {
+        "receiver_mismatch:Logger_vs_ilogger": 2
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:test/Serilog.Tests/Support/Some.cs:Some.LogEvent:a53087b3cd32a39d",
+      "name": "LogEvent",
+      "qualified_name": "Some.LogEvent",
+      "path": "test/Serilog.Tests/Support/Some.cs",
+      "in_degree": 24,
+      "resolved_count": 24,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:receiver_match": 21,
+        "scope:implicit_this": 3
+      },
+      "reasons": {}
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Core/Logger.cs:Logger.Write:193e8920c2cb2e0a",
+      "name": "Write",
+      "qualified_name": "Logger.Write",
+      "path": "src/Serilog/Core/Logger.cs",
+      "in_degree": 23,
+      "resolved_count": 23,
+      "ambiguous_count": 0,
+      "suspicious_count": 1,
+      "suspicious_ratio": 0.043,
+      "scopes": {
+        "scope:overload_group": 10,
+        "scope:overload_types": 13
+      },
+      "reasons": {
+        "receiver_mismatch:log_vs_logger": 1
+      }
+    },
+    {
+      "target_symbol_id": "c_sharp:src/Serilog/Core/Logger.cs:Logger.Information:905f7bd9ea38d3fa",
+      "name": "Information",
+      "qualified_name": "Logger.Information",
+      "path": "src/Serilog/Core/Logger.cs",
+      "in_degree": 22,
+      "resolved_count": 22,
+      "ambiguous_count": 0,
+      "suspicious_count": 0,
+      "suspicious_ratio": 0.0,
+      "scopes": {
+        "scope:overload_types": 22
+      },
+      "reasons": {}
+    }
+  ]
+}
