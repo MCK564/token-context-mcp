@@ -117,9 +117,12 @@ class SamplingRouter:
                 data = json.loads(resp.read().decode("utf-8"))
                 raw_response = data.get("response", "").strip()
 
+                # Clean reasoning / thinking tags if present (e.g. DeepSeek R1, QwQ)
+                clean_str = re.sub(r"<think>.*?</think>", "", raw_response, flags=re.DOTALL).strip()
+
                 # Clean markdown fences if present
-                clean_json_str = re.sub(r"^```(?:json)?\s*", "", raw_response)
-                clean_json_str = re.sub(r"\s*```$", "", clean_json_str)
+                clean_json_str = re.sub(r"^```(?:json)?\s*", "", clean_str)
+                clean_json_str = re.sub(r"\s*```$", "", clean_json_str).strip()
 
                 # Validate with Pydantic v2
                 payload_obj = CodeSummaryPayload.model_validate_json(clean_json_str)

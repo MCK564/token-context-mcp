@@ -94,13 +94,6 @@ READ_ONLY_TOOLS: frozenset[str] = frozenset({
     "memory_search",
 })
 
-WRITE_OR_MUTATING_TOOLS: frozenset[str] = frozenset({
-    "memory_put",
-    "memory_lock",
-    "memory_unlock",
-    "sample_summarize",
-})
-
 
 class AccessControlManager:
     """Zero-overhead in-memory Access Control Plane for Multi-Agent coordination.

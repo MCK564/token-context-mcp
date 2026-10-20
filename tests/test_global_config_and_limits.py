@@ -120,3 +120,39 @@ def test_update_requires_force_and_unregister_removes_registration(tmp_path: Pat
     removed = unregister_repository(config_path, "demo")
     assert removed.root == second.resolve()
     assert "demo" not in load_config(config_path).repositories
+
+
+def test_toml_roundtrip_preserves_custom_sections(tmp_path: Path) -> None:
+    config_path = tmp_path / "repos.toml"
+    raw_content = """[server]
+max_request_bytes = 1048576
+max_result_tokens = 8192
+max_graph_nodes = 100
+max_symbol_results = 20
+network_policy = "declared-deny-not-enforced"
+output_mode = "structured"
+default_view = "normal"
+enable_extensions = false
+enable_admin_tools = false
+
+[plugins]
+enabled = ["cordis", "ast_tools"]
+timeout_ms = 5000
+
+[plugins.cordis]
+spatiotemporal = true
+sandbox_mode = "read_only"
+"""
+    config_path.write_text(raw_content, encoding="utf-8")
+    loaded = load_config(config_path)
+    assert "plugins" in loaded.extra
+    assert loaded.extra["plugins"]["enabled"] == ["cordis", "ast_tools"]
+    assert loaded.extra["plugins"]["cordis"]["spatiotemporal"] is True
+
+    # Save and reload
+    save_config(config_path, loaded)
+    reloaded = load_config(config_path)
+    assert "plugins" in reloaded.extra
+    assert reloaded.extra["plugins"]["enabled"] == ["cordis", "ast_tools"]
+    assert reloaded.extra["plugins"]["cordis"]["spatiotemporal"] is True
+    assert reloaded.extra["plugins"]["timeout_ms"] == 5000

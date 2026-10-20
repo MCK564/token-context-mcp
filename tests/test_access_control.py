@@ -136,3 +136,29 @@ def test_rate_limiting() -> None:
     allowed, reason = manager.check_access("find_symbols", agent_id)
     assert allowed is False
     assert "RATE_LIMITED" in reason
+
+
+def test_all_tools_are_explicitly_classified_under_read_only() -> None:
+    from token_context_mcp.discovery.catalog import TOOL_CATALOG
+
+    manager = AccessControlManager()
+    agent_id = "classification-tester"
+    manager.register_agent(agent_id, policy=PolicyProfile.READ_ONLY)
+
+    mutating_or_admin_tools = {
+        "memory_put",
+        "memory_lock",
+        "memory_unlock",
+        "memory_consolidate",
+        "sample_summarize",
+        "agent_control",
+        "audit_logs",
+    }
+
+    for tool_name in TOOL_CATALOG:
+        allowed, _ = manager.check_access(tool_name, agent_id)
+        if tool_name in mutating_or_admin_tools:
+            assert allowed is False, f"Mutating/admin tool {tool_name} must NOT be allowed under READ_ONLY"
+        else:
+            assert allowed is True, f"Retrieval/discovery tool {tool_name} MUST be allowed under READ_ONLY"
+

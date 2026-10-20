@@ -7,25 +7,30 @@ from typing import Sequence
 from token_context_mcp.parse.treesitter import parse_source
 
 
+def _normalize_lang(language_hint: str) -> str:
+    lang = language_hint.lower().strip()
+    if lang in {"py", "python"}:
+        return "python"
+    elif lang in {"js", "javascript"}:
+        return "javascript"
+    elif lang in {"ts", "typescript", "tsx"}:
+        return "typescript"
+    elif lang in {"java"}:
+        return "java"
+    elif lang in {"cs", "c_sharp", "c#", "csharp"}:
+        return "c_sharp"
+    elif lang in {"go", "golang"}:
+        return "go"
+    return "python"
+
+
 def extract_symbol_anchors(text: str, language_hint: str = "python") -> list[str]:
     """Extract verified class and function/method names using Tree-sitter with regex fallback."""
     raw = text.encode("utf-8")
     symbols: list[str] = []
 
     # 1. Try Tree-sitter
-    ts_lang = language_hint
-    if ts_lang in {"py", "python"}:
-        ts_lang = "python"
-    elif ts_lang in {"js", "javascript"}:
-        ts_lang = "javascript"
-    elif ts_lang in {"ts", "typescript", "tsx"}:
-        ts_lang = "typescript"
-    elif ts_lang in {"java"}:
-        ts_lang = "java"
-    elif ts_lang in {"cs", "c_sharp", "c#"}:
-        ts_lang = "c_sharp"
-    else:
-        ts_lang = "python"
+    ts_lang = _normalize_lang(language_hint)
 
     try:
         parsed = parse_source("snippet", raw, ts_lang)
@@ -58,7 +63,7 @@ def build_hybrid_context(
     If text length exceeds max_chars:
       - Preserves full file skeleton (imports, class declarations, method signatures)
       - Retains complete function bodies for symbols matching intent / target_symbols
-      - Elides bodies for unrelated symbols
+      - Elides bodies for unrelated symbols using AST byte-spans with regex fallback
     """
     detected_symbols = extract_symbol_anchors(text, language_hint)
     verified_symbols = list(dict.fromkeys(list(target_symbols or []) + detected_symbols))
@@ -76,39 +81,76 @@ def build_hybrid_context(
     if not relevant_symbols and verified_symbols:
         relevant_symbols = set(verified_symbols[:3])
 
-    # Parse line by line to construct hybrid skeleton
-    lines = text.splitlines()
-    output_lines: list[str] = []
-    in_elided_function = False
-    elided_indent = 0
+    # 1. Primary path: AST byte-span body elision via Tree-sitter
+    ts_lang = _normalize_lang(language_hint)
+    raw = text.encode("utf-8")
+    ast_succeeded = False
+    hybrid_text = ""
 
-    for line in lines:
-        stripped = line.strip()
-        indent = len(line) - len(line.lstrip())
+    try:
+        parsed = parse_source("snippet", raw, ts_lang)
+        elision_symbols = [
+            s for s in parsed.symbols
+            if s.body_start_byte is not None
+            and s.body_end_byte is not None
+            and s.body_end_byte > s.body_start_byte
+            and s.kind not in ("class", "module", "namespace", "interface")
+            and s.name not in relevant_symbols
+        ]
+        if elision_symbols:
+            # Sort from end of file to start of file so byte offsets remain stable
+            sorted_targets = sorted(elision_symbols, key=lambda s: s.body_start_byte, reverse=True)
+            new_raw = raw
+            for s in sorted_targets:
+                b_start = s.body_start_byte
+                b_end = s.body_end_byte
+                raw_body = new_raw[b_start:b_end]
+                if raw_body.strip().startswith(b"{") and raw_body.strip().endswith(b"}"):
+                    replacement = b"{\n        ... # [Skeleton: body elided for context preservation]\n    }"
+                else:
+                    replacement = b"... # [Skeleton: body elided for context preservation]"
+                new_raw = new_raw[:b_start] + replacement + new_raw[b_end:]
 
-        # Check if line defines a function or method
-        func_match = re.match(r"\s*(?:async\s+def|def|function)\s+([A-Za-z_][A-Za-z0-9_]*)", line)
-        if func_match:
-            fn_name = func_match.group(1)
-            output_lines.append(line)
-            if fn_name not in relevant_symbols:
-                in_elided_function = True
-                elided_indent = indent
-                output_lines.append(" " * (indent + 4) + "... # [Skeleton: body elided for context preservation]")
-            else:
-                in_elided_function = False
-            continue
+            hybrid_text = new_raw.decode("utf-8", errors="replace")
+            ast_succeeded = True
+    except Exception:
+        ast_succeeded = False
 
-        # If currently inside an elided function, check if indentation returned to parent level
-        if in_elided_function:
-            if stripped and indent <= elided_indent:
-                in_elided_function = False
-            else:
+    # 2. Fallback path: regex line-by-line parsing if AST parsing failed or found no elidable symbols
+    if not ast_succeeded or not hybrid_text:
+        lines = text.splitlines()
+        output_lines: list[str] = []
+        in_elided_function = False
+        elided_indent = 0
+
+        for line in lines:
+            stripped = line.strip()
+            indent = len(line) - len(line.lstrip())
+
+            # Check if line defines a function or method
+            func_match = re.match(r"\s*(?:async\s+def|def|function)\s+([A-Za-z_][A-Za-z0-9_]*)", line)
+            if func_match:
+                fn_name = func_match.group(1)
+                output_lines.append(line)
+                if fn_name not in relevant_symbols:
+                    in_elided_function = True
+                    elided_indent = indent
+                    output_lines.append(" " * (indent + 4) + "... # [Skeleton: body elided for context preservation]")
+                else:
+                    in_elided_function = False
                 continue
 
-        output_lines.append(line)
+            # If currently inside an elided function, check if indentation returned to parent level
+            if in_elided_function:
+                if stripped and indent <= elided_indent:
+                    in_elided_function = False
+                else:
+                    continue
 
-    hybrid_text = "\n".join(output_lines)
+            output_lines.append(line)
+
+        hybrid_text = "\n".join(output_lines)
+
     # Ensure it's bounded
     if len(hybrid_text) > max_chars * 2:
         hybrid_text = hybrid_text[: max_chars * 2] + "\n... # [Truncated safely after skeleton preservation]"

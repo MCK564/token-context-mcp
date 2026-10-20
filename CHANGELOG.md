@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.4 — perf & robustness: AST byte-span elision, thinking-tag strip, TOML roundtrip preservation (2026-10-20)
+
+**Upgrade:** no index rebuild needed. All existing databases, caches, and configs remain 100% compatible.
+
+Enhancements and fixes:
+
+- **AST byte-span body elision (`sampling/skeleton_hybrid.py`)** — replaces regex line splitting with exact Tree-sitter byte ranges for Python, Java, TypeScript/JavaScript, Go, and C#. Class/method signatures and imports are preserved with 100% syntactic precision while irrelevant method bodies are cleanly elided. Falls back gracefully to regex on parse failure.
+- **Thinking LLM compatibility (`sampling/router.py`)** — automatically strips `<think>...</think>` reasoning tags before markdown fence removal and Pydantic validation, enabling seamless zero-crash integration with reasoning models (DeepSeek R1, Qwen-QwQ, etc.).
+- **TOML roundtrip preservation (`config.py`)** — `load_config` and `save_config` preserve unrecognized custom sections (e.g. `[plugins]`, `[harness]`) across repository updates and re-saves via `AppConfig.extra`.
+- **Dead code removal (`security/access_control.py`)** — removed unused `WRITE_OR_MUTATING_TOOLS` and verified complete classification of all registered tools against the access control plane.
+- **Golden contract test suite (`tests/golden/`)** — added comprehensive wire contract snapshots for `tools/list` across all 4 configurations (`core`, `+extensions`, `+admin`, `+extensions+admin`) and 2 schema profiles (`default`, `gemini_safe`), plus deterministic sanitized output regression snapshots.
+
+
 ## 0.3.3 — fix: identity, governance, memory, windowed reads, Windows file locks (2026-10-03)
 
 **Upgrade:** no index rebuild needed (parser, FTS builder and resolver versions are unchanged). The memory FTS table is rebuilt lazily by the new query builder; existing memory entries stay readable.

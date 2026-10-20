@@ -42,6 +42,7 @@ class AppConfig:
     repositories: dict[str, RepositoryConfig]
     server: ServerConfig = field(default_factory=ServerConfig)
     budget_profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

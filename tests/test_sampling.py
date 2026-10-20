@@ -242,3 +242,99 @@ class PaymentService:
         assert "PaymentService.refund" in result["data"]["key_symbols"]
         first_sym = result["payload"]["analyzed_symbols"][0]
         assert first_sym["line_span"] == [2, 6]
+
+
+def test_sampling_router_strips_thinking_tags() -> None:
+    router = SamplingRouter()
+    raw_json = json.dumps(
+        {
+            "intent_alignment": "Calculates tax accurately",
+            "analyzed_symbols": [
+                {
+                    "name": "calculate_tax",
+                    "responsibility": "Applies rate",
+                    "critical_constraints": [],
+                    "calls_external": [],
+                    "line_span": [1, 2],
+                }
+            ],
+            "technical_caveats": [],
+        }
+    )
+    thought_response = f"<think>\nLet us reason about this function step-by-step...\nTax calculation requires rate checking.\n</think>\n```json\n{raw_json}\n```"
+
+    mock_resp = MagicMock()
+    mock_resp.read.return_value = json.dumps({"response": thought_response}).encode("utf-8")
+    mock_resp.__enter__.return_value = mock_resp
+
+    with patch("urllib.request.urlopen", return_value=mock_resp):
+        code = "def calculate_tax(amount: float) -> float:\n    return amount * 0.1\n"
+        result = router.summarize(code, intent="tax calculation", max_tokens=256)
+        assert result["status"] == "success"
+        assert "calculate_tax" in result["data"]["key_symbols"]
+
+
+@pytest.mark.parametrize(
+    ("lang", "code", "intent", "expected_elided_symbol", "expected_kept_symbol"),
+    [
+        (
+            "java",
+            "public class PaymentProcessor {\n"
+            "    public void processPayment(double amount) {\n"
+            "        System.out.println(amount);\n"
+            "    }\n\n"
+            "    public void validate(double amount) {\n"
+            "        if (amount <= 0) throw new IllegalArgumentException();\n"
+            "    }\n"
+            "}\n" + ("// filler comment\n" * 100),
+            "validate amount",
+            "processPayment",
+            "validate",
+        ),
+        (
+            "typescript",
+            "export class OrderService {\n"
+            "    process(orderId: string): void {\n"
+            "        console.log(orderId);\n"
+            "    }\n\n"
+            "    validateOrder(orderId: string): boolean {\n"
+            "        return orderId.length > 0;\n"
+            "    }\n"
+            "}\n" + ("// filler comment\n" * 100),
+            "validateOrder input",
+            "process",
+            "validateOrder",
+        ),
+        (
+            "go",
+            "package main\n\n"
+            "func Process(val int) int {\n"
+            "    println(val)\n"
+            "    return val + 1\n"
+            "}\n\n"
+            "func Validate(val int) bool {\n"
+            "    return val > 0\n"
+            "}\n" + ("// filler comment\n" * 100),
+            "Validate value",
+            "Process",
+            "Validate",
+        ),
+    ],
+)
+def test_skeleton_hybrid_ast_elision_multilang(
+    lang: str,
+    code: str,
+    intent: str,
+    expected_elided_symbol: str,
+    expected_kept_symbol: str,
+) -> None:
+    hybrid_text, verified_anchors = build_hybrid_context(
+        code,
+        intent=intent,
+        max_chars=500,
+        language_hint=lang,
+    )
+    assert expected_kept_symbol in hybrid_text
+    assert expected_elided_symbol in hybrid_text
+    assert "... # [Skeleton: body elided for context preservation]" in hybrid_text
+

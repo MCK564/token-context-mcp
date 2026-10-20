@@ -118,7 +118,9 @@ def load_config(path: Path) -> AppConfig:
             ranking=ranking,
         )
     budget_profiles = _load_budget_profiles(raw.get("budget_profiles", {}))
-    return AppConfig(repositories=repositories, server=server, budget_profiles=budget_profiles)
+    known_sections = {"server", "repos", "budget_profiles"}
+    extra = {k: v for k, v in raw.items() if k not in known_sections}
+    return AppConfig(repositories=repositories, server=server, budget_profiles=budget_profiles, extra=extra)
 
 
 def save_config(path: Path, config: AppConfig) -> None:
@@ -165,6 +167,26 @@ def save_config(path: Path, config: AppConfig) -> None:
                     items_str = ", ".join(f'"{_toml_string(x)}"' for x in v)
                     lines.append(f"{k} = [{items_str}]")
             lines.append("")
+    if config.extra:
+        for section_name in sorted(config.extra):
+            section_val = config.extra[section_name]
+            if isinstance(section_val, dict):
+                lines.append(f"[{section_name}]")
+                subtables: dict[str, dict[str, object]] = {}
+                for k, v in sorted(section_val.items()):
+                    if isinstance(v, dict):
+                        subtables[k] = v
+                    else:
+                        lines.append(f"{k} = {_toml_value_generic(v)}")
+                lines.append("")
+                for sub_k, sub_v in sorted(subtables.items()):
+                    lines.append(f"[{section_name}.{sub_k}]")
+                    for k2, v2 in sorted(sub_v.items()):
+                        lines.append(f"{k2} = {_toml_value_generic(v2)}")
+                    lines.append("")
+            else:
+                lines.append(f"{section_name} = {_toml_value_generic(section_val)}")
+                lines.append("")
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     # Restrict the temporary file so the registry is never briefly world-readable
@@ -181,7 +203,7 @@ def register_repository(path: Path, repo_id: str, root: Path) -> RepositoryConfi
     repository = RepositoryConfig(repo_id=repo_id, root=canonical_repository_root(root))
     repositories = dict(config.repositories)
     repositories[repo_id] = repository
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
     return repository
 
 
@@ -193,7 +215,7 @@ def unregister_repository(path: Path, repo_id: str) -> RepositoryConfig:
         raise ConfigError(f"unknown repo_id: {repo_id}") from error
     repositories = dict(config.repositories)
     del repositories[repo_id]
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
     return repository
 
 
@@ -214,7 +236,7 @@ def update_repository(path: Path, repo_id: str, root: Path, *, force: bool = Fal
     )
     repositories = dict(config.repositories)
     repositories[repo_id] = repository
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
     return repository
 
 
@@ -247,6 +269,18 @@ def _toml_value(value: object) -> str:
     if isinstance(value, list) and all(isinstance(item, str) for item in value):
         return "[" + ", ".join(_toml_value(item) for item in value) + "]"
     raise ConfigError("budget profile values must be strings, integers, booleans or string lists")
+
+
+def _toml_value_generic(value: object) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, str):
+        return f'"{_toml_string(value)}"'
+    if isinstance(value, list):
+        return "[" + ", ".join(_toml_value_generic(item) for item in value) + "]"
+    return f'"{_toml_string(str(value))}"'
 
 
 def _load_budget_profiles(raw: object) -> dict[str, dict[str, object]]:
