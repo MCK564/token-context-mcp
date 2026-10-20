@@ -44,6 +44,7 @@ from token_context_mcp.kernel import (
     GovernanceMiddleware,
     InvocationContext,
     InvocationPipeline,
+    build_default_registry,
     format_error,
 )
 
@@ -194,6 +195,7 @@ def build_server(
     server.audit_logger = audit_logger      # type: ignore[attr-defined]
     server.memory_service = memory_service  # type: ignore[attr-defined]
     server.sampling_router = sampling_router  # type: ignore[attr-defined]
+    server.tool_registry = build_default_registry()  # type: ignore[attr-defined]
 
     class _ClientMiddleware:
         """Learns the client's name/version and rewrites ``tools/list`` for the active schema profile."""

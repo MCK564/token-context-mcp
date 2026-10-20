@@ -16,7 +16,7 @@ from token_context_mcp.kernel.pipeline import (
     Middleware,
     format_error,
 )
-from token_context_mcp.kernel.tools import ToolRegistry, ToolSpec
+from token_context_mcp.kernel.tools import ToolRegistry, ToolSpec, build_default_registry
 
 __all__ = [
     "AuthMiddleware",
@@ -28,6 +28,7 @@ __all__ = [
     "Middleware",
     "ToolRegistry",
     "ToolSpec",
+    "build_default_registry",
     "format_error",
     "get_current_context",
     "reset_current_context",

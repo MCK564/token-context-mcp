@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from typing import Any, Sequence
@@ -14,6 +15,7 @@ from token_context_mcp.sampling.hardware_probe import (
     probe_hardware,
 )
 from token_context_mcp.sampling.prompts import STRUCTURED_CONTEXT_PROMPT_TEMPLATE
+from token_context_mcp.sampling.provider import ModelProvider, OllamaProvider
 from token_context_mcp.sampling.schema import (
     CodeSummaryPayload,
     ConstraintEvidence,
@@ -23,8 +25,13 @@ from token_context_mcp.sampling.skeleton_hybrid import build_hybrid_context
 
 
 class SamplingRouter:
-    def __init__(self, hardware: HardwareProfile | None = None) -> None:
+    def __init__(
+        self,
+        hardware: HardwareProfile | None = None,
+        provider: ModelProvider | None = None,
+    ) -> None:
         self._hardware: HardwareProfile | None = hardware
+        self._provider: ModelProvider | None = provider
 
     @property
     def hardware(self) -> HardwareProfile:
@@ -35,6 +42,13 @@ class SamplingRouter:
     @hardware.setter
     def hardware(self, value: HardwareProfile | None) -> None:
         self._hardware = value
+
+    @property
+    def provider(self) -> ModelProvider:
+        if self._provider is None:
+            endpoint = os.environ.get("TOKEN_CONTEXT_OLLAMA_ENDPOINT", "http://localhost:11434")
+            self._provider = OllamaProvider(endpoint=endpoint)
+        return self._provider
 
     def summarize(
         self,
@@ -97,55 +111,39 @@ class SamplingRouter:
         )
 
         model_name = self.hardware.recommended_model
-        payload_dict = {
-            "model": model_name,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.05,
-                "top_p": 0.9,
-                "num_predict": max_tokens,
-                "num_thread": self.hardware.recommended_threads,
-            },
-        }
 
         try:
-            req_data = json.dumps(payload_dict).encode("utf-8")
-            req = urllib_request.Request(url, data=req_data, headers={"Content-Type": "application/json"})
-            with urllib_request.urlopen(req, timeout=timeout_sec) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                raw_response = data.get("response", "").strip()
+            clean_json_str = self.provider.generate(
+                model_name=model_name,
+                prompt=prompt,
+                max_tokens=max_tokens,
+                temperature=0.05,
+                timeout_sec=timeout_sec,
+                threads=self.hardware.recommended_threads,
+            )
 
-                # Clean reasoning / thinking tags if present (e.g. DeepSeek R1, QwQ)
-                clean_str = re.sub(r"<think>.*?</think>", "", raw_response, flags=re.DOTALL).strip()
+            # Validate with Pydantic v2
+            payload_obj = CodeSummaryPayload.model_validate_json(clean_json_str)
 
-                # Clean markdown fences if present
-                clean_json_str = re.sub(r"^```(?:json)?\s*", "", clean_str)
-                clean_json_str = re.sub(r"\s*```$", "", clean_json_str).strip()
+            # Apply Hallucination Guardrail
+            guarded_payload, cov_rate, crr = verify_and_guard(payload_obj, verified_symbols)
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
 
-                # Validate with Pydantic v2
-                payload_obj = CodeSummaryPayload.model_validate_json(clean_json_str)
+            backend_tag = (
+                "ollama_gpu" if self.hardware.backend_mode == "ollama_gpu" else "ollama_cpu"
+            )
+            compat_data = guarded_payload.to_compat_dict()
 
-                # Apply Hallucination Guardrail
-                guarded_payload, cov_rate, crr = verify_and_guard(payload_obj, verified_symbols)
-                latency_ms = int((time.perf_counter() - start_time) * 1000)
-
-                backend_tag = (
-                    "ollama_gpu" if self.hardware.backend_mode == "ollama_gpu" else "ollama_cpu"
-                )
-                compat_data = guarded_payload.to_compat_dict()
-
-                return {
-                    "backend": backend_tag,
-                    "engine": model_name,
-                    "status": "success",
-                    "latency_ms": latency_ms,
-                    "symbol_coverage_rate": cov_rate,
-                    "context_retention_rate": crr,
-                    "data": compat_data,
-                    "payload": guarded_payload.model_dump(),
-                }
+            return {
+                "backend": backend_tag,
+                "engine": model_name,
+                "status": "success",
+                "latency_ms": latency_ms,
+                "symbol_coverage_rate": cov_rate,
+                "context_retention_rate": crr,
+                "data": compat_data,
+                "payload": guarded_payload.model_dump(),
+            }
         except (urllib_error.URLError, TimeoutError, OSError, json.JSONDecodeError, Exception):
             return None
 

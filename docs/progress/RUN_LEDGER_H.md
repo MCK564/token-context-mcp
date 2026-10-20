@@ -52,3 +52,28 @@
 - [x] **H2.4**: Connect `_dispatch_invoke` in `server.py` to `InvocationPipeline` (zero regression, 0.0109 ms dispatch latency).
 - [x] **H2.5**: Verified with `tests/test_kernel.py` and full `tests/golden/` contract suite.
 
+---
+
+## Phase H3: Tool Registry & Canonical Metadata
+
+- [x] **H3.1**: Canonical `build_default_registry()` in `kernel/tools.py` populating `ToolRegistry` from `TOOL_CATALOG`.
+- [x] **H3.2**: Bound `tool_registry` directly to `server.tool_registry`.
+- [x] **H3.3**: Verified with `tests/golden/test_tools_list_contract.py` (0 schema regressions).
+
+---
+
+## Phase H4: Provider Seams
+
+- [x] **H4.1**: Implemented `ModelProvider` ABC, `OllamaProvider`, and `MockModelProvider` in `sampling/provider.py`.
+- [x] **H4.2**: Refactored `SamplingRouter` to delegate to `ModelProvider` with zero regression.
+
+---
+
+## Phase H6: Declarative Context Batching
+
+- [x] **H6.1**: Implemented `ContextBatchExecutor` in `retrieve/batch.py` allowing chained multi-step retrieval operations in a single turn.
+- [x] **H6.2**: Dynamic reference templating (`$prev.data.symbols[0].symbol_id`).
+- [x] **H6.3**: Enforced strict read-only boundary (mutating ops like `memory_put` and `agent_control` are rejected).
+- [x] **H6.4**: Verified with unit tests in `tests/test_context_batch.py`.
+
+

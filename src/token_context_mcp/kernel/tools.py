@@ -5,6 +5,32 @@ from typing import Any, Callable
 
 from token_context_mcp.client_profile import apply_schema_profile
 
+ADMIN_TOOLS: frozenset[str] = frozenset({"agent_control", "audit_logs"})
+
+MUTATING_TOOLS: frozenset[str] = frozenset({
+    "memory_put",
+    "memory_lock",
+    "memory_unlock",
+    "memory_consolidate",
+    "sample_summarize",
+    "agent_control",
+})
+
+EXTENSION_TOOLS: frozenset[str] = frozenset({
+    "list_available_tools",
+    "search_tools",
+    "get_tool_schema",
+    "memory_put",
+    "memory_get",
+    "memory_search",
+    "memory_lock",
+    "memory_unlock",
+    "memory_consolidate",
+    "sample_summarize",
+    "agent_control",
+    "audit_logs",
+})
+
 
 @dataclass(frozen=True)
 class ToolSpec:
@@ -66,3 +92,25 @@ class ToolRegistry:
                 schema = apply_schema_profile(schema, schema_profile, spec.name)
             result[spec.name] = schema
         return result
+
+
+def build_default_registry(catalog: dict[str, Any] | None = None) -> ToolRegistry:
+    """Instantiate and populate the canonical ToolRegistry from TOOL_CATALOG."""
+    from token_context_mcp.discovery.catalog import TOOL_CATALOG
+
+    active_catalog = catalog if catalog is not None else TOOL_CATALOG
+    registry = ToolRegistry()
+
+    for name, meta in active_catalog.items():
+        spec = ToolSpec(
+            name=name,
+            title=getattr(meta, "name", name).replace("_", " ").title(),
+            description=getattr(meta, "summary", ""),
+            category=getattr(meta, "category", "general"),
+            is_mutating=name in MUTATING_TOOLS,
+            requires_admin=name in ADMIN_TOOLS,
+            requires_extensions=name in EXTENSION_TOOLS,
+        )
+        registry.register(spec)
+
+    return registry
