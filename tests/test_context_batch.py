@@ -26,7 +26,7 @@ def test_context_batch_executor(indexed_config: Path) -> None:
     assert res["operations"][1]["op"] == "get_symbol_context"
     sym_res = res["operations"][1]["result"]
     assert "data" in sym_res
-    assert sym_res["data"]["root_symbol_id"].endswith("alpha:cb2c1748da59f14e")
+    assert ":app.py:alpha:" in sym_res["data"]["root_symbol_id"]
 
 
 def test_context_batch_rejects_mutating_or_invalid_op(indexed_config: Path) -> None:
