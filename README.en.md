@@ -172,6 +172,24 @@ graph TD
 
 ---
 
+## 💡 Performance Optimization & Standard Prompt Protocol (`sample_prompt.md`)
+
+> **MANDATORY BEST PRACTICE FOR MAXIMUM TOKEN SAVINGS**:
+> `token-context-mcp` is engineered to eliminate 80%–99% of context token overhead. However, if an agent queries the codebase blindly, attempts full-repo scans, or blindly replays massive prompts on every turn, token efficiency is severely degraded.
+>
+> 📖 **Full Guide & Templates:** [`sample_prompt.md`](sample_prompt.md) (Available in English, Vietnamese, and Chinese)
+
+### Two-Phase Prompt Protocol:
+1. **Turn 1: Initial Session Setup (Full Initialization)**:
+   - Use the complete prompt template from Section **3.1** (local LLM/Ollama) or Section **3.2** (pure CPU / deterministic) in [`sample_prompt.md`](sample_prompt.md).
+   - Establishes the **MCP-First & Graceful Fallback** principle: locate via `get_repo_map`, `find_symbols`, and `inspect_symbol`; seamlessly read target files directly when inspecting configs, truncated bodies, or unindexed files without stalling in a `blocked` state.
+2. **Turn 2+: Subsequent Turns (Lightweight Follow-up)**:
+   - **NEVER blindly re-send the full system prompt** in subsequent turns within the same session. Replaying the full prompt needlessly inflates input token costs and crowds the context window.
+   - Use the compact follow-up template in Section **3.3** of [`sample_prompt.md`](sample_prompt.md) (~10 lines): injects the new task while reaffirming tool navigation constraints and the 6-point standardized output format.
+   - Cuts follow-up prompt input tokens by over **95%**!
+
+---
+
 ## 🔒 Security Boundary & Guarantees
 
 - **No Remote Code Execution (RCE)**: The server strictly disallows arbitrary shell command execution, arbitrary path reads, or dynamic eval.
@@ -183,6 +201,7 @@ graph TD
 
 ## 📚 Technical Documentation
 
+- [`sample_prompt.md`](sample_prompt.md): Standard multi-language agent prompt templates (EN / VI / CN) with two-phase protocol.
 - [`CHANGELOG.md`](CHANGELOG.md): Comprehensive release history and upgrade guide.
 - [`docs/progress/RUN_LEDGER_H.md`](docs/progress/RUN_LEDGER_H.md): DeepSeek Harness implementation ledger & benchmarks.
 - [`docs/BENCHMARK.md`](docs/BENCHMARK.md): Retrieval quality benchmarks on held-out repositories.

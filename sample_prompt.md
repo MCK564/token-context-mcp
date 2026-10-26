@@ -5,7 +5,7 @@
 > - [🇬🇧 PART 2: ENGLISH SECTION](#part-2-english-section)
 > - [🇨🇳 第三部分：简体中文 (CHINESE SECTION)](#第三部分简体中文-chinese-section)
 >
-> Mẫu prompt chuẩn với cơ chế **Thích ứng Linh hoạt (MCP-First & Graceful Source Fallback)** cho AI Agent dùng `token-context-mcp`: danh sách 22 tool đầy đủ, quy ước memory, quy trình truy xuất tiết kiệm token nhưng **không bao giờ tự khóa (non-blocking)** khi gặp file ngoài chỉ mục hoặc lỗi kết nối tạm thời, ma trận chọn mức suy luận và biến thể cho máy không có LLM cục bộ.
+> Mẫu prompt chuẩn với cơ chế **Thích ứng Linh hoạt (MCP-First & Graceful Source Fallback)** cho AI Agent dùng `token-context-mcp`: danh sách 22 tool đầy đủ, quy ước memory, quy trình truy xuất tiết kiệm token nhưng **không bao giờ tự khóa (non-blocking)** khi gặp file ngoài chỉ mục hoặc lỗi kết nối tạm thời, ma trận chọn mức suy luận, biến thể cho máy không có LLM cục bộ, và **giao thức 2 giai đoạn (Turn 1 Full + Turn 2+ Compact)** giúp tiết kiệm thêm 95% token input trong cùng phiên làm việc.
 >
 > Đối chiếu với bản **v0.3.4**: `TOOL_CATALOG` (`src/token_context_mcp/discovery/catalog.py`), `kernel/` (Cordis Waterfall), `retrieve/batch.py`, `server.py`, `memory/store.py`. Placeholder: `{{REPO_NAME}}`, `{{USER_TASK}}`, `{{AGENT_ID}}`.
 
@@ -207,6 +207,32 @@ QUY CÁCH PHẢN HỒI (OUTPUT FORMAT):
   4. [Tác động & Kiểm chứng xác định]: Các symbol liên quan và cách đã xác minh (qua MCP tool / đọc file nguồn / chạy test).
   5. [Memory]: Key đã dùng/cập nhật (hoặc "không dùng").
   6. [Trạng thái]: "Hoàn thành" (hoặc lý do cụ thể nếu cần thêm thông tin từ người dùng).
+```
+
+### 3.3 Mẫu Prompt Gọn Cho Các Lượt Tiếp Theo Trong Cùng Session (Follow-up Turns)
+
+> 💡 **Tối ưu Context Window**: Sau khi Agent đã được khởi tạo bằng prompt đầy đủ ở Lượt 1 (Turn 1), trong các lượt tiếp theo (Turn 2, Turn 3...) của cùng một phiên làm việc, **tuyệt đối KHÔNG gửi lại toàn bộ prompt dài**. Việc nhồi lại toàn bộ prompt sẽ lãng phí hàng nghìn token input không cần thiết và đẩy trôi ngữ cảnh quan trọng.
+> Chỉ cần dùng mẫu siêu gọn (~10 dòng) dưới đây để nhắc lại nguyên tắc gọi tool và giữ cấu trúc phản hồi chuẩn hóa:
+
+*(Dùng cho Turn 2 trở đi trong cùng session làm việc)*:
+
+```markdown
+TIẾP TỤC NHIỆM VỤ (SESSION FOLLOW-UP):
+- Repository: {{REPO_NAME}} | Agent: {{AGENT_ID}}
+- Nhiệm vụ lượt này: {{USER_TASK}}
+
+NGUYÊN TẮC HOẠT ĐỘNG:
+1. Tiếp tục ưu tiên `token-context-mcp` (`find_symbols`, `inspect_symbol`, `search_source`, `get_file_skeleton`) để định vị chính xác trước khi đọc mã nguồn nhằm tiết kiệm token.
+2. Fallback linh hoạt: Nếu cần đọc toàn bộ nội dung bị cắt, kiểm tra file cấu hình ngoài AST, hoặc snapshot stale: chủ động đọc trực tiếp file nguồn liên quan. Tuyệt đối không tự dừng hay báo blocked.
+3. Luôn kiểm chứng thay đổi trên mã nguồn thực tế và chạy test liên quan. Ghi nhận checkpoint vào `memory_put` nếu có kết luận kiến trúc quan trọng.
+
+QUY CÁCH PHẢN HỒI (OUTPUT FORMAT):
+1. [Vấn đề / Mục tiêu]: Tóm tắt 1-2 câu.
+2. [Vị trí mã nguồn]: `file_path:line`.
+3. [Giải pháp / Thay đổi]: Khối code/patch ngắn gọn kèm giải thích.
+4. [Tác động & Kiểm chứng]: Symbol liên quan và bằng chứng xác minh (MCP/đọc file/test).
+5. [Memory]: Key đã tra cứu / cập nhật (hoặc "không dùng").
+6. [Trạng thái]: "Hoàn thành" (hoặc lý do cụ thể nếu cần làm rõ).
 ```
 
 ## 4. Ví dụ chạy thật
@@ -499,6 +525,32 @@ OUTPUT FORMAT:
   6. [Status]: "Done" (or specific reason if user input is needed).
 ```
 
+### 3.3 Compact Prompt for Subsequent Turns in the Same Session (Follow-up Turns)
+
+> 💡 **Context Window Optimization**: Once the agent has been initialized with the full prompt in Turn 1, **DO NOT re-send the full prompt** in subsequent turns (Turn 2, Turn 3, etc.) of the same session. Replaying the full prompt wastes thousands of prompt tokens and prematurely exhausts your context window.
+> Use this lightweight reminder prompt (~10 lines) which preserves the tool dispatch constraints and standardized output format:
+
+*(Use for Turn 2+ within the same active session)*:
+
+```markdown
+SESSION FOLLOW-UP TASK:
+- Repository: {{REPO_NAME}} | Agent: {{AGENT_ID}}
+- Task for this turn: {{USER_TASK}}
+
+OPERATIONAL CONSTRAINTS:
+1. Prioritize `token-context-mcp` tools (`find_symbols`, `inspect_symbol`, `search_source`, `get_file_skeleton`) to localize targets with minimal token spend.
+2. Seamless source fallback: If code bodies are truncated, files are outside the AST index, or snapshots are stale, read the target source files directly. Never halt in a blocked state.
+3. Deterministic verification: Validate all line spans against actual source files and run relevant tests if available. Update `memory_put` if a key conclusion or checkpoint is reached.
+
+OUTPUT FORMAT:
+1. [Core Issue / Goal]: 1-2 summary sentences.
+2. [Location]: `path/to/file:line`.
+3. [Solution / Changes]: Minimal patch or applied changes with rationale.
+4. [Impact & Verification]: Affected symbols and validation method (MCP / direct source read / test execution).
+5. [Memory]: Keys read or updated (or "not used").
+6. [Status]: "Done" (or specific question if clarification is required).
+```
+
 ## 4. Worked Examples
 
 ### Example 1: Recall, verify against code, smoothly fall back for config files, and write back
@@ -779,6 +831,32 @@ Step 8: Write the updated conclusion back
   4. [影响面与确定性核验]：受影响符号及核验结果（MCP 工具 / 直接读取源码 / 测试运行结果）。
   5. [记忆库记录]：读取或更新的 Key（或“未使用”）。
   6. [状态]：“已完成”（或需用户补充业务信息的具体说明）。
+```
+
+### 3.3 会话后续轮次精简提示词模板 (Subsequent / Follow-up Turns)
+
+> 💡 **上下文窗口优化策略**: 在同一个对话会话中，智能体已在第 1 轮（Turn 1）接收了完整的系统指令与工具规范。在后续轮次（Turn 2、3……）中，**严禁盲目机械地重放全量长篇提示词**，否则将白白浪费数千输入 Token 并挤占有效上下文。
+> 此时仅需发送如下超精简提示词（约 10 行），即可牢牢锁定工具调用约束与标准化输出结构：
+
+*(适用于同一会话内的第 2 轮及后续轮次)*：
+
+```markdown
+会话后续任务 (SESSION FOLLOW-UP):
+- 目标代码库: {{REPO_NAME}} | 智能体标识: {{AGENT_ID}}
+- 本轮任务目标: {{USER_TASK}}
+
+继续遵守核心原则:
+1. 始终优先调用 `token-context-mcp` 工具（`find_symbols`、`inspect_symbol`、`search_source`、`get_file_skeleton`）进行精准定位，节省 Token。
+2. 源码平滑兜底：遇代码截断、未纳入 AST 的配置文件或快照过期时，直接读取目标源文件，绝不擅自卡死或标记 blocked。
+3. 确定性核验：所有改动须与真实源码核对并在环境允许时运行测试。关键结论及时通过 `memory_put` 存入记忆库。
+
+回复格式要求 (OUTPUT FORMAT):
+1. [核心问题 / 目标]：1-2 句话概括。
+2. [源码位置]：`path/to/file:line`。
+3. [解决方案 / 代码变更]：精简代码补丁与技术说明。
+4. [影响面与核验]：受影响符号及核验依据（工具输出 / 源码核对 / 测试结果）。
+5. [记忆库记录]：读取或更新的 Key（未使用填“未使用”）。
+6. [状态]：“已完成”（或需补充信息的具体说明）。
 ```
 
 ## 4. 实战运行示例 (Worked Examples)

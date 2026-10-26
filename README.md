@@ -172,6 +172,24 @@ graph TD
 
 ---
 
+## 💡 Tối ưu hóa Hiệu năng & Ràng buộc Sử dụng Prompt (`sample_prompt.md`)
+
+> **QUY TẮC BẮT BUỘC ĐỂ ĐẠT HIỆU NĂNG TỐI ĐA (MANDATORY BEST PRACTICE)**:
+> `token-context-mcp` được tối ưu hóa sâu để giảm từ 80% đến 99% lượng token tiêu thụ của AI Agent. Tuy nhiên, nếu Agent gọi tool tùy tiện, đọc mù quáng toàn bộ repo hoặc nhồi lại toàn bộ prompt dài ở mọi lượt chat, hiệu năng sẽ bị suy giảm nghiêm trọng.
+>
+> 📖 **Xem toàn bộ mẫu prompt chuẩn:** [`sample_prompt.md`](sample_prompt.md) (Hỗ trợ Tiếng Việt, English, 简体中文)
+
+### Giao thức 2 giai đoạn chuẩn hóa (Two-Phase Turn Protocol):
+1. **Lượt khởi tạo đầu tiên (Turn 1 - Full Initialization)**:
+   - Sử dụng mẫu prompt đầy đủ tại mục **3.1** (khi có Ollama) hoặc **3.2** (khi dùng CPU thuần) trong [`sample_prompt.md`](sample_prompt.md).
+   - Thiết lập nguyên tắc **MCP-First**: dùng `get_repo_map`, `find_symbols`, `inspect_symbol` để định vị nhanh; chỉ đọc trực tiếp file nguồn khi cần lấy ngữ cảnh chi tiết hoặc khi file nằm ngoài AST. Tuyệt đối không dừng sớm hay tự báo `blocked`.
+2. **Các lượt tiếp theo trong cùng session (Turn 2+ - Lightweight Follow-up)**:
+   - **Tuyệt đối KHÔNG gửi lại toàn bộ prompt dài** làm tràn context window và lãng phí chi phí API.
+   - Sử dụng mẫu prompt siêu gọn tại mục **3.3** trong [`sample_prompt.md`](sample_prompt.md) (~10 dòng): chỉ truyền nhiệm vụ mới, giữ vững nguyên tắc gọi tool định vị và format đầu ra 6 mục chuẩn hóa.
+   - Tiết kiệm hơn **95% token input** ở các lượt sau so với cách làm thông thường!
+
+---
+
 ## 🔒 Cam kết Bảo mật & Ranh giới Hệ thống (Security Boundary)
 
 - **Không thực thi mã tùy tiện**: Server tuyệt đối không chứa endpoint cho phép chạy lệnh shell, bash, eval code từ xa hoặc can thiệp file hệ thống.
@@ -183,6 +201,7 @@ graph TD
 
 ## 📚 Tài liệu tham khảo kỹ thuật
 
+- [`sample_prompt.md`](sample_prompt.md): Mẫu prompt chuẩn đa ngôn ngữ (VI / EN / CN) kèm giao thức tối ưu lượt gọi.
 - [`CHANGELOG.md`](CHANGELOG.md): Lịch sử phiên bản và nhật ký nâng cấp chi tiết.
 - [`docs/progress/RUN_LEDGER_H.md`](docs/progress/RUN_LEDGER_H.md): Sổ nhật ký triển khai DeepSeek Harness & benchmark.
 - [`docs/BENCHMARK.md`](docs/BENCHMARK.md): Phương pháp luận và số đo định vị trên các bộ repo kiểm thử độc lập.

@@ -180,6 +180,24 @@ graph TD
 
 ---
 
+## 💡 性能优化规范与标准提示词约束 (`sample_prompt.md`)
+
+> **实现极致 Token 节省的必备规范 (MANDATORY BEST PRACTICE)**:
+> `token-context-mcp` 在底层架构上为降低 80% 至 99% 的 AI 上下文消耗而专门优化。然而，如果智能体缺乏调用约束、盲目读取全部源文件，或者在每轮对话中机械地重复粘贴冗长的系统提示词，将会严重削弱本项目的性能优势。
+>
+> 📖 **完整提示词指南与模板：** [`sample_prompt.md`](sample_prompt.md)（提供简体中文 / 英语 / 越南语完整对照版本）
+
+### 标准双阶段交互协议 (Two-Phase Turn Protocol):
+1. **首轮初始化交互 (Turn 1 - Full Initialization)**:
+   - 使用 [`sample_prompt.md`](sample_prompt.md) 中第 **3.1** 节（配备本地 Ollama）或第 **3.2** 节（纯 CPU 确定性模式）的完整模板。
+   - 确立 **MCP 优先与源码平滑兜底** 原则：利用 `get_repo_map`、`find_symbols`、`inspect_symbol` 极速定位；遇代码截断或非 AST 配置文件时平滑直读目标文件，绝不擅自卡死在 `blocked` 状态。
+2. **会话后续交互轮次 (Turn 2+ - Lightweight Follow-up)**:
+   - **严禁在后续轮次中无脑重复粘贴全量提示词**，避免造成严重的输入 Token 膨胀与上下文挤占。
+   - 直接使用 [`sample_prompt.md`](sample_prompt.md) 第 **3.3** 节提供的超精简后续提示词模板（仅约 10 行）：仅传入新任务，继承 MCP 定位约束与 6 点标准化输出格式。
+   - 相比全量重放，会话后续轮次的输入 Token 消耗直降 **95% 以上**！
+
+---
+
 ## 🔒 安全边界与隐私承诺 (Security Boundary)
 
 - **杜绝远程代码执行 (No RCE)**：服务器严禁任何 Shell 命令执行、任意路径越界读取或动态 `eval` 调用。
