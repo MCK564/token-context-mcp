@@ -96,6 +96,13 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--baseline", default="B0")
     materials = subparsers.add_parser("release-materials", help="Generate unsigned local SBOM/provenance starter artifacts")
     materials.add_argument("--output", type=Path, required=True)
+    quickstart = subparsers.add_parser("quickstart", help="1-click register, index, and print AI Agent configs")
+    quickstart.add_argument("path", nargs="?", default=".", type=Path, help="Directory of the codebase (default: .)")
+    quickstart.add_argument("--repo-id", help="Repository ID (default: folder name)")
+    quickstart.add_argument("--config", type=Path, default=default_config_path())
+    quickstart.add_argument("--full", action="store_true", help="Ignore existing snapshot and index from scratch")
+    quickstart.add_argument("--serve", action="store_true", help="Start MCP stdio server immediately after indexing")
+    quickstart.add_argument("--gui", action="store_true", help="Launch Desktop GUI controller")
     return parser
 
 
@@ -134,6 +141,8 @@ def main(argv: list[str] | None = None) -> int:
             _emit(report)
         elif args.command == "release-materials":
             _emit({key: str(value) for key, value in write_release_materials(Path.cwd(), args.output).items()})
+        elif args.command == "quickstart":
+            return _run_quickstart(args)
         return 0
     except (ConfigError, ValueError, RuntimeError, OSError) as error:
         logging.getLogger("token_context_mcp").error("%s", error)
@@ -169,6 +178,95 @@ class _NdjsonProgress:
             line["repo_id"] = self._repo_id
         self._stream.write(json.dumps(line, sort_keys=True, default=str) + "\n")
         self._stream.flush()
+
+
+def _run_quickstart(args: argparse.Namespace) -> int:
+    import re
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+    root = args.path.resolve()
+    if not root.exists() or not root.is_dir():
+        sys.stderr.write(f"Error: Directory does not exist: {root}\n")
+        return 1
+
+    repo_id = args.repo_id
+    if not repo_id:
+        repo_id = re.sub(r"[^a-zA-Z0-9_\-]", "-", root.name.lower()).strip("-")
+        if not repo_id:
+            repo_id = "default-repo"
+
+    print("=" * 65)
+    print(" >> Token Context MCP — 1-Click Quickstart Setup")
+    print(f" [+] Repository: {root}")
+    print(f" [+] Repo ID:    {repo_id}")
+    print("=" * 65)
+
+    # 1. Register
+    register_repository(args.config, repo_id, root)
+
+    # 2. Build Index
+    started = time.perf_counter()
+    directory = index_directory(args.config)
+    repository = get_repository(load_config(args.config), repo_id)
+    manifest = build_index(
+        repository,
+        directory,
+        network_policy="declared-deny-not-enforced",
+        full_rebuild=args.full,
+    )
+    elapsed = time.perf_counter() - started
+    files_indexed = manifest.get("files_indexed", 0)
+    symbols_indexed = manifest.get("symbols_indexed", 0)
+    edges_indexed = manifest.get("edges_indexed", 0)
+
+    print(f" [OK] Index completed in {elapsed:.2f}s!")
+    print(f"      - Files indexed:    {files_indexed}")
+    print(f"      - Symbols parsed:   {symbols_indexed}")
+    print(f"      - Dependency edges: {edges_indexed}")
+    print("-" * 65)
+    print(" [*] AI Coding Agent Connection Configs:")
+    print()
+    print(" 1. Claude Code CLI:")
+    print("    claude mcp add --transport stdio --scope user token-context -- uvx token-context-mcp serve")
+    print()
+    print(" 2. Claude Desktop / Cursor Settings:")
+    print("    {")
+    print('      "mcpServers": {')
+    print('        "token-context": {')
+    print('          "command": "uvx",')
+    print('          "args": ["token-context-mcp", "serve"]')
+    print("        }")
+    print("      }")
+    print("    }")
+    print()
+    print(" 3. Antigravity IDE / Gemini CLI:")
+    print("    {")
+    print('      "mcpServers": {')
+    print('        "token-context": {')
+    print('          "command": "uvx",')
+    print('          "args": ["token-context-mcp", "serve", "--output-mode", "text", "--schema-profile", "gemini_safe"]')
+    print("        }")
+    print("      }")
+    print("    }")
+    print("=" * 65)
+
+    if args.gui:
+        from token_context_mcp.gui.main import main as gui_main
+        return gui_main()
+
+    if args.serve:
+        print(f"[*] Starting MCP stdio server for '{repo_id}'...")
+        run_stdio(
+            args.config,
+            enable_admin_tools=False,
+            output_mode=None,
+            schema_profile="auto",
+        )
+    return 0
 
 
 def _index_kwargs(args: argparse.Namespace) -> dict[str, object]:

@@ -1,5 +1,10 @@
 # Token Context MCP (v0.3.4)
 
+[![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > 🌐 English edition: [`README.en.md`](README.en.md) | 📋 Chi tiết thay đổi: [`CHANGELOG.md`](CHANGELOG.md) | 🔬 Báo cáo nghiên cứu: [`DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md`](DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md)
 
 `token-context-mcp` là một **Local Model Context Protocol (MCP) Server** bảo mật, siêu nhẹ, chỉ đọc (read-only), được thiết kế để lập chỉ mục mã nguồn bằng Abstract Syntax Tree (Tree-sitter) và đồ thị phụ thuộc từ vựng. Server cung cấp các gói ngữ cảnh chính xác cao (context packets) giúp các AI Coding Agent (Claude Code, Antigravity, Cursor, Codex) định vị và giải quyết tác vụ mà **tiết kiệm từ 60% đến 90% token**, loại bỏ tình trạng đọc tràn lan toàn bộ kho mã nguồn.

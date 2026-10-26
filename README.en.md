@@ -1,5 +1,10 @@
 # Token Context MCP (v0.3.4)
 
+[![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > 🇻🇳 Vietnamese edition: [`README.md`](README.md) | 📋 Changelog: [`CHANGELOG.md`](CHANGELOG.md) | 🔬 Research Report: [`DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md`](DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md)
 
 `token-context-mcp` is a secure, lightweight, read-only local **Model Context Protocol (MCP)** server that indexes code repositories using Tree-sitter Abstract Syntax Trees (AST) and lexical call graphs. It delivers compact, high-precision context packets to AI Coding Agents (Claude Code, Google Antigravity, Cursor, Codex), **reducing token consumption by 60% to 90%** while eliminating broad, blind repository crawling.
