@@ -48,7 +48,7 @@ token-context-mcp = "token_context_mcp.cli:main"
 token-context-gui = "token_context_mcp.gui.main:main"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src", "README.md", "README.en.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+only-include = ["src", "README.md", "README.en.md", "README.cn.md", "sample_prompt.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/token_context_mcp"]
