@@ -1,189 +1,158 @@
-<!-- mcp-name: io.github.MCK564/token-context-mcp -->
-# Token Context MCP (v0.3.5)
+# MCP Registry
 
-[![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
-[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+The MCP registry provides MCP clients with a list of MCP servers, like an app store for MCP servers.
 
-> 🌐 English: [`README.md`](README.md) | 🇻🇳 Tiếng Việt: [`README.vi.md`](README.vi.md) | 🇨🇳 简体中文: [`README.cn.md`](README.cn.md) | 📝 Prompt Protocol: [`sample_prompt.md`](sample_prompt.md) | 📋 Changelog: [`CHANGELOG.md`](CHANGELOG.md)
+[**📤 Publish my MCP server**](docs/modelcontextprotocol-io/quickstart.mdx) | [**⚡️ Live API docs**](https://registry.modelcontextprotocol.io/docs) | [**👀 Ecosystem vision**](docs/design/ecosystem-vision.md) | 📖 **[Full documentation](./docs)**
 
-> [!NOTE]
-> **Architecture Notice**: The governance microkernel design is inspired by the Cordis paper (*A Programming Paradigm for Spatiotemporal Composability*, arXiv:2608.25512). This is an independent open-source implementation not affiliated with or endorsed by DeepSeek.
+## Development Status
 
-`token-context-mcp` is an on-demand, budget-governed **Model Context Protocol (MCP)** server for autonomous AI coding agents (Claude Code, Cursor, Codex, Google Antigravity). Instead of blindly dumping an entire repository or compressing it into a static snapshot that strips function bodies down to signatures, it provides an **interactive AST-level pull pipeline** that delivers exact code symbols and downstream impact graphs with verified `file:line` + SHA-256 evidence.
+**2025-10-24 update**: The Registry API has entered an **API freeze (v0.1)** 🎉. For the next month or more, the API will remain stable with no breaking changes, allowing integrators to confidently implement support. This freeze applies to v0.1 while development continues on v0. We'll use this period to validate the API in real-world integrations and gather feedback to shape v1 for general availability. Thank you to everyone for your contributions and patience—your involvement has been key to getting us here!
 
----
+**2025-09-08 update**: The registry has launched in preview 🎉 ([announcement blog post](https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/)). While the system is now more stable, this is still a preview release and breaking changes or data resets may occur. A general availability (GA) release will follow later. We'd love your feedback in [GitHub discussions](https://github.com/modelcontextprotocol/registry/discussions/new?category=ideas) or in the [#registry-dev Discord](https://discord.com/channels/1358869848138059966/1369487942862504016) ([joining details here](https://modelcontextprotocol.io/community/communication)).
 
-## 🖼️ Architecture & Benchmark Infographics (2x Retina Dark Green)
+Registry Working Group:
+- **Radoslav (Rado) Dimitrov** (Stacklok) [@rdimitrov](https://github.com/rdimitrov) - WG Lead
+- **Tadas Antanavicius** (PulseMCP) [@tadasant](https://github.com/tadasant)
+- **Bob Dickinson** (TeamSpark) [@BobDickinson](https://github.com/BobDickinson)
+- **Preeti (Pree) Dewani** (Ravenmail) [@pree-dew](https://github.com/pree-dew)
 
-<p align="center">
-  <img src="assets/en/01_hero_strengths_en.png" alt="Core Architectural Pillars & Key Metrics" width="100%" />
-</p>
+## Contributing
+
+We use multiple channels for collaboration - see [modelcontextprotocol.io/community/communication](https://modelcontextprotocol.io/community/communication).
+
+Often (but not always) ideas flow through this pipeline:
+
+- **[Discord](https://modelcontextprotocol.io/community/communication)** - Real-time community discussions
+- **[Discussions](https://github.com/modelcontextprotocol/registry/discussions)** - Propose and discuss product/technical requirements
+- **[Issues](https://github.com/modelcontextprotocol/registry/issues)** - Track well-scoped technical work  
+- **[Pull Requests](https://github.com/modelcontextprotocol/registry/pulls)** - Contribute work towards issues
+
+### Quick start:
+
+#### Pre-requisites
+
+- **Docker**
+- **Go** - version per the `go` directive in [go.mod](./go.mod); the Go toolchain fetches it for you
+- **ko** - Container image builder for Go ([installation instructions](https://ko.build/install/))
+- **golangci-lint** - version per the `golangci-lint-action` pin in [ci.yml](./.github/workflows/ci.yml), so local lint matches CI
+
+#### Running the server
+
+```bash
+# Start full development environment
+make dev-compose
+```
+
+This starts the registry at [`localhost:8080`](http://localhost:8080) with PostgreSQL. The database uses ephemeral storage and is reset each time you restart the containers, ensuring a clean state for development and testing.
+
+**Note:** The registry uses [ko](https://ko.build) to build container images. The `make dev-compose` command automatically builds the registry image with ko and loads it into your local Docker daemon before starting the services.
+
+By default, the registry seeds from the production API with a filtered subset of servers (to keep startup fast). This ensures your local environment mirrors production behavior and all seed data passes validation. For offline development you can seed from a file without validation with `MCP_REGISTRY_SEED_FROM=data/seed.json MCP_REGISTRY_ENABLE_REGISTRY_VALIDATION=false make dev-compose`.
+
+The setup can be configured with environment variables in [docker-compose.yml](./docker-compose.yml) - see [.env.example](./.env.example) for a reference.
 
 <details>
-<summary><b>🔍 View detailed technical architecture & comparison diagrams (Click to expand)</b></summary>
+<summary>Alternative: Running a pre-built Docker image</summary>
 
-### 1. 3-Layer Governance Microkernel & 5-Step Progressive Pull Pipeline
-<p align="center">
-  <img src="assets/en/02_pipeline_architecture_en.png" alt="Governance Microkernel & Progressive Pull Pipeline" width="100%" />
-</p>
+Pre-built Docker images are automatically published to GitHub Container Registry. Note that the image does not bundle PostgreSQL, so you need to run your own and point the registry at it via `MCP_REGISTRY_DATABASE_URL` (see [docker-compose.yml](./docker-compose.yml) for a working example):
 
-### 2. Context Paradigms: Flat Dump vs. Static Pack vs. Interactive MCP Pull
-<p align="center">
-  <img src="assets/en/03_pack_vs_pull_paradigms_en.png" alt="Context Supply Paradigms Comparison" width="100%" />
-</p>
+```bash
+# Run latest stable release
+docker run -p 8080:8080 ghcr.io/modelcontextprotocol/registry:latest
 
-### 3. Empirical Benchmarks: 59-Task Head-to-Head & M10 Equal-Budget Suite
-<p align="center">
-  <img src="assets/en/04_h2h_and_m10_benchmarks_en.png" alt="Empirical Benchmarks: 59-Task H2H and M10 Suite" width="100%" />
-</p>
+# Run latest from main branch (continuous deployment)
+docker run -p 8080:8080 ghcr.io/modelcontextprotocol/registry:main
 
-### 4. 7-Dimension Technical Comparison Matrix (vs. ContextCraft v0.3.2)
-<p align="center">
-  <img src="assets/en/05_comparison_matrix_en.png" alt="7-Dimension Technical Comparison Matrix" width="100%" />
-</p>
+# Run specific release version
+docker run -p 8080:8080 ghcr.io/modelcontextprotocol/registry:v1.0.0
+
+# Run development build from main branch
+docker run -p 8080:8080 ghcr.io/modelcontextprotocol/registry:main-20250906-abc123d
+```
+
+**Available tags:** 
+- **Releases**: `latest`, `v1.0.0`, `v1.1.0`, etc.
+- **Continuous**: `main` (latest main branch build)
+- **Development**: `main-<date>-<sha>` (specific commit builds)
 
 </details>
 
----
+#### Publishing a server
 
-## ⚡ Core Architectural Pillars
+Publishing an MCP server does **not** happen through a pull request to this repository. Adding a `server.json`, a server directory, or an entry in `data/seed.json` will not publish or list your server, even if the PR is merged. Use the `mcp-publisher` CLI from your server's own project instead.
 
-1. **3-Layer Governance Microkernel (`kernel/`)**:
-   - Every request is governed by a lightweight execution pipeline:
-     - **Layer 1 — Clean AST-Boundary Cap**: Enforces `max_response_tokens` at syntactic boundaries without cutting functions in half.
-     - **Layer 2 — Per-Tool Async Timeout Gate**: Prevents runaway hangs on large monorepos (`10s` for `get_repo_map`, `5s` for `search_source`).
-     - **Layer 3 — 150K Session Budget Circuit Breaker**: Emits a telemetry warning at 80% usage and halts runaway loops at **150,000 cumulative tokens** to prevent bill shocks.
-2. **Zero Schema Bloat**:
-   - The default `tools/list` payload exposes **only 10 core read-only retrieval tools** (keeping 10 extension tools and 2 admin tools off the wire until requested). Server-side JSON schemas are slimmed to reduce initial prompt tax.
-3. **Incremental Tree-sitter AST & Persistent SQLite Graph (`index/`)**:
-   - Fast `mtime_ns` + SHA-256 change detection across **Python, JavaScript/TypeScript, Go, Rust, Java, C/C++**, and C# with symlink-escape and path traversal guards.
+To publish a server, we've built a simple CLI. You can use it with:
 
----
-
-## 📊 Empirical Benchmarks (`tiktoken o200k_base` Audited)
-
-All numbers are measured using OpenAI's `o200k_base` tokenizer across two real-world open-source repositories: `rich` (Python, 213 files, 507k tokens) and `fastify` (JS/TS, 291 files, 538k tokens):
-
-| Benchmark Suite | Metric | token-context-mcp | Baseline / Alternative | Empirical Takeaway |
-| :--- | :--- | :---: | :---: | :--- |
-| **59-Task Head-to-Head** (Equal budget: ~7.6k tokens) | Target function in context with **Full Body** ($\ge 90\%$ lines) | **33 / 59 (55.9%)** | 2 / 59 (3.4%) *(ContextCraft 8k `--focus`)* | **16.5× more full function bodies** at equal token budget |
-| **59-Task H2H (Sensitivity)** (vs. 4× static budget: 32k tokens) | Full Body vs. Signature Only | **33 / 59 Full Body** (at 7.6k) | 6 / 59 Full Body, **40 / 59 (67.8%) Signature Only** *(ContextCraft 32k)* | Static packing prunes bodies to signatures to fit whole-repo maps; interactive MCP pull focuses 100% of budget on the target symbol |
-| **M10 Equal-Budget Suite** (`rich`, n=30, ~1.9k tokens) | File Recall & Symbol Recall (95% Bootstrap CI) | **0.90** File Recall<br/>**0.54** Symbol Recall | 0.57 File Recall<br/>0.10 Symbol Recall *(Truncated Grep)* | **+58% file recall**, **5.4× symbol recall** over truncated grep at identical token cost |
-| **C1 Single-Call Cost** (`fastify` 538k source baseline) | Orientation map `get_repo_map@512` | **682 tokens** | 538,799 tokens (raw source files) | Compact repo map occupies **0.13%** of the repository (~790× smaller) |
-
----
-
-## 🚀 Quick Start
-
-### Option 1: Run instantly with `uvx` (Recommended)
 ```bash
-# Register, index, and print agent config for the current directory
-uvx token-context-mcp quickstart .
+# Build the latest CLI
+make publisher
+
+# Use it!
+./bin/mcp-publisher --help
 ```
 
-### Option 2: Install via `pip`
+See [the publisher guide](./docs/modelcontextprotocol-io/quickstart.mdx) for more details.
+
+#### Other commands
+
 ```bash
-pip install token-context-mcp
-
-# Register a codebase and launch server
-token-context register --repo-id my-project --root /path/to/project
-token-context index --repo-id my-project
-token-context serve
+# Run lint, schema validation, and all tests
+# Note: this also runs `make dev-down`, stopping any running dev-compose environment
+make check
 ```
 
-### Desktop GUI Controller (PySide6)
-Includes hardware telemetry, CPU/RAM monitoring, and repository status overview:
-```bash
-uvx --from "token-context-mcp[gui]" token-context-gui
+There are also a few more helpful commands for development. Run `make help` to learn more, or look in [Makefile](./Makefile).
+
+<!--
+For Claude and other AI tools: Always prefer make targets over custom commands where possible.
+-->
+
+## Architecture
+
+### Project Structure
+
+```
+├── cmd/                     # Application entry points
+│   ├── publisher/           # Server publishing tool
+│   └── registry/            # Registry API server
+├── data/                    # Seed data
+├── deploy/                  # Deployment configuration (Pulumi)
+├── docs/                    # Documentation
+├── internal/                # Private application code
+│   ├── api/                 # HTTP handlers and routing
+│   ├── auth/                # Authentication (GitHub OAuth, JWT, namespace blocking)
+│   ├── config/              # Configuration management
+│   ├── database/            # Data persistence (PostgreSQL)
+│   ├── importer/            # Seed data import
+│   ├── service/             # Business logic
+│   ├── telemetry/           # Metrics and monitoring
+│   └── validators/          # Input validation
+├── pkg/                     # Public packages
+│   ├── api/                 # API types and structures
+│   │   └── v0/              # Version 0 API types
+│   └── model/               # Data models for server.json
+├── scripts/                 # Development and testing scripts
+├── tests/                   # Integration tests
+└── tools/                   # CLI tools and utilities
+    └── validate-*.sh        # Schema validation tools
 ```
 
----
+### Authentication
 
-## 🤖 Coding Agent Setup
+Publishing supports multiple authentication methods:
+- **GitHub OAuth** - For publishing by logging into GitHub
+- **GitHub OIDC** - For publishing from GitHub Actions
+- **DNS verification** - For proving ownership of a domain and its subdomains
+- **HTTP verification** - For proving ownership of a domain
 
-`token-context-mcp` communicates over local `stdio`. Add the configuration below to your agent:
+The registry validates namespace ownership when publishing. E.g. to publish...:
+- `io.github.domdomegg/my-cool-mcp` you must login to GitHub as `domdomegg`, or be in a GitHub Action on domdomegg's repos
+- `me.adamjones/my-cool-mcp` you must prove ownership of `adamjones.me` via DNS or HTTP challenge
 
-### 1. Claude Code
-```bash
-claude mcp add --transport stdio --scope user token-context -- uvx token-context-mcp serve
-```
+## Community Projects
 
-### 2. Cursor
-In Cursor Settings > Features > MCP Servers:
-- **Name**: `token-context`
-- **Type**: `command`
-- **Command**: `uvx token-context-mcp serve`
+Check out [community projects](docs/community-projects.md) to explore notable registry-related work created by the community.
 
-### 3. Claude Desktop
-Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux):
-```json
-{
-  "mcpServers": {
-    "token-context": {
-      "command": "uvx",
-      "args": ["token-context-mcp", "serve"]
-    }
-  }
-}
-```
+## More documentation
 
-### 4. Google Antigravity IDE / Gemini CLI
-Add to `mcp_config.json`:
-```json
-{
-  "mcpServers": {
-    "token-context": {
-      "command": "uvx",
-      "args": [
-        "token-context-mcp",
-        "serve",
-        "--output-mode", "text",
-        "--schema-profile", "gemini_safe"
-      ]
-    }
-  }
-}
-```
-
----
-
-## 🛠 Tool Reference Catalog (10 Default Core Tools)
-
-By default, the server exposes **10 read-only retrieval tools** to preserve agent context:
-
-| Tool | Primary Purpose | Mode |
-| :--- | :--- | :---: |
-| `list_repositories` | Lists registered `repo_id`s (filesystem root paths are never leaked). | Read-only |
-| `get_index_status` | Returns snapshot metadata, indexed file count, commit SHA, and freshness. | Read-only |
-| `get_repo_map` | PageRank-based symbol hierarchy within a token budget (`@512`). | Read-only |
-| `find_symbols` | Pattern-based symbol matching (`*`, `?` wildcards) with file coordinates. | Read-only |
-| `search_source` | FTS5 code search returning matched lines and enclosing symbol spans. | Read-only |
-| `get_file_skeleton` | File outline (imports, class/function signatures with elided bodies). | Read-only |
-| `get_symbol_context` | Full function/class body, docstrings, and callers/callees (`@1024`). | Read-only |
-| `get_impact_slice` | Traverses downstream call graph dependencies before making changes (`depth=2`). | Read-only |
-| `get_module_dependents` | Tree-sitter import dependency graph between modules. | Read-only |
-| `inspect_symbol` | Composite lookup: symbol resolution + full context + 1-hop impact graph. | Read-only |
-
-*(10 extension tools including SQLite multi-agent memory `memory_*`, lazy tool discovery `*_tools`, hardware-adaptive compressor `sample_summarize`, and 2 admin tools `agent_control`, `audit_logs` can be enabled via configuration).*
-
----
-
-## 🔒 Security Guarantees & Privacy
-
-- **No Remote Code Execution (RCE)**: No tool can execute shell commands, eval code, or modify repository source files.
-- **100% Local & Private**: All SQLite WAL indexes remain on your machine; zero cloud telemetry or external API calls.
-- **Automatic Secret Redaction**: Regex-based redaction of API keys, tokens, and private keys (`[REDACTED: potential secret]`) plus hard denial of sensitive files (`.env*`, `.ssh`, `*.pem`, `id_rsa`).
-
----
-
-## 📚 Technical Documentation
-
-- [`sample_prompt.md`](sample_prompt.md): Standard two-phase prompt templates (EN / VI / CN).
-- [`CHANGELOG.md`](CHANGELOG.md): Release history and upgrade notes.
-- [`launch/00_fact_sheet.md`](launch/00_fact_sheet.md): Verified empirical benchmarks and measurement methodologies.
-- [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md): Step-by-step MCP client verification matrix.
-
----
-*Maintained by the Token Context MCP community. Licensed under MIT.*
+See the [documentation](./docs) for more details if your question has not been answered here!
