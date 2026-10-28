@@ -7,20 +7,26 @@ on:
 
 permissions:
   contents: write
+  id-token: write # Required for PyPI Trusted Publishing (OIDC)
 
 jobs:
   build-and-publish:
-    name: Build and attach wheel
+    name: Build, Release and Publish to PyPI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - run: uv build
+
+      - name: Build sdist and wheel
+        run: uv build
+
       - name: Attach CI-built wheel to the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -32,3 +38,6 @@ jobs:
             echo "Creating release $GITHUB_REF_NAME..."
             gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md
           fi
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -4,12 +4,33 @@ build-backend = "hatchling.build"
 
 [project]
 name = "token-context-mcp"
-version = "0.3.4"
-description = "Read-only, local code-context MCP server with provenance-aware retrieval."
+version = "0.3.5"
+description = "On-demand, local code-context MCP server for AI coding agents with Tree-sitter AST & provenance-aware retrieval."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Token Context MCP contributors" }]
+keywords = [
+  "mcp",
+  "model-context-protocol",
+  "ai-coding-agent",
+  "code-context",
+  "tree-sitter",
+  "ast",
+  "claude-code",
+  "cursor",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
   "mcp>=2.0,<3",
   "mcp-types>=2.0,<3",
@@ -42,13 +63,20 @@ gui = [
   "pyinstaller>=6.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/MCK564/token-context-mcp"
+Repository = "https://github.com/MCK564/token-context-mcp"
+Documentation = "https://github.com/MCK564/token-context-mcp#readme"
+Issues = "https://github.com/MCK564/token-context-mcp/issues"
+Changelog = "https://github.com/MCK564/token-context-mcp/blob/main/CHANGELOG.md"
+
 [project.scripts]
 token-context = "token_context_mcp.cli:main"
 token-context-mcp = "token_context_mcp.cli:main"
 token-context-gui = "token_context_mcp.gui.main:main"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src", "README.md", "README.en.md", "README.cn.md", "sample_prompt.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+only-include = ["src", "README.md", "README.en.md", "README.vi.md", "README.cn.md", "sample_prompt.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/token_context_mcp"]

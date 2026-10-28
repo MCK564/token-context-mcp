@@ -33,3 +33,6 @@ evals/runs/
 /docs/INTEGRATION.md
 /docs/PIPELINE_EXPLAINED*.md
 /tmp/
+
+# Launch campaign drafts and private notes (not published)
+/launch/

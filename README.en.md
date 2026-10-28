@@ -1,111 +1,144 @@
-# Token Context MCP (v0.3.4)
+<!-- mcp-name: io.github.MCK564/token-context-mcp -->
+# Token Context MCP (v0.3.5)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🇻🇳 Vietnamese edition: [`README.md`](README.md) | 🇨🇳 简体中文: [`README.cn.md`](README.cn.md) | 📝 Prompt Templates: [`sample_prompt.md`](sample_prompt.md) | 📋 Changelog: [`CHANGELOG.md`](CHANGELOG.md) | 🔬 Research Report: [`DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md`](DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md)
+> 🌐 English: [`README.md`](README.md) | 🇻🇳 Tiếng Việt: [`README.vi.md`](README.vi.md) | 🇨🇳 简体中文: [`README.cn.md`](README.cn.md) | 📝 Prompt Protocol: [`sample_prompt.md`](sample_prompt.md) | 📋 Changelog: [`CHANGELOG.md`](CHANGELOG.md)
 
-`token-context-mcp` is a secure, lightweight, read-only local **Model Context Protocol (MCP)** server that indexes code repositories using Tree-sitter Abstract Syntax Trees (AST) and lexical call graphs. It delivers compact, high-precision context packets to AI Coding Agents (Claude Code, Google Antigravity, Cursor, Codex), **reducing token consumption by 60% to 90%** while eliminating broad, blind repository crawling.
+> [!NOTE]
+> **Architecture Notice**: The governance microkernel design is inspired by the Cordis paper (*A Programming Paradigm for Spatiotemporal Composability*, arXiv:2608.25512). This is an independent open-source implementation not affiliated with or endorsed by DeepSeek.
 
-Starting with **v0.3.4**, the project adopts the **DeepSeek Harness & Cordis Framework** ("*Everything is a Plugin*") architecture with a unified middleware waterfall, declarative context batching, and decoupled provider seams.
-
----
-
-## ⚡ Highlights in Version 0.3.4 (DeepSeek Harness & Cordis Architecture)
-
-1. **Cordis Kernel & Unified Middleware Waterfall (`kernel/`)**:
-   - Centralized execution flow through `InvocationContext`, carrying caller identity, reversible effect logs (`EffectRecord`), and async context propagation via `contextvars`.
-   - Unified stage pipeline: `AuthMiddleware` (identity & env-bound checks) ➔ `GovernanceMiddleware` (policy enforcement, emergency halt, rate limits) ➔ `ExecutionMiddleware` (domain error formatting).
-   - Internal dispatch overhead is merely **0.0109 ms/call** (>91,000 calls/sec).
-2. **Declarative Context Batching (`retrieve/batch.py`)**:
-   - Enables agents to execute multi-step context retrieval workflows (e.g. `find_symbols` ➔ `get_symbol_context`) in a **single turn**, eliminating roundtrip communication overhead.
-   - Supports dynamic reference templating: `"$prev.data.symbols[0].symbol_id"`.
-   - Strictly enforces read-only invariants: mutating operations are completely rejected.
-3. **AST Byte-Span Body Elision (`sampling/skeleton_hybrid.py`)**:
-   - Replaced regex line splitting with exact Tree-sitter AST byte coordinates (`body_start_byte`/`body_end_byte`) across Python, Java, TypeScript, C#, and Go.
-   - Preserves 100% of header/signature syntax, imports, and class declarations while cleanly eliding irrelevant method bodies.
-4. **Reasoning Model Compatibility (`sampling/router.py`)**:
-   - Automatically sanitizes `<think>...</think>` tags from reasoning LLMs (DeepSeek R1, Qwen-QwQ) prior to Pydantic JSON parsing, preventing schema validation failures.
-5. **Custom TOML Section Roundtrip Preservation (`config.py`)**:
-   - `AppConfig.extra` ensures non-standard tables like `[plugins]` and `[harness]` are preserved across repository registration and update operations.
-6. **SCIP Oracle & Static Type Inference (merged from `m14`)**:
-   - Incorporates SCIP ground truth evaluation, static type inference, `await` unwrapping, and constructor chaining for Java and C#.
+`token-context-mcp` is an on-demand, budget-governed **Model Context Protocol (MCP)** server for autonomous AI coding agents (Claude Code, Cursor, Codex, Google Antigravity). Instead of blindly dumping an entire repository or compressing it into a static snapshot that strips function bodies down to signatures, it provides an **interactive AST-level pull pipeline** that delivers exact code symbols and downstream impact graphs with verified `file:line` + SHA-256 evidence.
 
 ---
 
-## 🚀 Quick Start (5 minutes)
+## 🖼️ Architecture & Benchmark Infographics (2x Retina Dark Green)
 
-### Prerequisites
-- **Python 3.12+** and **`uv`** package manager ([Install uv](https://astral.sh/uv)).
+<p align="center">
+  <img src="assets/en/01_hero_strengths_en.png" alt="Core Architectural Pillars & Key Metrics" width="100%" />
+</p>
 
-```powershell
-# 1. Clone repository and install dependencies
-git clone https://github.com/your-org/token-context-mcp.git
-cd token-context-mcp
-uv sync --all-extras
+<details>
+<summary><b>🔍 View detailed technical architecture & comparison diagrams (Click to expand)</b></summary>
 
-# 2. Register your target repository
-uv run token-context register --repo-id my-project --root D:\Work\my-project
+### 1. 3-Layer Governance Microkernel & 5-Step Progressive Pull Pipeline
+<p align="center">
+  <img src="assets/en/02_pipeline_architecture_en.png" alt="Governance Microkernel & Progressive Pull Pipeline" width="100%" />
+</p>
 
-# 3. Build initial atomic index
-uv run token-context index --repo-id my-project
+### 2. Context Paradigms: Flat Dump vs. Static Pack vs. Interactive MCP Pull
+<p align="center">
+  <img src="assets/en/03_pack_vs_pull_paradigms_en.png" alt="Context Supply Paradigms Comparison" width="100%" />
+</p>
 
-# 4. Check index health & freshness
-uv run token-context status --repo-id my-project
+### 3. Empirical Benchmarks: 59-Task Head-to-Head & M10 Equal-Budget Suite
+<p align="center">
+  <img src="assets/en/04_h2h_and_m10_benchmarks_en.png" alt="Empirical Benchmarks: 59-Task H2H and M10 Suite" width="100%" />
+</p>
 
-# 5. Start MCP stdio server
-uv run token-context serve
+### 4. 7-Dimension Technical Comparison Matrix (vs. ContextCraft v0.3.2)
+<p align="center">
+  <img src="assets/en/05_comparison_matrix_en.png" alt="7-Dimension Technical Comparison Matrix" width="100%" />
+</p>
+
+</details>
+
+---
+
+## ⚡ Core Architectural Pillars
+
+1. **3-Layer Governance Microkernel (`kernel/`)**:
+   - Every request is governed by a lightweight execution pipeline:
+     - **Layer 1 — Clean AST-Boundary Cap**: Enforces `max_response_tokens` at syntactic boundaries without cutting functions in half.
+     - **Layer 2 — Per-Tool Async Timeout Gate**: Prevents runaway hangs on large monorepos (`10s` for `get_repo_map`, `5s` for `search_source`).
+     - **Layer 3 — 150K Session Budget Circuit Breaker**: Emits a telemetry warning at 80% usage and halts runaway loops at **150,000 cumulative tokens** to prevent bill shocks.
+2. **Zero Schema Bloat**:
+   - The default `tools/list` payload exposes **only 10 core read-only retrieval tools** (keeping 10 extension tools and 2 admin tools off the wire until requested). Server-side JSON schemas are slimmed to reduce initial prompt tax.
+3. **Incremental Tree-sitter AST & Persistent SQLite Graph (`index/`)**:
+   - Fast `mtime_ns` + SHA-256 change detection across **Python, JavaScript/TypeScript, Go, Rust, Java, C/C++**, and C# with symlink-escape and path traversal guards.
+
+---
+
+## 📊 Empirical Benchmarks (`tiktoken o200k_base` Audited)
+
+All numbers are measured using OpenAI's `o200k_base` tokenizer across two real-world open-source repositories: `rich` (Python, 213 files, 507k tokens) and `fastify` (JS/TS, 291 files, 538k tokens):
+
+| Benchmark Suite | Metric | token-context-mcp | Baseline / Alternative | Empirical Takeaway |
+| :--- | :--- | :---: | :---: | :--- |
+| **59-Task Head-to-Head** (Equal budget: ~7.6k tokens) | Target function in context with **Full Body** ($\ge 90\%$ lines) | **33 / 59 (55.9%)** | 2 / 59 (3.4%) *(ContextCraft 8k `--focus`)* | **16.5× more full function bodies** at equal token budget |
+| **59-Task H2H (Sensitivity)** (vs. 4× static budget: 32k tokens) | Full Body vs. Signature Only | **33 / 59 Full Body** (at 7.6k) | 6 / 59 Full Body, **40 / 59 (67.8%) Signature Only** *(ContextCraft 32k)* | Static packing prunes bodies to signatures to fit whole-repo maps; interactive MCP pull focuses 100% of budget on the target symbol |
+| **M10 Equal-Budget Suite** (`rich`, n=30, ~1.9k tokens) | File Recall & Symbol Recall (95% Bootstrap CI) | **0.90** File Recall<br/>**0.54** Symbol Recall | 0.57 File Recall<br/>0.10 Symbol Recall *(Truncated Grep)* | **+58% file recall**, **5.4× symbol recall** over truncated grep at identical token cost |
+| **C1 Single-Call Cost** (`fastify` 538k source baseline) | Orientation map `get_repo_map@512` | **682 tokens** | 538,799 tokens (raw source files) | Compact repo map occupies **0.13%** of the repository (~790× smaller) |
+
+---
+
+## 🚀 Quick Start
+
+### Option 1: Run instantly with `uvx` (Recommended)
+```bash
+# Register, index, and print agent config for the current directory
+uvx token-context-mcp quickstart .
+```
+
+### Option 2: Install via `pip`
+```bash
+pip install token-context-mcp
+
+# Register a codebase and launch server
+token-context register --repo-id my-project --root /path/to/project
+token-context index --repo-id my-project
+token-context serve
 ```
 
 ### Desktop GUI Controller (PySide6)
-Includes a modern desktop GUI featuring live CPU/RAM telemetry, visual repository management, call graph visualization, and agent security controls:
-```powershell
-uv run token-context-gui
-# Or run 1-click launcher on Windows:
-.\scripts\launch_desktop_gui.bat
+Includes hardware telemetry, CPU/RAM monitoring, and repository status overview:
+```bash
+uvx --from "token-context-mcp[gui]" token-context-gui
 ```
 
 ---
 
-## 🤖 Coding Agent Client Configuration
+## 🤖 Coding Agent Setup
 
-`token-context-mcp` communicates over local `stdio`. Add the appropriate snippet to your tool's MCP configuration:
+`token-context-mcp` communicates over local `stdio`. Add the configuration below to your agent:
 
-### 1. Claude Code / Claude Desktop
+### 1. Claude Code
+```bash
+claude mcp add --transport stdio --scope user token-context -- uvx token-context-mcp serve
+```
+
+### 2. Cursor
+In Cursor Settings > Features > MCP Servers:
+- **Name**: `token-context`
+- **Type**: `command`
+- **Command**: `uvx token-context-mcp serve`
+
+### 3. Claude Desktop
 Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux):
 ```json
 {
   "mcpServers": {
     "token-context": {
-      "command": "uv",
-      "args": [
-        "run", "--no-sync",
-        "--directory", "D:\\AI\\token-context-mcp",
-        "python", "-m", "token_context_mcp.cli", "serve",
-        "--transport", "stdio"
-      ]
+      "command": "uvx",
+      "args": ["token-context-mcp", "serve"]
     }
   }
 }
 ```
-*Or via Claude Code CLI:*
-```powershell
-claude mcp add --transport stdio --scope user token-context -- uv run --no-sync --directory D:\AI\token-context-mcp python -m token_context_mcp.cli serve --transport stdio
-```
 
-### 2. Google Antigravity IDE & Gemini CLI
+### 4. Google Antigravity IDE / Gemini CLI
 Add to `mcp_config.json`:
 ```json
 {
   "mcpServers": {
     "token-context": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "run", "--no-sync",
-        "--directory", "D:\\AI\\token-context-mcp",
-        "token-context", "serve",
+        "token-context-mcp",
+        "serve",
         "--output-mode", "text",
         "--schema-profile", "gemini_safe"
       ]
@@ -113,100 +146,44 @@ Add to `mcp_config.json`:
   }
 }
 ```
-> **Tip**: Flags `--output-mode text` and `--schema-profile gemini_safe` ensure Gemini models receive complete, uncollapsed arrays and strictly typed inputs.
-
-### 3. OpenAI Codex & Cursor
-Add to `%USERPROFILE%\.codex\config.toml` or Cursor MCP settings:
-```toml
-[mcp_servers.token-context]
-command = "uv"
-args = ["run", "--no-sync", "--directory", "D:\\AI\\token-context-mcp", "python", "-m", "token_context_mcp.cli", "serve", "--transport", "stdio"]
-```
 
 ---
 
-## 🛠 Tool Reference Catalog
+## 🛠 Tool Reference Catalog (10 Default Core Tools)
 
-The system provides **22 structured tools** grouped into 4 functional tiers:
+By default, the server exposes **10 read-only retrieval tools** to preserve agent context:
 
-```mermaid
-graph TD
-    CLIENT["AI Coding Agent (Claude, Antigravity, Cursor)"] --> MCP["token-context MCP Server"]
-    subgraph Kernel ["Cordis Kernel Waterfall"]
-        MCP --> AUTH["AuthMiddleware"]
-        AUTH --> GOV["GovernanceMiddleware"]
-        GOV --> EXEC["ExecutionMiddleware"]
-    end
-    subgraph Registry ["Single ToolSpec Registry"]
-        EXEC --> RETRIEVAL["1. Core Retrieval (10 tools)"]
-        EXEC --> DISCOVERY["2. Tool Discovery (3 tools)"]
-        EXEC --> MEMORY["3. State & Memory (6 tools)"]
-        EXEC --> GOV_TOOLS["4. Governance & Sampling (3 tools)"]
-    end
-```
+| Tool | Primary Purpose | Mode |
+| :--- | :--- | :---: |
+| `list_repositories` | Lists registered `repo_id`s (filesystem root paths are never leaked). | Read-only |
+| `get_index_status` | Returns snapshot metadata, indexed file count, commit SHA, and freshness. | Read-only |
+| `get_repo_map` | PageRank-based symbol hierarchy within a token budget (`@512`). | Read-only |
+| `find_symbols` | Pattern-based symbol matching (`*`, `?` wildcards) with file coordinates. | Read-only |
+| `search_source` | FTS5 code search returning matched lines and enclosing symbol spans. | Read-only |
+| `get_file_skeleton` | File outline (imports, class/function signatures with elided bodies). | Read-only |
+| `get_symbol_context` | Full function/class body, docstrings, and callers/callees (`@1024`). | Read-only |
+| `get_impact_slice` | Traverses downstream call graph dependencies before making changes (`depth=2`). | Read-only |
+| `get_module_dependents` | Tree-sitter import dependency graph between modules. | Read-only |
+| `inspect_symbol` | Composite lookup: symbol resolution + full context + 1-hop impact graph. | Read-only |
 
-| Group | Tool | Description | Access Mode |
-| :--- | :--- | :--- | :---: |
-| **Core Retrieval** *(10 tools)* | `list_repositories` | Lists registered `repo_id`s (filesystem roots are never exposed). | Read-only |
-| | `get_index_status` | Snapshot metadata, commit SHA, freshness, and ambiguous edge rate. | Read-only |
-| | `get_repo_map` | PageRank-based definitions map within a token budget. | Read-only |
-| | `find_symbols` | Pattern-based symbol matching (`*`, `?` wildcards) with span metadata. | Read-only |
-| | `search_source` | FTS5 code search returning line spans and enclosing symbols. | Read-only |
-| | `get_file_skeleton` | File outline (imports, class/function signatures) with elided bodies (~95% token savings). | Read-only |
-| | `get_symbol_context` | Full symbol body, docstrings, and callers/callees. | Read-only |
-| | `get_impact_slice` | Blast-radius candidate traversal filtered by confidence. | Read-only |
-| | `get_module_dependents` | Tree-sitter import dependency relationships. | Read-only |
-| | `inspect_symbol` | Composite workflow: candidate resolution + definition context + 1-hop impact (~81% prompt replay token savings). | Read-only |
-| **Tool Discovery** *(3 tools)* | `list_available_tools` | Compact tool catalog without bulky schemas (prevents context tax). | Discovery |
-| | `search_tools` | Keyword-based tool search by intent. | Discovery |
-| | `get_tool_schema` | On-demand parameter schema retrieval for specific tools. | Discovery |
-| **State & Memory** *(6 tools)* | `memory_put` | Stores multi-agent artifacts and state checkpoints in SQLite. | Mutating |
-| | `memory_get` | Reads state by key or session ID. | Read-only |
-| | `memory_search` | FTS5 text search over stored memories by namespace. | Read-only |
-| | `memory_lock` | Soft-mutex lock with TTL to prevent multi-agent race conditions. | Mutating |
-| | `memory_unlock` | Releases mutex lock under verified agent identity. | Mutating |
-| | `memory_consolidate` | Deduplicates and prunes stale memories in a namespace. | Mutating |
-| **Governance & Sampling** *(3 tools)* | `sample_summarize` | Hardware-adaptive code compression (Ollama 7B or heuristic CPU fallback). | Inference |
-| | `agent_control` | Control plane: pause, resume, block, or emergency halt agents. | Admin |
-| | `audit_logs` | Security, latency, and authorization audit trail (SQLite WAL). | Admin Query |
+*(10 extension tools including SQLite multi-agent memory `memory_*`, lazy tool discovery `*_tools`, hardware-adaptive compressor `sample_summarize`, and 2 admin tools `agent_control`, `audit_logs` can be enabled via configuration).*
 
 ---
 
-## 💡 Performance Optimization & Standard Prompt Protocol (`sample_prompt.md`)
+## 🔒 Security Guarantees & Privacy
 
-> **MANDATORY BEST PRACTICE FOR MAXIMUM TOKEN SAVINGS**:
-> `token-context-mcp` is engineered to eliminate 80%–99% of context token overhead. However, if an agent queries the codebase blindly, attempts full-repo scans, or blindly replays massive prompts on every turn, token efficiency is severely degraded.
->
-> 📖 **Full Guide & Templates:** [`sample_prompt.md`](sample_prompt.md) (Available in English, Vietnamese, and Chinese)
-
-### Two-Phase Prompt Protocol:
-1. **Turn 1: Initial Session Setup (Full Initialization)**:
-   - Use the complete prompt template from Section **3.1** (local LLM/Ollama) or Section **3.2** (pure CPU / deterministic) in [`sample_prompt.md`](sample_prompt.md).
-   - Establishes the **MCP-First & Graceful Fallback** principle: locate via `get_repo_map`, `find_symbols`, and `inspect_symbol`; seamlessly read target files directly when inspecting configs, truncated bodies, or unindexed files without stalling in a `blocked` state.
-2. **Turn 2+: Subsequent Turns (Lightweight Follow-up)**:
-   - **NEVER blindly re-send the full system prompt** in subsequent turns within the same session. Replaying the full prompt needlessly inflates input token costs and crowds the context window.
-   - Use the compact follow-up template in Section **3.3** of [`sample_prompt.md`](sample_prompt.md) (~10 lines): injects the new task while reaffirming tool navigation constraints and the 6-point standardized output format.
-   - Cuts follow-up prompt input tokens by over **95%**!
-
----
-
-## 🔒 Security Boundary & Guarantees
-
-- **No Remote Code Execution (RCE)**: The server strictly disallows arbitrary shell command execution, arbitrary path reads, or dynamic eval.
-- **Access Control Plane**: `admin` identity is reserved and strictly protected; standard agent identities operate under `READ_ONLY` or `CUSTOM` policy enforcement.
-- **Local Privacy**: Snapshots and SQLite registries are stored locally with strict file permissions (`0700` directories, `0600` files on POSIX / ACL restrictions on Windows).
-- **Prompt Injection Defense**: Repository content is delimited in guarded tags (`<<<SOURCE_CODE_START>>>` / `<<<SOURCE_CODE_END>>>`) and scanned for prompt injection attacks.
+- **No Remote Code Execution (RCE)**: No tool can execute shell commands, eval code, or modify repository source files.
+- **100% Local & Private**: All SQLite WAL indexes remain on your machine; zero cloud telemetry or external API calls.
+- **Automatic Secret Redaction**: Regex-based redaction of API keys, tokens, and private keys (`[REDACTED: potential secret]`) plus hard denial of sensitive files (`.env*`, `.ssh`, `*.pem`, `id_rsa`).
 
 ---
 
 ## 📚 Technical Documentation
 
-- [`sample_prompt.md`](sample_prompt.md): Standard multi-language agent prompt templates (EN / VI / CN) with two-phase protocol.
-- [`CHANGELOG.md`](CHANGELOG.md): Comprehensive release history and upgrade guide.
-- [`docs/progress/RUN_LEDGER_H.md`](docs/progress/RUN_LEDGER_H.md): DeepSeek Harness implementation ledger & benchmarks.
-- [`docs/BENCHMARK.md`](docs/BENCHMARK.md): Retrieval quality benchmarks on held-out repositories.
-- [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md): Guidance and templates for token-efficient prompts.
-- [`docs/SECURITY_ASSURANCE.md`](docs/SECURITY_ASSURANCE.md): Complete security assurance documentation.
+- [`sample_prompt.md`](sample_prompt.md): Standard two-phase prompt templates (EN / VI / CN).
+- [`CHANGELOG.md`](CHANGELOG.md): Release history and upgrade notes.
+- [`launch/00_fact_sheet.md`](launch/00_fact_sheet.md): Verified empirical benchmarks and measurement methodologies.
+- [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md): Step-by-step MCP client verification matrix.
 
 ---
 *Maintained by the Token Context MCP community. Licensed under MIT.*

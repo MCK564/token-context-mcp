@@ -1,111 +1,144 @@
-# Token Context MCP (v0.3.4)
+<!-- mcp-name: io.github.MCK564/token-context-mcp -->
+# Token Context MCP (v0.3.5)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 🌐 English edition: [`README.en.md`](README.en.md) | 🇨🇳 简体中文: [`README.cn.md`](README.cn.md) | 📝 Mẫu Prompt: [`sample_prompt.md`](sample_prompt.md) | 📋 Chi tiết thay đổi: [`CHANGELOG.md`](CHANGELOG.md) | 🔬 Báo cáo nghiên cứu: [`DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md`](DEEP_RESEARCH_MCP_AND_HARNESS_REPORT.md)
+> 🌐 English: [`README.md`](README.md) | 🇻🇳 Tiếng Việt: [`README.vi.md`](README.vi.md) | 🇨🇳 简体中文: [`README.cn.md`](README.cn.md) | 📝 Prompt Protocol: [`sample_prompt.md`](sample_prompt.md) | 📋 Changelog: [`CHANGELOG.md`](CHANGELOG.md)
 
-`token-context-mcp` là một **Local Model Context Protocol (MCP) Server** bảo mật, siêu nhẹ, chỉ đọc (read-only), được thiết kế để lập chỉ mục mã nguồn bằng Abstract Syntax Tree (Tree-sitter) và đồ thị phụ thuộc từ vựng. Server cung cấp các gói ngữ cảnh chính xác cao (context packets) giúp các AI Coding Agent (Claude Code, Antigravity, Cursor, Codex) định vị và giải quyết tác vụ mà **tiết kiệm từ 60% đến 90% token**, loại bỏ tình trạng đọc tràn lan toàn bộ kho mã nguồn.
+> [!NOTE]
+> **Architecture Notice**: The governance microkernel design is inspired by the Cordis paper (*A Programming Paradigm for Spatiotemporal Composability*, arXiv:2608.25512). This is an independent open-source implementation not affiliated with or endorsed by DeepSeek.
 
-Từ phiên bản **v0.3.4**, dự án chính thức áp dụng kiến trúc **DeepSeek Harness & Cordis Framework** ("*Everything is a Plugin*") với Middleware Waterfall hợp nhất, Context Batching khai báo và Provider Seams.
-
----
-
-## ⚡ Điểm mới nổi bật ở phiên bản 0.3.4 (DeepSeek Harness & Cordis Architecture)
-
-1. **Kiến trúc Nhân Cordis & Thác Middleware Thống Nhất (`kernel/`)**:
-   - Toàn bộ luồng thực thi chuyển sang `InvocationContext` mang đầy đủ danh tính agent, nhật ký hiệu ứng khả nghịch (`EffectRecord`), và lan truyền ngữ cảnh qua `contextvars`.
-   - Chuỗi middleware xử lý tuần tự: `AuthMiddleware` (xác thực danh tính) ➔ `GovernanceMiddleware` (kiểm soát quyền, rate limit, dừng khẩn cấp) ➔ `ExecutionMiddleware` (bắt và dịch lỗi chuẩn hóa).
-   - Độ trễ điều phối nội bộ chỉ **0.0109 ms/call** (>91.000 calls/sec).
-2. **Context Batching Khai Báo (`retrieve/batch.py`)**:
-   - Cho phép Agent chạy chuỗi truy xuất nhiều bước (ví dụ: `find_symbols` ➔ `get_symbol_context`) trong **chỉ 1 turn duy nhất** thay vì phải qua nhiều vòng hỏi-đáp máy trạm.
-   - Hỗ trợ tham chiếu động kết quả bước trước: `"$prev.data.symbols[0].symbol_id"`.
-   - Giữ nghiêm ngặt ranh giới an toàn: cấm tuyệt đối mọi tác vụ ghi hoặc đột biến state trong batch.
-3. **AST Byte-Span Body Elision (`sampling/skeleton_hybrid.py`)**:
-   - Thay thế việc cắt code bằng regex thủ công bằng tọa độ byte chính xác từ Tree-sitter AST (`body_start_byte`/`body_end_byte`) cho Python, Java, TypeScript, C#, Go.
-   - Bảo toàn 100% cú pháp header/signature, class structure và imports trong khi loại bỏ thân hàm không liên quan một cách an toàn.
-4. **Tương thích Reasoning LLM (`sampling/router.py`)**:
-   - Tự động bóc tách sạch sẽ các thẻ suy luận nội tâm `<think>...</think>` của các mô hình reasoning (DeepSeek R1, Qwen-QwQ) trước khi parse JSON, ngăn chặn lỗi crash Pydantic.
-5. **Bảo toàn Cấu hình TOML Tùy Biến (`config.py`)**:
-   - Cơ chế `AppConfig.extra` giúp `load_config` và `save_config` lưu giữ nguyên vẹn các bảng tùy chọn ngoài chuẩn như `[plugins]`, `[harness]`.
-6. **SCIP Oracle & Kiểu Dữ Liệu Tĩnh (nhánh `m14`)**:
-   - Bổ sung bộ đối chiếu SCIP Oracle, suy luận kiểu tĩnh nâng cao, unwrapping `await` và liên kết chuỗi constructor cho Java/C#.
+`token-context-mcp` is an on-demand, budget-governed **Model Context Protocol (MCP)** server for autonomous AI coding agents (Claude Code, Cursor, Codex, Google Antigravity). Instead of blindly dumping an entire repository or compressing it into a static snapshot that strips function bodies down to signatures, it provides an **interactive AST-level pull pipeline** that delivers exact code symbols and downstream impact graphs with verified `file:line` + SHA-256 evidence.
 
 ---
 
-## 🚀 Khởi động nhanh trong 5 phút (Quick Start)
+## 🖼️ Architecture & Benchmark Infographics (2x Retina Dark Green)
 
-### Yêu cầu tiên quyết
-- **Python 3.12+** và công cụ quản lý package **`uv`** ([Tải uv](https://astral.sh/uv)).
+<p align="center">
+  <img src="assets/en/01_hero_strengths_en.png" alt="Core Architectural Pillars & Key Metrics" width="100%" />
+</p>
 
-```powershell
-# 1. Clone repository và cài đặt môi trường
-git clone https://github.com/your-org/token-context-mcp.git
-cd token-context-mcp
-uv sync --all-extras
+<details>
+<summary><b>🔍 View detailed technical architecture & comparison diagrams (Click to expand)</b></summary>
 
-# 2. Đăng ký repository mã nguồn của bạn
-uv run token-context register --repo-id my-project --root D:\Work\my-project
+### 1. 3-Layer Governance Microkernel & 5-Step Progressive Pull Pipeline
+<p align="center">
+  <img src="assets/en/02_pipeline_architecture_en.png" alt="Governance Microkernel & Progressive Pull Pipeline" width="100%" />
+</p>
 
-# 3. Lập chỉ mục ban đầu (chạy nền cực nhanh)
-uv run token-context index --repo-id my-project
+### 2. Context Paradigms: Flat Dump vs. Static Pack vs. Interactive MCP Pull
+<p align="center">
+  <img src="assets/en/03_pack_vs_pull_paradigms_en.png" alt="Context Supply Paradigms Comparison" width="100%" />
+</p>
 
-# 4. Kiểm tra trạng thái index
-uv run token-context status --repo-id my-project
+### 3. Empirical Benchmarks: 59-Task Head-to-Head & M10 Equal-Budget Suite
+<p align="center">
+  <img src="assets/en/04_h2h_and_m10_benchmarks_en.png" alt="Empirical Benchmarks: 59-Task H2H and M10 Suite" width="100%" />
+</p>
 
-# 5. Khởi động server MCP stdio
-uv run token-context serve
+### 4. 7-Dimension Technical Comparison Matrix (vs. ContextCraft v0.3.2)
+<p align="center">
+  <img src="assets/en/05_comparison_matrix_en.png" alt="7-Dimension Technical Comparison Matrix" width="100%" />
+</p>
+
+</details>
+
+---
+
+## ⚡ Core Architectural Pillars
+
+1. **3-Layer Governance Microkernel (`kernel/`)**:
+   - Every request is governed by a lightweight execution pipeline:
+     - **Layer 1 — Clean AST-Boundary Cap**: Enforces `max_response_tokens` at syntactic boundaries without cutting functions in half.
+     - **Layer 2 — Per-Tool Async Timeout Gate**: Prevents runaway hangs on large monorepos (`10s` for `get_repo_map`, `5s` for `search_source`).
+     - **Layer 3 — 150K Session Budget Circuit Breaker**: Emits a telemetry warning at 80% usage and halts runaway loops at **150,000 cumulative tokens** to prevent bill shocks.
+2. **Zero Schema Bloat**:
+   - The default `tools/list` payload exposes **only 10 core read-only retrieval tools** (keeping 10 extension tools and 2 admin tools off the wire until requested). Server-side JSON schemas are slimmed to reduce initial prompt tax.
+3. **Incremental Tree-sitter AST & Persistent SQLite Graph (`index/`)**:
+   - Fast `mtime_ns` + SHA-256 change detection across **Python, JavaScript/TypeScript, Go, Rust, Java, C/C++**, and C# with symlink-escape and path traversal guards.
+
+---
+
+## 📊 Empirical Benchmarks (`tiktoken o200k_base` Audited)
+
+All numbers are measured using OpenAI's `o200k_base` tokenizer across two real-world open-source repositories: `rich` (Python, 213 files, 507k tokens) and `fastify` (JS/TS, 291 files, 538k tokens):
+
+| Benchmark Suite | Metric | token-context-mcp | Baseline / Alternative | Empirical Takeaway |
+| :--- | :--- | :---: | :---: | :--- |
+| **59-Task Head-to-Head** (Equal budget: ~7.6k tokens) | Target function in context with **Full Body** ($\ge 90\%$ lines) | **33 / 59 (55.9%)** | 2 / 59 (3.4%) *(ContextCraft 8k `--focus`)* | **16.5× more full function bodies** at equal token budget |
+| **59-Task H2H (Sensitivity)** (vs. 4× static budget: 32k tokens) | Full Body vs. Signature Only | **33 / 59 Full Body** (at 7.6k) | 6 / 59 Full Body, **40 / 59 (67.8%) Signature Only** *(ContextCraft 32k)* | Static packing prunes bodies to signatures to fit whole-repo maps; interactive MCP pull focuses 100% of budget on the target symbol |
+| **M10 Equal-Budget Suite** (`rich`, n=30, ~1.9k tokens) | File Recall & Symbol Recall (95% Bootstrap CI) | **0.90** File Recall<br/>**0.54** Symbol Recall | 0.57 File Recall<br/>0.10 Symbol Recall *(Truncated Grep)* | **+58% file recall**, **5.4× symbol recall** over truncated grep at identical token cost |
+| **C1 Single-Call Cost** (`fastify` 538k source baseline) | Orientation map `get_repo_map@512` | **682 tokens** | 538,799 tokens (raw source files) | Compact repo map occupies **0.13%** of the repository (~790× smaller) |
+
+---
+
+## 🚀 Quick Start
+
+### Option 1: Run instantly with `uvx` (Recommended)
+```bash
+# Register, index, and print agent config for the current directory
+uvx token-context-mcp quickstart .
+```
+
+### Option 2: Install via `pip`
+```bash
+pip install token-context-mcp
+
+# Register a codebase and launch server
+token-context register --repo-id my-project --root /path/to/project
+token-context index --repo-id my-project
+token-context serve
 ```
 
 ### Desktop GUI Controller (PySide6)
-Dự án đi kèm giao diện đồ họa trực quan, giám sát phần cứng, telemetry CPU/RAM, trực quan hóa đồ thị gọi và cấu hình bảo mật agent:
-```powershell
-uv run token-context-gui
-# Hoặc chạy launcher 1-click trên Windows:
-.\scripts\launch_desktop_gui.bat
+Includes hardware telemetry, CPU/RAM monitoring, and repository status overview:
+```bash
+uvx --from "token-context-mcp[gui]" token-context-gui
 ```
 
 ---
 
-## 🤖 Cấu hình kết nối cho các Coding Agent
+## 🤖 Coding Agent Setup
 
-`token-context-mcp` giao tiếp qua chuẩn `stdio`. Bạn chỉ cần thêm cấu hình JSON vào công cụ lập trình yêu thích của mình:
+`token-context-mcp` communicates over local `stdio`. Add the configuration below to your agent:
 
-### 1. Claude Code / Claude Desktop
-Thêm vào `%APPDATA%\Claude\claude_desktop_config.json` (Windows) hoặc `~/.config/Claude/claude_desktop_config.json` (macOS/Linux):
+### 1. Claude Code
+```bash
+claude mcp add --transport stdio --scope user token-context -- uvx token-context-mcp serve
+```
+
+### 2. Cursor
+In Cursor Settings > Features > MCP Servers:
+- **Name**: `token-context`
+- **Type**: `command`
+- **Command**: `uvx token-context-mcp serve`
+
+### 3. Claude Desktop
+Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/.config/Claude/claude_desktop_config.json` (macOS/Linux):
 ```json
 {
   "mcpServers": {
     "token-context": {
-      "command": "uv",
-      "args": [
-        "run", "--no-sync",
-        "--directory", "D:\\AI\\token-context-mcp",
-        "python", "-m", "token_context_mcp.cli", "serve",
-        "--transport", "stdio"
-      ]
+      "command": "uvx",
+      "args": ["token-context-mcp", "serve"]
     }
   }
 }
 ```
-*Hoặc thêm nhanh qua Claude Code CLI:*
-```powershell
-claude mcp add --transport stdio --scope user token-context -- uv run --no-sync --directory D:\AI\token-context-mcp python -m token_context_mcp.cli serve --transport stdio
-```
 
-### 2. Google Antigravity IDE & Gemini CLI
-Thêm vào file cấu hình MCP (`mcp_config.json`):
+### 4. Google Antigravity IDE / Gemini CLI
+Add to `mcp_config.json`:
 ```json
 {
   "mcpServers": {
     "token-context": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "run", "--no-sync",
-        "--directory", "D:\\AI\\token-context-mcp",
-        "token-context", "serve",
+        "token-context-mcp",
+        "serve",
         "--output-mode", "text",
         "--schema-profile", "gemini_safe"
       ]
@@ -113,100 +146,44 @@ Thêm vào file cấu hình MCP (`mcp_config.json`):
   }
 }
 ```
-> **Mẹo**: Cờ `--output-mode text` và `--schema-profile gemini_safe` giúp các mô hình dòng Gemini hiển thị trọn vẹn mảng dữ liệu mà không bị tóm tắt rút gọn.
-
-### 3. OpenAI Codex & Cursor
-Thêm vào `%USERPROFILE%\.codex\config.toml` hoặc Cursor MCP settings:
-```toml
-[mcp_servers.token-context]
-command = "uv"
-args = ["run", "--no-sync", "--directory", "D:\\AI\\token-context-mcp", "python", "-m", "token_context_mcp.cli", "serve", "--transport", "stdio"]
-```
 
 ---
 
-## 🛠 Danh mục Công cụ MCP (Tool Catalog)
+## 🛠 Tool Reference Catalog (10 Default Core Tools)
 
-Hệ thống cung cấp **22 công cụ** có cấu trúc chặt chẽ, chia làm 4 nhóm chức năng:
+By default, the server exposes **10 read-only retrieval tools** to preserve agent context:
 
-```mermaid
-graph TD
-    CLIENT["AI Coding Agent (Claude, Antigravity, Cursor)"] --> MCP["token-context MCP Server"]
-    subgraph Kernel ["Cordis Kernel Waterfall"]
-        MCP --> AUTH["AuthMiddleware"]
-        AUTH --> GOV["GovernanceMiddleware"]
-        GOV --> EXEC["ExecutionMiddleware"]
-    end
-    subgraph Registry ["Single ToolSpec Registry"]
-        EXEC --> RETRIEVAL["1. Core Retrieval (10 tools)"]
-        EXEC --> DISCOVERY["2. Tool Discovery (3 tools)"]
-        EXEC --> MEMORY["3. State & Memory (6 tools)"]
-        EXEC --> GOV_TOOLS["4. Governance & Sampling (3 tools)"]
-    end
-```
+| Tool | Primary Purpose | Mode |
+| :--- | :--- | :---: |
+| `list_repositories` | Lists registered `repo_id`s (filesystem root paths are never leaked). | Read-only |
+| `get_index_status` | Returns snapshot metadata, indexed file count, commit SHA, and freshness. | Read-only |
+| `get_repo_map` | PageRank-based symbol hierarchy within a token budget (`@512`). | Read-only |
+| `find_symbols` | Pattern-based symbol matching (`*`, `?` wildcards) with file coordinates. | Read-only |
+| `search_source` | FTS5 code search returning matched lines and enclosing symbol spans. | Read-only |
+| `get_file_skeleton` | File outline (imports, class/function signatures with elided bodies). | Read-only |
+| `get_symbol_context` | Full function/class body, docstrings, and callers/callees (`@1024`). | Read-only |
+| `get_impact_slice` | Traverses downstream call graph dependencies before making changes (`depth=2`). | Read-only |
+| `get_module_dependents` | Tree-sitter import dependency graph between modules. | Read-only |
+| `inspect_symbol` | Composite lookup: symbol resolution + full context + 1-hop impact graph. | Read-only |
 
-| Nhóm | Tên công cụ | Mô tả tóm tắt | Chế độ |
-| :--- | :--- | :--- | :---: |
-| **Truy xuất cốt lõi** *(Core Retrieval)* | `list_repositories` | Liệt kê danh sách `repo_id` đã đăng ký (ẩn đường dẫn ổ đĩa tuyệt đối). | Read-only |
-| | `get_index_status` | Trạng thái index, snapshot metadata, commit SHA và tỷ lệ cạnh mơ hồ. | Read-only |
-| | `get_repo_map` | Bản đồ định nghĩa toàn repo xếp hạng theo PageRank trong ngân sách token. | Read-only |
-| | `find_symbols` | Tìm kiếm symbol theo tên/khớp mẫu wildcard (`*`, `?`), trả về span. | Read-only |
-| | `search_source` | Tìm kiếm toàn văn FTS5 trong thân hàm và file nguồn, trả về đoạn mã kèm dòng. | Read-only |
-| | `get_file_skeleton` | Bóc tách khung xương file (import, chữ ký class/hàm), giấu thân hàm (tiết kiệm ~95% token). | Read-only |
-| | `get_symbol_context` | Chi tiết đầy đủ của 1 symbol (thân hàm, docstring, danh sách caller/callee). | Read-only |
-| | `get_impact_slice` | Phân tích lát cắt ảnh hưởng (blast-radius graph) lọc theo độ tin cậy. | Read-only |
-| | `get_module_dependents` | Đồ thị quan hệ phụ thuộc import trích xuất từ Tree-sitter. | Read-only |
-| | `inspect_symbol` | Truy xuất tích hợp: resolve + context + 1-hop impact graph (giảm 81% prompt tokens). | Read-only |
-| **Khám phá động** *(Tool Discovery)* | `list_available_tools` | Liệt kê danh mục công cụ rút gọn theo phân loại (chống tràn context window). | Discovery |
-| | `search_tools` | Tìm kiếm công cụ phù hợp theo từ khóa tác vụ. | Discovery |
-| | `get_tool_schema` | Nạp JSON Schema chi tiết của công cụ theo nhu cầu gọi thực tế. | Discovery |
-| **Trạng thái & Bộ nhớ** *(State & Memory)* | `memory_put` | Lưu trữ checkpoint, state hoặc artifact dùng chung giữa các agent. | State Mutating |
-| | `memory_get` | Đọc lại state/ký ức theo key hoặc session_id. | Read-only |
-| | `memory_search` | Tìm kiếm ký ức bằng FTS5 theo từ khóa hoặc namespace. | Read-only |
-| | `memory_lock` | Khóa soft-mutex có thời hạn để tránh race condition giữa các agent. | State Mutating |
-| | `memory_unlock` | Mở khóa soft-mutex theo agent identity đã resolve. | State Mutating |
-| | `memory_consolidate` | Hợp nhất và dọn dẹp các mảnh ký ức cũ/hết hạn trong namespace. | State Mutating |
-| **Quản trị & Suy luận** *(Gov & Inference)* | `sample_summarize` | Tóm tắt mã nguồn nhận biết phần cứng, hỗ trợ Ollama 7B và heuristic CPU fallback. | Inference |
-| | `agent_control` | Tạm dừng, kích hoạt lại, chặn hoặc dừng khẩn cấp agent vi phạm chính sách. | Admin |
-| | `audit_logs` | Truy vấn nhật ký kiểm toán bảo mật, độ trễ và lịch sử thực thi (SQLite WAL). | Admin Query |
+*(10 extension tools including SQLite multi-agent memory `memory_*`, lazy tool discovery `*_tools`, hardware-adaptive compressor `sample_summarize`, and 2 admin tools `agent_control`, `audit_logs` can be enabled via configuration).*
 
 ---
 
-## 💡 Tối ưu hóa Hiệu năng & Ràng buộc Sử dụng Prompt (`sample_prompt.md`)
+## 🔒 Security Guarantees & Privacy
 
-> **QUY TẮC BẮT BUỘC ĐỂ ĐẠT HIỆU NĂNG TỐI ĐA (MANDATORY BEST PRACTICE)**:
-> `token-context-mcp` được tối ưu hóa sâu để giảm từ 80% đến 99% lượng token tiêu thụ của AI Agent. Tuy nhiên, nếu Agent gọi tool tùy tiện, đọc mù quáng toàn bộ repo hoặc nhồi lại toàn bộ prompt dài ở mọi lượt chat, hiệu năng sẽ bị suy giảm nghiêm trọng.
->
-> 📖 **Xem toàn bộ mẫu prompt chuẩn:** [`sample_prompt.md`](sample_prompt.md) (Hỗ trợ Tiếng Việt, English, 简体中文)
-
-### Giao thức 2 giai đoạn chuẩn hóa (Two-Phase Turn Protocol):
-1. **Lượt khởi tạo đầu tiên (Turn 1 - Full Initialization)**:
-   - Sử dụng mẫu prompt đầy đủ tại mục **3.1** (khi có Ollama) hoặc **3.2** (khi dùng CPU thuần) trong [`sample_prompt.md`](sample_prompt.md).
-   - Thiết lập nguyên tắc **MCP-First**: dùng `get_repo_map`, `find_symbols`, `inspect_symbol` để định vị nhanh; chỉ đọc trực tiếp file nguồn khi cần lấy ngữ cảnh chi tiết hoặc khi file nằm ngoài AST. Tuyệt đối không dừng sớm hay tự báo `blocked`.
-2. **Các lượt tiếp theo trong cùng session (Turn 2+ - Lightweight Follow-up)**:
-   - **Tuyệt đối KHÔNG gửi lại toàn bộ prompt dài** làm tràn context window và lãng phí chi phí API.
-   - Sử dụng mẫu prompt siêu gọn tại mục **3.3** trong [`sample_prompt.md`](sample_prompt.md) (~10 dòng): chỉ truyền nhiệm vụ mới, giữ vững nguyên tắc gọi tool định vị và format đầu ra 6 mục chuẩn hóa.
-   - Tiết kiệm hơn **95% token input** ở các lượt sau so với cách làm thông thường!
+- **No Remote Code Execution (RCE)**: No tool can execute shell commands, eval code, or modify repository source files.
+- **100% Local & Private**: All SQLite WAL indexes remain on your machine; zero cloud telemetry or external API calls.
+- **Automatic Secret Redaction**: Regex-based redaction of API keys, tokens, and private keys (`[REDACTED: potential secret]`) plus hard denial of sensitive files (`.env*`, `.ssh`, `*.pem`, `id_rsa`).
 
 ---
 
-## 🔒 Cam kết Bảo mật & Ranh giới Hệ thống (Security Boundary)
+## 📚 Technical Documentation
 
-- **Không thực thi mã tùy tiện**: Server tuyệt đối không chứa endpoint cho phép chạy lệnh shell, bash, eval code từ xa hoặc can thiệp file hệ thống.
-- **Phân quyền nghiêm ngặt**: Định danh `admin` là định danh được bảo vệ độc quyền; agent thông thường bị giới hạn theo chính sách `READ_ONLY` hoặc `CUSTOM`.
-- **Bảo mật cục bộ**: Toàn bộ database SQLite index và registry được lưu trên máy cá nhân (`0700` thư mục, `0600` file trên POSIX / ACL trên Windows).
-- **Phòng chống Prompt Injection**: Nội dung mã nguồn được bọc thẻ an toàn và quét dấu hiệu chỉ thị giả mạo trước khi trả về cho model.
-
----
-
-## 📚 Tài liệu tham khảo kỹ thuật
-
-- [`sample_prompt.md`](sample_prompt.md): Mẫu prompt chuẩn đa ngôn ngữ (VI / EN / CN) kèm giao thức tối ưu lượt gọi.
-- [`CHANGELOG.md`](CHANGELOG.md): Lịch sử phiên bản và nhật ký nâng cấp chi tiết.
-- [`docs/progress/RUN_LEDGER_H.md`](docs/progress/RUN_LEDGER_H.md): Sổ nhật ký triển khai DeepSeek Harness & benchmark.
-- [`docs/BENCHMARK.md`](docs/BENCHMARK.md): Phương pháp luận và số đo định vị trên các bộ repo kiểm thử độc lập.
-- [`docs/PROMPTING.en.md`](docs/PROMPTING.en.md): Hướng dẫn viết prompt tối ưu token cho AI Agent.
-- [`docs/SECURITY_ASSURANCE.md`](docs/SECURITY_ASSURANCE.md): Báo cáo kiến trúc bảo đảm an toàn hệ thống.
+- [`sample_prompt.md`](sample_prompt.md): Standard two-phase prompt templates (EN / VI / CN).
+- [`CHANGELOG.md`](CHANGELOG.md): Release history and upgrade notes.
+- [`launch/00_fact_sheet.md`](launch/00_fact_sheet.md): Verified empirical benchmarks and measurement methodologies.
+- [`docs/CLIENT_MATRIX.md`](docs/CLIENT_MATRIX.md): Step-by-step MCP client verification matrix.
 
 ---
-*Phát triển bởi cộng đồng Token Context MCP. Bản quyền MIT.*
+*Maintained by the Token Context MCP community. Licensed under MIT.*

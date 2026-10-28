@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.5 — docs & benchmarks: multilingual READMEs, Agentic Dark Green visuals, 59-task Head-to-Head harness (2026-10-26)
+
+**Upgrade:** no index rebuild needed. Documentation, packaging metadata, and benchmark reproduction suite update.
+
+Additions and improvements:
+
+- **Multilingual README suite (`README.md`, `README.en.md`, `README.cn.md`, `README.vi.md`)** — synchronized English, Simplified Chinese, and Vietnamese documentation with top-level language navigation and architecture/benchmark visual cards (`assets/cn/01..05`).
+- **59-task Head-to-Head benchmark harness (`launch/data/run_head_to_head.py`)** — reproducible `tiktoken` (`o200k_base`) evaluation across `bench_rich` (29 tasks) and `bench_fastify` (30 tasks) comparing interactive MCP pull (`search_source` + top-3 `get_symbol_context`) against static budget packing (`8k` / `32k`), alongside single-call `o200k_base` vs `bytes/4` cost audits (`launch/data/c1_o200k_summary.json`).
+- **Open-source launch & reproduction guides (`launch/`)** — added `launch/LINUXDO_POST_CN.md`, `launch/COMPETITIVE_DEEP_DIVE_CN.md`, and `launch/BENCHMARK_REPRO_GUIDE.md`.
+- **Package metadata (`pyproject.toml`)** — added `[project.urls]` (`Homepage`, `Repository`, `Documentation`, `Issues`, `Changelog`) and included `README.vi.md` in source distributions.
+
+
 ## 0.3.4 — perf & robustness: AST byte-span elision, thinking-tag strip, TOML roundtrip preservation (2026-10-20)
 
 **Upgrade:** no index rebuild needed. All existing databases, caches, and configs remain 100% compatible.
