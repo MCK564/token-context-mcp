@@ -916,19 +916,18 @@ class AgentSecurityController(QObject):
     def _on_governance_agents(self, governance_agents: list[dict[str, Any]]) -> None:
         """Merge governance agents into local view (read-only merge, no SQLite I/O on UI thread)."""
         local_agents: list[dict[str, Any]] = []
-        with self._access_control._lock:
-            for agent_id, meta in list(self._access_control._agent_metadata.items()):
-                state = self._access_control._states.get(agent_id)
-                policy = self._access_control._policies.get(agent_id, self._access_control.default_policy)
-                local_agents.append({
-                    "agent_id": agent_id,
-                    "role": meta.get("role", "agent"),
-                    "state": state.value if state else "active",
-                    "policy": policy.value,
-                    "call_count": meta.get("call_count", 0),
-                    "last_active": meta.get("last_active", 0.0),
-                    "reason": self._access_control._reasons.get(agent_id, ""),
-                })
+        for agent_id, meta in list(self._access_control._agent_metadata.items()):
+            state = self._access_control._states.get(agent_id)
+            policy = self._access_control._policies.get(agent_id, self._access_control.default_policy)
+            local_agents.append({
+                "agent_id": agent_id,
+                "role": meta.get("role", "agent"),
+                "state": state.value if state else "active",
+                "policy": policy.value,
+                "call_count": meta.get("call_count", 0),
+                "last_active": meta.get("last_active", 0.0),
+                "reason": self._access_control._reasons.get(agent_id, ""),
+            })
         local_ids = {a["agent_id"] for a in local_agents}
         # Add agents seen by the live server but not yet in local view
         for ga in governance_agents:
@@ -938,8 +937,8 @@ class AgentSecurityController(QObject):
         self.agents_updated.emit(local_agents)
 
     def _on_governance_halt(self, is_halted: bool, reason: str) -> None:
-        """Reflect server-side halt state in the GUI (read-only)."""
-        self.emergency_state_changed.emit(is_halted, reason or self._access_control.emergency_reason)
+        """Reflect server-side halt state in the GUI (read-only, no SQLite I/O on UI thread)."""
+        self.emergency_state_changed.emit(is_halted, reason or self._access_control._emergency_reason)
 
     @property
     def access_control(self) -> Any:
