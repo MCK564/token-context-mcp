@@ -38,9 +38,9 @@ def _issues(schemas: dict[str, Any]) -> list[Any]:
     ("enable_ext", "enable_admin", "expected_count"),
     [
         (False, False, 10),
-        (True, False, 20),
+        (True, False, 21),
         (False, True, 10),
-        (True, True, 22),
+        (True, True, 23),
     ],
 )
 def test_tools_list_count_by_configuration(
@@ -80,7 +80,7 @@ def test_tools_list_gemini_safe_profile_conformance(indexed_config: Path) -> Non
         schema_profile="gemini_safe",
     )
     tools = asyncio.run(_client_tools(server, client_name="Antigravity-IDE"))
-    assert len(tools) == 22
+    assert len(tools) == 23
 
     schemas = {t.name: t.input_schema for t in tools}
     issues = _issues(schemas)

@@ -237,6 +237,38 @@ class RetrievalService:
         self._graph_cache = GraphCache(capacity=3)
         self._thread_local = threading.local()
         self._word_forms_cache: dict[tuple[str, str], bool] = {}
+        self._ledger_store: Any | None = None
+        self._ledger_verifier: Any | None = None
+
+    def _lookup_prior_evidence(
+        self,
+        repo_id: str,
+        query: str | None,
+        store: SQLiteStore,
+        repository: RepositoryConfig,
+    ) -> tuple[dict[str, Any] | None, list[str], int | None]:
+        if not self.config.ledger.enabled or not query:
+            return None, [], None
+        if self._ledger_store is None:
+            from token_context_mcp.ledger.store import LedgerStore
+            from token_context_mcp.ledger.verify import LedgerVerifier
+
+            self._ledger_store = LedgerStore(
+                self.config_path.parent / "ledger.sqlite",
+                max_cards_per_repo=self.config.ledger.max_cards_per_repo,
+                ttl_days=self.config.ledger.ttl_days,
+            )
+            self._ledger_verifier = LedgerVerifier()
+        assert self._ledger_verifier is not None
+        return self._ledger_verifier.lookup_prior_evidence(
+            repo_id=repo_id,
+            query=query,
+            ledger_store=self._ledger_store,
+            idx_store=store,
+            root=repository.root,
+            allow_symlinks=repository.allow_symlinks,
+            cfg=self.config.ledger,
+        )
 
     @property
     def _active_scope(self) -> _RequestScope | None:
@@ -430,6 +462,21 @@ class RetrievalService:
         query_expansions = ranking_cfg.query_expansions if ranking_cfg else None
         stage_prefix_pattern = ranking_cfg.stage_prefix_pattern if ranking_cfg else None
 
+        prior_evidence, prior_warnings, ledger_rev = self._lookup_prior_evidence(
+            repo_id, query, store, repository
+        )
+        ledger_overlay: dict[tuple[str, str], str] | None = None
+        if (
+            self.config.ledger.overlay_enabled
+            and prior_evidence is not None
+            and prior_evidence.get("status") == "confirmed"
+            and self._ledger_verifier is not None
+            and query
+        ):
+            meta = self._ledger_verifier.get_overlay_meta(repo_id, query)
+            if meta is not None:
+                ledger_overlay = dict(meta.get("symbol_roles", {}))
+
         ranked = rank_symbols(
             symbols,
             edges,
@@ -438,6 +485,7 @@ class RetrievalService:
             global_ranks=graph.global_ranks if graph.has_global_ranks else None,
             query_expansions=query_expansions,
             stage_prefix_pattern=stage_prefix_pattern,
+            ledger_overlay=ledger_overlay,
         )
         if format == "compact":
             # A compact map also carries one digest per selected file. Keep
@@ -445,6 +493,7 @@ class RetrievalService:
             # remaining budget from those already-opened files so provenance
             # does not consume the breadth budget one path at a time.
             ranked = _compact_map_order(ranked)
+
         def build_response(
             selected_items: list[tuple[SymbolRecord, float, list[str]]],
             omitted_items: list[tuple[SymbolRecord, float, list[str]]],
@@ -483,15 +532,21 @@ class RetrievalService:
                     "estimator_version": ESTIMATOR_VERSION,
                 }
             )
+            eff_warnings = list(warnings)
+            eff_estimated = estimated
+            if prior_evidence is not None:
+                data["prior_evidence"] = prior_evidence
+                eff_warnings.extend(prior_warnings)
             return self._envelope(
                 repo_id,
                 metadata,
                 requested_tokens=budget_tokens,
-                estimated_tokens=estimated,
+                estimated_tokens=eff_estimated,
                 freshness=freshness,
-                warnings=warnings,
+                warnings=eff_warnings,
                 truncated=bool(omitted_items),
                 data=data,
+                ledger_rev=ledger_rev,
             )
 
         chosen, omitted, used = self._pack_to_budget(
@@ -900,6 +955,43 @@ class RetrievalService:
             response_warnings.append("potential_secrets_redacted")
         response_warnings.extend(f"stale_content_unavailable:{path}" for path in stale_paths)
 
+        prior_evidence, prior_warnings, ledger_rev = self._lookup_prior_evidence(
+            repo_id, query, store, repository
+        )
+        overlay_meta = (
+            self._ledger_verifier.get_overlay_meta(repo_id, query)
+            if (
+                self.config.ledger.overlay_enabled
+                and prior_evidence is not None
+                and prior_evidence.get("status") == "confirmed"
+                and self._ledger_verifier is not None
+            )
+            else None
+        )
+        if overlay_meta is not None and entries:
+            sym_roles: dict[tuple[str, str], str] = overlay_meta.get("symbol_roles", {})
+            q_terms_set = {part.lower() for part in query.replace("/", " ").replace("_", " ").split() if part}
+
+            def _entry_overlay_rank(item: dict[str, Any]) -> int:
+                sid = str(item.get("symbol_id") or "")
+                path = str(item.get("path") or "")
+                qname = ":".join(sid.split(":")[2:-1]) if sid.count(":") >= 3 else ""
+                role = sym_roles.get((path, qname))
+                if role == "answer":
+                    return 0
+                if role == "decoy":
+                    short_name = qname.rsplit(".", 1)[-1]
+                    sym_tokens = {
+                        t
+                        for t in re.findall(r"[a-z0-9]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", short_name).lower())
+                        if t not in {"a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of", "on", "or", "the", "to", "with"}
+                    }
+                    if not (sym_tokens and sym_tokens <= q_terms_set):
+                        return 2
+                return 1
+
+            entries.sort(key=_entry_overlay_rank)
+
         neighbor_entries: list[list[Any]] = []
         anchors_expanded = 0
         if expand == "graph":
@@ -907,6 +999,11 @@ class RetrievalService:
             graph = self._graph_cache.get_graph(repository.repo_id, index_run_id, store)
             communities = communities_for(graph, store.import_pairs())
             anchor_ids = [str(e["symbol_id"]) for e in entries if e.get("symbol_id")]
+            confirmed_step_edges: set[tuple[str, str]] | None = None
+            confirmed_decoys: set[tuple[str, str]] | None = None
+            if overlay_meta is not None:
+                confirmed_step_edges = set(overlay_meta.get("step_edges", set()))
+                confirmed_decoys = set(overlay_meta.get("decoys", set()))
             neighbors, anchors_expanded = expand_anchors(
                 graph,
                 anchor_ids,
@@ -915,6 +1012,8 @@ class RetrievalService:
                 hops=expand_hops,
                 min_confidence=min_confidence,
                 communities=communities,
+                confirmed_step_edges=confirmed_step_edges,
+                confirmed_decoys=confirmed_decoys,
             )
             neighbor_entries = [n.as_row() for n in neighbors]
             neighbor_budget = int(packing_budget * NEIGHBOR_BUDGET_SHARE)
@@ -946,13 +1045,18 @@ class RetrievalService:
                     "expand_hops": expand_hops,
                     "min_confidence": min_confidence,
                 }
+            eff_warnings = list(response_warnings)
+            eff_estimated = estimated
+            if prior_evidence is not None:
+                data["prior_evidence"] = prior_evidence
+                eff_warnings.extend(prior_warnings)
             return self._envelope(
                 repo_id,
                 metadata,
                 requested_tokens=effective_max_tokens,
-                estimated_tokens=estimated,
+                estimated_tokens=eff_estimated,
                 freshness=freshness,
-                warnings=response_warnings,
+                warnings=eff_warnings,
                 truncated=omitted_count > 0,
                 evidence=[],
                 data=data,
@@ -963,6 +1067,7 @@ class RetrievalService:
                     for line in item.get("lines", [])
                     if isinstance(line, list) and len(line) == 2
                 ),
+                ledger_rev=ledger_rev,
             )
 
         chosen, omitted, used = self._pack_to_budget(
@@ -2095,6 +2200,7 @@ class RetrievalService:
         edge_precision: dict[str, Any] | None = None,
         untrusted: bool = False,
         injection_hits: list[str] | None = None,
+        ledger_rev: int | None = None,
     ) -> dict[str, Any]:
         effective_warnings = list(warnings)
         if injection_hits:
@@ -2129,6 +2235,8 @@ class RetrievalService:
             envelope["edge_precision"] = edge_precision
         if untrusted:
             envelope["untrusted_repository_content"] = True
+        if ledger_rev is not None:
+            envelope["ledger_rev"] = ledger_rev
         return envelope
 
     def _validate_budget(self, value: int, *, field_name: str) -> None:

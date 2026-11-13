@@ -25,8 +25,24 @@ from token_context_mcp.gui.workers import wait_idle
 
 
 def sync_render(tab):
-    """Run a tab's worker half and its UI half inline (tests only)."""
-    tab.render(tab.fetch())
+    """Run a tab's worker half on a background thread and its UI half on the UI thread (tests only)."""
+    import threading
+
+    out: list[Any] = []
+    err: list[BaseException] = []
+
+    def _run():
+        try:
+            out.append(tab.fetch())
+        except BaseException as exc:
+            err.append(exc)
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    t.join(timeout=15)
+    if err:
+        raise err[0]
+    tab.render(out[0])
 
 
 @pytest.fixture(scope="session")
@@ -54,10 +70,10 @@ def test_main_window_instantiation(qapp, temp_gui_env):
     config_path, _ = temp_gui_env
     window = MainWindow(config_path=config_path)
     assert window is not None
-    assert window.stack.count() == 6
+    assert window.stack.count() == 7
 
     # Switch tabs
-    for idx in range(6):
+    for idx in range(7):
         window._on_nav_clicked(idx)
         assert window.stack.currentIndex() == idx
         wait_idle()
@@ -116,6 +132,14 @@ def test_individual_widgets(qapp, temp_gui_env):
     settings_tab = SettingsTab(repo_mgr)
     sync_render(settings_tab)
     assert settings_tab.spin_tokens.value() > 0
+    assert settings_tab.chk_ledger_enabled.isChecked() is True
+
+    # Ledger tab
+    from token_context_mcp.gui.widgets.ledger_tab import LedgerTab
+
+    ledger_tab = LedgerTab(repo_mgr)
+    sync_render(ledger_tab)
+    assert ledger_tab.cards_table is not None
 
     security_ctrl.close()
 

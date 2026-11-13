@@ -14,7 +14,7 @@
   - `enable_admin_tools = true` (Kích hoạt các công cụ quản trị `agent_control`, `audit_logs`).
 - **File cấu hình client Antigravity MCP:** [`C:\Users\KHA\.gemini\config\mcp_config.json`](file:///C:/Users/KHA/.gemini/config/mcp_config.json)
   - Đã thêm cờ `--enable-admin-tools` vào tham số dòng lệnh khởi động `token_context_mcp`.
-  - Đã cấu hình biến môi trường bảo mật `TOKEN_CONTEXT_ADMIN_TOKEN = "4LX4DKNCjOcZhRI36-0J2KvhkgLekJ1mYewE8m1Yj1c"`.
+  - Đã cấu hình biến môi trường bảo mật `TOKEN_CONTEXT_ADMIN_TOKEN = "<REDACTED_ADMIN_TOKEN>"`.
 - **Cơ sở dữ liệu quản trị Governance SQLite:** [`governance.sqlite`](file:///C:/Users/KHA/AppData/Roaming/token-context-mcp/governance.sqlite)
   - Đã thiết lập chính sách `FULL_ACCESS` và trạng thái `ACTIVE` cho cả `anonymous` và `admin`.
   - Toàn bộ **22 tools** của server đã được mở khóa và sẵn sàng hoạt động.

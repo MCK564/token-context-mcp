@@ -1,319 +1,467 @@
-"""
-Modern Dark Theme (Nord / Fluent design inspired) for token-context-mcp desktop GUI.
-"""
-
 from __future__ import annotations
 
-# Palette Constants
-COLOR_BG_BASE = "#181825"
-COLOR_BG_SURFACE = "#1e1e2e"
-COLOR_BG_CARD = "#24273a"
-COLOR_BG_CARD_HOVER = "#2a2d42"
-COLOR_BG_INPUT = "#1e1e2e"
+# Design tokens (Catppuccin Macchiato / Dark Surface Hierarchy)
+COLOR_MANTLE = "#181825"
+COLOR_BASE = "#1e1e2e"
+COLOR_SURFACE = "#24273a"
+COLOR_OVERLAY = "#313244"
 COLOR_BORDER = "#363a4f"
-COLOR_BORDER_FOCUS = "#89b4fa"
-
-COLOR_TEXT_PRIMARY = "#cad3f5"
-COLOR_TEXT_SECONDARY = "#a5adcb"
-COLOR_TEXT_MUTED = "#6e738d"
-
-COLOR_ACCENT_PRIMARY = "#89b4fa"
+COLOR_ACCENT = "#89b4fa"
 COLOR_ACCENT_HOVER = "#b4befe"
 COLOR_SUCCESS = "#a6da95"
 COLOR_WARNING = "#eed49f"
 COLOR_DANGER = "#ed8796"
-COLOR_INFO = "#8aadf4"
+COLOR_TEXT_PRIMARY = "#cad3f5"
+COLOR_TEXT_MUTED = "#a5adcb"
+COLOR_TEXT_SUBTLE = "#6e738d"
+COLOR_CRUST = "#11111b"
 
 DARK_STYLESHEET = f"""
-QMainWindow, QDialog {{
-    background-color: {COLOR_BG_BASE};
+/* Base & Dialog Surfaces (prevent Windows/OS light bleed-through) */
+QMainWindow, QDialog, QMessageBox {{
+    background-color: {COLOR_BASE};
     color: {COLOR_TEXT_PRIMARY};
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
 }}
 
 QWidget {{
-    background-color: transparent;
     color: {COLOR_TEXT_PRIMARY};
+    font-family: "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
 }}
 
-/* Sidebar navigation */
-#Sidebar {{
-    background-color: {COLOR_BG_BASE};
+QWidget#MainContent, QStackedWidget#MainStack, QScrollArea, QScrollArea > QWidget > QWidget {{
+    background-color: {COLOR_BASE};
+}}
+
+QScrollArea {{
+    border: none;
+    background-color: transparent;
+}}
+
+/* Status Bar */
+QStatusBar {{
+    background-color: {COLOR_MANTLE};
+    color: {COLOR_TEXT_MUTED};
+    border-top: 1px solid {COLOR_BORDER};
+    padding: 3px 10px;
+    font-size: 11px;
+}}
+QStatusBar::item {{
+    border: none;
+}}
+
+/* Sidebar Navigation */
+QFrame#Sidebar {{
+    background-color: {COLOR_MANTLE};
     border-right: 1px solid {COLOR_BORDER};
-    min-width: 220px;
-    max-width: 220px;
+    min-width: 196px;
+    max-width: 196px;
 }}
 
-#SidebarHeader {{
-    padding: 16px 14px;
+QWidget#SidebarHeader {{
+    background-color: {COLOR_MANTLE};
     border-bottom: 1px solid {COLOR_BORDER};
 }}
 
-#AppTitle {{
+QLabel#AppTitle {{
     font-size: 15px;
     font-weight: 700;
-    color: {COLOR_ACCENT_PRIMARY};
-    letter-spacing: 0.5px;
+    color: {COLOR_ACCENT};
+    letter-spacing: 0.4px;
+    background: transparent;
 }}
 
-#AppSubtitle {{
+QLabel#AppSubtitle {{
     font-size: 11px;
     color: {COLOR_TEXT_MUTED};
+    background: transparent;
 }}
 
-#NavButton {{
-    text-align: left;
-    padding: 10px 16px;
-    border-radius: 8px;
+/* Top Header Bar */
+QFrame#TopHeader {{
+    background-color: {COLOR_MANTLE};
+    border-bottom: 1px solid {COLOR_BORDER};
+}}
+
+QLabel#HeaderTitle {{
+    font-size: 15px;
+    font-weight: 700;
+    color: {COLOR_TEXT_PRIMARY};
+    background: transparent;
+}}
+
+QLabel#HeaderSubtitle {{
+    font-size: 11px;
+    color: {COLOR_TEXT_MUTED};
+    background: transparent;
+}}
+
+QLabel#TelemetryPill {{
+    color: {COLOR_TEXT_MUTED};
+    font-size: 11px;
+    font-weight: 500;
+    background-color: {COLOR_SURFACE};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 6px;
+    padding: 4px 10px;
+}}
+
+/* Sidebar Nav Buttons */
+QPushButton#NavButton {{
+    background-color: transparent;
+    color: {COLOR_TEXT_MUTED};
     border: none;
+    border-left: 3px solid transparent;
+    border-radius: 6px;
+    text-align: left;
+    padding: 9px 14px;
+    margin: 2px 8px;
     font-size: 13px;
     font-weight: 500;
-    color: {COLOR_TEXT_SECONDARY};
-    background-color: transparent;
-    margin: 3px 10px;
 }}
 
-#NavButton:hover {{
-    background-color: {COLOR_BG_CARD};
+QPushButton#NavButton:hover {{
+    background-color: {COLOR_SURFACE};
     color: {COLOR_TEXT_PRIMARY};
 }}
 
-#NavButton:checked {{
-    background-color: {COLOR_BG_CARD};
-    color: {COLOR_ACCENT_PRIMARY};
+QPushButton#NavButton:checked {{
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_ACCENT};
     font-weight: 600;
-    border-left: 3px solid {COLOR_ACCENT_PRIMARY};
+    border-left: 3px solid {COLOR_ACCENT};
 }}
 
-/* Cards & Content Areas */
-.Card {{
-    background-color: {COLOR_BG_CARD};
+/* Cards & Group Containers */
+QFrame.Card {{
+    background-color: {COLOR_SURFACE};
     border: 1px solid {COLOR_BORDER};
     border-radius: 10px;
-    padding: 14px;
 }}
 
-.CardHeader {{
+QFrame.SubCard {{
+    background-color: {COLOR_MANTLE};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 8px;
+}}
+
+QLabel.SectionTitle {{
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     color: {COLOR_TEXT_PRIMARY};
+    background: transparent;
 }}
 
-.MetricValue {{
+QLabel.MetricValue {{
     font-size: 22px;
     font-weight: 700;
-    color: {COLOR_ACCENT_PRIMARY};
+    color: {COLOR_ACCENT};
+    background: transparent;
 }}
 
-.MetricLabel {{
-    font-size: 11px;
+QLabel.MetricLabel {{
+    font-size: 10px;
+    font-weight: 600;
     color: {COLOR_TEXT_MUTED};
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
+    background: transparent;
+}}
+
+QLabel.MutedHint {{
+    font-size: 11px;
+    color: {COLOR_TEXT_MUTED};
+    background: transparent;
+}}
+
+/* Status Badges */
+QLabel[class="BadgeFresh"] {{
+    background-color: rgba(166, 218, 149, 0.16);
+    color: {COLOR_SUCCESS};
+    border: 1px solid rgba(166, 218, 149, 0.35);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}}
+
+QLabel[class="BadgeStale"] {{
+    background-color: rgba(237, 135, 150, 0.16);
+    color: {COLOR_DANGER};
+    border: 1px solid rgba(237, 135, 150, 0.35);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}}
+
+QLabel[class="BadgeWarning"] {{
+    background-color: rgba(238, 212, 159, 0.16);
+    color: {COLOR_WARNING};
+    border: 1px solid rgba(238, 212, 159, 0.35);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}}
+
+QLabel[class="BadgeNeutral"] {{
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_TEXT_MUTED};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-size: 11px;
 }}
 
 /* Buttons */
 QPushButton {{
-    background-color: {COLOR_BG_CARD};
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_TEXT_PRIMARY};
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 7px 14px;
-    color: {COLOR_TEXT_PRIMARY};
-    font-size: 13px;
+    padding: 6px 12px;
+    min-height: 18px;
     font-weight: 500;
 }}
 
 QPushButton:hover {{
-    background-color: {COLOR_BG_CARD_HOVER};
-    border-color: {COLOR_BORDER_FOCUS};
+    background-color: #3b3e52;
+    border-color: {COLOR_ACCENT};
 }}
 
 QPushButton:pressed {{
-    background-color: {COLOR_BG_SURFACE};
+    background-color: #45475a;
 }}
 
 QPushButton:disabled {{
-    background-color: {COLOR_BG_BASE};
+    background-color: {COLOR_MANTLE};
+    color: {COLOR_TEXT_SUBTLE};
     border-color: {COLOR_BORDER};
-    color: {COLOR_TEXT_MUTED};
 }}
 
-QPushButton.PrimaryButton {{
-    background-color: {COLOR_ACCENT_PRIMARY};
-    color: {COLOR_BG_BASE};
-    border: none;
+QPushButton[class="PrimaryButton"] {{
+    background-color: {COLOR_ACCENT};
+    color: {COLOR_CRUST};
     font-weight: 600;
+    border: 1px solid {COLOR_ACCENT};
 }}
 
-QPushButton.PrimaryButton:hover {{
+QPushButton[class="PrimaryButton"]:hover {{
     background-color: {COLOR_ACCENT_HOVER};
+    border-color: {COLOR_ACCENT_HOVER};
 }}
 
-QPushButton.DangerButton {{
-    background-color: transparent;
+QPushButton[class="PrimaryButton"]:disabled {{
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_TEXT_SUBTLE};
+    border-color: {COLOR_BORDER};
+}}
+
+QPushButton[class="DangerButton"] {{
+    background-color: rgba(237, 135, 150, 0.16);
     color: {COLOR_DANGER};
-    border: 1px solid {COLOR_DANGER};
-}}
-
-QPushButton.DangerButton:hover {{
-    background-color: {COLOR_DANGER};
-    color: {COLOR_BG_BASE};
-}}
-
-QPushButton.SuccessButton {{
-    background-color: {COLOR_SUCCESS};
-    color: {COLOR_BG_BASE};
-    border: none;
+    border: 1px solid rgba(237, 135, 150, 0.65);
     font-weight: 600;
 }}
 
-QPushButton.SuccessButton:hover {{
-    background-color: #94e2d5;
+QPushButton[class="DangerButton"]:hover {{
+    background-color: {COLOR_DANGER};
+    color: {COLOR_CRUST};
 }}
 
-/* Form inputs */
-QLineEdit, QSpinBox, QComboBox {{
-    background-color: {COLOR_BG_INPUT};
+QPushButton[class="DangerSolidButton"] {{
+    background-color: {COLOR_DANGER};
+    color: {COLOR_CRUST};
+    border: 1px solid {COLOR_DANGER};
+    font-weight: 700;
+}}
+
+QPushButton[class="DangerSolidButton"]:hover {{
+    background-color: #f38ba8;
+}}
+
+/* Tables & Lists */
+QTableWidget, QTableView, QListWidget {{
+    background-color: {COLOR_MANTLE};
+    color: {COLOR_TEXT_PRIMARY};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 8px;
+    gridline-color: {COLOR_BORDER};
+    selection-background-color: {COLOR_OVERLAY};
+    selection-color: {COLOR_TEXT_PRIMARY};
+    alternate-background-color: #1b1c2a;
+    outline: 0;
+}}
+
+QHeaderView::section {{
+    background-color: {COLOR_SURFACE};
+    color: {COLOR_TEXT_MUTED};
+    padding: 6px 10px;
+    border: none;
+    border-bottom: 1px solid {COLOR_BORDER};
+    border-right: 1px solid {COLOR_BORDER};
+    font-weight: 600;
+    font-size: 11px;
+}}
+
+QTableWidget::item, QTableView::item, QListWidget::item {{
+    padding: 5px 8px;
+}}
+
+QListWidget::item:selected {{
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_TEXT_PRIMARY};
+}}
+
+/* CheckBoxes */
+QCheckBox {{
+    spacing: 8px;
+    color: {COLOR_TEXT_PRIMARY};
+    background: transparent;
+}}
+
+QCheckBox::indicator {{
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid {COLOR_BORDER};
+    background-color: {COLOR_MANTLE};
+}}
+
+QCheckBox::indicator:hover {{
+    border-color: {COLOR_ACCENT};
+}}
+
+QCheckBox::indicator:checked {{
+    background-color: {COLOR_ACCENT};
+    border-color: {COLOR_ACCENT};
+}}
+
+/* Inputs & Combos */
+QLineEdit, QPlainTextEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {{
+    background-color: {COLOR_MANTLE};
+    color: {COLOR_TEXT_PRIMARY};
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 7px 10px;
-    color: {COLOR_TEXT_PRIMARY};
-    font-size: 13px;
+    padding: 6px 10px;
+    selection-background-color: {COLOR_ACCENT};
+    selection-color: {COLOR_CRUST};
 }}
 
-QLineEdit:focus, QSpinBox:focus, QComboBox:focus {{
-    border-color: {COLOR_BORDER_FOCUS};
+QLineEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {{
+    border-color: {COLOR_ACCENT};
 }}
 
 QComboBox::drop-down {{
     border: none;
-    padding-right: 8px;
+    width: 24px;
 }}
 
 QComboBox QAbstractItemView {{
-    background-color: {COLOR_BG_CARD};
+    background-color: {COLOR_SURFACE};
+    color: {COLOR_TEXT_PRIMARY};
     border: 1px solid {COLOR_BORDER};
-    selection-background-color: {COLOR_BG_CARD_HOVER};
-    selection-color: {COLOR_ACCENT_PRIMARY};
+    selection-background-color: {COLOR_OVERLAY};
 }}
 
-/* Tables */
-QTableWidget {{
-    background-color: {COLOR_BG_CARD};
+/* TabWidget (for sub-views) */
+QTabWidget::pane {{
     border: 1px solid {COLOR_BORDER};
     border-radius: 8px;
-    gridline-color: {COLOR_BORDER};
-    color: {COLOR_TEXT_PRIMARY};
-    font-size: 13px;
-    selection-background-color: {COLOR_BG_CARD_HOVER};
-    selection-color: {COLOR_ACCENT_PRIMARY};
+    background-color: {COLOR_SURFACE};
+    top: -1px;
 }}
 
-QHeaderView::section {{
-    background-color: {COLOR_BG_SURFACE};
-    color: {COLOR_TEXT_SECONDARY};
-    padding: 8px 10px;
-    border: none;
-    border-bottom: 1px solid {COLOR_BORDER};
-    font-weight: 600;
-    font-size: 12px;
-}}
-
-/* Progress bar */
-QProgressBar {{
-    background-color: {COLOR_BG_BASE};
+QTabBar::tab {{
+    background-color: {COLOR_MANTLE};
+    color: {COLOR_TEXT_MUTED};
     border: 1px solid {COLOR_BORDER};
-    border-radius: 5px;
-    text-align: center;
-    color: {COLOR_TEXT_PRIMARY};
-    font-size: 11px;
-    font-weight: 600;
-    height: 16px;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 7px 14px;
+    margin-right: 4px;
+    font-weight: 500;
 }}
 
-QProgressBar::chunk {{
-    background-color: {COLOR_ACCENT_PRIMARY};
+QTabBar::tab:selected {{
+    background-color: {COLOR_SURFACE};
+    color: {COLOR_ACCENT};
+    font-weight: 600;
+}}
+
+/* Menus & Tooltips */
+QMenu {{
+    background-color: {COLOR_SURFACE};
+    color: {COLOR_TEXT_PRIMARY};
+    border: 1px solid {COLOR_BORDER};
+    padding: 4px;
+}}
+
+QMenu::item {{
+    padding: 6px 18px;
     border-radius: 4px;
 }}
 
-/* Monospace Log Viewer */
-QPlainTextEdit.LogConsole {{
-    background-color: #11111b;
+QMenu::item:selected {{
+    background-color: {COLOR_OVERLAY};
+    color: {COLOR_ACCENT};
+}}
+
+QToolTip {{
+    background-color: {COLOR_SURFACE};
+    color: {COLOR_TEXT_PRIMARY};
+    border: 1px solid {COLOR_ACCENT};
+    padding: 5px 8px;
+    border-radius: 4px;
+}}
+
+/* Progress Bar */
+QProgressBar {{
+    background-color: {COLOR_MANTLE};
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    color: #a6da95;
-    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
-    font-size: 12px;
-    padding: 8px;
+    text-align: center;
+    color: {COLOR_TEXT_PRIMARY};
+    min-height: 16px;
+    font-size: 11px;
+    font-weight: 600;
+}}
+
+QProgressBar::chunk {{
+    background-color: {COLOR_ACCENT};
+    border-radius: 5px;
 }}
 
 /* Scrollbars */
 QScrollBar:vertical {{
-    background-color: {COLOR_BG_BASE};
-    width: 8px;
-    margin: 0;
+    background: transparent;
+    width: 9px;
+    margin: 2px 0;
 }}
-
 QScrollBar::handle:vertical {{
-    background-color: {COLOR_BORDER};
-    min-height: 20px;
+    background: {COLOR_OVERLAY};
     border-radius: 4px;
+    min-height: 24px;
 }}
-
 QScrollBar::handle:vertical:hover {{
-    background-color: {COLOR_TEXT_MUTED};
+    background: {COLOR_TEXT_SUBTLE};
 }}
-
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-    height: 0px;
+    height: 0;
 }}
-
-/* Badges */
-QLabel.BadgeRunning {{
-    background-color: rgba(166, 218, 149, 0.2);
-    color: {COLOR_SUCCESS};
-    border: 1px solid {COLOR_SUCCESS};
-    border-radius: 10px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
+QScrollBar:horizontal {{
+    background: transparent;
+    height: 9px;
+    margin: 0 2px;
 }}
-
-QLabel.BadgeStopped {{
-    background-color: rgba(237, 135, 150, 0.2);
-    color: {COLOR_DANGER};
-    border: 1px solid {COLOR_DANGER};
-    border-radius: 10px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 600;
-}}
-
-QLabel.BadgeFresh {{
-    background-color: rgba(166, 218, 149, 0.15);
-    color: {COLOR_SUCCESS};
-    border-radius: 8px;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-weight: 600;
-}}
-
-QLabel.BadgeStale {{
-    background-color: rgba(238, 212, 159, 0.15);
-    color: {COLOR_WARNING};
-    border-radius: 8px;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-weight: 600;
-}}
-
-QLabel.BadgeNotIndexed {{
-    background-color: rgba(110, 115, 141, 0.2);
-    color: {COLOR_TEXT_MUTED};
-    border-radius: 8px;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-weight: 600;
+QScrollBar::handle:horizontal {{
+    background: {COLOR_OVERLAY};
+    border-radius: 4px;
+    min-width: 24px;
 }}
 """

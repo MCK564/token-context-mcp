@@ -7,7 +7,7 @@ import tomllib
 from pathlib import Path
 
 from token_context_mcp.constants import DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILES
-from token_context_mcp.models import AppConfig, RankingConfig, RepositoryConfig, ServerConfig
+from token_context_mcp.models import AppConfig, LedgerConfig, RankingConfig, RepositoryConfig, ServerConfig
 from token_context_mcp.security.local_privacy import secure_directory, secure_file
 from token_context_mcp.security.path_policy import canonical_repository_root
 
@@ -117,10 +117,21 @@ def load_config(path: Path) -> AppConfig:
             max_files=int(settings.get("max_files", DEFAULT_MAX_FILES)),
             ranking=ranking,
         )
+    raw_ledger = raw.get("ledger", {})
+    ledger = LedgerConfig(
+        enabled=bool(raw_ledger.get("enabled", LedgerConfig.enabled)),
+        overlay_enabled=bool(raw_ledger.get("overlay_enabled", LedgerConfig.overlay_enabled)),
+        max_cards_per_repo=int(raw_ledger.get("max_cards_per_repo", LedgerConfig.max_cards_per_repo)),
+        ttl_days=int(raw_ledger.get("ttl_days", LedgerConfig.ttl_days)),
+        answer_jaccard_min=float(raw_ledger.get("answer_jaccard_min", LedgerConfig.answer_jaccard_min)),
+        answer_min_overlap=int(raw_ledger.get("answer_min_overlap", LedgerConfig.answer_min_overlap)),
+        decoy_jaccard_min=float(raw_ledger.get("decoy_jaccard_min", LedgerConfig.decoy_jaccard_min)),
+        max_hint_tokens=int(raw_ledger.get("max_hint_tokens", LedgerConfig.max_hint_tokens)),
+    )
     budget_profiles = _load_budget_profiles(raw.get("budget_profiles", {}))
-    known_sections = {"server", "repos", "budget_profiles"}
+    known_sections = {"server", "repos", "budget_profiles", "ledger"}
     extra = {k: v for k, v in raw.items() if k not in known_sections}
-    return AppConfig(repositories=repositories, server=server, budget_profiles=budget_profiles, extra=extra)
+    return AppConfig(repositories=repositories, server=server, budget_profiles=budget_profiles, ledger=ledger, extra=extra)
 
 
 def save_config(path: Path, config: AppConfig) -> None:
@@ -167,6 +178,21 @@ def save_config(path: Path, config: AppConfig) -> None:
                     items_str = ", ".join(f'"{_toml_string(x)}"' for x in v)
                     lines.append(f"{k} = [{items_str}]")
             lines.append("")
+    if config.ledger != LedgerConfig():
+        lines.extend(
+            [
+                "[ledger]",
+                f"enabled = {'true' if config.ledger.enabled else 'false'}",
+                f"overlay_enabled = {'true' if config.ledger.overlay_enabled else 'false'}",
+                f"max_cards_per_repo = {config.ledger.max_cards_per_repo}",
+                f"ttl_days = {config.ledger.ttl_days}",
+                f"answer_jaccard_min = {config.ledger.answer_jaccard_min}",
+                f"answer_min_overlap = {config.ledger.answer_min_overlap}",
+                f"decoy_jaccard_min = {config.ledger.decoy_jaccard_min}",
+                f"max_hint_tokens = {config.ledger.max_hint_tokens}",
+                "",
+            ]
+        )
     if config.extra:
         for section_name in sorted(config.extra):
             section_val = config.extra[section_name]
@@ -203,7 +229,7 @@ def register_repository(path: Path, repo_id: str, root: Path) -> RepositoryConfi
     repository = RepositoryConfig(repo_id=repo_id, root=canonical_repository_root(root))
     repositories = dict(config.repositories)
     repositories[repo_id] = repository
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, ledger=config.ledger, extra=config.extra))
     return repository
 
 
@@ -215,7 +241,7 @@ def unregister_repository(path: Path, repo_id: str) -> RepositoryConfig:
         raise ConfigError(f"unknown repo_id: {repo_id}") from error
     repositories = dict(config.repositories)
     del repositories[repo_id]
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, ledger=config.ledger, extra=config.extra))
     return repository
 
 
@@ -236,7 +262,7 @@ def update_repository(path: Path, repo_id: str, root: Path, *, force: bool = Fal
     )
     repositories = dict(config.repositories)
     repositories[repo_id] = repository
-    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, extra=config.extra))
+    save_config(path, AppConfig(repositories=repositories, server=config.server, budget_profiles=config.budget_profiles, ledger=config.ledger, extra=config.extra))
     return repository
 
 

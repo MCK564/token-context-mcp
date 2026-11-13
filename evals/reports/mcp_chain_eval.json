@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "mode": "live_mcp_stdio",
+  "tokenizer": "o200k_base",
+  "baseline_no_ledger": {
+    "tokenizer": "o200k_base",
+    "total_followups": 22,
+    "natural_hits": 0,
+    "natural_hit_rate": 0.0,
+    "search_source_skipped": 0,
+    "multistep_cards_recorded": 0,
+    "median_followup_tokens": 4618.5,
+    "mean_followup_tokens": 4698.09
+  },
+  "ledger_multistep": {
+    "tokenizer": "o200k_base",
+    "total_followups": 23,
+    "natural_hits": 6,
+    "natural_hit_rate": 0.2609,
+    "search_source_skipped": 6,
+    "multistep_cards_recorded": 8,
+    "median_followup_tokens": 4302,
+    "mean_followup_tokens": 3699.48
+  },
+  "median_followup_token_savings_pct": 6.85,
+  "stale_multistep_invalidation": {
+    "before_steps_valid": true,
+    "after_recheck_from": 2,
+    "after_verify_failed": true
+  }
+}

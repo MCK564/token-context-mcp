@@ -170,7 +170,7 @@ def test_default_profile_has_the_known_schema_issues() -> None:
 def test_gemini_safe_schemas_have_no_issues(cfg: Path) -> None:
     server = build_server(cfg, enable_extensions=True, enable_admin_tools=True, schema_profile="gemini_safe")
     tools = _run(_client_tools(server, "whatever"))
-    assert len(tools) == 22
+    assert len(tools) == 23
     assert _issues({t.name: t.input_schema for t in tools}) == []
     memory_put = next(t for t in tools if t.name == "memory_put")
     assert memory_put.input_schema["properties"]["value"]["type"] == "string"
@@ -235,7 +235,7 @@ def test_get_tool_schema_returns_the_registered_schema(cfg: Path) -> None:
 
 def test_tool_descriptions_are_short_and_plain(cfg: Path) -> None:
     tools = _run(build_server(cfg, enable_extensions=True, enable_admin_tools=True).list_tools())
-    assert len(tools) == 22
+    assert len(tools) == 23
     for tool in tools:
         assert 0 < len(tool.description) <= 200, (tool.name, len(tool.description))
     descriptions = {t.name: t.description for t in tools}

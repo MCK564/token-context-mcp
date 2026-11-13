@@ -1,5 +1,5 @@
 <!-- mcp-name: io.github.MCK564/token-context-mcp -->
-# Token Context MCP (v0.3.5)
+# Token Context MCP (v0.3.6)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
@@ -50,15 +50,17 @@
 
 ## ⚡ Core Architectural Pillars
 
-1. **3-Layer Governance Microkernel (`kernel/`)**:
-   - Every request is governed by a lightweight execution pipeline:
-     - **Layer 1 — Clean AST-Boundary Cap**: Enforces `max_response_tokens` at syntactic boundaries without cutting functions in half.
-     - **Layer 2 — Per-Tool Async Timeout Gate**: Prevents runaway hangs on large monorepos (`10s` for `get_repo_map`, `5s` for `search_source`).
-     - **Layer 3 — 150K Session Budget Circuit Breaker**: Emits a telemetry warning at 80% usage and halts runaway loops at **150,000 cumulative tokens** to prevent bill shocks.
+1. **3-Stage Governance Microkernel (`kernel/`)**:
+   - Every request passes through a lightweight middleware pipeline:
+     - **Stage 1 — Identity Resolution (`AuthMiddleware`)**: Binds `TOKEN_CONTEXT_AGENT_ID` when configured and prevents reserved `admin` impersonation.
+     - **Stage 2 — Access & Rate Governance (`GovernanceMiddleware`)**: Enforces per-agent policies, emergency halt, and sliding-window rate limits.
+     - **Stage 3 — AST-Boundary Cap & Execution (`ExecutionMiddleware` + `retrieve/`)**: Enforces `max_result_tokens` at syntactic boundaries without cutting functions in half.
 2. **Zero Schema Bloat**:
-   - The default `tools/list` payload exposes **only 10 core read-only retrieval tools** (keeping 10 extension tools and 2 admin tools off the wire until requested). Server-side JSON schemas are slimmed to reduce initial prompt tax.
+   - The default `tools/list` payload exposes **only 10 core read-only retrieval tools** (keeping 11 extension tools—including `trajectory_record`—and 2 admin tools off the wire until requested). Server-side JSON schemas are slimmed to reduce initial prompt tax.
 3. **Incremental Tree-sitter AST & Persistent SQLite Graph (`index/`)**:
    - Fast `mtime_ns` + SHA-256 change detection across **Python, JavaScript/TypeScript, Go, Rust, Java, C/C++**, and C# with symlink-escape and path traversal guards.
+4. **Verified Evidence Ledger ("Lá Phổi" — `[ledger].enabled = true` by default)**:
+   - Stores verified `"query -> answer"` citation cards (`path:line` + AST body SHA-256) in `ledger.sqlite` outside your repository. Every read re-verifies citations against disk, emits `prior_evidence` hints (or `recheck_from` on `VERIFY_FAILED`), and never prunes unverified code. Zero-hash fast-path adds 0ms overhead on empty ledgers.
 
 ---
 
@@ -94,9 +96,16 @@ token-context serve
 ```
 
 ### Desktop GUI Controller (PySide6)
-Includes hardware telemetry, CPU/RAM monitoring, and repository status overview:
+7-tab dark desktop controller (`Dashboard`, `Repositories`, `Tasks & Graph`, `Cache & DB` with stale snapshot cleanup & `ledger.sqlite` vacuuming, `Ledger & Memory`, `Agents & Security`, and `Settings`):
 ```bash
 uvx --from "token-context-mcp[gui]" token-context-gui
+```
+
+### Benchmark & Evaluation Suite (`[eval]` extra with `tiktoken o200k_base`)
+```bash
+pip install -e ".[eval]"
+python evals/chain_eval.py --output evals/reports/chain_l0_l5.json
+python evals/mcp_chain_eval.py --limit-chains 6 --output evals/reports/mcp_chain_eval.json
 ```
 
 ---
@@ -166,7 +175,7 @@ By default, the server exposes **10 read-only retrieval tools** to preserve agen
 | `get_module_dependents` | Tree-sitter import dependency graph between modules. | Read-only |
 | `inspect_symbol` | Composite lookup: symbol resolution + full context + 1-hop impact graph. | Read-only |
 
-*(10 extension tools including SQLite multi-agent memory `memory_*`, lazy tool discovery `*_tools`, hardware-adaptive compressor `sample_summarize`, and 2 admin tools `agent_control`, `audit_logs` can be enabled via configuration).*
+*(11 extension tools including SQLite multi-agent memory `memory_*`, Evidence Ledger `trajectory_record`, lazy tool discovery `*_tools`, hardware-adaptive compressor `sample_summarize`, and 2 admin tools `agent_control`, `audit_logs` can be enabled via configuration).*
 
 ---
 

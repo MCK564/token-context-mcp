@@ -305,18 +305,116 @@ class RepoManager:
             "output_mode": config.server.output_mode,
             "default_view": config.server.default_view,
             "enable_extensions": config.server.enable_extensions,
+            "enable_admin_tools": config.server.enable_admin_tools,
+            "ledger_enabled": config.ledger.enabled,
+            "ledger_overlay_enabled": config.ledger.overlay_enabled,
+            "ledger_max_cards_per_repo": config.ledger.max_cards_per_repo,
+            "ledger_ttl_days": config.ledger.ttl_days,
+            "ledger_answer_jaccard_min": config.ledger.answer_jaccard_min,
+            "ledger_answer_min_overlap": config.ledger.answer_min_overlap,
+            "ledger_decoy_jaccard_min": config.ledger.decoy_jaccard_min,
+            "ledger_max_hint_tokens": config.ledger.max_hint_tokens,
         }
 
     def update_server_config(self, settings: dict[str, Any]) -> None:
         import dataclasses
-        from token_context_mcp.models import ServerConfig
+        from token_context_mcp.models import LedgerConfig, ServerConfig
+
         config = load_config(self.config_path)
-        valid_keys = {f.name for f in dataclasses.fields(ServerConfig)}
-        filtered = {k: v for k, v in settings.items() if k in valid_keys}
-        new_server = dataclasses.replace(config.server, **filtered)
-        new_app = dataclasses.replace(config, server=new_server)
+        server_keys = {f.name for f in dataclasses.fields(ServerConfig)}
+        server_filtered = {k: v for k, v in settings.items() if k in server_keys}
+        new_server = dataclasses.replace(config.server, **server_filtered)
+
+        ledger_map = {
+            "ledger_enabled": "enabled",
+            "ledger_overlay_enabled": "overlay_enabled",
+            "ledger_max_cards_per_repo": "max_cards_per_repo",
+            "ledger_ttl_days": "ttl_days",
+            "ledger_answer_jaccard_min": "answer_jaccard_min",
+            "ledger_answer_min_overlap": "answer_min_overlap",
+            "ledger_decoy_jaccard_min": "decoy_jaccard_min",
+            "ledger_max_hint_tokens": "max_hint_tokens",
+        }
+        ledger_filtered = {
+            ledger_map[k]: v for k, v in settings.items() if k in ledger_map
+        }
+        new_ledger = (
+            dataclasses.replace(config.ledger, **ledger_filtered)
+            if ledger_filtered
+            else config.ledger
+        )
+        new_app = dataclasses.replace(config, server=new_server, ledger=new_ledger)
         save_config(self.config_path, new_app)
         self.invalidate_cache()
+
+    def get_repo_insights(self, repo_id: str, query: str = "", limit: int = 30) -> dict[str, Any]:
+        """Return role distribution and top/matching symbols from the active snapshot."""
+        config = load_config(self.config_path)
+        if repo_id not in config.repositories:
+            return {"role_counts": {}, "symbols": [], "total_symbols": 0}
+        idx_dir = index_directory(self.config_path)
+        db_file: Path | None = None
+        ptr_file = current_pointer_path(idx_dir, repo_id)
+        if ptr_file.is_file():
+            try:
+                ptr_data = json.loads(ptr_file.read_text(encoding="utf-8"))
+                db_name = ptr_data.get("db")
+                if isinstance(db_name, str) and db_name.strip():
+                    db_file = idx_dir / db_name
+            except Exception:
+                db_file = None
+        if db_file is None or not db_file.is_file():
+            db_file = database_path(idx_dir, repo_id)
+        if not db_file.is_file():
+            return {"role_counts": {}, "symbols": [], "total_symbols": 0}
+        role_counts: dict[str, int] = {}
+        symbols: list[dict[str, Any]] = []
+        total_symbols = 0
+        try:
+            con = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=0.5)
+            try:
+                row = con.execute("SELECT COUNT(*) FROM symbols").fetchone()
+                total_symbols = int(row[0]) if row else 0
+                for roles_json, in con.execute("SELECT roles_json FROM symbols WHERE roles_json IS NOT NULL AND roles_json != '[]'"):
+                    try:
+                        for r in json.loads(roles_json):
+                            role_counts[str(r)] = role_counts.get(str(r), 0) + 1
+                    except Exception:
+                        pass
+                q = query.strip()
+                if q:
+                    like = f"%{q}%"
+                    cur = con.execute(
+                        "SELECT qualified_name, kind, path, start_line, roles_json "
+                        "FROM symbols WHERE qualified_name LIKE ? OR path LIKE ? "
+                        "ORDER BY is_private ASC, qualified_name ASC LIMIT ?",
+                        (like, like, limit),
+                    )
+                else:
+                    cur = con.execute(
+                        "SELECT qualified_name, kind, path, start_line, roles_json "
+                        "FROM symbols ORDER BY is_private ASC, (end_line - start_line) DESC LIMIT ?",
+                        (limit,),
+                    )
+                for qname, kind, path, line, rjson in cur.fetchall():
+                    try:
+                        roles = ", ".join(json.loads(rjson or "[]"))
+                    except Exception:
+                        roles = ""
+                    symbols.append(
+                        {
+                            "qualified_name": qname,
+                            "kind": kind,
+                            "path": path,
+                            "line": line,
+                            "roles": roles or "-",
+                        }
+                    )
+            finally:
+                con.close()
+        except Exception:
+            pass
+        return {"role_counts": role_counts, "symbols": symbols, "total_symbols": total_symbols}
 
 
 def kill_process_tree(pid: int, *, grace_seconds: float = 3.0) -> list[int]:
@@ -549,42 +647,80 @@ class CacheManager:
 
     def get_storage_stats(self) -> dict[str, Any]:
         idx_dir = index_directory(self.config_path)
+        config = load_config(self.config_path)
+        active_repos = set(config.repositories.keys())
+        active_files: dict[str, str] = {}
+        for rid in active_repos:
+            ptr = current_pointer_path(idx_dir, rid)
+            if ptr.is_file():
+                try:
+                    db_name = json.loads(ptr.read_text(encoding="utf-8")).get("db", "")
+                    if db_name:
+                        active_files[rid] = db_name
+                except Exception:
+                    pass
+            if rid not in active_files:
+                legacy = database_path(idx_dir, rid)
+                if legacy.is_file():
+                    active_files[rid] = legacy.name
+
         total_bytes = 0
+        active_bytes = 0
+        stale_bytes = 0
         repo_dbs: list[dict[str, Any]] = []
 
         if idx_dir.exists():
-            for sqlite_file in idx_dir.glob("*.sqlite"):
+            for sqlite_file in sorted(idx_dir.glob("*.sqlite")):
                 sz = sqlite_file.stat().st_size
                 total_bytes += sz
                 repo_id = sqlite_file.name.split(".", 1)[0]
+                if repo_id not in active_repos:
+                    status = "ORPHAN"
+                    stale_bytes += sz
+                elif active_files.get(repo_id) == sqlite_file.name:
+                    status = "ACTIVE"
+                    active_bytes += sz
+                else:
+                    status = "SUPERSEDED"
+                    stale_bytes += sz
                 repo_dbs.append(
                     {
                         "repo_id": repo_id,
                         "file_name": sqlite_file.name,
+                        "status": status,
                         "size_mb": round(sz / (1024 * 1024), 2),
                         "path": str(sqlite_file),
                     }
                 )
 
-        # Check episodic memory DB
-        memory_db = self.config_path.parent / "memory.sqlite"
-        memory_size_mb = 0.0
-        if memory_db.exists():
-            sz = memory_db.stat().st_size
-            total_bytes += sz
-            memory_size_mb = round(sz / (1024 * 1024), 2)
+        def _db_mb(name: str) -> float:
+            p = self.config_path.parent / name
+            if p.is_file():
+                sz = p.stat().st_size
+                return round(sz / (1024 * 1024), 3)
+            return 0.0
+
+        memory_size_mb = _db_mb("memory.sqlite")
+        ledger_size_mb = _db_mb("ledger.sqlite")
+        for db_name in self.VACUUMABLE_DBS:
+            p = self.config_path.parent / db_name
+            if p.is_file():
+                total_bytes += p.stat().st_size
 
         return {
             "total_size_mb": round(total_bytes / (1024 * 1024), 2),
+            "active_size_mb": round(active_bytes / (1024 * 1024), 2),
+            "stale_size_mb": round(stale_bytes / (1024 * 1024), 2),
             "indexes_directory": str(idx_dir),
             "databases_count": len(repo_dbs),
             "databases": repo_dbs,
             "memory_db_size_mb": memory_size_mb,
+            "ledger_db_size_mb": ledger_size_mb,
         }
 
     # M8.9: only databases that are written in place may be vacuumed. Index snapshots are immutable (VACUUM would
     # change their bytes and break artifact_sha256), so they are not even offered.
-    VACUUMABLE_DBS = ("memory.sqlite", "governance.sqlite", "audit.sqlite")
+    VACUUMABLE_DBS = ("memory.sqlite", "governance.sqlite", "audit.sqlite", "ledger.sqlite")
     VACUUM_RETRIES = 3
     VACUUM_BACKOFF_SECONDS = 0.5
 
@@ -633,7 +769,7 @@ class CacheManager:
         return [self.vacuum_one(name) for name in names]
 
     def clean_stale_snapshots(self) -> list[str]:
-        """Remove SQLite files for repos no longer registered in repos.toml."""
+        """Remove SQLite files for unregistered repos and superseded snapshots safely."""
         config = load_config(self.config_path)
         idx_dir = index_directory(self.config_path)
         removed: list[str] = []
@@ -642,15 +778,18 @@ class CacheManager:
             return removed
 
         active_repos = set(config.repositories.keys())
-        for sqlite_file in idx_dir.glob("*.sqlite"):
+        for sqlite_file in list(idx_dir.glob("*.sqlite")):
             repo_id = sqlite_file.name.split(".", 1)[0]
             if repo_id not in active_repos:
-                mf_file = manifest_path(idx_dir, repo_id)
-                sqlite_file.unlink(missing_ok=True)
-                mf_file.unlink(missing_ok=True)
-                ptr_file = current_pointer_path(idx_dir, repo_id)
-                ptr_file.unlink(missing_ok=True)
-                removed.append(repo_id)
+                try:
+                    sqlite_file.unlink(missing_ok=True)
+                    for ext in ("-wal", "-shm"):
+                        Path(str(sqlite_file) + ext).unlink(missing_ok=True)
+                    manifest_path(idx_dir, repo_id).unlink(missing_ok=True)
+                    current_pointer_path(idx_dir, repo_id).unlink(missing_ok=True)
+                    removed.append(sqlite_file.name)
+                except PermissionError:
+                    logger.warning("Skipping locked orphan snapshot: %s", sqlite_file.name)
 
         # Also garbage collect old snapshots for active repos
         for repo_id in active_repos:
@@ -661,8 +800,11 @@ class CacheManager:
                     current_db = json.loads(ptr.read_text(encoding="utf-8")).get("db", "")
                 except Exception:
                     pass
-            removed_gc = gc_snapshots(idx_dir, repo_id, current_db_name=current_db)
-            removed.extend(removed_gc)
+            try:
+                removed_gc = gc_snapshots(idx_dir, repo_id, current_db_name=current_db)
+                removed.extend(removed_gc)
+            except PermissionError:
+                logger.warning("Skipping locked snapshot during GC for repo %s", repo_id)
 
         return removed
 
@@ -671,9 +813,12 @@ class CacheManager:
         idx_dir = index_directory(self.config_path)
         count = 0
         if idx_dir.exists():
-            for f in idx_dir.glob("*.*"):
-                f.unlink(missing_ok=True)
-                count += 1
+            for f in list(idx_dir.glob("*.*")):
+                try:
+                    f.unlink(missing_ok=True)
+                    count += 1
+                except PermissionError:
+                    logger.warning("Skipping locked cache file: %s", f.name)
         return count
 
 
@@ -891,4 +1036,130 @@ class AgentSecurityController(QObject):
             self._audit_logger.close()
         except Exception:
             pass
+
+
+class LedgerController:
+    """Thread-safe GUI bridge for inspecting and managing Verified Evidence Ledger & Episodic Memory."""
+
+    def __init__(self, config_path: Path | None = None) -> None:
+        self.config_path = config_path or default_config_path()
+
+    def _service(self):
+        from token_context_mcp.ledger.service import LedgerService
+
+        return LedgerService(load_config(self.config_path), self.config_path)
+
+    def fetch_snapshot(self, repo_id: str | None = None) -> dict[str, Any]:
+        svc = self._service()
+        try:
+            cards = svc.list_cards(repo_id=repo_id)
+            config = load_config(self.config_path)
+            confirmed = sum(1 for c in cards if c.get("status") == "confirmed")
+            retired = sum(1 for c in cards if c.get("status") == "retired")
+            repos = sorted(config.repositories.keys())
+            mem_entries = self.list_memory_entries(limit=150)
+            return {
+                "enabled": config.ledger.enabled,
+                "overlay_enabled": config.ledger.overlay_enabled,
+                "repos": repos,
+                "cards": cards,
+                "summary": {
+                    "total_cards": len(cards),
+                    "confirmed": confirmed,
+                    "retired": retired,
+                    "active": len(cards) - retired,
+                },
+                "memory_entries": mem_entries,
+            }
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def show_card(self, card_id: int) -> dict[str, Any] | None:
+        svc = self._service()
+        try:
+            return svc.show_card(card_id)
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def confirm_card(self, card_id: int) -> bool:
+        svc = self._service()
+        try:
+            return svc.confirm_card(card_id)
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def forget_card(self, card_id: int) -> bool:
+        svc = self._service()
+        try:
+            return svc.forget_card(card_id)
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def prune_cards(self, repo_id: str | None = None) -> int:
+        svc = self._service()
+        try:
+            return svc.prune(repo_id=repo_id)
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def export_cards(self, repo_id: str | None = None, fmt: str = "json") -> str:
+        svc = self._service()
+        try:
+            return svc.export_cards(repo_id=repo_id, fmt=fmt)
+        finally:
+            try:
+                svc.store.close()
+            except Exception:
+                pass
+
+    def list_memory_entries(self, limit: int = 150) -> list[dict[str, Any]]:
+        mem_db = self.config_path.parent / "memory.sqlite"
+        if not mem_db.is_file():
+            return []
+        entries: list[dict[str, Any]] = []
+        try:
+            con = sqlite3.connect(f"file:{mem_db}?mode=ro", uri=True, timeout=0.5)
+            try:
+                tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+                if "memory_entries" not in tables:
+                    return []
+                cols = {r[1] for r in con.execute("PRAGMA table_info(memory_entries)").fetchall()}
+                ns_col = "namespace" if "namespace" in cols else "'' AS namespace"
+                key_col = "key" if "key" in cols else ("entry_key" if "entry_key" in cols else "id")
+                val_col = "value" if "value" in cols else ("content" if "content" in cols else "''")
+                upd_col = "updated_at" if "updated_at" in cols else "0"
+                rows = con.execute(
+                    f"SELECT {ns_col}, {key_col}, {val_col}, {upd_col} FROM memory_entries ORDER BY rowid DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
+                for ns, key, val, upd in rows:
+                    entries.append(
+                        {
+                            "namespace": str(ns or "default"),
+                            "key": str(key or ""),
+                            "value": str(val or "")[:240],
+                            "updated_at": str(upd or ""),
+                        }
+                    )
+            finally:
+                con.close()
+        except Exception:
+            pass
+        return entries
+
 

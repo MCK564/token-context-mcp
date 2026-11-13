@@ -527,3 +527,16 @@ CsvHelper's two wrong edges are interface-dispatch calls (`ITypeConverter.Conver
 ### Limits
 
 Five repositories, two of them fresh with 15 tasks and 12 labelled sites each; one author, no human review; call-site labels not independently reviewed; a simulated grep baseline; retrieval quality only (no agent task success; C3 was not run, to avoid API cost); the jsoup development set was written by the executor; the "family cap" and overload-collapse ideas were tried on the development sets without gain and left off.
+
+---
+
+## Verified Evidence Ledger — L0 Chain Evaluation (2026-11-13)
+
+Measured with `evals/chain_eval.py` across 60 follow-up queries (`q2`, `q3`) from 30 chains in `evals/tasks/chain_rich.json` and `evals/tasks/chain_fastify.json` (`bench-rich` and `bench-fastify`), using `utf8-bytes-div-4-v1` fallback (`tiktoken` not installed in `.venv`):
+
+| Metric | `no_ledger` | `oracle_ledger` | Delta / Status |
+| --- | ---: | ---: | --- |
+| Follow-up median tokens (`q2`/`q3`) | 3,947.5 | 1,339.5 | **-68.69%** paired median |
+| 95% Bootstrap CI (token savings) | — | — | **[1,952.0, 3,416.0]** (GO) |
+| Mean tool calls per turn | 3.08 | 1.00 | -2.08 calls |
+| `no_ledger` File Acc@5 / Sym Recall@10 | 0.9333 / 0.85 | 1.00 / 1.00 | — |

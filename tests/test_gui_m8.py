@@ -36,7 +36,13 @@ from token_context_mcp.gui.bridge import (  # noqa: E402
 )
 from token_context_mcp.gui.models import RepoTableModel  # noqa: E402
 from token_context_mcp.gui.perf import EventLoopWatchdog  # noqa: E402
-from token_context_mcp.gui.workers import is_ui_thread, pending_count, run_async, wait_idle  # noqa: E402
+from token_context_mcp.gui.workers import is_ui_thread, pending_count, reset_workers_for_tests, run_async, wait_idle  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_workers():
+    reset_workers_for_tests()
+    yield
 
 
 @pytest.fixture(scope="module")
@@ -145,16 +151,18 @@ def test_tab_refresh_does_no_io_on_ui_thread(qapp, env, monkeypatch):
     real_read_text = Path.read_text
     monkeypatch.setattr(Path, "read_text", guard("Path.read_text", real_read_text))
 
-    for idx in (0, 1, 2, 3, 4, 5, 0):
-        window._on_nav_clicked(idx)
+    try:
+        for idx in (0, 1, 2, 3, 4, 5, 6, 0):
+            window._on_nav_clicked(idx)
+            assert wait_idle()
+            pump_until(lambda: pending_count() == 0, 5)
+        window._manual_refresh_current_tab()
         assert wait_idle()
-        pump_until(lambda: pending_count() == 0, 5)
-    window._manual_refresh_current_tab()
-    assert wait_idle()
 
-    assert ui_calls == [], f"I/O on the UI thread: {sorted(set(ui_calls))}"
-    assert {"list_repositories", "get_storage_stats", "collect_snapshot", "get_server_config"} <= set(worker_calls)
-    window.close()
+        assert ui_calls == [], f"I/O on the UI thread: {sorted(set(ui_calls))}"
+        assert {"list_repositories", "get_storage_stats", "collect_snapshot", "get_server_config"} <= set(worker_calls)
+    finally:
+        window.close()
 
 
 def test_repositories_tab_renders_indexed_repo(qapp, env):
@@ -389,7 +397,7 @@ def test_vacuum_never_touches_snapshots(qapp, env):
     cache = CacheManager(config_path)
     assert {t["name"] for t in cache.vacuum_targets()} == set(CacheManager.VACUUMABLE_DBS)
     results = cache.vacuum_databases([t["name"] for t in cache.vacuum_targets()])
-    assert [r["status"] for r in results] == ["ok"] * 3
+    assert [r["status"] for r in results] == ["ok"] * len(CacheManager.VACUUMABLE_DBS)
     assert all(r["reclaimed_bytes"] >= 0 for r in results)
     assert {p: _sha(p) for p in idx_dir.rglob("*") if p.is_file()} == before
 

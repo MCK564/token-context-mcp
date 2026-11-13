@@ -185,6 +185,8 @@ def expand_anchors(
     hops: int,
     min_confidence: float,
     communities: dict[str, int],
+    confirmed_step_edges: set[tuple[str, str]] | None = None,
+    confirmed_decoys: set[tuple[str, str]] | None = None,
 ) -> tuple[list[Neighbor], int]:
     """Return (neighbors, number_of_anchors_expanded)."""
     anchors = anchor_ids[:MAX_ANCHORS]
@@ -200,12 +202,13 @@ def expand_anchors(
         expanded += 1
         anchor_path = graph.symbol_map[anchor_id].path
         anchor_comm = communities.get(anchor_path)
-        # best path product and first-hop relation per reachable node
-        reach: dict[str, tuple[float, str]] = {}
-        frontier: list[tuple[str, float, str | None]] = [(anchor_id, 1.0, None)]
+        # best path product, first-hop relation, and confirmed-step flag per reachable node
+        reach: dict[str, tuple[float, str, bool]] = {}
+        frontier: list[tuple[str, float, str | None, bool]] = [(anchor_id, 1.0, None, False)]
         for _ in range(hops):
-            next_frontier: list[tuple[str, float, str | None]] = []
-            for node, weight, relation in frontier:
+            next_frontier: list[tuple[str, float, str | None, bool]] = []
+            for node, weight, relation, path_step in frontier:
+                node_sym = graph.symbol_map.get(node)
                 steps: list[tuple[str, float, str]] = []
                 for edge in graph.out_edges.get(node, []):
                     if edge_is_traversable(edge, min_confidence):
@@ -218,13 +221,19 @@ def expand_anchors(
                         continue
                     product = weight * conf
                     rel = relation or step_rel
+                    other_sym = graph.symbol_map[other]
+                    step_hit = path_step or bool(
+                        confirmed_step_edges
+                        and node_sym is not None
+                        and (node_sym.qualified_name, other_sym.qualified_name) in confirmed_step_edges
+                    )
                     if other not in reach or product > reach[other][0]:
-                        reach[other] = (product, rel)
-                        next_frontier.append((other, product, rel))
+                        reach[other] = (product, rel, step_hit)
+                        next_frontier.append((other, product, rel, step_hit))
             frontier = next_frontier
 
         candidates: list[Neighbor] = []
-        for sid, (product, rel) in reach.items():
+        for sid, (product, rel, via_step) in reach.items():
             if sid in anchor_set:
                 continue
             sym = graph.symbol_map[sid]
@@ -233,11 +242,18 @@ def expand_anchors(
                 score *= COMMUNITY_BONUS
             if sid in hubs:
                 score *= HUB_PENALTY
+            if via_step:
+                score *= 1.2
+            name_parts = split_identifier(sym.name)
+            atomic_name_terms = set(name_parts[:-1] if len(name_parts) > 1 else name_parts)
+            if confirmed_decoys and (sym.path, sym.qualified_name) in confirmed_decoys:
+                if not (atomic_name_terms and atomic_name_terms <= query_terms):
+                    score *= 0.5
             relation = rel
             if _is_test_path(sym.path):
                 relation = "test"
                 score *= TEST_NEIGHBOR_FACTOR
-            name_terms = set(split_identifier(sym.name))
+            name_terms = set(name_parts)
             score *= 1 + TERM_BONUS * len(query_terms & name_terms)
             candidates.append(
                 Neighbor(sid, sym.path, sym.start_line, sym.kind, sym.name, relation, score, anchor_id, rank)

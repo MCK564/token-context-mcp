@@ -151,6 +151,7 @@ def test_all_tools_are_explicitly_classified_under_read_only() -> None:
         "memory_unlock",
         "memory_consolidate",
         "sample_summarize",
+        "trajectory_record",
         "agent_control",
         "audit_logs",
     }

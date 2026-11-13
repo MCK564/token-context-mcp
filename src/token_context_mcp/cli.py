@@ -103,6 +103,29 @@ def build_parser() -> argparse.ArgumentParser:
     quickstart.add_argument("--full", action="store_true", help="Ignore existing snapshot and index from scratch")
     quickstart.add_argument("--serve", action="store_true", help="Start MCP stdio server immediately after indexing")
     quickstart.add_argument("--gui", action="store_true", help="Launch Desktop GUI controller")
+
+    ledger = subparsers.add_parser("ledger", help="Manage the verified evidence ledger")
+    ledger_sub = ledger.add_subparsers(dest="ledger_command", required=True)
+    l_list = ledger_sub.add_parser("list", help="List ledger cards")
+    l_list.add_argument("--repo-id", help="Filter by repository ID")
+    l_list.add_argument("--config", type=Path, default=default_config_path())
+    l_show = ledger_sub.add_parser("show", help="Show a ledger card by ID")
+    l_show.add_argument("card_id", type=int)
+    l_show.add_argument("--config", type=Path, default=default_config_path())
+    l_confirm = ledger_sub.add_parser("confirm", help="Confirm a ledger card by ID")
+    l_confirm.add_argument("card_id", type=int)
+    l_confirm.add_argument("--config", type=Path, default=default_config_path())
+    l_forget = ledger_sub.add_parser("forget", help="Delete a ledger card by ID")
+    l_forget.add_argument("card_id", type=int)
+    l_forget.add_argument("--config", type=Path, default=default_config_path())
+    l_prune = ledger_sub.add_parser("prune", help="Prune expired or retired cards")
+    l_prune.add_argument("--repo-id", help="Filter by repository ID")
+    l_prune.add_argument("--config", type=Path, default=default_config_path())
+    l_export = ledger_sub.add_parser("export", help="Export ledger cards to JSON or Markdown")
+    l_export.add_argument("--repo-id", help="Filter by repository ID")
+    l_export.add_argument("--format", choices=["json", "md"], default="json")
+    l_export.add_argument("--output", type=Path, help="Optional output file path")
+    l_export.add_argument("--config", type=Path, default=default_config_path())
     return parser
 
 
@@ -143,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
             _emit({key: str(value) for key, value in write_release_materials(Path.cwd(), args.output).items()})
         elif args.command == "quickstart":
             return _run_quickstart(args)
+        elif args.command == "ledger":
+            return _run_ledger(args)
         return 0
     except (ConfigError, ValueError, RuntimeError, OSError) as error:
         logging.getLogger("token_context_mcp").error("%s", error)
@@ -266,6 +291,40 @@ def _run_quickstart(args: argparse.Namespace) -> int:
             output_mode=None,
             schema_profile="auto",
         )
+    return 0
+
+
+def _run_ledger(args: argparse.Namespace) -> int:
+    from token_context_mcp.ledger.service import LedgerService
+
+    svc = LedgerService(load_config(args.config), args.config)
+    cmd = args.ledger_command
+    if cmd == "list":
+        _emit({"cards": svc.list_cards(repo_id=args.repo_id)})
+    elif cmd == "show":
+        card = svc.show_card(args.card_id)
+        if card is None:
+            raise ValueError(f"unknown card_id: {args.card_id}")
+        _emit(card)
+    elif cmd == "confirm":
+        if not svc.confirm_card(args.card_id):
+            raise ValueError(f"unknown card_id: {args.card_id}")
+        _emit({"card_id": args.card_id, "status": "confirmed"})
+    elif cmd == "forget":
+        if not svc.forget_card(args.card_id):
+            raise ValueError(f"unknown card_id: {args.card_id}")
+        _emit({"card_id": args.card_id, "deleted": True})
+    elif cmd == "prune":
+        removed = svc.prune(repo_id=args.repo_id)
+        _emit({"pruned": removed})
+    elif cmd == "export":
+        rendered = svc.export_cards(repo_id=args.repo_id, fmt=args.format)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(rendered + "\n", encoding="utf-8")
+            _emit({"exported_to": str(args.output), "format": args.format})
+        else:
+            sys.stdout.write(rendered + "\n")
     return 0
 
 

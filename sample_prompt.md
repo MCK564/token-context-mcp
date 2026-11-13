@@ -1,13 +1,13 @@
-# SAMPLE PROMPT TEMPLATE / MẪU PROMPT / 提示词模板 (`token-context-mcp` v0.3.4)
+# SAMPLE PROMPT TEMPLATE / MẪU PROMPT / 提示词模板 (`token-context-mcp` v0.3.5)
 
 > 🌐 **Ngôn ngữ / Languages / 语言版本**:
 > - [🇻🇳 PHẦN 1: TIẾNG VIỆT](#phần-1-tiếng-việt)
 > - [🇬🇧 PART 2: ENGLISH SECTION](#part-2-english-section)
 > - [🇨🇳 第三部分：简体中文 (CHINESE SECTION)](#第三部分简体中文-chinese-section)
 >
-> Mẫu prompt chuẩn với cơ chế **Thích ứng Linh hoạt (MCP-First & Graceful Source Fallback)** cho AI Agent dùng `token-context-mcp`: danh sách 22 tool đầy đủ, quy ước memory, quy trình truy xuất tiết kiệm token nhưng **không bao giờ tự khóa (non-blocking)** khi gặp file ngoài chỉ mục hoặc lỗi kết nối tạm thời, ma trận chọn mức suy luận, biến thể cho máy không có LLM cục bộ, và **giao thức 2 giai đoạn (Turn 1 Full + Turn 2+ Compact)** giúp tiết kiệm thêm 95% token input trong cùng phiên làm việc.
+> Mẫu prompt chuẩn với cơ chế **Thích ứng Linh hoạt (MCP-First & Graceful Source Fallback)** và **Sổ Bằng Chứng Kiểm Chứng ("Lá Phổi" — Evidence Ledger mặc định BẬT)** cho AI Agent dùng `token-context-mcp`: danh sách 23 tool đầy đủ (`10` lõi + `11` mở rộng gồm `trajectory_record` + `2` admin), quy ước memory & ledger (`prior_evidence`, `recheck_from`), quy trình truy xuất tiết kiệm token nhưng **không bao giờ tự khóa (non-blocking)** khi gặp file ngoài chỉ mục hoặc lỗi kết nối tạm thời.
 >
-> Đối chiếu với bản **v0.3.4**: `TOOL_CATALOG` (`src/token_context_mcp/discovery/catalog.py`), `kernel/` (Cordis Waterfall), `retrieve/batch.py`, `server.py`, `memory/store.py`. Placeholder: `{{REPO_NAME}}`, `{{USER_TASK}}`, `{{AGENT_ID}}`.
+> Đối chiếu với bản **v0.3.5**: `TOOL_CATALOG` (`src/token_context_mcp/discovery/catalog.py`), `ledger/` ("Lá Phổi"), `kernel/` (Cordis Waterfall), `retrieve/batch.py`, `server.py`, `memory/store.py`. Placeholder: `{{REPO_NAME}}`, `{{USER_TASK}}`, `{{AGENT_ID}}`.
 
 ---
 
@@ -15,7 +15,7 @@
 
 ## 1. Danh sách tool
 
-Server đăng ký 20 tool tiêu chuẩn, thêm 2 tool admin nếu bật (`--enable-admin-tools`). Các tool mở rộng phụ thuộc vào cấu hình `enable_extensions = true` trong `repos.toml`.
+Server đăng ký 21 tool tiêu chuẩn (10 lõi + 11 mở rộng), thêm 2 tool admin nếu bật (`--enable-admin-tools`) thành 23 tool. Các tool mở rộng phụ thuộc vào cấu hình `enable_extensions = true` trong `repos.toml`. Sổ bằng chứng (`[ledger].enabled = true`) **mặc định BẬT** để gắn `prior_evidence` vào phản hồi định hướng.
 
 ### 1.1 Tool lõi (10 tool, luôn có)
 
@@ -32,7 +32,7 @@ Server đăng ký 20 tool tiêu chuẩn, thêm 2 tool admin nếu bật (`--enab
 | `impact_analysis` | `get_module_dependents` | Quan hệ import của một module hoặc path: ai import nó, nó import gì | `repo_id*`, `module` hoặc `path` |
 | `impact_analysis` | `inspect_symbol` | Tool gộp một lượt: resolve symbol, định nghĩa, đồ thị 1-hop tức thời | `repo_id*`, `query*`, `view`, `budget_tokens` |
 
-### 1.2 Tool mở rộng (10 tool, cần `enable_extensions = true`)
+### 1.2 Tool mở rộng (11 tool, cần `enable_extensions = true`)
 
 | Nhóm | Tool | Dùng khi | Tham số chính (`*` = bắt buộc) |
 | :--- | :--- | :--- | :--- |
@@ -46,6 +46,7 @@ Server đăng ký 20 tool tiêu chuẩn, thêm 2 tool admin nếu bật (`--enab
 | `shared_memory` | `memory_lock` | Khóa mềm (soft-mutex) một tài nguyên có thời hạn khi nhiều agent cùng sửa | `resource_key*`, `agent_id*`, `timeout_sec` (60) |
 | `shared_memory` | `memory_unlock` | Nhả khóa mình đang giữ | `resource_key*`, `agent_id` |
 | `sampling_inference` | `sample_summarize` | Nén văn bản lớn thành JSON ngắn (dùng model local nếu có, không thì trích xuất AST xác định) | `text*`, `intent`, `max_tokens` (512), `target_symbols` |
+| `evidence_ledger` | `trajectory_record` | Ghi thẻ bằng chứng đường đi đã xác minh (`answers`, `steps`, `decoys`) vào Sổ Bằng Chứng ("Lá Phổi") để tái sử dụng ở các lượt sau | `repo_id*`, `query*`, `answers*`, `steps`, `decoys`, `ttl_days` |
 
 > **Lưu ý `sample_summarize`:** Máy có LLM cục bộ (Ollama) trả `backend` là `ollama_gpu` hoặc `ollama_cpu`. Máy không có LLM trả `backend` là `heuristic_fallback` (`engine` là `deterministic_ast_extractor`) và không báo lỗi. Ở nhánh fallback, chỉ dựa vào `critical_constraints` (có `verbatim_quote` và `line`) và đối chiếu với mã nguồn.
 
@@ -57,6 +58,7 @@ Server đăng ký 20 tool tiêu chuẩn, thêm 2 tool admin nếu bật (`--enab
 
 | Chuỗi | Lý do |
 | :--- | :--- |
+| `get_repo_map` (`prior_evidence`) → `inspect_symbol` → `trajectory_record` | Đọc gợi ý đã kiểm chứng trước khi search rộng; nếu `VERIFY_FAILED` thì kiểm tra từ `recheck_from` rồi cập nhật bằng chứng mới |
 | `list_repositories` → `get_index_status` | Xác định `repo_id` ngắn và kiểm tra độ mới của snapshot |
 | `find_symbols` → `get_symbol_context` hoặc `get_impact_slice` | Hai tool sau cần `symbol_id` (`inspect_symbol` nhận tên trực tiếp, không cần) |
 | `inspect_symbol` / `get_file_skeleton` → *(Đọc trực tiếp vùng dòng file nếu cần sửa)* | Dùng MCP khoanh vùng nhanh, sau đó đọc trực tiếp đoạn code nếu bị cắt hoặc cần ngữ cảnh dòng liền kề |
@@ -122,9 +124,9 @@ QUY TRÌNH THỰC HIỆN MƯỢT MÀ:
 1. Kiểm tra trạng thái nhẹ nhàng (Pre-flight):
    - Chưa chắc `repo_id` thì gọi `list_repositories()`. Sau đó kiểm tra `get_index_status(repo_id="{{REPO_NAME}}")`.
    - Nếu snapshot là `fresh`: yên tâm khai thác đồ thị. Nếu là `stale` hoặc repo chưa kịp index: vẫn dùng kết quả đồ thị làm gợi ý ban đầu và chủ động đối chiếu trực tiếp trên file nguồn cho các file đã thay đổi.
-2. Nhớ lại từ memory (nếu server có bật `memory_*`):
-   - Kiểm tra tiến độ phiên: `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")`.
-   - Kiểm tra tổng quan dự án: `memory_get(key="project_architectural_insights", scope="global")` và `memory_search(query="<1-3 từ khóa chính>", scope="project", limit=5)`. Nếu `not_found` hoặc 0 kết quả thì tiếp tục ngay sang Bước 3.
+2. Nhớ lại từ memory & kiểm tra Sổ Bằng Chứng (`prior_evidence`):
+   - Kiểm tra `prior_evidence` trả về từ `get_repo_map` / `find_symbols` / `search_source` TRƯỚC khi chạy tìm kiếm rộng: nếu thẻ hợp lệ, ưu tiên kiểm chứng trực tiếp bằng `inspect_symbol` để tiết kiệm lượt search; nếu nhận `VERIFY_FAILED` kèm `recheck_from`, kiểm tra lại bắt đầu từ bước chỉ định để tránh đi nhầm đường cũ.
+   - Nếu bật `memory_*`: kiểm tra `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` và `memory_search(query="<1-3 từ khóa chính>", scope="project", limit=5)`. Nếu `not_found` hoặc 0 kết quả thì tiếp tục ngay sang Bước 3.
 3. Định vị & Khoanh vùng (Locate & Orient):
    - Tìm theo tên định danh: `find_symbols(repo_id="{{REPO_NAME}}", pattern="<Ten*>")`.
    - Tìm theo nội dung/hành vi trong thân hàm: `search_source(repo_id="{{REPO_NAME}}", query="<từ khóa>", profile="locate")`.
@@ -139,8 +141,9 @@ QUY TRÌNH THỰC HIỆN MƯỢT MÀ:
    - Khi gặp log hoặc kết quả quá dài, có thể gọi `sample_summarize(text="<...>", intent="<mục tiêu>", max_tokens=512)`. Nếu trả về `backend: heuristic_fallback`, chỉ sử dụng phần `critical_constraints` và đối chiếu với mã thật.
 7. Phối hợp khóa và chỉnh sửa (khi nhiều agent cùng làm việc):
    - Nếu có dùng `memory_lock`: gọi `memory_lock(resource_key="<module/file>", agent_id="{{AGENT_ID}}", timeout_sec=120)`. Nếu `acquired: false`, hãy hoàn thành phần phân tích/chuẩn bị patch trước rồi thử khóa lại; sau khi sửa xong nhớ gọi `memory_unlock`. Nếu chạy đơn lẻ hoặc tool lock không bật, tiến hành sửa code trực tiếp.
-8. Ghi nhớ kết quả (Write-back, nếu có `memory_put`):
-   - Lưu lại phát hiện hoặc thay đổi quan trọng: `memory_put(key="<module>.<chu_de>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`.
+8. Ghi nhớ kết quả & Cập nhật Sổ Bằng Chứng (Write-back):
+   - Sau khi xác minh được vị trí trả lời trên mã nguồn, gọi `trajectory_record(repo_id="{{REPO_NAME}}", query="<câu hỏi/tác vụ>", answers=["<symbol_id>@<line>"], steps=["<from_sym>><to_sym>@<line>"], decoys=["<symbol_id>!<lý_do>"])` (nếu có tool này) để các phiên nối tiếp tái sử dụng.
+   - Nếu có `memory_put`: lưu kết luận kiến trúc quan trọng: `memory_put(key="<module>.<chu_de>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`.
 
 XỬ LÝ LINH HOẠT KHI TOOL HẠN CHẾ:
 - Không có `search_tools` / `memory_*` (`enable_extensions = false`): bỏ qua các bước phụ trợ, dùng 10 tool lõi kết hợp đọc/sửa file tiêu chuẩn.
@@ -331,7 +334,7 @@ Bước 8: Ghi lại kết quả vào memory
 
 ## 1. Tool List
 
-The server registers 20 standard tools, plus 2 admin tools when enabled (`--enable-admin-tools`). Extension tools require `enable_extensions = true` in `repos.toml`.
+The server registers 21 standard tools (10 core + 11 extension), plus 2 admin tools when enabled (`--enable-admin-tools`) for 23 total. Extension tools require `enable_extensions = true` in `repos.toml`. The Verified Evidence Ledger (`[ledger].enabled = true`) is **ON by default**, attaching verified `prior_evidence` hints to orientation calls.
 
 ### 1.1 Core tools (10 tools, always available)
 
@@ -348,7 +351,7 @@ The server registers 20 standard tools, plus 2 admin tools when enabled (`--enab
 | `impact_analysis` | `get_module_dependents` | Import relationships of a module or path: who imports it, what it imports | `repo_id*`, `module` or `path` |
 | `impact_analysis` | `inspect_symbol` | One-turn composite: resolve the symbol, definition, immediate 1-hop graph | `repo_id*`, `query*`, `view`, `budget_tokens` |
 
-### 1.2 Extension tools (10 tools, need `enable_extensions = true`)
+### 1.2 Extension tools (11 tools, need `enable_extensions = true`)
 
 | Category | Tool | Use when | Main parameters (`*` = required) |
 | :--- | :--- | :--- | :--- |
@@ -362,6 +365,7 @@ The server registers 20 standard tools, plus 2 admin tools when enabled (`--enab
 | `shared_memory` | `memory_lock` | Time-limited soft-mutex lock on a resource when several agents edit | `resource_key*`, `agent_id*`, `timeout_sec` (60) |
 | `shared_memory` | `memory_unlock` | Release a lock you hold | `resource_key*`, `agent_id` |
 | `sampling_inference` | `sample_summarize` | Compress large text into short JSON (local model if available, otherwise deterministic AST extraction) | `text*`, `intent`, `max_tokens` (512), `target_symbols` |
+| `evidence_ledger` | `trajectory_record` | Record a verified evidence card (`answers`, `steps`, `decoys`) into the Evidence Ledger for future reuse | `repo_id*`, `query*`, `answers*`, `steps`, `decoys`, `ttl_days` |
 
 > **Note on `sample_summarize`:** A machine with a local LLM (Ollama) returns `backend` `ollama_gpu` or `ollama_cpu`. A machine without an LLM returns `backend` `heuristic_fallback` (`engine` `deterministic_ast_extractor`) with no error. On that fallback branch, rely on `critical_constraints` (with `verbatim_quote` and `line`) and verify against the source code.
 
@@ -373,6 +377,7 @@ The server registers 20 standard tools, plus 2 admin tools when enabled (`--enab
 
 | Chain | Reason |
 | :--- | :--- |
+| `get_repo_map` (`prior_evidence`) → `inspect_symbol` → `trajectory_record` | Check verified hints before broad searches; on `VERIFY_FAILED`, recheck from `recheck_from` and record fresh evidence |
 | `list_repositories` → `get_index_status` | Get a short `repo_id` and check snapshot freshness |
 | `find_symbols` → `get_symbol_context` or `get_impact_slice` | The latter two need a `symbol_id` (`inspect_symbol` takes a name directly) |
 | `inspect_symbol` / `get_file_skeleton` → *(Targeted native file read when editing)* | Use MCP to localize rapidly, then read exact surrounding file lines if truncated or needed for safe patching |
@@ -438,9 +443,9 @@ SMOOTH WORKFLOW:
 1. Lightweight Pre-flight:
    - Call `list_repositories()` if unsure of the `repo_id`, then `get_index_status(repo_id="{{REPO_NAME}}")`.
    - If `fresh`: rely on graph tools confidently. If `stale` or unindexed: use graph results as candidate leads and cross-check changed files directly against the source on disk.
-2. Recall from memory (when `memory_*` tools are enabled):
-   - Check session progress: `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")`.
-   - Check project insights: `memory_get(key="project_architectural_insights", scope="global")` and `memory_search(query="<1-3 keywords>", scope="project", limit=5)`. On `not_found` or 0 matches, move immediately to Step 3.
+2. Recall from memory & check the Evidence Ledger (`prior_evidence`):
+   - Inspect `prior_evidence` returned by `get_repo_map` / `find_symbols` / `search_source` BEFORE running broad searches: if a verified card hits, jump straight to `inspect_symbol` to verify; if `VERIFY_FAILED` with `recheck_from` is returned, re-verify starting from that step instead of repeating stale paths.
+   - When `memory_*` tools are enabled: check `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` and `memory_search(query="<1-3 keywords>", scope="project", limit=5)`. On `not_found` or 0 matches, move immediately to Step 3.
 3. Locate & Orient:
    - By symbol name: `find_symbols(repo_id="{{REPO_NAME}}", pattern="<Name*>")`.
    - By body text / behavior: `search_source(repo_id="{{REPO_NAME}}", query="<keywords>", profile="locate")`.
@@ -455,8 +460,9 @@ SMOOTH WORKFLOW:
    - For large text blocks or logs, call `sample_summarize(text="<...>", intent="<goal>", max_tokens=512)`. If `backend: heuristic_fallback` is returned, rely on `critical_constraints` and verify against the code.
 7. Coordinate Locks & Apply Edits:
    - In multi-agent runs with `memory_lock` available: call `memory_lock(resource_key="<module or file>", agent_id="{{AGENT_ID}}", timeout_sec=120)`. If `acquired: false`, prepare your analysis/patch first and retry the lock before writing; release immediately with `memory_unlock` when done. In single-agent runs or if locking is unavailable, edit the files directly.
-8. Write Back (when `memory_put` is available):
-   - Persist reusable findings: `memory_put(key="<module>.<topic>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`.
+8. Write Back & Record Verified Evidence:
+   - After verifying the answer location in source code, call `trajectory_record(repo_id="{{REPO_NAME}}", query="<task/query>", answers=["<symbol_id>@<line>"], steps=["<from_sym>><to_sym>@<line>"], decoys=["<symbol_id>!<reason>"])` (when available) so follow-up turns reuse verified citations.
+   - When `memory_put` is available: persist reusable findings: `memory_put(key="<module>.<topic>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`.
 
 WHEN TOOLS ARE RESTRICTED:
 - No `search_tools` / `memory_*` (`enable_extensions = false`): skip optional steps and combine the 10 core MCP tools with standard file reads/edits.
@@ -643,7 +649,7 @@ Step 8: Write the updated conclusion back
 
 ## 1. 工具列表 (Tool List)
 
-服务器默认注册 20 个标准工具，启用管理员模式（`--enable-admin-tools`）时额外提供 2 个治理工具（共 22 个）。扩展工具需在 `repos.toml` 中设置 `enable_extensions = true`。
+服务器默认注册 21 个标准工具（10 个核心 + 11 个扩展），启用管理员模式（`--enable-admin-tools`）时额外提供 2 个治理工具（共 23 个）。扩展工具需在 `repos.toml` 中设置 `enable_extensions = true`。可验证证据账本（`[ledger].enabled = true`）**默认开启**，在定向检索时附带 `prior_evidence` 提示。
 
 ### 1.1 核心检索工具（10 个，始终可用）
 
@@ -660,7 +666,7 @@ Step 8: Write the updated conclusion back
 | `impact_analysis` | `get_module_dependents` | 分析模块或文件的导入依赖关系：谁导入了它、它导入了什么 | `repo_id*`, `module` 或 `path` |
 | `impact_analysis` | `inspect_symbol` | 单轮复合神器：一次调用完成符号解析、定义提取与 1 跳调用图分析 | `repo_id*`, `query*`, `view`, `budget_tokens` |
 
-### 1.2 扩展智能体工具（10 个，需 `enable_extensions = true`）
+### 1.2 扩展智能体工具（11 个，需 `enable_extensions = true`）
 
 | 分类 | 工具名称 | 适用场景 | 主要参数（`*` = 必填） |
 | :--- | :--- | :--- | :--- |
@@ -674,6 +680,7 @@ Step 8: Write the updated conclusion back
 | `shared_memory` | `memory_lock` | 多智能体并发修改同一资源时申请带超时（TTL）的软互斥锁 | `resource_key*`, `agent_id*`, `timeout_sec` (60) |
 | `shared_memory` | `memory_unlock` | 释放当前智能体持有的互斥锁 | `resource_key*`, `agent_id` |
 | `sampling_inference` | `sample_summarize` | 将长文本/大段代码压缩为结构化 JSON（优先用本地 Ollama 模型，无模型时自动降级为确定性 AST 提取） | `text*`, `intent`, `max_tokens` (512), `target_symbols` |
+| `evidence_ledger` | `trajectory_record` | 将已核验的推理路径（`answers`、`steps`、`decoys`）记录至证据账本，供后续查询复用 | `repo_id*`, `query*`, `answers*`, `steps`, `decoys`, `ttl_days` |
 
 > **关于 `sample_summarize` 的说明：** 配备本地 LLM（Ollama）的机器会返回 `backend: ollama_gpu` 或 `ollama_cpu`；无本地 LLM 的机器会自动返回 `backend: heuristic_fallback`（`engine: deterministic_ast_extractor`）且不会报错。在降级模式下，请仅采信 `critical_constraints`（含源码原句引用 `verbatim_quote` 与行号 `line`）并结合源码核对。
 
@@ -685,6 +692,7 @@ Step 8: Write the updated conclusion back
 
 | 调用链 | 技术原因 |
 | :--- | :--- |
+| `get_repo_map` (`prior_evidence`) → `inspect_symbol` → `trajectory_record` | 广域搜索前先核对 `prior_evidence`；若返回 `VERIFY_FAILED` 则从 `recheck_from` 起复核并写回新证据 |
 | `list_repositories` → `get_index_status` | 先获取合法的短 `repo_id`，再检查快照新鲜度 |
 | `find_symbols` → `get_symbol_context` 或 `get_impact_slice` | 后两个工具需要 `symbol_id`（而 `inspect_symbol` 可直接传入符号名） |
 | `inspect_symbol` / `get_file_skeleton` → *（按需直接读取目标文件行区间）* | 先用 MCP 极速定位并省去 90% 无关读取，若遇代码截断或需修改文件，平滑切换至读取目标源文件 |
@@ -746,9 +754,9 @@ Step 8: Write the updated conclusion back
 1. 轻量级预检 (Pre-flight):
    - 若不确定 `repo_id`，先调 `list_repositories()`，再调 `get_index_status(repo_id="{{REPO_NAME}}")`。
    - 若快照为 `fresh`，可充分信赖调用图；若为 `stale` 或未索引，将图结果作为候选线索，并对变更文件直接读取源码核实。
-2. 唤醒历史记忆（若启用了 `memory_*`）:
-   - 检查会话进度：`memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")`。
-   - 检索项目洞察：`memory_get(key="project_architectural_insights", scope="global")` 及 `memory_search(query="<1-3 个核心词>", scope="project", limit=5)`。未找到则立即进入步骤 3。
+2. 唤醒历史记忆与核对证据账本（`prior_evidence`）:
+   - 在运行广域搜索前，先检查 `get_repo_map` / `find_symbols` / `search_source` 返回的 `prior_evidence`：若命中有效卡片，优先用 `inspect_symbol` 直接核验；若返回 `VERIFY_FAILED` 与 `recheck_from`，请从指定步骤起重新核查，避免重复误判。
+   - 若启用了 `memory_*`：检查 `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` 及 `memory_search(query="<1-3 个核心词>", scope="project", limit=5)`。未找到则立即进入步骤 3。
 3. 定位与定向 (Locate & Orient):
    - 按名称查符号：`find_symbols(repo_id="{{REPO_NAME}}", pattern="<Name*>")`。
    - 按函数体内容/行为查代码：`search_source(repo_id="{{REPO_NAME}}", query="<关键词>", profile="locate")`。
@@ -763,8 +771,9 @@ Step 8: Write the updated conclusion back
    - 遇到超长日志或代码段时，可调用 `sample_summarize(text="<...>", intent="<目标>", max_tokens=512)`。若返回 `backend: heuristic_fallback`，仅采信 `critical_constraints` 并核对源码。
 7. 协同加锁与代码修改:
    - 多智能体并发且启用 `memory_lock` 时：修改前调用 `memory_lock(resource_key="<模块或文件>", agent_id="{{AGENT_ID}}", timeout_sec=120)`；若 `acquired: false`，先完成分析与补丁准备，稍后重试加锁；修改完毕立即调用 `memory_unlock`。单智能体环境下可直接修改文件。
-8. 结论写回（若启用了 `memory_put`）:
-   - 将有价值的发现写入：`memory_put(key="<module>.<topic>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`。
+8. 结论写回与更新证据账本:
+   - 在源码中核实答案位置后，调用 `trajectory_record(repo_id="{{REPO_NAME}}", query="<任务/查询>", answers=["<symbol_id>@<line>"], steps=["<from_sym>><to_sym>@<line>"], decoys=["<symbol_id>!<reason>"])`（若已开启）以便后续会话直接复用。
+   - 若启用了 `memory_put`：写入架构结论 `memory_put(key="<module>.<topic>", value={"finding": "...", "where": "path:line", "symbol_id": "...", "status": "..."}, scope="project", namespace="repo:{{REPO_NAME}}", ttl=604800)`。
 
 工具受限时的柔性处理:
 - 未发现 `search_tools` / `memory_*`（`enable_extensions = false`）：跳过扩展步骤，组合使用 10 个核心检索工具与原生文件读写工具。

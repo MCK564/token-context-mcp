@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Literal
 
@@ -28,6 +29,7 @@ from token_context_mcp.retrieve.service import (
     RetrievalService,
 )
 from token_context_mcp.memory.service import MemoryService
+from token_context_mcp.ledger.service import LedgerService
 from token_context_mcp.retrieve.workflows import CompositeWorkflowEngine
 from token_context_mcp.sampling.router import SamplingRouter
 from token_context_mcp.security.access_control import (
@@ -76,15 +78,18 @@ def build_server(
     if extensions_enabled:
         sampling_router = SamplingRouter()
         memory_service = MemoryService(config_path.parent / "memory.sqlite", router=sampling_router)
+        ledger_service = LedgerService(config, config_path)
     else:
         memory_service = None
         sampling_router = None
+        ledger_service = LedgerService(config, config_path) if config.ledger.enabled else None
 
     gov_store = GovernanceStore(config_path.parent / "governance.sqlite")
     access_control = AccessControlManager(store=gov_store)
     audit_logger = AuditLogger(config_path.parent / "audit.sqlite")
 
     server_id = f"server-{os.getpid()}-{int(time.time())}"
+    server_run_id = f"run_{uuid.uuid4().hex[:12]}"
     last_heartbeat_time = [time.monotonic()]
 
     def _heartbeat() -> None:
@@ -127,6 +132,7 @@ def build_server(
             "memory_unlock",
             "memory_consolidate",
             "sample_summarize",
+            "trajectory_record",
         })
     if extensions_enabled and admin_tools_enabled:
         registered_tool_names.update({
@@ -169,6 +175,7 @@ def build_server(
             callback,
             tool_name=tool_name,
             agent_id=agent_id,
+            run_id=server_run_id,
             access_control=access_control,
             audit_logger=audit_logger,
             bypass_halt=bypass_halt,
@@ -185,6 +192,8 @@ def build_server(
             f"budget_tokens or max_tokens range: 32 through {config.server.max_result_tokens}; graph depth: 0 through 3. "
             "get_repo_map returns compact [id, path:line, kind/name]; use id for follow-up context/impact calls. "
             "Budget profiles: locate, orient, impact, read. "
+            "Evidence Ledger (default enabled): inspect prior_evidence returned by get_repo_map, find_symbols, or search_source BEFORE running broad searches; follow valid anchors directly via inspect_symbol/get_symbol_context, and re-verify from recheck_from when VERIFY_FAILED is reported. "
+            "When trajectory_record is available, record verified answers, multi-hop steps, and rejected decoys after completing a query so follow-up turns reuse verified paths. "
             "Respect freshness, ambiguity and truncation warnings. Lexical edges are not complete semantic analysis."
         ),
     )
@@ -603,6 +612,34 @@ def build_server(
                 )
             )
 
+        @server.tool(
+            title="Record trajectory evidence",
+            description="Record source-verified symbol citations (answers, steps, decoys) into the evidence ledger.",
+        )
+        def trajectory_record(
+            repo_id: str,
+            query: str,
+            answers: list[str],
+            steps: list[str] | None = None,
+            decoys: list[str] | None = None,
+            agent_id: str | None = None,
+        ) -> CallToolResult:
+            assert ledger_service is not None
+            return _wrap(
+                _invoke(
+                    lambda: ledger_service.trajectory_record(
+                        repo_id=repo_id,
+                        query=query,
+                        answers=answers,
+                        steps=steps,
+                        decoys=decoys,
+                        agent_id=agent_id,
+                    ),
+                    tool_name="trajectory_record",
+                    agent_id=agent_id,
+                )
+            )
+
         if admin_tools_enabled:
             # --- Security & Agent Governance ---
 
@@ -737,6 +774,7 @@ def _dispatch_invoke(
     callback: Any,
     tool_name: str = "tool_call",
     agent_id: str | None = None,
+    run_id: str | None = None,
     access_control: AccessControlManager | None = None,
     audit_logger: AuditLogger | None = None,
     bypass_halt: bool = False,
@@ -745,6 +783,7 @@ def _dispatch_invoke(
     ctx = InvocationContext(
         tool_name=tool_name,
         raw_agent_id=agent_id,
+        run_id=run_id,
         bypass_halt=bypass_halt,
         trusted_identity=trusted_identity,
     )

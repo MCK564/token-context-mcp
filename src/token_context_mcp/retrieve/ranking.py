@@ -255,6 +255,7 @@ def rank_symbols(
     global_ranks: dict[str, tuple[float, list[str]]] | None = None,
     query_expansions: dict[str, list[str]] | None = None,
     stage_prefix_pattern: str | None = None,
+    ledger_overlay: dict[tuple[str, str], str] | None = None,
 ) -> list[tuple[SymbolRecord, float, list[str]]]:
     seed_biased = bool(query or body_matches)
 
@@ -348,6 +349,22 @@ def rank_symbols(
         if symbol.kind in {"class", "interface"}:
             score += 0.25
             basis.append("kind:class_or_interface")
+        if ledger_overlay is not None:
+            role = ledger_overlay.get((symbol.path, symbol.qualified_name))
+            if role == "answer":
+                score += 6.0
+                basis.append("ledger_answer")
+            elif role == "decoy":
+                sym_tokens = {
+                    t
+                    for t in re.findall(
+                        r"[a-z0-9]+", re.sub(r"([a-z])([A-Z])", r"\1 \2", symbol.name).lower()
+                    )
+                    if t not in {"a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of", "on", "or", "the", "to", "with"}
+                }
+                if not (sym_tokens and sym_tokens <= terms):
+                    score -= 4.0
+                    basis.append("ledger_decoy")
         ranked.append((symbol, score, basis))
     return sorted(ranked, key=lambda item: (-item[1], item[0].path, item[0].start_line))
 

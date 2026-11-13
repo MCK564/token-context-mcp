@@ -1,10 +1,11 @@
-"""Agents & Security Tab: multi-agent tracking, permission management, mutex revocation, and audit stream."""
 from __future__ import annotations
 
-import datetime
-from typing import TYPE_CHECKING, Any
+import json
+import time
+from typing import Any
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -13,329 +14,396 @@ from PySide6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
-from token_context_mcp.gui.widgets.loading_overlay import LoadingOverlay
-
-if TYPE_CHECKING:
-    from token_context_mcp.gui.bridge import AgentSecurityController, RepoManager
+from token_context_mcp.gui.bridge import AgentSecurityController, RepoManager
+from token_context_mcp.gui.icons import make_icon
+from token_context_mcp.gui.theme import (
+    COLOR_ACCENT,
+    COLOR_CRUST,
+    COLOR_DANGER,
+    COLOR_SUCCESS,
+    COLOR_TEXT_MUTED,
+    COLOR_TEXT_PRIMARY,
+    COLOR_WARNING,
+)
+from token_context_mcp.gui.workers import is_ui_thread, run_async
 
 
 class AgentsTab(QWidget):
+    """Agent Access Governance, Mutex Lock Oversight, and WAL Audit Forensics."""
+
     def __init__(
         self,
         security_ctrl: AgentSecurityController,
-        repo_mgr: RepoManager | None = None,
+        repo_mgr: RepoManager,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self.security_ctrl = security_ctrl
         self.repo_mgr = repo_mgr
+        self._last_snapshot: dict[str, Any] = {}
 
-        self._agents_data: list[dict[str, Any]] = []
-        self._locks_data: list[dict[str, Any]] = []
-        self._logs_data: list[dict[str, Any]] = []
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        outer.addWidget(scroll)
 
-        self._init_ui()
+        container = QWidget()
+        scroll.setWidget(container)
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
 
-        # Connect signals
-        self.security_ctrl.agents_updated.connect(self._on_agents_updated)
-        self.security_ctrl.locks_updated.connect(self._on_locks_updated)
-        self.security_ctrl.audit_logs_updated.connect(self._on_audit_logs_updated)
-        self.security_ctrl.emergency_state_changed.connect(self._on_emergency_state_changed)
+        # 1. Emergency Control Bar
+        ctrl_bar = QFrame()
+        ctrl_bar.setProperty("class", "Card")
+        c_layout = QHBoxLayout(ctrl_bar)
+        c_layout.setContentsMargins(14, 10, 14, 10)
+        c_layout.setSpacing(10)
 
-    def _init_ui(self) -> None:
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(18, 16, 18, 16)
-        main_layout.setSpacing(14)
+        self.status_indicator = QLabel("All Agents Authorized")
+        self.status_indicator.setProperty("class", "BadgeFresh")
+        c_layout.addWidget(self.status_indicator)
+        c_layout.addStretch()
 
-        # 1. Emergency Security Control Bar
-        emergency_frame = QFrame()
-        emergency_frame.setStyleSheet(
-            "background-color: #24273a; border: 1px solid #363a4f; border-radius: 8px; padding: 10px 14px;"
-        )
-        em_layout = QHBoxLayout(emergency_frame)
-        em_layout.setContentsMargins(4, 4, 4, 4)
-        em_layout.setSpacing(12)
-
-        self.status_indicator = QLabel("● All Agents Authorized")
-        self.status_indicator.setStyleSheet("color: #a6da95; font-size: 13px; font-weight: 700;")
-        em_layout.addWidget(self.status_indicator)
-
-        em_layout.addStretch()
-
-        self.revoke_all_btn = QPushButton("🔓 Revoke All Locks")
-        self.revoke_all_btn.setStyleSheet("padding: 5px 12px; font-size: 12px;")
+        self.revoke_all_btn = QPushButton("Revoke All Locks")
+        self.revoke_all_btn.setIcon(make_icon("unlock", COLOR_TEXT_PRIMARY))
         self.revoke_all_btn.clicked.connect(self._on_revoke_all_locks)
-        em_layout.addWidget(self.revoke_all_btn)
+        c_layout.addWidget(self.revoke_all_btn)
 
-        self.resume_sys_btn = QPushButton("▶️ Resume Normal")
-        self.resume_sys_btn.setStyleSheet("padding: 5px 12px; font-size: 12px;")
-        self.resume_sys_btn.clicked.connect(self._on_resume_system)
-        em_layout.addWidget(self.resume_sys_btn)
+        self.resume_all_btn = QPushButton("Resume Normal")
+        self.resume_all_btn.setIcon(make_icon("play", COLOR_TEXT_PRIMARY))
+        self.resume_all_btn.setEnabled(False)
+        self.resume_all_btn.clicked.connect(self._on_emergency_resume)
+        c_layout.addWidget(self.resume_all_btn)
 
-        self.panic_btn = QPushButton("🚨 EMERGENCY STOP")
-        self.panic_btn.setStyleSheet(
-            "background-color: #ed8796; color: #181926; font-weight: 700; padding: 6px 14px; border-radius: 6px;"
+        self.kill_btn = QPushButton("EMERGENCY STOP")
+        self.kill_btn.setIcon(make_icon("stop", COLOR_CRUST))
+        self.kill_btn.setProperty("class", "DangerSolidButton")
+        self.kill_btn.clicked.connect(self._on_emergency_halt)
+        c_layout.addWidget(self.kill_btn)
+
+        layout.addWidget(ctrl_bar)
+
+        # 2. Active Agents Section + Selection Toolbar (no 5s widget churn!)
+        ag_header = QHBoxLayout()
+        ag_header.setSpacing(8)
+        ag_title = QLabel("Active Agents & Access Policies")
+        ag_title.setProperty("class", "SectionTitle")
+        ag_header.addWidget(ag_title)
+        ag_header.addStretch()
+
+        self.btn_pause_sel = QPushButton("Pause / Resume")
+        self.btn_pause_sel.setIcon(make_icon("pause", COLOR_TEXT_PRIMARY))
+        self.btn_pause_sel.clicked.connect(self._on_toggle_pause_selected)
+
+        self.btn_revoke_sel = QPushButton("Revoke Locks")
+        self.btn_revoke_sel.setIcon(make_icon("unlock", COLOR_TEXT_PRIMARY))
+        self.btn_revoke_sel.clicked.connect(self._on_revoke_selected)
+
+        self.btn_block_sel = QPushButton("Block / Unblock")
+        self.btn_block_sel.setIcon(make_icon("stop", COLOR_DANGER))
+        self.btn_block_sel.setProperty("class", "DangerButton")
+        self.btn_block_sel.clicked.connect(self._on_toggle_block_selected)
+
+        self.policy_combo = QComboBox()
+        self.policy_combo.addItems(["FULL_ACCESS", "READ_ONLY", "CUSTOM"])
+        self.policy_apply_btn = QPushButton("Apply Policy")
+        self.policy_apply_btn.clicked.connect(self._on_apply_policy_selected)
+
+        ag_header.addWidget(self.btn_pause_sel)
+        ag_header.addWidget(self.btn_revoke_sel)
+        ag_header.addWidget(self.btn_block_sel)
+        ag_header.addWidget(self.policy_combo)
+        ag_header.addWidget(self.policy_apply_btn)
+        layout.addLayout(ag_header)
+
+        self.agents_table = QTableWidget(0, 5)
+        self.agents_table.setHorizontalHeaderLabels(
+            ["Agent ID", "Role / Client", "Status", "Policy Profile", "Tool Calls"]
         )
-        self.panic_btn.clicked.connect(self._on_panic_emergency_stop)
-        em_layout.addWidget(self.panic_btn)
-
-        main_layout.addWidget(emergency_frame)
-
-        # 2. Active Agents Section
-        agents_header = QHBoxLayout()
-        lbl_agents = QLabel("Active Agents & Access Policies")
-        lbl_agents.setStyleSheet("font-size: 14px; font-weight: 700; color: #8bd5ca;")
-        agents_header.addWidget(lbl_agents)
-        agents_header.addStretch()
-        main_layout.addLayout(agents_header)
-
-        self.agents_table = QTableWidget(0, 6)
-        self.agents_table.setHorizontalHeaderLabels([
-            "Agent ID", "Role / Client", "Status", "Policy Profile", "Tool Calls", "Actions"
-        ])
-        self.agents_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
-        self.agents_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
-        self.agents_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+        h1 = self.agents_table.horizontalHeader()
+        h1.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        h1.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        h1.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h1.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        h1.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         self.agents_table.verticalHeader().setVisible(False)
-        self.agents_table.setStyleSheet("background-color: #181926; border: 1px solid #363a4f; border-radius: 6px;")
-        self.agents_table.setMaximumHeight(180)
-        main_layout.addWidget(self.agents_table)
+        self.agents_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.agents_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.agents_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.agents_table.setAlternatingRowColors(True)
+        self.agents_table.setMinimumHeight(130)
+        self.agents_table.setMaximumHeight(185)
+        self.agents_table.itemSelectionChanged.connect(self._sync_selected_policy_combo)
+        layout.addWidget(self.agents_table)
 
-        # 3. Active Mutex Locks Section
-        locks_header = QHBoxLayout()
-        lbl_locks = QLabel("Active Mutex Resource Locks")
-        lbl_locks.setStyleSheet("font-size: 14px; font-weight: 700; color: #eed49f;")
-        locks_header.addWidget(lbl_locks)
-        locks_header.addStretch()
-        main_layout.addLayout(locks_header)
+        # 3. Active Resource Locks Section
+        lk_header = QHBoxLayout()
+        lk_title = QLabel("Active Mutex Resource Locks")
+        lk_title.setProperty("class", "SectionTitle")
+        lk_header.addWidget(lk_title)
+        lk_header.addStretch()
+        self.btn_release_lock = QPushButton("Force Release Selected Lock")
+        self.btn_release_lock.clicked.connect(self._on_release_selected_lock)
+        lk_header.addWidget(self.btn_release_lock)
+        layout.addLayout(lk_header)
 
-        self.locks_table = QTableWidget(0, 5)
-        self.locks_table.setHorizontalHeaderLabels([
-            "Resource Key", "Held By Agent", "Acquired At", "Remaining", "Action"
-        ])
-        self.locks_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.locks_table = QTableWidget(0, 4)
+        self.locks_table.setHorizontalHeaderLabels(["Resource Key", "Held By Agent", "Acquired At", "Remaining"])
+        h2 = self.locks_table.horizontalHeader()
+        h2.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        h2.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        h2.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h2.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.locks_table.verticalHeader().setVisible(False)
-        self.locks_table.setStyleSheet("background-color: #181926; border: 1px solid #363a4f; border-radius: 6px;")
+        self.locks_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.locks_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.locks_table.setAlternatingRowColors(True)
+        self.locks_table.setMinimumHeight(105)
         self.locks_table.setMaximumHeight(140)
-        main_layout.addWidget(self.locks_table)
+        layout.addWidget(self.locks_table)
 
-        # 4. Live Security Audit Stream
-        audit_header = QHBoxLayout()
-        lbl_audit = QLabel("Security Audit Log Stream (WAL Forensics)")
-        lbl_audit.setStyleSheet("font-size: 14px; font-weight: 700; color: #c6a0f6;")
-        audit_header.addWidget(lbl_audit)
-        audit_header.addStretch()
-
-        audit_header.addWidget(QLabel("Filter Status:"))
-        self.status_filter_combo = QComboBox()
-        self.status_filter_combo.addItems(["ALL", "SUCCESS", "DENIED", "ERROR"])
-        self.status_filter_combo.currentTextChanged.connect(self._render_audit_logs)
-        audit_header.addWidget(self.status_filter_combo)
-
-        main_layout.addLayout(audit_header)
+        # 4. Security Audit Log Stream
+        aud_header = QHBoxLayout()
+        aud_title = QLabel("Security Audit Log Stream (WAL Forensics)")
+        aud_title.setProperty("class", "SectionTitle")
+        aud_header.addWidget(aud_title)
+        aud_header.addStretch()
+        aud_header.addWidget(QLabel("Filter Status:"))
+        self.filter_combo = QComboBox()
+        self.filter_combo.addItems(["ALL", "SUCCESS", "DENIED", "PAUSED", "BLOCKED", "ERROR"])
+        self.filter_combo.currentTextChanged.connect(self._on_filter_changed)
+        aud_header.addWidget(self.filter_combo)
+        layout.addLayout(aud_header)
 
         self.audit_table = QTableWidget(0, 6)
-        self.audit_table.setHorizontalHeaderLabels([
-            "Time", "Agent ID", "Tool Called", "Status", "Duration (ms)", "Details / Reason"
-        ])
-        self.audit_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        self.audit_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.audit_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.audit_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        self.audit_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        self.audit_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+        self.audit_table.setHorizontalHeaderLabels(
+            ["Time", "Agent ID", "Tool Called", "Status", "Duration (ms)", "Details / Reason"]
+        )
+        h3 = self.audit_table.horizontalHeader()
+        h3.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        h3.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        h3.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        h3.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        h3.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        h3.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
         self.audit_table.verticalHeader().setVisible(False)
-        self.audit_table.setStyleSheet("background-color: #181926; border: 1px solid #363a4f; border-radius: 6px;")
-        main_layout.addWidget(self.audit_table, 1)
+        self.audit_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.audit_table.setAlternatingRowColors(True)
+        self.audit_table.setMinimumHeight(180)
+        layout.addWidget(self.audit_table, 1)
 
-        # Loading overlay for smooth updates
-        self.overlay = LoadingOverlay(self)
+        # Connect signals from background GovernanceRefreshWorker
+        self.security_ctrl.agents_updated.connect(self._render_agents)
+        self.security_ctrl.locks_updated.connect(self._render_locks)
+        self.security_ctrl.audit_logs_updated.connect(self._render_audit)
+        self.security_ctrl.emergency_state_changed.connect(self._render_emergency)
+
+    def refresh(self) -> None:
+        run_async(self.fetch, on_ok=self.render)
 
     def fetch(self) -> dict[str, Any]:
-        """Worker-thread half: reads governance/memory/audit DBs, touches no widget."""
+        assert not is_ui_thread(), "AgentsTab.fetch must run off the UI thread"
         return self.security_ctrl.collect_snapshot()
 
-    def render(self, snapshot: dict[str, Any]) -> None:
-        """UI-thread half: emits the signals the tables render from."""
-        self.security_ctrl.apply_snapshot(snapshot)
+    def render(self, snap: dict[str, Any]) -> None:
+        assert is_ui_thread(), "AgentsTab.render must run on the UI thread"
+        self._last_snapshot = snap
+        self.security_ctrl.apply_snapshot(snap)
 
-    def refresh(self, force: bool = False) -> None:
-        from token_context_mcp.gui.workers import run_async
+    def _selected_agent(self) -> tuple[str, str] | None:
+        row = self.agents_table.currentRow()
+        if row < 0:
+            return None
+        aid_item = self.agents_table.item(row, 0)
+        st_item = self.agents_table.item(row, 2)
+        if not aid_item or not st_item:
+            return None
+        return aid_item.text(), st_item.text()
 
-        self.overlay.show_loading("Updating Security & Agent Telemetry...")
+    def _sync_selected_policy_combo(self) -> None:
+        row = self.agents_table.currentRow()
+        if row < 0:
+            return
+        p_item = self.agents_table.item(row, 3)
+        if p_item:
+            self.policy_combo.setCurrentText(p_item.text())
 
-        def _ok(snapshot: dict[str, Any]) -> None:
-            try:
-                self.render(snapshot)
-            finally:
-                self.overlay.hide_loading()
-
-        def _err(_msg: str) -> None:
-            self.overlay.hide_loading()
-
-        run_async(self.fetch, on_ok=_ok, on_err=_err)
-
-    def _on_emergency_state_changed(self, is_halted: bool, reason: str) -> None:
+    def _render_emergency(self, is_halted: bool, reason: str) -> None:
         if is_halted:
-            self.status_indicator.setText(f"🚨 EMERGENCY STOP ACTIVE: {reason}")
-            self.status_indicator.setStyleSheet("color: #ed8796; font-size: 13px; font-weight: 700;")
-            self.panic_btn.setEnabled(False)
-            self.resume_sys_btn.setEnabled(True)
+            self.status_indicator.setText(f"EMERGENCY STOP ACTIVE: {reason}")
+            self.status_indicator.setProperty("class", "BadgeStale")
+            self.resume_all_btn.setEnabled(True)
+            self.kill_btn.setEnabled(False)
         else:
-            self.status_indicator.setText("● All Agents Authorized")
-            self.status_indicator.setStyleSheet("color: #a6da95; font-size: 13px; font-weight: 700;")
-            self.panic_btn.setEnabled(True)
-            self.resume_sys_btn.setEnabled(False)
+            self.status_indicator.setText("All Agents Authorized")
+            self.status_indicator.setProperty("class", "BadgeFresh")
+            self.resume_all_btn.setEnabled(False)
+            self.kill_btn.setEnabled(True)
+        self.status_indicator.style().unpolish(self.status_indicator)
+        self.status_indicator.style().polish(self.status_indicator)
 
-    def _on_agents_updated(self, agents: list[dict[str, Any]]) -> None:
-        self._agents_data = agents
-        self._render_agents()
+    def _render_agents(self, agents: list[dict[str, Any]]) -> None:
+        selected = self._selected_agent()
+        selected_id = selected[0] if selected else None
 
-    def _on_locks_updated(self, locks: list[dict[str, Any]]) -> None:
-        self._locks_data = locks
-        self._render_locks()
+        self.agents_table.setRowCount(len(agents))
+        for row, ag in enumerate(agents):
+            aid = str(ag["agent_id"])
+            status = str(ag["status"])
+            policy = str(ag.get("policy_profile", "FULL_ACCESS"))
 
-    def _on_audit_logs_updated(self, logs: list[dict[str, Any]]) -> None:
-        self._logs_data = logs
-        self._render_audit_logs()
+            self.agents_table.setItem(row, 0, QTableWidgetItem(aid))
+            self.agents_table.setItem(row, 1, QTableWidgetItem(str(ag.get("role", "agent"))))
 
-    def _render_agents(self) -> None:
-        self.agents_table.setRowCount(0)
-        for row_idx, agent in enumerate(self._agents_data):
-            self.agents_table.insertRow(row_idx)
-            agent_id = agent["agent_id"]
-            role = agent.get("role", "agent")
-            state = agent.get("state", "ACTIVE")
-            policy = agent.get("policy", "FULL_ACCESS")
-            call_count = str(agent.get("call_count", 0))
-
-            item_id = QTableWidgetItem(agent_id)
-            item_id.setForeground(Qt.GlobalColor.white)
-            self.agents_table.setItem(row_idx, 0, item_id)
-
-            item_role = QTableWidgetItem(role)
-            self.agents_table.setItem(row_idx, 1, item_role)
-
-            item_state = QTableWidgetItem(state)
-            if state == "ACTIVE":
-                item_state.setForeground(Qt.GlobalColor.green)
-            elif state == "PAUSED":
-                item_state.setForeground(Qt.GlobalColor.yellow)
+            st_item = QTableWidgetItem(status)
+            st_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if status == "ACTIVE":
+                st_item.setForeground(QColor(COLOR_SUCCESS))
+            elif status == "PAUSED":
+                st_item.setForeground(QColor(COLOR_WARNING))
             else:
-                item_state.setForeground(Qt.GlobalColor.red)
-            self.agents_table.setItem(row_idx, 2, item_state)
+                st_item.setForeground(QColor(COLOR_DANGER))
+            self.agents_table.setItem(row, 2, st_item)
 
-            # Policy combo
-            policy_combo = QComboBox()
-            policy_combo.addItems(["FULL_ACCESS", "READ_ONLY"])
-            policy_combo.setCurrentText(policy)
-            policy_combo.currentTextChanged.connect(
-                lambda p, ag=agent_id: self.security_ctrl.set_agent_policy(ag, p)
-            )
-            self.agents_table.setCellWidget(row_idx, 3, policy_combo)
+            pol_item = QTableWidgetItem(policy)
+            pol_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.agents_table.setItem(row, 3, pol_item)
 
-            item_calls = QTableWidgetItem(call_count)
-            self.agents_table.setItem(row_idx, 4, item_calls)
+            calls_item = QTableWidgetItem(str(ag.get("tool_calls_count", 0)))
+            calls_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            self.agents_table.setItem(row, 4, calls_item)
 
-            # Action buttons widget
-            action_widget = QWidget()
-            act_layout = QHBoxLayout(action_widget)
-            act_layout.setContentsMargins(2, 2, 2, 2)
-            act_layout.setSpacing(6)
+            if selected_id and aid == selected_id:
+                self.agents_table.selectRow(row)
 
-            if state == "PAUSED":
-                btn_pause = QPushButton("▶️ Resume")
-                btn_pause.clicked.connect(lambda _, ag=agent_id: self.security_ctrl.resume_agent(ag))
-            else:
-                btn_pause = QPushButton("⏸️ Pause")
-                btn_pause.clicked.connect(lambda _, ag=agent_id: self.security_ctrl.pause_agent(ag))
-            act_layout.addWidget(btn_pause)
+        if selected_id is None and agents:
+            self.agents_table.selectRow(0)
 
-            btn_revoke = QPushButton("🔓 Revoke Locks")
-            btn_revoke.clicked.connect(lambda _, ag=agent_id: self.security_ctrl.revoke_agent_locks(ag))
-            act_layout.addWidget(btn_revoke)
+    def _render_locks(self, locks: list[dict[str, Any]]) -> None:
+        self.locks_table.setRowCount(len(locks))
+        now = time.time()
+        for row, lk in enumerate(locks):
+            rem = max(0, int(lk.get("expires_at", 0) - now))
+            acq = time.strftime("%H:%M:%S", time.localtime(lk.get("acquired_at", now)))
+            self.locks_table.setItem(row, 0, QTableWidgetItem(str(lk["resource_key"])))
+            self.locks_table.setItem(row, 1, QTableWidgetItem(str(lk["agent_id"])))
+            self.locks_table.setItem(row, 2, QTableWidgetItem(acq))
+            self.locks_table.setItem(row, 3, QTableWidgetItem(f"{rem}s"))
 
-            if state == "BLOCKED":
-                btn_block = QPushButton("Unblock")
-                btn_block.clicked.connect(lambda _, ag=agent_id: self.security_ctrl.unblock_agent(ag))
-            else:
-                btn_block = QPushButton("⛔ Block")
-                btn_block.clicked.connect(lambda _, ag=agent_id: self.security_ctrl.block_agent(ag))
-            act_layout.addWidget(btn_block)
+    def _on_filter_changed(self, _text: str) -> None:
+        self.refresh()
 
-            self.agents_table.setCellWidget(row_idx, 5, action_widget)
-
-    def _render_locks(self) -> None:
-        self.locks_table.setRowCount(0)
-        for row_idx, lock in enumerate(self._locks_data):
-            self.locks_table.insertRow(row_idx)
-            res_key = lock["resource_key"]
-            ag_id = lock["agent_id"]
-            acq_time = datetime.datetime.fromtimestamp(lock["acquired_at"]).strftime("%H:%M:%S")
-            remaining = f"{lock.get('remaining_sec', 0)}s"
-
-            self.locks_table.setItem(row_idx, 0, QTableWidgetItem(res_key))
-            self.locks_table.setItem(row_idx, 1, QTableWidgetItem(ag_id))
-            self.locks_table.setItem(row_idx, 2, QTableWidgetItem(acq_time))
-            self.locks_table.setItem(row_idx, 3, QTableWidgetItem(remaining))
-
-            btn_unlock = QPushButton("Force Unlock")
-            btn_unlock.setStyleSheet("padding: 2px 8px; font-size: 11px;")
-            btn_unlock.clicked.connect(lambda _, ag=ag_id: self.security_ctrl.revoke_agent_locks(ag))
-            self.locks_table.setCellWidget(row_idx, 4, btn_unlock)
-
-    def _render_audit_logs(self) -> None:
-        filt = self.status_filter_combo.currentText()
-        filtered = self._logs_data
+    def _render_audit(self, logs: list[dict[str, Any]]) -> None:
+        filt = self.filter_combo.currentText()
         if filt != "ALL":
-            filtered = [l for l in filtered if l.get("status") == filt]
-
-        self.audit_table.setRowCount(0)
-        for row_idx, log in enumerate(filtered):
-            self.audit_table.insertRow(row_idx)
-            t_str = datetime.datetime.fromtimestamp(log["timestamp"]).strftime("%H:%M:%S")
-            ag_id = log.get("agent_id", "anonymous")
-            tool = log.get("tool_name", "")
-            status = log.get("status", "")
-            duration = f"{log.get('duration_ms', 0):.2f}"
-            details = str(log.get("details", ""))
-
-            self.audit_table.setItem(row_idx, 0, QTableWidgetItem(t_str))
-            self.audit_table.setItem(row_idx, 1, QTableWidgetItem(ag_id))
-            self.audit_table.setItem(row_idx, 2, QTableWidgetItem(tool))
-
-            item_status = QTableWidgetItem(status)
+            logs = [lg for lg in logs if lg.get("status") == filt]
+        self.audit_table.setRowCount(len(logs))
+        for row, lg in enumerate(logs):
+            ts_str = time.strftime("%H:%M:%S", time.localtime(lg.get("timestamp", time.time())))
+            status = str(lg.get("status", ""))
+            st_item = QTableWidgetItem(status)
+            st_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if status == "SUCCESS":
-                item_status.setForeground(Qt.GlobalColor.green)
-            elif status == "DENIED":
-                item_status.setForeground(Qt.GlobalColor.red)
-            else:
-                item_status.setForeground(Qt.GlobalColor.yellow)
-            self.audit_table.setItem(row_idx, 3, item_status)
+                st_item.setForeground(QColor(COLOR_SUCCESS))
+            elif status in ("DENIED", "BLOCKED", "ERROR"):
+                st_item.setForeground(QColor(COLOR_DANGER))
+            elif status == "PAUSED":
+                st_item.setForeground(QColor(COLOR_WARNING))
 
-            self.audit_table.setItem(row_idx, 4, QTableWidgetItem(duration))
-            self.audit_table.setItem(row_idx, 5, QTableWidgetItem(details))
+            details = lg.get("details", "{}")
+            if isinstance(details, dict):
+                details = json.dumps(details)
 
-    def _on_panic_emergency_stop(self) -> None:
-        reply = QMessageBox.warning(
-            self,
-            "Confirm Emergency Stop",
-            "Are you sure you want to trigger EMERGENCY STOP?\nThis will immediately halt all tool calls across ALL agents!",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            self.security_ctrl.emergency_halt("Triggered by user via GUI Panic Button")
+            self.audit_table.setItem(row, 0, QTableWidgetItem(ts_str))
+            self.audit_table.setItem(row, 1, QTableWidgetItem(str(lg.get("agent_id", ""))))
+            self.audit_table.setItem(row, 2, QTableWidgetItem(str(lg.get("tool_name", ""))))
+            self.audit_table.setItem(row, 3, st_item)
+            self.audit_table.setItem(row, 4, QTableWidgetItem(f"{lg.get('duration_ms', 0.0):.2f}"))
+            self.audit_table.setItem(row, 5, QTableWidgetItem(str(details)[:220]))
 
-    def _on_resume_system(self) -> None:
-        self.security_ctrl.emergency_resume()
+    def _run_security_op(self, fn) -> None:
+        run_async(fn, on_ok=lambda _: self.refresh(), on_err=lambda e: QMessageBox.warning(self, "Security Error", str(e)))
+
+    def _on_toggle_pause_selected(self) -> None:
+        sel = self._selected_agent()
+        if not sel:
+            return
+        aid, status = sel
+        if status == "PAUSED":
+            self._run_security_op(lambda: self.security_ctrl._access_control.resume_agent(aid, reason="Resumed by operator via GUI"))
+        else:
+            self._run_security_op(lambda: self.security_ctrl._access_control.pause_agent(aid, reason="Paused by operator via GUI"))
+
+    def _on_toggle_block_selected(self) -> None:
+        sel = self._selected_agent()
+        if not sel:
+            return
+        aid, status = sel
+        if status == "BLOCKED":
+            self._run_security_op(lambda: self.security_ctrl._access_control.unblock_agent(aid, reason="Unblocked by operator via GUI"))
+        else:
+            reply = QMessageBox.warning(
+                self,
+                "Confirm Block Agent",
+                f"Block '{aid}' permanently from executing all MCP tools?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self._run_security_op(lambda: self.security_ctrl._access_control.block_agent(aid, reason="Blocked by operator via GUI"))
+
+    def _on_revoke_selected(self) -> None:
+        sel = self._selected_agent()
+        if not sel:
+            return
+        aid, _ = sel
+        self._run_security_op(lambda: self.security_ctrl._memory_store.revoke_agent_locks(aid))
+
+    def _on_apply_policy_selected(self) -> None:
+        sel = self._selected_agent()
+        if not sel:
+            return
+        aid, _ = sel
+        pol = self.policy_combo.currentText()
+        self._run_security_op(lambda: self.security_ctrl._access_control.set_policy(aid, pol))
+
+    def _on_release_selected_lock(self) -> None:
+        row = self.locks_table.currentRow()
+        if row < 0:
+            return
+        key_item = self.locks_table.item(row, 0)
+        if not key_item:
+            return
+        rkey = key_item.text()
+        self._run_security_op(lambda: self.security_ctrl._memory_store.force_release_lock(rkey))
 
     def _on_revoke_all_locks(self) -> None:
-        count = self.security_ctrl.revoke_all_locks()
-        QMessageBox.information(self, "Locks Revoked", f"Successfully revoked {count} resource lock(s).")
+        reply = QMessageBox.question(
+            self,
+            "Revoke All Mutex Locks",
+            "Force release all active memory mutex locks held by agents?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._run_security_op(self.security_ctrl._memory_store.revoke_all_locks)
+
+    def _on_emergency_halt(self) -> None:
+        reply = QMessageBox.critical(
+            self,
+            "EMERGENCY STOP",
+            "HALT all AI Agent MCP execution immediately and pause all active operations?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._run_security_op(lambda: self.security_ctrl._access_control.emergency_halt("Emergency Stop triggered from Desktop GUI"))
+
+    def _on_emergency_resume(self) -> None:
+        self._run_security_op(self.security_ctrl._access_control.emergency_resume)

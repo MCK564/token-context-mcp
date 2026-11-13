@@ -1,4 +1,4 @@
-# Token Context MCP (v0.3.5)
+# Token Context MCP (v0.3.6)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
@@ -47,18 +47,20 @@
 
 ---
 
-## ⚡ Điểm nổi bật ở phiên bản v0.3.5
+## ⚡ Điểm nổi bật ở phiên bản v0.3.6
 
-1. **Vi nhân Quản trị 3 Tầng (`kernel/`)**:
-   - Toàn bộ luồng thực thi đi qua `InvocationContext` mang danh tính agent và lan truyền ngữ cảnh qua `contextvars`.
-   - **Tầng 1 (Response Cap)**: Cắt ngắn tại ranh giới AST cú pháp sạch khi vượt `max_response_tokens`, không cắt cụt giữa hàm.
-   - **Tầng 2 (Async Timeout)**: Tự động ngắt timeout trên từng tool (10s cho map, 5s cho search) tránh treo phiên với monorepo lớn.
-   - **Tầng 3 (Session Circuit Breaker)**: Theo dõi ngân sách tích lũy cả phiên, cảnh báo ở mức 80% và ngắt cứng tại **150.000 tokens** để chống vòng lặp vô tận.
+1. **Vi nhân Quản trị 3 Giai đoạn (`kernel/`)**:
+   - Toàn bộ luồng thực thi đi qua `InvocationContext` mang danh tính agent và lan truyền ngữ cảnh qua `contextvars`:
+     - **Giai đoạn 1 (`AuthMiddleware`)**: Ràng buộc `TOKEN_CONTEXT_AGENT_ID` và chống giả mạo danh tính `admin`.
+     - **Giai đoạn 2 (`GovernanceMiddleware`)**: Áp dụng chính sách truy cập theo agent, công tắc dừng khẩn cấp và giới hạn tốc độ theo cửa sổ trượt.
+     - **Giai đoạn 3 (`ExecutionMiddleware` + `retrieve/`)**: Áp dụng giới hạn `max_result_tokens` tại ranh giới AST cú pháp sạch, không cắt cụt giữa hàm.
 2. **Không phình to định nghĩa công cụ (Zero Schema Bloat)**:
-   - Mặc định danh mục `tools/list` chỉ mở **10 công cụ truy xuất đọc (Core Retrieval)**; 10 công cụ mở rộng (bộ nhớ chia sẻ, tự khám phá tool, tóm tắt) và 2 công cụ quản trị (admin) được giấu kín cho tới khi bật tùy chọn, giúp tiết kiệm tối đa token khởi tạo phiên.
+   - Mặc định danh mục `tools/list` chỉ mở **10 công cụ truy xuất đọc (Core Retrieval)**; 11 công cụ mở rộng (gồm bộ nhớ chia sẻ, tự khám phá tool, tóm tắt, `trajectory_record`) và 2 công cụ quản trị (admin) được giấu kín cho tới khi bật tùy chọn, giúp tiết kiệm tối đa token khởi tạo phiên.
 3. **AST Byte-Span Body Elision (`sampling/skeleton_hybrid.py`)**:
    - Cắt tỉa thân hàm chính xác theo tọa độ byte AST của Tree-sitter (`body_start_byte`/`body_end_byte`) cho Python, Java, TypeScript, C#, Go. Giảm **~80% token** so với đọc toàn bộ file nguồn.
-4. **Tương thích Reasoning LLM (`sampling/router.py`)**:
+4. **Sổ Bằng Chứng Kiểm Chứng ("Lá Phổi" — `[ledger].enabled = true` mặc định BẬT)**:
+   - Lưu thẻ bằng chứng `"câu hỏi → vị trí trả lời"` (`path:line` + SHA-256 thân hàm) trong `ledger.sqlite` ngoài repo. Mỗi lần đọc đều kiểm chứng lại trực tiếp trên đĩa, gắn gợi ý `prior_evidence` (hoặc `recheck_from` khi `VERIFY_FAILED`), chỉ gợi ý chứ không cắt tỉa mù, và bỏ qua băm khi sổ trống.
+5. **Tương thích Reasoning LLM (`sampling/router.py`)**:
    - Tự động bóc tách sạch sẽ các thẻ suy luận nội tâm `<think>...</think>` của các mô hình reasoning (DeepSeek R1, Qwen-QwQ) trước khi parse JSON, ngăn chặn lỗi crash format.
 
 ---
@@ -95,9 +97,16 @@ token-context serve
 ```
 
 ### Desktop GUI (PySide6)
-Giao diện quản lý trực quan với telemetry CPU/RAM, danh sách repo và kiểm soát bảo mật agent:
+Giao diện điều khiển 7 tab (Dashboard, Repositories, Tasks & Graph, Cache & DB kèm dọn snapshot cũ & VACUUM `ledger.sqlite`, Ledger & Memory, Agents & Security, Settings):
 ```bash
 uvx --from "token-context-mcp[gui]" token-context-gui
+```
+
+### Bộ đo đạc & Benchmark (`[eval]` dùng `tiktoken o200k_base`)
+```bash
+pip install -e ".[eval]"
+python evals/chain_eval.py --output evals/reports/chain_l0_l5.json
+python evals/mcp_chain_eval.py --limit-chains 6 --output evals/reports/mcp_chain_eval.json
 ```
 
 ---
@@ -167,7 +176,7 @@ Mặc định server chỉ kích hoạt **10 công cụ truy xuất đọc (Core
 | `get_module_dependents` | Trích xuất đồ thị quan hệ phụ thuộc import giữa các module. | Read-only |
 | `inspect_symbol` | Luồng định vị kết hợp: resolve symbol + lấy ngữ cảnh + đồ thị ảnh hưởng 1-hop. | Read-only |
 
-*(10 công cụ mở rộng bao gồm bộ nhớ SQLite multi-agent `memory_*`, công cụ tự khám phá `*_tools`, bộ nén `sample_summarize` và 2 công cụ quản trị `agent_control`, `audit_logs` có thể bật qua cấu hình).*
+*(11 công cụ mở rộng bao gồm bộ nhớ SQLite multi-agent `memory_*`, Sổ Bằng Chứng `trajectory_record`, công cụ tự khám phá `*_tools`, bộ nén `sample_summarize` và 2 công cụ quản trị `agent_control`, `audit_logs` có thể bật qua cấu hình).*
 
 ---
 

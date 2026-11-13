@@ -33,6 +33,16 @@ def format_error(code: str, message: str, **details: object) -> dict[str, Any]:
     return {"schema_version": "1.0", "error": error}
 
 
+class StructuredToolError(Exception):
+    """Domain error carrying a structured MCP error code and details."""
+
+    def __init__(self, code: str, message: str, **details: Any) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.details = details
+
+
 class Middleware(Protocol):
     def __call__(
         self,
@@ -196,6 +206,17 @@ class ExecutionMiddleware:
                 )
             logger.warning("tool request rejected by repository path policy")
             return format_error("policy_rejected", "request rejected by read-only repository policy")
+        except StructuredToolError as error:
+            if self.audit_logger is not None:
+                self.audit_logger.log(
+                    ctx.tool_name,
+                    ctx.effective_agent_id,
+                    "ERROR",
+                    ctx.elapsed_ms,
+                    {"code": error.code, **error.details},
+                )
+            logger.warning("tool request rejected: %s", error.code)
+            return format_error(error.code, error.message, **error.details)
         except (ConfigError, RetrievalError, ValueError) as error:
             if self.audit_logger is not None:
                 self.audit_logger.log(

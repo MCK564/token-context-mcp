@@ -36,7 +36,7 @@ from token_context_mcp.config import default_config_path, index_directory, load_
 from token_context_mcp.index.runner import database_path
 from token_context_mcp.index.sqlite_store import SQLiteStore
 from token_context_mcp.retrieve.service import RetrievalError, RetrievalService
-from token_context_mcp.retrieve.token_budget import estimate_tokens
+from token_context_mcp.retrieve.token_budget import count_tokens_o200k, estimate_tokens
 from token_context_mcp.server import _result
 
 SOURCE_SUFFIXES = (".py", ".js", ".jsx", ".ts", ".tsx")
@@ -53,7 +53,8 @@ def wire_tokens(response: dict[str, Any]) -> int:
     """
     wrapped = _result(response)
     wire = wrapped.model_dump(mode="json", by_alias=True)
-    return estimate_tokens(json.dumps(wire))
+    count, _ = count_tokens_o200k(json.dumps(wire))
+    return count
 
 
 def service_payload_tokens(response: dict[str, Any]) -> int:

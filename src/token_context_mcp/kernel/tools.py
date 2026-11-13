@@ -13,6 +13,7 @@ MUTATING_TOOLS: frozenset[str] = frozenset({
     "memory_unlock",
     "memory_consolidate",
     "sample_summarize",
+    "trajectory_record",
     "agent_control",
 })
 
@@ -27,6 +28,7 @@ EXTENSION_TOOLS: frozenset[str] = frozenset({
     "memory_unlock",
     "memory_consolidate",
     "sample_summarize",
+    "trajectory_record",
     "agent_control",
     "audit_logs",
 })

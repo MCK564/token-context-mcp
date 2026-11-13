@@ -38,10 +38,23 @@ class ServerConfig:
 
 
 @dataclass(frozen=True)
+class LedgerConfig:
+    enabled: bool = True
+    overlay_enabled: bool = False
+    max_cards_per_repo: int = 500
+    ttl_days: int = 28
+    answer_jaccard_min: float = 0.6
+    answer_min_overlap: int = 2
+    decoy_jaccard_min: float = 0.8
+    max_hint_tokens: int = 150
+
+
+@dataclass(frozen=True)
 class AppConfig:
     repositories: dict[str, RepositoryConfig]
     server: ServerConfig = field(default_factory=ServerConfig)
     budget_profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
+    ledger: LedgerConfig = field(default_factory=LedgerConfig)
     extra: dict[str, Any] = field(default_factory=dict)
 
 

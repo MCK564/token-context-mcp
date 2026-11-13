@@ -3,12 +3,12 @@
   "name": "io.github.MCK564/token-context-mcp",
   "title": "Token Context MCP",
   "description": "On-demand, local code-context MCP server for AI coding agents with Tree-sitter AST.",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "token-context-mcp",
-      "version": "0.3.5",
+      "version": "0.3.6",
       "transport": {
         "type": "stdio"
       }

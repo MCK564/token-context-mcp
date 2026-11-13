@@ -1,0 +1,68 @@
+{
+  "followup_queries": 60,
+  "no_ledger_median_tokens": 9677.0,
+  "ledger_hint_median_tokens": 4138.5,
+  "ledger_paraphrase_median_tokens": 4098.5,
+  "ledger_overlay_median_tokens": 4121.0,
+  "oracle_ledger_median_tokens": 1689.0,
+  "median_paired_reduction_pct": 80.34,
+  "ci95_token_savings": [
+    6461.0,
+    9234.0
+  ],
+  "l1_token_savings": {
+    "ledger_hint_median_reduction_pct": 57.2,
+    "ledger_paraphrase_median_reduction_pct": 57.72,
+    "ledger_overlay_median_reduction_pct": 56.37,
+    "ledger_hint_ci95_tokens": [
+      4078.5,
+      6898.5
+    ],
+    "ledger_hint_ci95_pct": [
+      47.16,
+      61.28
+    ],
+    "no_ledger_mean_tokens": 9660.82,
+    "ledger_hint_mean_tokens": 4119.0,
+    "mean_token_reduction_pct": 57.36
+  },
+  "no_ledger_mean_calls": 6.5,
+  "ledger_hint_mean_calls": 2.0,
+  "ledger_overlay_mean_calls": 2.0,
+  "oracle_ledger_mean_calls": 1.0,
+  "no_ledger_file_acc_5": 0.8167,
+  "no_ledger_sym_recall_10": 0.4833,
+  "l2_do_no_harm_and_collisions": {
+    "flips_right_to_wrong": 0,
+    "flips_wrong_to_right": 35,
+    "flip_right_to_wrong_rate_pct": 0.0,
+    "search_rank1_no_ledger": 0.1167,
+    "search_rank1_ledger_overlay": 0.6167,
+    "collision_pairs": 16,
+    "collision_acc_no_ledger": 1.0,
+    "collision_acc_ledger_hint": 1.0,
+    "collision_acc_ledger_overlay": 1.0,
+    "collision_false_hints_served": 0
+  },
+  "l3_code_mutations": {
+    "stale_prevented": 8,
+    "stale_total": 8,
+    "stale_invalidation_rate_pct": 100.0,
+    "valid_preserved": 8,
+    "valid_total": 8,
+    "valid_preservation_rate_pct": 100.0
+  },
+  "l4_anti_poisoning": {
+    "rejected_cases": 20,
+    "total_cases": 20,
+    "rejection_rate_pct": 100.0
+  },
+  "l5_overhead_and_determinism": {
+    "median_hint_tokens": 84.0,
+    "max_hint_tokens": 97,
+    "lookup_p50_ms": 2.93,
+    "lookup_p95_ms": 4.51,
+    "disabled_byte_identical_checks": "60/60"
+  },
+  "go_no_go": "GO"
+}

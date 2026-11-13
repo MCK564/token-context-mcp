@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "token-context-mcp"
-version = "0.3.5"
+version = "0.3.6"
 description = "On-demand, local code-context MCP server for AI coding agents with Tree-sitter AST & provenance-aware retrieval."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -53,6 +53,10 @@ dev = [
   "pytest>=8.3.0",
   "pytest-cov>=6.0.0",
   "psutil>=5.9.0",
+  "tiktoken>=0.7.0",
+]
+eval = [
+  "tiktoken>=0.7.0",
 ]
 watch = [
   "watchdog>=4.0.0",

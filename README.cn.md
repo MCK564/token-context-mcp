@@ -1,5 +1,5 @@
 <!-- mcp-name: io.github.MCK564/token-context-mcp -->
-# Token Context MCP (v0.3.5)
+# Token Context MCP (v0.3.6)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
@@ -50,15 +50,17 @@
 
 ## ⚡ 三大核心架构支柱
 
-1. **三层预算治理微内核 (`kernel/`)**：
-   - 每次调用均在统一轻量级流水线内受控执行：
-     - **第一道防线（Clean AST-Boundary Cap）**：指定 `max_response_tokens` 并在 AST 语法块边界优雅截断，绝不产生半截残缺代码。
-     - **第二道防线（Per-Tool Async Timeout）**：内置异步执行超时闸门（`get_repo_map` 10s、`search_source` 5s），防止超大仓库卡死会话。
-     - **第三道防线（150K Session Budget Breaker）**：追踪全会话累计消耗，达到 80% 触发遥测告警，达到 **150,000 Token** 硬上限直接熔断拦截，防止死循环刷爆 API 账单。
+1. **三阶段治理微内核 (`kernel/`)**：
+   - 每次调用均在统一轻量级中间件流水线内受控执行：
+     - **阶段 1 — 身份解析 (`AuthMiddleware`)**：绑定 `TOKEN_CONTEXT_AGENT_ID` 并拦截 `admin` 身份冒充。
+     - **阶段 2 — 访问与速率治理 (`GovernanceMiddleware`)**：执行按 Agent 划分的权限策略、紧急熔断与滑动窗口限流。
+     - **阶段 3 — AST 边界截断与执行 (`ExecutionMiddleware` + `retrieve/`)**：按 `max_result_tokens` 在 AST 语法块边界优雅截断，绝不产生半截残缺代码。
 2. **零工具定义膨胀（Zero Schema Bloat）**：
-   - 默认 `tools/list` 仅暴露 **10 个核心只读检索与导航工具**（10 个扩展工具与 2 个管理工具默认隐藏）。服务端剥离 JSON Schema 冗余字段，大幅压低智能体启动阶段的 Prompt 基础开销。
+   - 默认 `tools/list` 仅暴露 **10 个核心只读检索与导航工具**（11 个扩展工具——含 `trajectory_record`——与 2 个管理工具默认隐藏）。服务端剥离 JSON Schema 冗余字段，大幅压低智能体启动阶段的 Prompt 基础开销。
 3. **增量 Tree-sitter AST + SQLite WAL 持久化图索引 (`index/`)**：
    - 基于 `mtime_ns` + SHA-256 增量感知，全面覆盖 **Python, JS/TS, Go, Rust, Java, C/C++** 及 C#，内置符号链接防逃逸与越界路径校验。
+4. **可验证证据账本（"Lá Phổi" — `[ledger].enabled = true` 默认开启）**：
+   - 在工作区外部的 `ledger.sqlite` 中记录带 `path:line` 与函数体 SHA-256 的验证卡片；每次读取时实时校验磁盘源码，附带 `prior_evidence` 提示（失效时给出 `recheck_from`），绝不盲目裁剪未验证代码。
 
 ---
 
@@ -94,9 +96,16 @@ token-context serve
 ```
 
 ### 桌面图形控制台 (PySide6 Desktop GUI)
-提供 CPU/RAM 硬件遥测、仓库管理与智能体安全状态监控：
+7 标签页暗色控制台（Dashboard、Repositories、Tasks & Graph、Cache & DB 支持清理旧快照与 VACUUM `ledger.sqlite`、Ledger & Memory、Agents & Security、Settings）：
 ```bash
 uvx --from "token-context-mcp[gui]" token-context-gui
+```
+
+### 基准测试套件（`[eval]` 依赖 `tiktoken o200k_base`）
+```bash
+pip install -e ".[eval]"
+python evals/chain_eval.py --output evals/reports/chain_l0_l5.json
+python evals/mcp_chain_eval.py --limit-chains 6 --output evals/reports/mcp_chain_eval.json
 ```
 
 ---
@@ -166,7 +175,7 @@ claude mcp add --transport stdio --scope user token-context -- uvx token-context
 | `get_module_dependents` | 提取模块间 Tree-sitter import 依赖关系。 | 只读 |
 | `inspect_symbol` | 复合导航流：符号解析 + 完整上下文 + 1-hop 影响图。 | 只读 |
 
-*(包含多智能体 SQLite 共享内存 `memory_*`、动态工具发现 `*_tools`、代码本地压缩 `sample_summarize` 与管理工具 `agent_control`, `audit_logs` 在内的 12 个扩展/管理工具可通过配置开启)。*
+*(包含多智能体 SQLite 共享内存 `memory_*`、证据账本 `trajectory_record`、动态工具发现 `*_tools`、代码本地压缩 `sample_summarize` 与管理工具 `agent_control`, `audit_logs` 在内的 13 个扩展/管理工具可通过配置开启)。*
 
 ---
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.6 — Verified Evidence Ledger ("Lá Phổi"), Desktop GUI v2 & Eval Suite (2026-11-13)
+
+- **Verified Evidence Ledger (`ledger/`, `[ledger].enabled = true` by default)** — citation-backed evidence ledger stored in `ledger.sqlite` next to `memory.sqlite` (never inside target repositories).
+  - Write gate (`G1–G6`) via `trajectory_record` extension tool (`21` standard tools + `2` admin = `23` total): verifies symbol resolution, file freshness, symbol line bounds, on-disk identifier presence for steps (recording `index_edge_missing` without circular index checks), closed decoy reason codes, and rate/item limits.
+  - Read-time verification (`ledger/verify.py`): re-hashes symbol byte-spans on disk with zero-hash fast-path (`get_rev == 0`), preserves valid step prefixes with `recheck_from: k`, retires broken cards, caps `prior_evidence` at 150 tokens, and adds `ledger_rev` to response envelopes when enabled.
+  - Conditional ranking overlay (`[ledger] overlay_enabled = false` by default): `expand_anchors` (`×1.2` confirmed step edge, `×0.5` confirmed decoy) and `rank_symbols` (`+6.0` confirmed answer, `-4.0` confirmed decoy without penalizing exact name matches).
+  - Operator CLI: `token-context ledger list | show | confirm | forget | prune | export`.
+- **Desktop GUI v2 (7-Tab PySide6 Controller)**:
+  - Added `Ledger & Memory` tab (`ledger_tab.py`) with Confirm / Forget / Prune / Export Markdown & JSON and Episodic Memory inspection.
+  - Vector HiDPI icons (`icons.py`), responsive dark QSS (`theme.py`, `<= 960x620`), safe worker teardown (`workers.py`), stale snapshot classification & `ledger.sqlite` vacuuming in `Cache & DB`, and full `[ledger]` / `enable_admin_tools` settings.
+- **Evaluation & Pre-cleanup**:
+  - Added `tiktoken>=0.7.0` (`o200k_base`) to `[eval]` and `[dev]` optional extras, `evals/chain_eval.py` (L0–L5 suite), and `evals/mcp_chain_eval.py` (live MCP stdio multi-step `steps >= 2` suite).
+  - Updated `server.py` instructions, `sample_prompt.md` (VI/EN/CN), and `README*.md`.
+  - Redacted plaintext `TOKEN_CONTEXT_ADMIN_TOKEN` in `BUG_AUDIT_REPORT.md:17`, added `run_id` / `server_run_id`, `StructuredToolError`, and `count_tokens_o200k`.
+
 ## 0.3.5 — docs & benchmarks: multilingual READMEs, Agentic Dark Green visuals, 59-task Head-to-Head harness (2026-10-26)
 
 **Upgrade:** no index rebuild needed. Documentation, packaging metadata, and benchmark reproduction suite update.

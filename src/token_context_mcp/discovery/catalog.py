@@ -266,6 +266,21 @@ TOOL_CATALOG: dict[str, ToolMeta] = {
         tags=["sampling", "compress", "summarize", "llm", "nested"],
         recommended_followups=["memory_put"],
     ),
+    "trajectory_record": ToolMeta(
+        name="trajectory_record",
+        category="memory_state",
+        summary="Record verified symbol citations (answers, steps, decoys) into the evidence ledger.",
+        parameters_summary={
+            "repo_id": "string (required)",
+            "query": "string (required)",
+            "answers": "array of '<symbol_id>@<line>' (required)",
+            "steps": "array of '<from_id>><to_id>@<line>' (optional)",
+            "decoys": "array of '<symbol_id>!<reason_code>' (optional)",
+            "agent_id": "string (optional)",
+        },
+        tags=["ledger", "evidence", "citation", "trajectory", "verify"],
+        prerequisites=["search_source", "get_symbol_context"],
+    ),
     "agent_control": ToolMeta(
         name="agent_control",
         category="security_governance",

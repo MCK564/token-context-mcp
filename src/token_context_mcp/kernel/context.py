@@ -33,6 +33,7 @@ class InvocationContext:
     raw_agent_id: str | None = None
     effective_agent_id: str = "anonymous"
     session_id: str | None = None
+    run_id: str | None = None
     tool_call_id: str | None = None
     params: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
