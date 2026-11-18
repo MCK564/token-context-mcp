@@ -2,6 +2,7 @@
   "agent_control": {
     "properties": {
       "action": {
+        "description": "Governance operation: 'status' (read-only), 'pause', 'resume', 'block', 'unblock', 'set_policy', 'revoke_locks', 'emergency_halt', or 'emergency_resume'.",
         "enum": [
           "status",
           "pause",
@@ -18,6 +19,7 @@
       },
       "admin_token": {
         "default": "",
+        "description": "Secret token matching TOKEN_CONTEXT_ADMIN_TOKEN env var (required for all mutating actions, omit for 'status').",
         "title": "Admin Token",
         "type": "string"
       },
@@ -31,6 +33,7 @@
           }
         ],
         "default": null,
+        "description": "Target agent identifier for pause, resume, block, unblock, set_policy, or revoke_locks.",
         "title": "Agent Id"
       },
       "custom_tools": {
@@ -46,6 +49,7 @@
           }
         ],
         "default": null,
+        "description": "Allowed tool names when action='set_policy' and policy='CUSTOM'.",
         "title": "Custom Tools"
       },
       "policy": {
@@ -63,10 +67,12 @@
           }
         ],
         "default": null,
+        "description": "Access policy profile for action='set_policy': 'FULL_ACCESS', 'READ_ONLY', or 'CUSTOM'.",
         "title": "Policy"
       },
       "reason": {
         "default": "",
+        "description": "Audit log reason explaining why the governance action or emergency halt was taken.",
         "title": "Reason",
         "type": "string"
       }
@@ -89,10 +95,12 @@
           }
         ],
         "default": null,
+        "description": "Optional agent identifier to filter audit records by caller.",
         "title": "Agent Id"
       },
       "limit": {
         "default": 50,
+        "description": "Maximum number of recent audit log entries to return (1 to 500, default 50).",
         "title": "Limit",
         "type": "integer"
       },
@@ -111,6 +119,7 @@
           }
         ],
         "default": null,
+        "description": "Optional execution outcome filter: 'SUCCESS', 'DENIED', or 'ERROR'.",
         "title": "Status"
       }
     },
@@ -129,6 +138,7 @@
           }
         ],
         "default": null,
+        "description": "Optional symbol kind filter (e.g. 'function', 'class', 'method', 'interface').",
         "title": "Kind"
       },
       "limit": {
@@ -141,6 +151,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum number of matching symbols to return (1 to max_symbol_results).",
         "title": "Limit"
       },
       "max_tokens": {
@@ -153,9 +164,11 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the response (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "pattern": {
+        "description": "Symbol name or qualified-name pattern to match (supports '*' and '?' wildcards).",
         "title": "Pattern",
         "type": "string"
       },
@@ -169,9 +182,11 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'locate'.",
         "title": "Profile"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -187,6 +202,7 @@
     "properties": {
       "include_private": {
         "default": false,
+        "description": "Include private/internal symbols (leading underscore or non-exported) when True.",
         "title": "Include Private",
         "type": "boolean"
       },
@@ -200,9 +216,11 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the skeleton response (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "path": {
+        "description": "Repository-relative file path to extract imports and declaration headers from.",
         "title": "Path",
         "type": "string"
       },
@@ -216,9 +234,11 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'read'.",
         "title": "Profile"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -242,10 +262,12 @@
           }
         ],
         "default": null,
+        "description": "Maximum AST call-graph traversal hops (0 to 3; defaults to 2 in 'impact' profile).",
         "title": "Depth"
       },
       "direction": {
         "default": "both",
+        "description": "Call-graph traversal direction: 'callers' (who calls this), 'callees' (what this calls), or 'both'.",
         "enum": [
           "callers",
           "callees",
@@ -256,6 +278,7 @@
       },
       "filter_ambiguous": {
         "default": true,
+        "description": "Exclude ambiguous lexical edges that match multiple candidate targets when True.",
         "title": "Filter Ambiguous",
         "type": "boolean"
       },
@@ -269,6 +292,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum number of graph nodes to visit before truncating (1 to max_graph_nodes).",
         "title": "Max Nodes"
       },
       "max_tokens": {
@@ -281,6 +305,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the impact slice (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "min_confidence": {
@@ -293,6 +318,7 @@
           }
         ],
         "default": null,
+        "description": "Minimum edge resolution confidence (0.0 to 1.0) required to include an edge.",
         "title": "Min Confidence"
       },
       "profile": {
@@ -305,13 +331,16 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'impact'.",
         "title": "Profile"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       },
       "symbol_id": {
+        "description": "Exact starting symbol_id obtained from find_symbols, get_repo_map, or search_source.",
         "title": "Symbol Id",
         "type": "string"
       }
@@ -326,6 +355,7 @@
   "get_index_status": {
     "properties": {
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -348,6 +378,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the response (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "module": {
@@ -360,6 +391,7 @@
           }
         ],
         "default": null,
+        "description": "Module or package identifier to find importers and imports for (provide module or path).",
         "title": "Module"
       },
       "path": {
@@ -372,6 +404,7 @@
           }
         ],
         "default": null,
+        "description": "Repository-relative file path to inspect imports for (provide path or module).",
         "title": "Path"
       },
       "profile": {
@@ -384,9 +417,11 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'impact'.",
         "title": "Profile"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -409,6 +444,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the returned map (32 to max_result_tokens; defaults to profile budget).",
         "title": "Budget Tokens"
       },
       "format": {
@@ -425,15 +461,18 @@
           }
         ],
         "default": null,
+        "description": "Output detail level: 'compact' ([id, path:line, kind/name]) or 'full' (adds signatures and evidence).",
         "title": "Format"
       },
       "include_omitted_ids": {
         "default": false,
+        "description": "Include IDs of symbols omitted due to token budget truncation.",
         "title": "Include Omitted Ids",
         "type": "boolean"
       },
       "include_tests": {
         "default": false,
+        "description": "Include test files and test symbols in the ranked map when True.",
         "title": "Include Tests",
         "type": "boolean"
       },
@@ -447,6 +486,7 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'orient'.",
         "title": "Profile"
       },
       "query": {
@@ -459,9 +499,11 @@
           }
         ],
         "default": null,
+        "description": "Optional focus query or symbol terms to bias personalized graph ranking.",
         "title": "Query"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -484,10 +526,12 @@
           }
         ],
         "default": null,
+        "description": "1-based relative line offset within the symbol body to page through large functions.",
         "title": "Body Offset Line"
       },
       "depth": {
         "default": 1,
+        "description": "Caller/callee neighborhood traversal depth around the symbol (0 to 3).",
         "title": "Depth",
         "type": "integer"
       },
@@ -501,10 +545,12 @@
           }
         ],
         "default": null,
+        "description": "Include the source code body of the target symbol (defaults to True for 'read' profile).",
         "title": "Include Body"
       },
       "include_omitted_ids": {
         "default": false,
+        "description": "Include symbol IDs omitted when neighbors exceed the token budget.",
         "title": "Include Omitted Ids",
         "type": "boolean"
       },
@@ -518,6 +564,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the context packet (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "profile": {
@@ -530,13 +577,16 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'read'.",
         "title": "Profile"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       },
       "symbol_id": {
+        "description": "Exact symbol_id obtained from find_symbols, get_repo_map, or search_source.",
         "title": "Symbol Id",
         "type": "string"
       }
@@ -551,6 +601,7 @@
   "get_tool_schema": {
     "properties": {
       "tool_name": {
+        "description": "Exact name of the enabled MCP tool to retrieve the full JSON Schema for.",
         "title": "Tool Name",
         "type": "string"
       }
@@ -565,19 +616,23 @@
     "properties": {
       "budget_tokens": {
         "default": 2048,
+        "description": "Maximum token budget for the composite inspection response (32 to max_result_tokens).",
         "title": "Budget Tokens",
         "type": "integer"
       },
       "query": {
+        "description": "Symbol name, qualified name, or keyword query to resolve and inspect in one turn.",
         "title": "Query",
         "type": "string"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       },
       "view": {
         "default": "normal",
+        "description": "Projection detail: 'minimal' (signatures+edges), 'normal' (adds body), or 'full' (context packet with tests).",
         "enum": [
           "minimal",
           "normal",
@@ -606,6 +661,7 @@
           }
         ],
         "default": null,
+        "description": "Optional category filter (e.g. 'code_navigation', 'impact_analysis', 'shared_memory', 'tool_discovery', 'security_governance').",
         "title": "Category"
       }
     },
@@ -629,20 +685,24 @@
           }
         ],
         "default": null,
+        "description": "Optional namespace to restrict consolidation and pruning to.",
         "title": "Namespace"
       },
       "prune_transient": {
         "default": false,
+        "description": "Delete transient source entries in the selected scope/namespace after consolidation when True.",
         "title": "Prune Transient",
         "type": "boolean"
       },
       "scope": {
         "default": "session",
+        "description": "Memory scope to consolidate entries from ('session', 'project', or 'global').",
         "title": "Scope",
         "type": "string"
       },
       "target_key": {
         "default": "project_architectural_insights",
+        "description": "Destination memory key where the consolidated summary will be stored.",
         "title": "Target Key",
         "type": "string"
       }
@@ -653,16 +713,19 @@
   "memory_get": {
     "properties": {
       "key": {
+        "description": "Exact key of the memory entry to retrieve.",
         "title": "Key",
         "type": "string"
       },
       "namespace": {
         "default": "",
+        "description": "Namespace string matching the namespace used in memory_put (default '').",
         "title": "Namespace",
         "type": "string"
       },
       "scope": {
         "default": "session",
+        "description": "Persistence tier matching the stored entry ('session', 'project', or 'global').",
         "title": "Scope",
         "type": "string"
       },
@@ -676,6 +739,7 @@
           }
         ],
         "default": null,
+        "description": "Optional explicit session identifier when reading from 'session' scope.",
         "title": "Session Id"
       }
     },
@@ -688,15 +752,18 @@
   "memory_lock": {
     "properties": {
       "agent_id": {
+        "description": "Unique caller agent identifier acquiring and owning the mutex lock.",
         "title": "Agent Id",
         "type": "string"
       },
       "resource_key": {
+        "description": "Identifier of the shared resource or file path to lock exclusively.",
         "title": "Resource Key",
         "type": "string"
       },
       "timeout_sec": {
         "default": 60,
+        "description": "Lock lease duration in seconds before automatic expiration (default 60).",
         "title": "Timeout Sec",
         "type": "integer"
       }
@@ -711,16 +778,19 @@
   "memory_put": {
     "properties": {
       "key": {
+        "description": "Unique identifier key for the memory entry within the given scope and namespace.",
         "title": "Key",
         "type": "string"
       },
       "namespace": {
         "default": "",
+        "description": "Optional namespace string to isolate entries per agent, task, or workflow.",
         "title": "Namespace",
         "type": "string"
       },
       "scope": {
         "default": "session",
+        "description": "Persistence tier: 'session' (transient), 'project' (repo-wide), or 'global' (cross-project).",
         "title": "Scope",
         "type": "string"
       },
@@ -734,6 +804,7 @@
           }
         ],
         "default": null,
+        "description": "Optional explicit session identifier when using 'session' scope.",
         "title": "Session Id"
       },
       "ttl": {
@@ -746,9 +817,11 @@
           }
         ],
         "default": 86400,
+        "description": "Time-to-live in seconds before automatic expiration (default 86400; None for no expiry).",
         "title": "Ttl"
       },
       "value": {
+        "description": "Value to store (JSON-serializable object, array, number, or string).",
         "title": "Value"
       }
     },
@@ -763,6 +836,7 @@
     "properties": {
       "limit": {
         "default": 5,
+        "description": "Maximum number of matching memory entries to return (default 5).",
         "title": "Limit",
         "type": "integer"
       },
@@ -776,9 +850,11 @@
           }
         ],
         "default": null,
+        "description": "Optional namespace filter; omit to search across all namespaces.",
         "title": "Namespace"
       },
       "query": {
+        "description": "Full-text search keywords to match against stored memory keys and values.",
         "title": "Query",
         "type": "string"
       },
@@ -792,6 +868,7 @@
           }
         ],
         "default": null,
+        "description": "Optional scope filter ('session', 'project', or 'global'); omit to search all scopes.",
         "title": "Scope"
       }
     },
@@ -813,9 +890,11 @@
           }
         ],
         "default": null,
+        "description": "Agent identifier that owns the lock being released.",
         "title": "Agent Id"
       },
       "resource_key": {
+        "description": "Identifier of the locked resource previously acquired via memory_lock.",
         "title": "Resource Key",
         "type": "string"
       }
@@ -830,11 +909,13 @@
     "properties": {
       "intent": {
         "default": "general_code_summary",
+        "description": "Summarization goal or focus (e.g. 'general_code_summary', 'call_flow', 'error_analysis').",
         "title": "Intent",
         "type": "string"
       },
       "max_tokens": {
         "default": 512,
+        "description": "Maximum token budget for the compressed summary output (default 512).",
         "title": "Max Tokens",
         "type": "integer"
       },
@@ -851,9 +932,11 @@
           }
         ],
         "default": null,
+        "description": "Optional list of symbol names to preserve verbatim during compression.",
         "title": "Target Symbols"
       },
       "text": {
+        "description": "Raw source code or large tool output text to compress into concise JSON.",
         "title": "Text",
         "type": "string"
       }
@@ -868,6 +951,7 @@
     "properties": {
       "expand": {
         "default": "auto",
+        "description": "Neighbor expansion mode: 'auto' (graph for locate profile), 'none', or 'graph' (add callers/callees).",
         "enum": [
           "auto",
           "none",
@@ -878,11 +962,13 @@
       },
       "expand_hops": {
         "default": 1,
+        "description": "Graph traversal hops for neighbor expansion (1 or 2).",
         "title": "Expand Hops",
         "type": "integer"
       },
       "expand_k": {
         "default": 3,
+        "description": "Number of top search hits to expand with graph neighbors (1 to 8).",
         "title": "Expand K",
         "type": "integer"
       },
@@ -896,6 +982,7 @@
           }
         ],
         "default": null,
+        "description": "Maximum number of search hits to return (1 to 100).",
         "title": "Limit"
       },
       "max_tokens": {
@@ -908,10 +995,12 @@
           }
         ],
         "default": null,
+        "description": "Maximum token budget for the response (32 to max_result_tokens).",
         "title": "Max Tokens"
       },
       "min_confidence": {
         "default": 0.6,
+        "description": "Minimum edge confidence threshold (0.0 to 1.0) for expanded graph neighbors.",
         "title": "Min Confidence",
         "type": "number"
       },
@@ -925,13 +1014,16 @@
           }
         ],
         "default": null,
+        "description": "Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'locate'.",
         "title": "Profile"
       },
       "query": {
+        "description": "Full-text FTS5 search keywords or code tokens to match across indexed symbols.",
         "title": "Query",
         "type": "string"
       },
       "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
         "title": "Repo Id",
         "type": "string"
       }
@@ -947,10 +1039,12 @@
     "properties": {
       "limit": {
         "default": 3,
+        "description": "Maximum number of matching tools to return (default 3).",
         "title": "Limit",
         "type": "integer"
       },
       "query": {
+        "description": "Keywords describing the task or capability to match against tool metadata.",
         "title": "Query",
         "type": "string"
       }
@@ -962,37 +1056,27 @@
     "type": "object"
   },
   "trajectory_record": {
-    "type": "object",
     "properties": {
-      "repo_id": {
-        "title": "Repo Id",
-        "type": "string"
-      },
-      "query": {
-        "title": "Query",
-        "type": "string"
-      },
-      "answers": {
-        "items": {
-          "type": "string"
-        },
-        "title": "Answers",
-        "type": "array"
-      },
-      "steps": {
+      "agent_id": {
         "anyOf": [
           {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
+            "type": "string"
           },
           {
             "type": "null"
           }
         ],
         "default": null,
-        "title": "Steps"
+        "description": "Optional identifier of the agent recording the verified trajectory.",
+        "title": "Agent Id"
+      },
+      "answers": {
+        "description": "List of source-verified answer anchors formatted as '<symbol_id>@<line>'.",
+        "items": {
+          "type": "string"
+        },
+        "title": "Answers",
+        "type": "array"
       },
       "decoys": {
         "anyOf": [
@@ -1007,19 +1091,34 @@
           }
         ],
         "default": null,
+        "description": "Optional list of rejected false-positive symbols formatted as '<symbol_id>!<reason_code>'.",
         "title": "Decoys"
       },
-      "agent_id": {
+      "query": {
+        "description": "Natural-language or technical question answered by the verified symbol trajectory.",
+        "title": "Query",
+        "type": "string"
+      },
+      "repo_id": {
+        "description": "Registered repository ID from list_repositories (never a filesystem path).",
+        "title": "Repo Id",
+        "type": "string"
+      },
+      "steps": {
         "anyOf": [
           {
-            "type": "string"
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           {
             "type": "null"
           }
         ],
         "default": null,
-        "title": "Agent Id"
+        "description": "Optional list of verified call/reference hops formatted as '<from_id>><to_id>@<line>'.",
+        "title": "Steps"
       }
     },
     "required": [
@@ -1027,6 +1126,7 @@
       "query",
       "answers"
     ],
-    "title": "trajectory_recordArguments"
+    "title": "trajectory_recordArguments",
+    "type": "object"
   }
 }

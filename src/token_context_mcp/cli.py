@@ -89,7 +89,18 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Tool schema dialect advertised in tools/list (auto: gemini_safe for Gemini/Antigravity clients)",
     )
-    serve.add_argument("--enable-admin-tools", action="store_true", default=False, help="Enable admin tools (agent_control, audit_logs)")
+    serve.add_argument(
+        "--enable-extensions",
+        action="store_true",
+        default=None,
+        help="Enable extension tools (discovery, memory, sampling, trajectory_record)",
+    )
+    serve.add_argument(
+        "--enable-admin-tools",
+        action="store_true",
+        default=None,
+        help="Enable admin tools (agent_control, audit_logs)",
+    )
     report = subparsers.add_parser("benchmark-report", help="Summarize an instrumented benchmark JSONL")
     report.add_argument("--input", type=Path, required=True)
     report.add_argument("--output", type=Path)
@@ -152,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "serve":
             run_stdio(
                 args.config,
+                enable_extensions=args.enable_extensions,
                 enable_admin_tools=args.enable_admin_tools,
                 output_mode=args.output_mode,
                 schema_profile=args.schema_profile,

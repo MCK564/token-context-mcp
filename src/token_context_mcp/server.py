@@ -7,9 +7,11 @@ import os
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from mcp.server import MCPServer
+from mcp.types import ToolAnnotations
+from pydantic import Field
 
 from token_context_mcp import __version__
 from token_context_mcp.client_profile import (
@@ -52,6 +54,38 @@ from token_context_mcp.kernel import (
 
 logger = logging.getLogger("token_context_mcp")
 
+_READ_ONLY_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=False,
+)
+_MUTATING_IDEMPOTENT_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=False,
+)
+_MUTATING_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=False,
+    idempotentHint=False,
+    openWorldHint=False,
+)
+_ADMIN_DESTRUCTIVE_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=True,
+    idempotentHint=False,
+    openWorldHint=False,
+)
+
+
+def _env_flag(name: str) -> bool | None:
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
 
 def build_server(
     config_path: Path,
@@ -69,11 +103,17 @@ def build_server(
 
     def _schema_profile() -> str:
         return resolve_schema_profile(schema_profile, client_state.name)
+    env_ext = _env_flag("TOKEN_CONTEXT_ENABLE_EXTENSIONS")
+    env_adm = _env_flag("TOKEN_CONTEXT_ENABLE_ADMIN_TOOLS")
     extensions_enabled = (
-        enable_extensions if enable_extensions is not None else getattr(config.server, "enable_extensions", False)
+        enable_extensions
+        if enable_extensions is not None
+        else (env_ext if env_ext is not None else getattr(config.server, "enable_extensions", False))
     )
     admin_tools_enabled = (
-        enable_admin_tools if enable_admin_tools is not None else getattr(config.server, "enable_admin_tools", False)
+        enable_admin_tools
+        if enable_admin_tools is not None
+        else (env_adm if env_adm is not None else getattr(config.server, "enable_admin_tools", False))
     )
     if extensions_enabled:
         sampling_router = SamplingRouter()
@@ -229,23 +269,31 @@ def build_server(
 
     @server.tool(
         title="Registered repositories",
-        description="List registered repository IDs. Call this first; roots are never exposed.",
+        description=(
+            "List registered repo_id values (filesystem roots stay hidden). "
+            "Call first before any repo tool; use get_index_status next to check snapshot freshness."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def list_repositories() -> CallToolResult:
         return _wrap(_invoke(service.list_repositories, tool_name="list_repositories"))
 
     @server.tool(
         title="Repository map",
-        description="Ranked definitions for a repo_id within budget. Compact entries are [id, path:line, kind/name]; format='full' adds signatures and evidence. For orientation, not proof of full coverage.",
+        description=(
+            "Ranked symbol overview [id, path:line, kind/name] within token budget (format='full' adds signatures). "
+            "Use for broad repo orientation, not exact lookup (use find_symbols)."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def get_repo_map(
-        repo_id: str,
-        query: str | None = None,
-        budget_tokens: int | None = None,
-        include_tests: bool = False,
-        include_omitted_ids: bool = False,
-        format: Literal["compact", "full"] | None = None,
-        profile: str | None = None,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        query: Annotated[str | None, Field(description="Optional focus query or symbol terms to bias personalized graph ranking.")] = None,
+        budget_tokens: Annotated[int | None, Field(description="Maximum token budget for the returned map (32 to max_result_tokens; defaults to profile budget).")] = None,
+        include_tests: Annotated[bool, Field(description="Include test files and test symbols in the ranked map when True.")] = False,
+        include_omitted_ids: Annotated[bool, Field(description="Include IDs of symbols omitted due to token budget truncation.")] = False,
+        format: Annotated[Literal["compact", "full"] | None, Field(description="Output detail level: 'compact' ([id, path:line, kind/name]) or 'full' (adds signatures and evidence).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'orient'.")] = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -264,15 +312,19 @@ def build_server(
 
     @server.tool(
         title="Find symbols",
-        description="Find source-backed symbols by name or qualified-name pattern. Returns IDs and spans, never arbitrary files.",
+        description=(
+            "Match symbol definitions by exact or wildcard (*, ?) name pattern to get symbol_id and spans. "
+            "Does not return bodies or edges; use inspect_symbol for 1-turn body+graph."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def find_symbols(
-        repo_id: str,
-        pattern: str,
-        kind: str | None = None,
-        limit: int | None = None,
-        max_tokens: int | None = None,
-        profile: str | None = None,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        pattern: Annotated[str, Field(description="Symbol name or qualified-name pattern to match (supports '*' and '?' wildcards).")],
+        kind: Annotated[str | None, Field(description="Optional symbol kind filter (e.g. 'function', 'class', 'method', 'interface').")] = None,
+        limit: Annotated[int | None, Field(description="Maximum number of matching symbols to return (1 to max_symbol_results).")] = None,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the response (32 to max_result_tokens).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'locate'.")] = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -290,14 +342,18 @@ def build_server(
 
     @server.tool(
         title="Module dependents",
-        description="Lexical import relationships for indexed path or module. Dynamic imports flagged. Not semantic resolution.",
+        description=(
+            "File/module-level lexical import graph (importers and imports) for a path or module. "
+            "Dynamic imports flagged. For symbol caller/callee edges, use get_impact_slice instead."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def get_module_dependents(
-        repo_id: str,
-        path: str | None = None,
-        module: str | None = None,
-        max_tokens: int | None = None,
-        profile: str | None = None,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        path: Annotated[str | None, Field(description="Repository-relative file path to inspect imports for (provide path or module).")] = None,
+        module: Annotated[str | None, Field(description="Module or package identifier to find importers and imports for (provide module or path).")] = None,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the response (32 to max_result_tokens).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'impact'.")] = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -311,20 +367,21 @@ def build_server(
     @server.tool(
         title="Search source",
         description=(
-            "Full-text search ranked by enclosing symbol. expand='graph' (default for profile "
-            "'locate') adds resolved callers/callees as neighbors. Call before reading files."
+            "FTS5 keyword search over source bodies ranked by symbol. expand='graph' adds 1-hop callers/callees "
+            "of top hits. Use for text search; use get_impact_slice for multi-hop graphs."
         ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def search_source(
-        repo_id: str,
-        query: str,
-        limit: int | None = None,
-        max_tokens: int | None = None,
-        profile: str | None = None,
-        expand: Literal["auto", "none", "graph"] = "auto",
-        expand_k: int = 3,
-        expand_hops: int = 1,
-        min_confidence: float = 0.6,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        query: Annotated[str, Field(description="Full-text FTS5 search keywords or code tokens to match across indexed symbols.")],
+        limit: Annotated[int | None, Field(description="Maximum number of search hits to return (1 to 100).")] = None,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the response (32 to max_result_tokens).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'locate'.")] = None,
+        expand: Annotated[Literal["auto", "none", "graph"], Field(description="Neighbor expansion mode: 'auto' (graph for locate profile), 'none', or 'graph' (add callers/callees).")] = "auto",
+        expand_k: Annotated[int, Field(description="Number of top search hits to expand with graph neighbors (1 to 8).")] = 3,
+        expand_hops: Annotated[int, Field(description="Graph traversal hops for neighbor expansion (1 or 2).")] = 1,
+        min_confidence: Annotated[float, Field(description="Minimum edge confidence threshold (0.0 to 1.0) for expanded graph neighbors.")] = 0.6,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -345,14 +402,18 @@ def build_server(
 
     @server.tool(
         title="File skeleton",
-        description="Imports and source-backed headers from one file. Function bodies elided by default.",
+        description=(
+            "Read imports and declaration signatures from one file path with function bodies elided. "
+            "Use to outline a known file; use get_symbol_context to read a specific symbol body."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def get_file_skeleton(
-        repo_id: str,
-        path: str,
-        include_private: bool = False,
-        max_tokens: int | None = None,
-        profile: str | None = None,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        path: Annotated[str, Field(description="Repository-relative file path to extract imports and declaration headers from.")],
+        include_private: Annotated[bool, Field(description="Include private/internal symbols (leading underscore or non-exported) when True.")] = False,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the skeleton response (32 to max_result_tokens).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'read'.")] = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -369,17 +430,21 @@ def build_server(
 
     @server.tool(
         title="Symbol context",
-        description="Bounded source packet for indexed symbol and observed edges. Check freshness and ambiguity warnings. A body larger than max_tokens is read in windows with body_offset_line.",
+        description=(
+            "Fetch bounded source body and 0-3 hop edges for a known symbol_id (use body_offset_line to page long bodies). "
+            "If you only have a symbol name, call inspect_symbol instead."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def get_symbol_context(
-        repo_id: str,
-        symbol_id: str,
-        depth: int = 1,
-        include_body: bool | None = None,
-        max_tokens: int | None = None,
-        include_omitted_ids: bool = False,
-        profile: str | None = None,
-        body_offset_line: int | None = None,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        symbol_id: Annotated[str, Field(description="Exact symbol_id obtained from find_symbols, get_repo_map, or search_source.")],
+        depth: Annotated[int, Field(description="Caller/callee neighborhood traversal depth around the symbol (0 to 3).")] = 1,
+        include_body: Annotated[bool | None, Field(description="Include the source code body of the target symbol (defaults to True for 'read' profile).")] = None,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the context packet (32 to max_result_tokens).")] = None,
+        include_omitted_ids: Annotated[bool, Field(description="Include symbol IDs omitted when neighbors exceed the token budget.")] = False,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'read'.")] = None,
+        body_offset_line: Annotated[int | None, Field(description="1-based relative line offset within the symbol body to page through large functions.")] = None,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -400,18 +465,22 @@ def build_server(
 
     @server.tool(
         title="Impact candidate slice",
-        description="Traverse observed caller/callee edges from a symbol. Candidate impact slice, not complete blast radius.",
+        description=(
+            "Traverse 1-3 hop AST caller/callee edges from a known symbol_id with confidence filtering. "
+            "Candidate call slice only; for file/module imports use get_module_dependents."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def get_impact_slice(
-        repo_id: str,
-        symbol_id: str,
-        direction: Literal["callers", "callees", "both"] = "both",
-        depth: int | None = None,
-        max_nodes: int | None = None,
-        max_tokens: int | None = None,
-        profile: str | None = None,
-        min_confidence: float | None = None,
-        filter_ambiguous: bool = True,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        symbol_id: Annotated[str, Field(description="Exact starting symbol_id obtained from find_symbols, get_repo_map, or search_source.")],
+        direction: Annotated[Literal["callers", "callees", "both"], Field(description="Call-graph traversal direction: 'callers' (who calls this), 'callees' (what this calls), or 'both'.")] = "both",
+        depth: Annotated[int | None, Field(description="Maximum AST call-graph traversal hops (0 to 3; defaults to 2 in 'impact' profile).")] = None,
+        max_nodes: Annotated[int | None, Field(description="Maximum number of graph nodes to visit before truncating (1 to max_graph_nodes).")] = None,
+        max_tokens: Annotated[int | None, Field(description="Maximum token budget for the impact slice (32 to max_result_tokens).")] = None,
+        profile: Annotated[str | None, Field(description="Named budget profile ('locate', 'orient', 'impact', 'read'); defaults to 'impact'.")] = None,
+        min_confidence: Annotated[float | None, Field(description="Minimum edge resolution confidence (0.0 to 1.0) required to include an edge.")] = None,
+        filter_ambiguous: Annotated[bool, Field(description="Exclude ambiguous lexical edges that match multiple candidate targets when True.")] = True,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -432,20 +501,30 @@ def build_server(
 
     @server.tool(
         title="Index status",
-        description="Active snapshot metadata and paths changed since indexing. Run before relying on graph results.",
+        description=(
+            "Return active index snapshot metadata, freshness state, symbol/edge counts, and modified paths "
+            "for a repo_id. Call before trusting graph or symbol results."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
-    def get_index_status(repo_id: str) -> CallToolResult:
+    def get_index_status(
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+    ) -> CallToolResult:
         return _wrap(_invoke(lambda: service.status(repo_id), tool_name="get_index_status"))
 
     @server.tool(
         title="Inspect symbol (composite)",
-        description="Resolve a symbol and its immediate graph in one call. view='full' returns a context packet: body, callee/caller signatures, related tests. Use before editing a symbol.",
+        description=(
+            "1-turn composite lookup by name query when symbol_id is unknown: resolves symbol and 1-hop graph; "
+            "view='full' returns a context packet (body, signatures, tests)."
+        ),
+        annotations=_READ_ONLY_ANNOTATIONS,
     )
     def inspect_symbol(
-        repo_id: str,
-        query: str,
-        view: Literal["minimal", "normal", "full"] = "normal",
-        budget_tokens: int = 2048,
+        repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+        query: Annotated[str, Field(description="Symbol name, qualified name, or keyword query to resolve and inspect in one turn.")],
+        view: Annotated[Literal["minimal", "normal", "full"], Field(description="Projection detail: 'minimal' (signatures+edges), 'normal' (adds body), or 'full' (context packet with tests).")] = "normal",
+        budget_tokens: Annotated[int, Field(description="Maximum token budget for the composite inspection response (32 to max_result_tokens).")] = 2048,
     ) -> CallToolResult:
         return _wrap(
             _invoke(
@@ -464,25 +543,44 @@ def build_server(
 
         @server.tool(
             title="List available tools",
-            description="Compact catalog of available tools grouped by category (minimal tokens).",
+            description=(
+                "Return a compact catalog of enabled MCP tools grouped by category. "
+                "Use to browse capabilities; use search_tools for keyword matching or get_tool_schema for full arguments."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
-        def list_available_tools(category: str | None = None) -> CallToolResult:
+        def list_available_tools(
+            category: Annotated[str | None, Field(description="Optional category filter (e.g. 'code_navigation', 'impact_analysis', 'shared_memory', 'tool_discovery', 'security_governance').")] = None,
+        ) -> CallToolResult:
             from token_context_mcp.discovery.tools import list_available_tools as _list_tools
             return _wrap(_invoke(lambda: _list_tools(category=category, enabled=registered_tool_names), tool_name="list_available_tools"))
 
         @server.tool(
             title="Search tools",
-            description="Keyword and token-overlap search over tool metadata to find relevant tools.",
+            description=(
+                "Keyword and token-overlap search over enabled tool metadata, prerequisites, and follow-ups. "
+                "Call get_tool_schema on a matched tool name to inspect its full JSON schema."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
-        def search_tools(query: str, limit: int = 3) -> CallToolResult:
+        def search_tools(
+            query: Annotated[str, Field(description="Keywords describing the task or capability to match against tool metadata.")],
+            limit: Annotated[int, Field(description="Maximum number of matching tools to return (default 3).")] = 3,
+        ) -> CallToolResult:
             from token_context_mcp.discovery.tools import search_tools as _search_tools
             return _wrap(_invoke(lambda: _search_tools(query=query, limit=limit, enabled=registered_tool_names), tool_name="search_tools"))
 
         @server.tool(
             title="Get tool schema",
-            description="Retrieve detailed parameter schema for a specific tool on demand.",
+            description=(
+                "Fetch the full input JSON Schema, parameter summary, prerequisites, and follow-up tools "
+                "for one enabled tool_name. Call after list_available_tools or search_tools."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
-        async def get_tool_schema(tool_name: str) -> CallToolResult:
+        async def get_tool_schema(
+            tool_name: Annotated[str, Field(description="Exact name of the enabled MCP tool to retrieve the full JSON Schema for.")],
+        ) -> CallToolResult:
             from token_context_mcp.discovery.tools import get_tool_schema as _get_schema
 
             profile = _schema_profile()
@@ -501,15 +599,19 @@ def build_server(
 
         @server.tool(
             title="Store memory",
-            description="Store execution state, checkpoint, or cross-agent artifact in shared persistent memory.",
+            description=(
+                "Upsert a key-value checkpoint or artifact in persistent SQLite memory scoped by scope and namespace "
+                "with optional TTL. Pair with memory_get or memory_search to retrieve."
+            ),
+            annotations=_MUTATING_IDEMPOTENT_ANNOTATIONS,
         )
         def memory_put(
-            key: str,
-            value: Any,
-            scope: str = "session",
-            namespace: str = "",
-            ttl: int | None = 86400,
-            session_id: str | None = None,
+            key: Annotated[str, Field(description="Unique identifier key for the memory entry within the given scope and namespace.")],
+            value: Annotated[Any, Field(description="Value to store (JSON-serializable object, array, number, or string).")],
+            scope: Annotated[str, Field(description="Persistence tier: 'session' (transient), 'project' (repo-wide), or 'global' (cross-project).")] = "session",
+            namespace: Annotated[str, Field(description="Optional namespace string to isolate entries per agent, task, or workflow.")] = "",
+            ttl: Annotated[int | None, Field(description="Time-to-live in seconds before automatic expiration (default 86400; None for no expiry).")] = 86400,
+            session_id: Annotated[str | None, Field(description="Optional explicit session identifier when using 'session' scope.")] = None,
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
@@ -520,9 +622,18 @@ def build_server(
 
         @server.tool(
             title="Retrieve memory",
-            description="Retrieve a stored value or execution checkpoint from shared memory without prompt bloat.",
+            description=(
+                "Fetch one stored value by exact key, scope, and namespace from persistent memory. "
+                "Returns not_found if missing or expired; use memory_search for keyword search across keys."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
-        def memory_get(key: str, scope: str = "session", namespace: str = "", session_id: str | None = None) -> CallToolResult:
+        def memory_get(
+            key: Annotated[str, Field(description="Exact key of the memory entry to retrieve.")],
+            scope: Annotated[str, Field(description="Persistence tier matching the stored entry ('session', 'project', or 'global').")] = "session",
+            namespace: Annotated[str, Field(description="Namespace string matching the namespace used in memory_put (default '').")] = "",
+            session_id: Annotated[str | None, Field(description="Optional explicit session identifier when reading from 'session' scope.")] = None,
+        ) -> CallToolResult:
             return _wrap(
                 _invoke(
                     lambda: memory_service.memory_get(key=key, scope=scope, namespace=namespace, session_id=session_id),
@@ -532,16 +643,33 @@ def build_server(
 
         @server.tool(
             title="Search memory",
-            description="Full-text search over shared memory entries and stored artifacts.",
+            description=(
+                "Full-text keyword search across persistent memory keys and values, optionally filtered by scope "
+                "and namespace. For exact key lookup, use memory_get instead."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
-        def memory_search(query: str, scope: str | None = None, namespace: str | None = None, limit: int = 5) -> CallToolResult:
+        def memory_search(
+            query: Annotated[str, Field(description="Full-text search keywords to match against stored memory keys and values.")],
+            scope: Annotated[str | None, Field(description="Optional scope filter ('session', 'project', or 'global'); omit to search all scopes.")] = None,
+            namespace: Annotated[str | None, Field(description="Optional namespace filter; omit to search across all namespaces.")] = None,
+            limit: Annotated[int, Field(description="Maximum number of matching memory entries to return (default 5).")] = 5,
+        ) -> CallToolResult:
             return _wrap(_invoke(lambda: memory_service.memory_search(query=query, scope=scope, namespace=namespace, limit=limit), tool_name="memory_search"))
 
         @server.tool(
             title="Acquire memory lock",
-            description="Acquire a timed mutex lock on a resource to coordinate multi-agent actions without collisions.",
+            description=(
+                "Acquire an atomic timed mutex lock on resource_key for agent_id to prevent multi-agent write "
+                "collisions. Always release with memory_unlock when critical work finishes."
+            ),
+            annotations=_MUTATING_ANNOTATIONS,
         )
-        def memory_lock(resource_key: str, agent_id: str, timeout_sec: int = 60) -> CallToolResult:
+        def memory_lock(
+            resource_key: Annotated[str, Field(description="Identifier of the shared resource or file path to lock exclusively.")],
+            agent_id: Annotated[str, Field(description="Unique caller agent identifier acquiring and owning the mutex lock.")],
+            timeout_sec: Annotated[int, Field(description="Lock lease duration in seconds before automatic expiration (default 60).")] = 60,
+        ) -> CallToolResult:
             # "" when the identity is rejected; _invoke refuses and audits that before the callback runs.
             effective_id = resolve_effective_agent_id(agent_id)[0]
             return _wrap(
@@ -554,9 +682,16 @@ def build_server(
 
         @server.tool(
             title="Release distributed lock",
-            description="Release a distributed lock previously acquired on a resource key.",
+            description=(
+                "Release a mutex lock previously acquired via memory_lock on resource_key for the owning agent_id. "
+                "Safe to call after completing a coordinated multi-agent task."
+            ),
+            annotations=_MUTATING_IDEMPOTENT_ANNOTATIONS,
         )
-        def memory_unlock(resource_key: str, agent_id: str | None = None) -> CallToolResult:
+        def memory_unlock(
+            resource_key: Annotated[str, Field(description="Identifier of the locked resource previously acquired via memory_lock.")],
+            agent_id: Annotated[str | None, Field(description="Agent identifier that owns the lock being released.")] = None,
+        ) -> CallToolResult:
             effective_id = resolve_effective_agent_id(agent_id)[0]
             return _wrap(
                 _invoke(
@@ -568,13 +703,17 @@ def build_server(
 
         @server.tool(
             title="Consolidate memory",
-            description="Consolidate scattered memory checkpoints into one summary entry; optionally prune transient entries.",
+            description=(
+                "Synthesize scattered memory entries in a scope/namespace into one summary under target_key; "
+                "set prune_transient=True to delete source session entries after consolidation."
+            ),
+            annotations=_MUTATING_ANNOTATIONS,
         )
         def memory_consolidate(
-            scope: str = "session",
-            target_key: str = "project_architectural_insights",
-            prune_transient: bool = False,
-            namespace: str | None = None,
+            scope: Annotated[str, Field(description="Memory scope to consolidate entries from ('session', 'project', or 'global').")] = "session",
+            target_key: Annotated[str, Field(description="Destination memory key where the consolidated summary will be stored.")] = "project_architectural_insights",
+            prune_transient: Annotated[bool, Field(description="Delete transient source entries in the selected scope/namespace after consolidation when True.")] = False,
+            namespace: Annotated[str | None, Field(description="Optional namespace to restrict consolidation and pruning to.")] = None,
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
@@ -592,13 +731,17 @@ def build_server(
 
         @server.tool(
             title="Sample and summarize",
-            description="Compress large text into concise JSON with a local model when available, otherwise deterministic extraction.",
+            description=(
+                "Compress large code or tool output into structured JSON using a local LLM when available, "
+                "falling back to deterministic extraction. Use before storing in memory_put."
+            ),
+            annotations=_READ_ONLY_ANNOTATIONS,
         )
         def sample_summarize(
-            text: str,
-            intent: str = "general_code_summary",
-            max_tokens: int = 512,
-            target_symbols: list[str] | None = None,
+            text: Annotated[str, Field(description="Raw source code or large tool output text to compress into concise JSON.")],
+            intent: Annotated[str, Field(description="Summarization goal or focus (e.g. 'general_code_summary', 'call_flow', 'error_analysis').")] = "general_code_summary",
+            max_tokens: Annotated[int, Field(description="Maximum token budget for the compressed summary output (default 512).")] = 512,
+            target_symbols: Annotated[list[str] | None, Field(description="Optional list of symbol names to preserve verbatim during compression.")] = None,
         ) -> CallToolResult:
             return _wrap(
                 _invoke(
@@ -614,15 +757,19 @@ def build_server(
 
         @server.tool(
             title="Record trajectory evidence",
-            description="Record source-verified symbol citations (answers, steps, decoys) into the evidence ledger.",
+            description=(
+                "Record source-verified symbol citations (answers, multi-hop steps, rejected decoys) into the repo "
+                "evidence ledger so future get_repo_map/search_source calls reuse them."
+            ),
+            annotations=_MUTATING_ANNOTATIONS,
         )
         def trajectory_record(
-            repo_id: str,
-            query: str,
-            answers: list[str],
-            steps: list[str] | None = None,
-            decoys: list[str] | None = None,
-            agent_id: str | None = None,
+            repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path).")],
+            query: Annotated[str, Field(description="Natural-language or technical question answered by the verified symbol trajectory.")],
+            answers: Annotated[list[str], Field(description="List of source-verified answer anchors formatted as '<symbol_id>@<line>'.")],
+            steps: Annotated[list[str] | None, Field(description="Optional list of verified call/reference hops formatted as '<from_id>><to_id>@<line>'.")] = None,
+            decoys: Annotated[list[str] | None, Field(description="Optional list of rejected false-positive symbols formatted as '<symbol_id>!<reason_code>'.")] = None,
+            agent_id: Annotated[str | None, Field(description="Optional identifier of the agent recording the verified trajectory.")] = None,
         ) -> CallToolResult:
             assert ledger_service is not None
             return _wrap(
@@ -645,15 +792,19 @@ def build_server(
 
             @server.tool(
                 title="Agent access control",
-                description="Manage agent execution state, revoke locks, or trigger emergency stops.",
+                description=(
+                    "Inspect or enforce multi-agent governance: status (read-only), or pause/resume/block/set_policy/"
+                    "revoke_locks/emergency_halt (requires TOKEN_CONTEXT_ADMIN_TOKEN)."
+                ),
+                annotations=_ADMIN_DESTRUCTIVE_ANNOTATIONS,
             )
             def agent_control(
-                action: Literal["status", "pause", "resume", "block", "unblock", "set_policy", "revoke_locks", "emergency_halt", "emergency_resume"],
-                admin_token: str = "",
-                agent_id: str | None = None,
-                reason: str = "",
-                policy: Literal["FULL_ACCESS", "READ_ONLY", "CUSTOM"] | None = None,
-                custom_tools: list[str] | None = None,
+                action: Annotated[Literal["status", "pause", "resume", "block", "unblock", "set_policy", "revoke_locks", "emergency_halt", "emergency_resume"], Field(description="Governance operation: 'status' (read-only), 'pause', 'resume', 'block', 'unblock', 'set_policy', 'revoke_locks', 'emergency_halt', or 'emergency_resume'.")],
+                admin_token: Annotated[str, Field(description="Secret token matching TOKEN_CONTEXT_ADMIN_TOKEN env var (required for all mutating actions, omit for 'status').")] = "",
+                agent_id: Annotated[str | None, Field(description="Target agent identifier for pause, resume, block, unblock, set_policy, or revoke_locks.")] = None,
+                reason: Annotated[str, Field(description="Audit log reason explaining why the governance action or emergency halt was taken.")] = "",
+                policy: Annotated[Literal["FULL_ACCESS", "READ_ONLY", "CUSTOM"] | None, Field(description="Access policy profile for action='set_policy': 'FULL_ACCESS', 'READ_ONLY', or 'CUSTOM'.")] = None,
+                custom_tools: Annotated[list[str] | None, Field(description="Allowed tool names when action='set_policy' and policy='CUSTOM'.")] = None,
             ) -> CallToolResult:
                 if action != "status":
                     expected_token = os.environ.get("TOKEN_CONTEXT_ADMIN_TOKEN")
@@ -738,12 +889,16 @@ def build_server(
 
             @server.tool(
                 title="Audit logs query",
-                description="Query recent tool execution and security audit logs.",
+                description=(
+                    "Query recent tool invocation and security governance audit records from audit.sqlite, "
+                    "filtered by agent_id or execution status (SUCCESS, DENIED, ERROR)."
+                ),
+                annotations=_READ_ONLY_ANNOTATIONS,
             )
             def audit_logs(
-                limit: int = 50,
-                agent_id: str | None = None,
-                status: Literal["SUCCESS", "DENIED", "ERROR"] | None = None,
+                limit: Annotated[int, Field(description="Maximum number of recent audit log entries to return (1 to 500, default 50).")] = 50,
+                agent_id: Annotated[str | None, Field(description="Optional agent identifier to filter audit records by caller.")] = None,
+                status: Annotated[Literal["SUCCESS", "DENIED", "ERROR"] | None, Field(description="Optional execution outcome filter: 'SUCCESS', 'DENIED', or 'ERROR'.")] = None,
             ) -> CallToolResult:
                 return _wrap(
                     _invoke(
@@ -757,6 +912,7 @@ def build_server(
 
 def run_stdio(
     config_path: Path,
+    enable_extensions: bool | None = None,
     enable_admin_tools: bool | None = None,
     output_mode: str | None = None,
     schema_profile: str = "auto",
@@ -764,6 +920,7 @@ def run_stdio(
     logging.basicConfig(level=logging.INFO)
     build_server(
         config_path,
+        enable_extensions=enable_extensions,
         enable_admin_tools=enable_admin_tools,
         output_mode=output_mode,
         schema_profile=schema_profile,
