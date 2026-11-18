@@ -1,5 +1,5 @@
 <!-- mcp-name: io.github.MCK564/token-context-mcp -->
-# Token Context MCP (v0.3.9)
+# Token Context MCP (v0.3.10)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)

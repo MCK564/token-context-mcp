@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.10 — Disambiguation & Core Retrieval Schema Polish (2026-11-18)
+
+**Upgrade:** no index rebuild needed.
+
+- **Core Retrieval Disambiguation Polish (`server.py`)**:
+  - Sharpened sibling-routing boundaries across `find_symbols`, `search_source`, `get_file_skeleton`, `inspect_symbol`, and `get_index_status` (clarifying name-wildcard vs. FTS5 body search vs. single-turn composite lookup vs. multi-hop AST call graph traversal).
+
 ## 0.3.9 — MCP Output Schemas, TDQS Tool Annotations & Glama Registry Alignment (2026-11-18)
 
 **Upgrade:** no index rebuild needed. Backward compatible across all existing configs and databases.

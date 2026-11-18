@@ -329,8 +329,8 @@ def build_server(
     @server.tool(
         title="Find symbols",
         description=(
-            "Match symbol definitions by exact or wildcard (*, ?) pattern, ordered by match quality. "
-            "Returns symbol_id and spans, no body/edges (use inspect_symbol for 1-turn body+graph)."
+            "Match declaration names by exact or wildcard (*, ?) pattern (exact first; no bodies/edges; "
+            "truncated=true if capped). Use search_source for code text or inspect_symbol for body+edges."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
@@ -383,8 +383,8 @@ def build_server(
     @server.tool(
         title="Search source",
         description=(
-            "FTS5 keyword search ranked by enclosing symbol (AND then OR); expand='graph' adds 1-hop callers/callees. "
-            "Use for code text search; use get_impact_slice for multi-hop call graphs."
+            "Full-text FTS5 body search returning line snippets (omitted_count on budget cap). "
+            "For symbol name patterns use find_symbols; for multi-hop call graphs use get_impact_slice."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
@@ -419,8 +419,8 @@ def build_server(
     @server.tool(
         title="File skeleton",
         description=(
-            "Extract imports and declaration signatures from one indexed file with bodies elided; "
-            "omits body lines if stale on disk. Use get_symbol_context to read a symbol's body."
+            "Extract ordered imports and public/private declaration headers for one indexed file with bodies elided "
+            "(content=null if stale; omits tail over budget). Use get_symbol_context for bodies."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
@@ -518,8 +518,8 @@ def build_server(
     @server.tool(
         title="Index status",
         description=(
-            "Check snapshot freshness ('fresh', 'stale', 'pending', 'unknown'), counts, and pending_paths. "
-            "Run before trusting graph results; if stale, re-index via CLI or treat spans cautiously."
+            "Check snapshot freshness ('fresh', 'stale', 'pending', 'unknown'), counts, and pending_paths "
+            "after list_repositories. Run before trusting get_repo_map or graph edges; treat stale spans cautiously."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
@@ -531,8 +531,8 @@ def build_server(
     @server.tool(
         title="Inspect symbol (composite)",
         description=(
-            "1-turn lookup by name when symbol_id is unknown (use get_symbol_context if ID known); "
-            "returns status='ambiguous' candidates on ties or view='full' context packet (body+edges+tests)."
+            "1-turn lookup by exact/wildcard name when symbol_id is unknown (use find_symbols for bulk lists, "
+            "get_symbol_context by ID); returns status='not_found', 'ambiguous', or view='full' packet."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
