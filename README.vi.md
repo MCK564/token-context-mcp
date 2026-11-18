@@ -1,4 +1,4 @@
-# Token Context MCP (v0.3.6)
+# Token Context MCP (v0.3.9)
 
 [![CI](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MCK564/token-context-mcp/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/token-context-mcp.svg)](https://pypi.org/project/token-context-mcp/)
@@ -47,7 +47,7 @@
 
 ---
 
-## ⚡ Điểm nổi bật ở phiên bản v0.3.6
+## ⚡ Điểm nổi bật từ v0.3.6 – v0.3.9
 
 1. **Vi nhân Quản trị 3 Giai đoạn (`kernel/`)**:
    - Toàn bộ luồng thực thi đi qua `InvocationContext` mang danh tính agent và lan truyền ngữ cảnh qua `contextvars`:

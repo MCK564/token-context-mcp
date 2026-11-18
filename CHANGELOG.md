@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.9 — MCP Output Schemas, TDQS Tool Annotations & Glama Registry Alignment (2026-11-18)
+
+**Upgrade:** no index rebuild needed. Backward compatible across all existing configs and databases.
+
+- **Structured `outputSchema` (Draft 2020-12) for all 23 tools (`output_schemas.py`, `server.py`)**:
+  - Automatically advertises `outputSchema` in `tools/list` for `structured` and `legacy_dual` output modes, and omits it in `text` / `gemini_safe` auto modes so `ClientSession.validate_tool_result` remains 100% compatible without requiring `structuredContent`.
+  - Covers both success envelopes and structured/string error payloads across core, discovery, memory, sampling, ledger, and admin tools.
+- **MCP `ToolAnnotations` & 100% Parameter Descriptions**:
+  - Added `ToolAnnotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) across all 23 tools (`memory_consolidate` and `agent_control` marked `destructiveHint=True`).
+  - Added explicit `Annotated[..., Field(description=...)]` parameter metadata and disambiguated behavioral/edge-case tool descriptions (`<= 200` chars).
+- **CLI & Env Extension Flags (`cli.py`, `server.py`)**:
+  - Added `--enable-extensions` CLI flag plus `TOKEN_CONTEXT_ENABLE_EXTENSIONS` and `TOKEN_CONTEXT_ENABLE_ADMIN_TOOLS` environment variable overrides while preserving the minimal 10-tool core default.
+- **Glama Registry Integration & Contract Tests**:
+  - Added `glama.json` maintainer manifest and end-to-end `ClientSession` validation tests in `tests/test_output_schemas.py`.
+- **GUI Stability Fixes (`329391c`, `1ee05c3`)**:
+  - Removed nonexistent `_lock` reference and avoided SQLite I/O on the Qt UI thread in governance halt/agent handlers.
+
 ## 0.3.6 — Verified Evidence Ledger ("Lá Phổi"), Desktop GUI v2 & Eval Suite (2026-11-13)
 
 - **Verified Evidence Ledger (`ledger/`, `[ledger].enabled = true` by default)** — citation-backed evidence ledger stored in `ledger.sqlite` next to `memory.sqlite` (never inside target repositories).

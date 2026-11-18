@@ -73,7 +73,7 @@ _MUTATING_ANNOTATIONS = ToolAnnotations(
     idempotentHint=False,
     openWorldHint=False,
 )
-_ADMIN_DESTRUCTIVE_ANNOTATIONS = ToolAnnotations(
+_DESTRUCTIVE_MUTATING_ANNOTATIONS = ToolAnnotations(
     readOnlyHint=False,
     destructiveHint=True,
     idempotentHint=False,
@@ -297,8 +297,8 @@ def build_server(
     @server.tool(
         title="Repository map",
         description=(
-            "Ranked symbol overview [id, path:line, kind/name] within token budget (omitted_count tracks truncation). "
-            "query biases graph ranking; use find_symbols for exact name lookup."
+            "Ranked symbol map [id, path:line, kind/name] within budget (format='full' adds signatures; "
+            "omitted_count tracks cuts). query biases graph rank; use find_symbols for exact names."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
     )
@@ -640,7 +640,7 @@ def build_server(
             title="Retrieve memory",
             description=(
                 "Fetch one memory entry by exact key, scope, and namespace. Returns status='found' with value, "
-                "'not_found', or 'expired' (auto-deletes stale entries); use memory_search for keyword queries."
+                "'not_found', or 'expired' when TTL elapsed; use memory_search for keyword queries."
             ),
             annotations=_READ_ONLY_ANNOTATIONS,
         )
@@ -723,7 +723,7 @@ def build_server(
                 "Synthesize up to 500 entries in scope/namespace into one global target_key summary (returns 'noop' if empty). "
                 "Prefer over memory_put for rollout; prune_transient=True deletes source keys."
             ),
-            annotations=_MUTATING_ANNOTATIONS,
+            annotations=_DESTRUCTIVE_MUTATING_ANNOTATIONS,
         )
         def memory_consolidate(
             scope: Annotated[str, Field(description="Source scope to read up to 500 oldest active entries from ('session', 'project', or 'global').")] = "session",
@@ -812,7 +812,7 @@ def build_server(
                     "Inspect governance ('status', no token) or enforce reversible pause/block/set_policy/emergency_halt "
                     "(halts all agents until emergency_resume) & irreversible revoke_locks (requires admin_token)."
                 ),
-                annotations=_ADMIN_DESTRUCTIVE_ANNOTATIONS,
+                annotations=_DESTRUCTIVE_MUTATING_ANNOTATIONS,
             )
             def agent_control(
                 action: Annotated[Literal["status", "pause", "resume", "block", "unblock", "set_policy", "revoke_locks", "emergency_halt", "emergency_resume"], Field(description="Operation: 'status' (read-only), reversible agent controls ('pause'/'resume', 'block'/'unblock', 'set_policy', 'emergency_halt'/'emergency_resume'), or 'revoke_locks' (irreversibly drops locks).")],
