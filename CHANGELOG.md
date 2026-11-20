@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.11 — Lean Selective MCP, Compact-Text Wire Mode & 1-Click Agent Rules Installer (2026-11-20)
+
+**Upgrade:** If upgrading from `<= 0.3.10`, run `token-context install-rules --antigravity-mcp` (or click **Install Agent Rules & Setup** in `token-context-gui`) and run `token-context index --all --full` to purge backup `.venv*` directories from older snapshots and enable `compact_text`.
+
+- **Compact-Text Wire Output Mode (`output_mode = "compact_text"`, `retrieve/serialization.py`, `config.py`, `cli.py`, `settings_tab.py`)**:
+  - Added `render_compact_text` line-oriented wire serializer stripping repetitive JSON envelope boilerplate across core retrieval tools, cutting 5-tool wire payloads from **12,778 -> 3,024 tokens (-76.3% `o200k_base`)**.
+- **Tighter Default Budgets, Grouped Repo Map, Slim Status & Backup Venv Exclusion**:
+  - Tightened `DEFAULT_BUDGET_PROFILES` (`orient=1024`, `locate=1280 / limit=20`, `impact=1536 / max_nodes=120`, `read=1536`) to eliminate client inline-result overflow (`output.txt`).
+  - Updated `get_repo_map` (`format="grouped"`, `include_digests=False` default), added `verbose=False` default on MCP `get_index_status` (`server.py` while keeping `verbose=True` default for Python/CLI/GUI), and expanded `is_hard_denied` (`content_policy.py`) with `_VENV_DIR_RE` to block backup `.venv*` / `venv*` folders.
+- **1-Click Lean Agent Rules & MCP Client Setup (`agent_setup.py`, CLI & Desktop GUI)**:
+  - Added `install_lean_rules`, `upsert_marked_rule`, and `upsert_antigravity_mcp_config` to idempotently install the 11-line Lean Selective rule into `~/.gemini/GEMINI.md`, `~/.claude/CLAUDE.md`, and `.agents/rules/token-context-lean.md`, switch `repos.toml` to `compact_text`, and register/update `token-context` in `~/.gemini/config/mcp_config.json`.
+  - Exposed `token-context install-rules` and `quickstart --install-rules --antigravity-mcp` in CLI, plus **"Install Agent Rules & Setup"** (`InstallRulesDialog`) in Dashboard/Settings tabs and `--output-mode compact_text` toggle in `CopyConfigDialog`.
+- **Lean Selective Prompt Template (`sample_prompt.md` Section `3.0` VI/EN/ZH) & Antigravity Live Benchmark (`evals/`)**:
+  - Added Section `3.0` (`Lean Selective MCP`) and tightened `3.2`/`3.3` across VI/EN/ZH with Selective Dispatch, Anti-Double-Read, and inline 5-tool signatures.
+  - Verified live on Antigravity (`flash` & `pro`, `A4` vs `A0`/`A1`/`A3` at `5/5` gold): **-18.3% uncached input / -22.8% effective cost** on `flash` and **-12.3% / -19.9%** on `pro` vs No-MCP `A0` (`-36.9%` / `-54.3%` vs `A3`).
+
 ## 0.3.10 — Disambiguation & Core Retrieval Schema Polish (2026-11-18)
 
 **Upgrade:** no index rebuild needed.

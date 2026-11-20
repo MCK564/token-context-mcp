@@ -61,10 +61,10 @@ Khi tải file `.whl` từ trang GitHub Releases (`token_context_mcp-<version>-p
 
 ```powershell
 # Cài global bằng uv (khuyên dùng, tự tạo lệnh `token-context` và `token-context-gui`)
-uv tool install "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]" --upgrade
+uv tool install "token_context_mcp-0.3.11-py3-none-any.whl[gui,watch]" --upgrade
 
 # Hoặc cài trong môi trường ảo .venv có sẵn
-pip install --upgrade "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]"
+pip install --upgrade "token_context_mcp-0.3.11-py3-none-any.whl[gui,watch]"
 ```
 
 Sau khi cài hoặc nâng cấp `.whl`, kích hoạt tự động gọi tool & tối ưu token cho Antigravity/IDE bằng **một trong hai cách** sau:

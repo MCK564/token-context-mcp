@@ -65,10 +65,10 @@ When installing a downloaded `.whl` from GitHub Releases (`token_context_mcp-<ve
 
 ```powershell
 # Global install via uv (recommended — exposes `token-context` and `token-context-gui`)
-uv tool install "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]" --upgrade
+uv tool install "token_context_mcp-0.3.11-py3-none-any.whl[gui,watch]" --upgrade
 
 # Or inside an existing virtualenv
-pip install --upgrade "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]"
+pip install --upgrade "token_context_mcp-0.3.11-py3-none-any.whl[gui,watch]"
 ```
 
 Then configure Lean Selective agent rules (`~/.gemini/GEMINI.md` & `.agents/rules/token-context-lean.md`), `output_mode = "compact_text"`, and Antigravity MCP registration using **either** option:
