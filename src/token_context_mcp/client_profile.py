@@ -11,7 +11,7 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
-OUTPUT_MODES = ("auto", "structured", "text", "legacy_dual")
+OUTPUT_MODES = ("auto", "structured", "text", "compact_text", "legacy_dual")
 SCHEMA_PROFILES = ("auto", "default", "gemini_safe")
 
 # Clients verified (docs/CLIENT_MATRIX.md) to hand ``structuredContent`` to the model.  Lower-case names.

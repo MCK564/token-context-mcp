@@ -132,12 +132,12 @@ def test_profiles_are_discoverable_and_equivalent_to_explicit_arguments(indexed_
     assert set(listed["budget_profiles"]) == {"impact", "locate", "orient", "read"}
 
     profiled = service.repo_map("demo", profile="orient")
-    explicit = service.repo_map("demo", budget_tokens=4096, format="compact")
+    explicit = service.repo_map("demo", budget_tokens=1024, format="compact")
     assert profiled == explicit
     assert profiled["budget"]["envelope_reserve"] == 96
 
     profiled_find = service.find_symbols("demo", pattern="alpha", profile="locate")
-    explicit_find = service.find_symbols("demo", pattern="alpha", limit=30, max_tokens=2048)  # M9.7: locate is 2.048
+    explicit_find = service.find_symbols("demo", pattern="alpha", limit=20, max_tokens=1280)
     assert profiled_find == explicit_find
 
 
@@ -277,7 +277,9 @@ def test_repo_map_compact_entries_are_dense_and_follow_up_resolvable(
     assert entries
     assert all(isinstance(entry, list) and len(entry) == 3 for entry in entries)
     assert all(estimate_tokens(json.dumps(entry)) <= 25 for entry in entries)
-    assert response["data"]["file_digests"]
+    assert "file_digests" not in response["data"]
+    with_digests = service.repo_map("demo", budget_tokens=512, include_digests=True)
+    assert with_digests["data"]["file_digests"]
     assert service.last_query_count <= 20
 
     context = service.symbol_context("demo", symbol_id=entries[0][0], depth=0, max_tokens=512)

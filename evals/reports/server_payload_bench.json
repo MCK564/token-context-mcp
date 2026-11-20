@@ -1,0 +1,196 @@
+{
+  "repo_id": "token-context",
+  "config_path": "C:\\Users\\KHA\\AppData\\Roaming\\token-context-mcp\\repos.toml",
+  "tokenizer": "o200k_base",
+  "impact_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._lookup_prior_evidence:c5bc854c5b7da7cf",
+  "tools": [
+    {
+      "tool": "get_index_status",
+      "prompt_match": "P1/Pre-flight",
+      "variants": {
+        "Old": {
+          "wire_tokens": 457,
+          "wire_chars": 1654,
+          "wire_bytes": 1654,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "text"
+        },
+        "New": {
+          "wire_tokens": 159,
+          "wire_chars": 537,
+          "wire_bytes": 537,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 65.2
+        },
+        "Compact-Text": {
+          "wire_tokens": 49,
+          "wire_chars": 174,
+          "wire_bytes": 174,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "compact_text",
+          "savings_vs_old_pct": 89.3
+        }
+      }
+    },
+    {
+      "tool": "get_repo_map",
+      "prompt_match": "P1",
+      "variants": {
+        "Old": {
+          "wire_tokens": 4821,
+          "wire_chars": 15315,
+          "wire_bytes": 15315,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text"
+        },
+        "New-Compact": {
+          "wire_tokens": 1062,
+          "wire_chars": 3489,
+          "wire_bytes": 3489,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 78.0
+        },
+        "New-Grouped": {
+          "wire_tokens": 1204,
+          "wire_chars": 3574,
+          "wire_bytes": 3574,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 75.0
+        },
+        "Compact-Text": {
+          "wire_tokens": 1204,
+          "wire_chars": 3126,
+          "wire_bytes": 3126,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "compact_text",
+          "savings_vs_old_pct": 75.0
+        }
+      }
+    },
+    {
+      "tool": "search_source",
+      "prompt_match": "P2",
+      "variants": {
+        "Old": {
+          "wire_tokens": 1975,
+          "wire_chars": 6944,
+          "wire_bytes": 6944,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text"
+        },
+        "New": {
+          "wire_tokens": 1155,
+          "wire_chars": 4100,
+          "wire_bytes": 4100,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 41.5
+        },
+        "Compact-Text": {
+          "wire_tokens": 583,
+          "wire_chars": 2072,
+          "wire_bytes": 2072,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "compact_text",
+          "savings_vs_old_pct": 70.5
+        }
+      }
+    },
+    {
+      "tool": "get_file_skeleton",
+      "prompt_match": "P3",
+      "variants": {
+        "Old": {
+          "wire_tokens": 1503,
+          "wire_chars": 5142,
+          "wire_bytes": 5142,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "text"
+        },
+        "New": {
+          "wire_tokens": 1503,
+          "wire_chars": 5142,
+          "wire_bytes": 5142,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 0.0
+        },
+        "Compact-Text": {
+          "wire_tokens": 469,
+          "wire_chars": 1546,
+          "wire_bytes": 1546,
+          "truncated": false,
+          "freshness": "fresh",
+          "output_mode": "compact_text",
+          "savings_vs_old_pct": 68.8
+        }
+      }
+    },
+    {
+      "tool": "get_impact_slice",
+      "prompt_match": "P4",
+      "impact_symbol_id": "python:src/token_context_mcp/retrieve/service.py:RetrievalService._lookup_prior_evidence:c5bc854c5b7da7cf",
+      "variants": {
+        "Old": {
+          "wire_tokens": 4022,
+          "wire_chars": 15125,
+          "wire_bytes": 15125,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text"
+        },
+        "New": {
+          "wire_tokens": 1458,
+          "wire_chars": 5378,
+          "wire_bytes": 5378,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "text",
+          "savings_vs_old_pct": 63.7
+        },
+        "Compact-Text": {
+          "wire_tokens": 719,
+          "wire_chars": 2303,
+          "wire_bytes": 2303,
+          "truncated": true,
+          "freshness": "fresh",
+          "output_mode": "compact_text",
+          "savings_vs_old_pct": 82.1
+        }
+      }
+    }
+  ],
+  "totals": {
+    "Old_text": {
+      "wire_tokens": 12778,
+      "savings_vs_old_pct": 0.0
+    },
+    "New_text_compact_map": {
+      "wire_tokens": 5337,
+      "savings_vs_old_pct": 58.2
+    },
+    "New_text_grouped_map": {
+      "wire_tokens": 5479,
+      "savings_vs_old_pct": 57.1
+    },
+    "Compact_Text": {
+      "wire_tokens": 3024,
+      "savings_vs_old_pct": 76.3
+    }
+  }
+}

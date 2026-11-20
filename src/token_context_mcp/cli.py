@@ -78,7 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--network-policy", default="declared-deny-not-enforced")
     serve.add_argument(
         "--output-mode",
-        choices=["auto", "structured", "text", "legacy_dual"],
+        choices=["auto", "structured", "text", "compact_text", "legacy_dual"],
         default=None,
         help="Where tool payloads travel; overrides server.output_mode in the config (auto: structured only for "
         "clients verified to forward structuredContent, otherwise text)",

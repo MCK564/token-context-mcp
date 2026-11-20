@@ -329,12 +329,54 @@ class RetrievalService:
         self._assert_under_server_cap(response)
         return response
 
-    def status(self, repo_id: str) -> dict[str, Any]:
+    def status(self, repo_id: str, *, verbose: bool = True) -> dict[str, Any]:
         self._validate_request_bytes(repo_id=repo_id)
         repository = get_repository(self.config, repo_id)
         store = self._store(repository.repo_id)
         metadata = store.metadata()
         files = store.files()
+        snapshot = self._freshness_cache.get_snapshot(
+            repository.repo_id,
+            str(metadata.get("index_run_id", "")),
+            repository.root,
+            files,
+            metadata=metadata,
+            allow_symlinks=repository.allow_symlinks,
+        )
+        pending = snapshot.stale_paths
+        warnings: list[str] = []
+        if metadata.get("network_policy"):
+            warnings.append("network_policy_not_enforced_by_process")
+        for w in snapshot.warnings:
+            if w not in warnings:
+                warnings.append(w)
+
+        if not verbose:
+            index_warnings = metadata.get("warnings", [])
+            data: dict[str, Any] = {
+                "commit_sha": metadata.get("commit_sha"),
+                "head_changed_since_index": _head_changed(metadata.get("commit_sha"), repository.root),
+                "files_indexed": metadata.get("files_indexed"),
+                "symbols_indexed": metadata.get("symbols_indexed"),
+                "edges_indexed": metadata.get("edges_indexed"),
+                "pending_paths": pending[:25],
+                "pending_path_count": len(pending),
+                "added_path_count": len(snapshot.added_paths),
+                **({"index_warnings": index_warnings} if index_warnings else {}),
+            }
+            response = self._envelope(
+                repo_id,
+                metadata,
+                requested_tokens=0,
+                estimated_tokens=0,
+                freshness=snapshot.status,
+                warnings=warnings,
+                truncated=len(pending) > 25,
+                data=data,
+            )
+            self._assert_under_server_cap(response)
+            return response
+
         # Schema 2.4 stores these aggregates in the manifest; older snapshots are summarised from their rows.
         if "symbols_with_roles" in metadata and "role_counts" in metadata:
             symbols_with_roles = int(metadata["symbols_with_roles"])
@@ -346,24 +388,9 @@ class RetrievalService:
                 for role in symbol.roles:
                     role_counts[role] = role_counts.get(role, 0) + 1
             symbols_with_roles = sum(bool(symbol.roles) for symbol in symbols)
-        snapshot = self._freshness_cache.get_snapshot(
-            repository.repo_id,
-            str(metadata.get("index_run_id", "")),
-            repository.root,
-            files,
-            metadata=metadata,
-            allow_symlinks=repository.allow_symlinks,
-        )
-        pending = snapshot.stale_paths
         edge_precision = (
             metadata["edge_precision"] if isinstance(metadata.get("edge_precision"), dict) else _edge_precision(store.edges())
         )
-        warnings: list[str] = []
-        if metadata.get("network_policy"):
-            warnings.append("network_policy_not_enforced_by_process")
-        for w in snapshot.warnings:
-            if w not in warnings:
-                warnings.append(w)
 
         response = self._envelope(
             repo_id,
@@ -395,6 +422,7 @@ class RetrievalService:
                 "pending_paths": pending[:100],
                 "pending_path_count": len(pending),
                 "added_paths": snapshot.added_paths[:100],
+                "added_path_count": len(snapshot.added_paths),
                 "changed_non_indexed": snapshot.changed_non_indexed[:100],
                 "index_warnings": metadata.get("warnings", []),
                 "network_policy_status": metadata.get("network_policy_status"),
@@ -411,7 +439,8 @@ class RetrievalService:
         budget_tokens: int | None = None,
         include_tests: bool = False,
         include_omitted_ids: bool = False,
-        format: Literal["compact", "full"] | None = None,
+        include_digests: bool = False,
+        format: Literal["compact", "grouped", "full"] | None = None,
         profile: str | None = None,
     ) -> dict[str, Any]:
         profile_settings = self._profile_settings(profile, "repo_map")
@@ -425,12 +454,13 @@ class RetrievalService:
             budget_tokens=budget_tokens,
             include_tests=include_tests,
             include_omitted_ids=include_omitted_ids,
+            include_digests=include_digests,
             format=format,
         )
         self._validate_budget(budget_tokens, field_name="budget_tokens")
         packing_budget = self._effective_budget(budget_tokens)
-        if format not in {"compact", "full"}:
-            raise RetrievalError("format must be compact or full")
+        if format not in {"compact", "grouped", "full"}:
+            raise RetrievalError("format must be compact, grouped, or full")
         repository, store, metadata = self._repository_store(repo_id)
         store.reset_query_count()
         index_run_id = str(metadata.get("index_run_id", ""))
@@ -487,11 +517,10 @@ class RetrievalService:
             stage_prefix_pattern=stage_prefix_pattern,
             ledger_overlay=ledger_overlay,
         )
-        if format == "compact":
-            # A compact map also carries one digest per selected file. Keep
-            # the highest-ranked orientation slice first, then fill the
-            # remaining budget from those already-opened files so provenance
-            # does not consume the breadth budget one path at a time.
+        if format in {"compact", "grouped"}:
+            # Keep the highest-ranked orientation slice first, then group
+            # remaining entries from already-opened files before opening new
+            # paths so digests/group headers amortize over multiple symbols.
             ranked = _compact_map_order(ranked)
 
         def build_response(
@@ -499,31 +528,45 @@ class RetrievalService:
             omitted_items: list[tuple[SymbolRecord, float, list[str]]],
             estimated: int,
         ) -> dict[str, Any]:
-            selected = [
-                self._repo_map_entry(
-                    store,
-                    (item[0], item[1]),
-                    file_records=file_records,
-                    output_format=format,
-                    rank_basis=item[2],
-                    graph=graph,
-                )
-                for item in selected_items
-            ]
             data: dict[str, Any] = {
                 "query": query,
                 "rank_mode": "seed_biased" if query else "global",
                 "format": format,
-                "symbols": selected,
             }
-            if format == "compact":
+            if format == "grouped":
+                files_map: dict[str, list[str]] = {}
+                for item in selected_items:
+                    entry_str = self._repo_map_entry(
+                        store,
+                        (item[0], item[1]),
+                        file_records=file_records,
+                        output_format="grouped",
+                        rank_basis=item[2],
+                        graph=graph,
+                    )
+                    assert isinstance(entry_str, str)
+                    files_map.setdefault(item[0].path, []).append(entry_str)
+                data["files"] = files_map
+            else:
+                data["symbols"] = [
+                    self._repo_map_entry(
+                        store,
+                        (item[0], item[1]),
+                        file_records=file_records,
+                        output_format=format,
+                        rank_basis=item[2],
+                        graph=graph,
+                    )
+                    for item in selected_items
+                ]
+            if include_digests and format in {"compact", "grouped"}:
                 selected_paths = sorted({item[0].path for item in selected_items})
                 data["file_digests"] = {
                     path: file_records[path].sha256[:12] for path in selected_paths if path in file_records
                 }
             if include_omitted_ids:
                 data["omitted_symbol_ids"] = [
-                    _compact_symbol_ref(item[0].symbol_id) if format == "compact" else item[0].symbol_id
+                    _compact_symbol_ref(item[0].symbol_id) if format in {"compact", "grouped"} else item[0].symbol_id
                     for item in omitted_items[:10]
                 ]
             data.update(
@@ -549,18 +592,25 @@ class RetrievalService:
                 ledger_rev=ledger_rev,
             )
 
+        seen_grouped_paths: set[str] = set()
+
+        def _render_entry(item: tuple[SymbolRecord, float, list[str]]) -> str:
+            rendered = self._repo_map_entry(
+                store,
+                (item[0], item[1]),
+                file_records=file_records,
+                output_format=format,
+                rank_basis=item[2],
+                graph=graph,
+            )
+            if format == "grouped" and item[0].path not in seen_grouped_paths:
+                seen_grouped_paths.add(item[0].path)
+                return _json({item[0].path: [rendered]})
+            return _json(rendered)
+
         chosen, omitted, used = self._pack_to_budget(
             ranked,
-            lambda item: _json(
-                self._repo_map_entry(
-                    store,
-                    (item[0], item[1]),
-                    file_records=file_records,
-                    output_format=format,
-                    rank_basis=item[2],
-                    graph=graph,
-                )
-            ),
+            _render_entry,
             packing_budget,
             build_response,
         )
@@ -2024,10 +2074,10 @@ class RetrievalService:
         item: tuple[SymbolRecord, float],
         *,
         file_records: dict[str, FileRecord] | None = None,
-        output_format: Literal["compact", "full"] = "full",
+        output_format: Literal["compact", "grouped", "full"] = "full",
         rank_basis: list[str] | None = None,
         graph: RepoGraph | None = None,
-    ) -> dict[str, Any] | list[str]:
+    ) -> dict[str, Any] | list[str] | str:
         symbol, score = item
         if output_format == "compact":
             if graph is not None:
@@ -2048,6 +2098,18 @@ class RetrievalService:
             if graph is not None:
                 graph.set_memo_entry(symbol.symbol_id, "compact", entry)
             return entry
+        if output_format == "grouped":
+            if graph is not None:
+                cached = graph.get_memo_entry(symbol.symbol_id, "grouped")
+                if cached is not None:
+                    return cached
+            text = f"{_compact_symbol_ref(symbol.symbol_id)}:L{symbol.start_line} {_compact_declaration(symbol)}"
+            compact_basis = _compact_rank_basis(symbol, rank_basis)
+            if compact_basis:
+                text = f"{text} {compact_basis}"
+            if graph is not None:
+                graph.set_memo_entry(symbol.symbol_id, "grouped", text)
+            return text
         return {
             "rank": round(score, 3),
             "symbol": symbol_as_dict(symbol),

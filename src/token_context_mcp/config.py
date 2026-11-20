@@ -25,23 +25,23 @@ class UnknownRepositoryError(ConfigError):
 DEFAULT_BUDGET_PROFILES: dict[str, dict[str, object]] = {
     "locate": {
         "tools": ["find_symbols", "search_source"],
-        "budget_tokens": 2048,
-        "limit": 30,
+        "budget_tokens": 1280,
+        "limit": 20,
     },
     "orient": {
         "tools": ["repo_map"],
-        "budget_tokens": 4096,
+        "budget_tokens": 1024,
         "format": "compact",
     },
     "impact": {
         "tools": ["impact_slice", "get_module_dependents"],
-        "budget_tokens": 4096,
-        "max_nodes": 200,
+        "budget_tokens": 1536,
+        "max_nodes": 120,
         "depth": 2,
     },
     "read": {
         "tools": ["file_skeleton", "symbol_context"],
-        "budget_tokens": 2048,
+        "budget_tokens": 1536,
         "include_body": True,
     },
 }
@@ -340,7 +340,7 @@ def _validate_server(server: ServerConfig) -> None:
         raise ConfigError("server.max_graph_nodes must be between 1 and 500")
     if not 1 <= server.max_symbol_results <= 100:
         raise ConfigError("server.max_symbol_results must be between 1 and 100")
-    if server.output_mode not in ("auto", "structured", "text", "legacy_dual"):
-        raise ConfigError("server.output_mode must be one of: auto, structured, text, legacy_dual")
+    if server.output_mode not in ("auto", "structured", "text", "compact_text", "legacy_dual"):
+        raise ConfigError("server.output_mode must be one of: auto, structured, text, compact_text, legacy_dual")
     if server.default_view not in ("minimal", "normal", "full"):
         raise ConfigError("server.default_view must be one of: minimal, normal, full")

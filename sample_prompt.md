@@ -122,6 +122,30 @@ Những điểm cần lưu ý:
 
 ## 3. Mẫu Prompt Dùng Trực Tiếp Cho AI Agent (Thiết kế Thích ứng & Mềm mỏng)
 
+### 3.0 Mẫu Prompt Siêu Gọn — Khuyến nghị mặc định (Lean Selective MCP)
+
+*(Mẫu mặc định tối giản cho Antigravity, Cursor, Claude Code hoặc CLI — dưới 400 token prompt, có sẵn 5 chữ ký tool để bỏ qua đọc file schema `.json` và chống đọc trùng cả file.)*
+
+```markdown
+Repo: {{REPO_NAME}} | Agent: {{AGENT_ID}}
+Task: {{USER_TASK}}
+
+Quy tắc (file ngoài AST/stale đọc thẳng; trích path:line):
+1. Chọn lọc:
+   - Có path: bỏ list_repositories/get_repo_map/search_source; gọi get_file_skeleton(repo_id, path, max_tokens=1024) xem chữ ký, hoặc read_file file ngắn (<300 dòng) cần full code.
+   - Chưa rõ vị trí/hành vi/truy vết: gọi 1 MCP tool (search_source, inspect_symbol, get_impact_slice), budget 1024-1536.
+2. Chống đọc trùng:
+   - Nếu get_file_skeleton/inspect_symbol trả freshness="fresh" & truncated=false và đủ ý, DỪNG—cấm read_file cả file; thiếu chỉ đọc 20-60 dòng.
+3. Zero-Ritual Budget:
+   - Không lặp get_index_status (tool đã trả freshness). Tối đa 1 lần get_repo_map(budget_tokens=1024) khi chưa rõ repo. trajectory_record/memory_put chỉ dùng đa phiên/khi yêu cầu (bỏ ở Q&A).
+4. 5-Tool Cheat-Sheet (gọi thẳng, bỏ qua .json schema trừ khi lỗi):
+   - search_source(repo_id, query, profile="locate", max_tokens=1280, limit=15)
+   - get_file_skeleton(repo_id, path, include_private=false, max_tokens=1536)
+   - inspect_symbol(repo_id, query, view="full", budget_tokens=1536)
+   - get_impact_slice(repo_id, symbol_id, direction="both", depth=2, max_tokens=1536)
+   - get_repo_map(repo_id, query=None, budget_tokens=1024, format="compact")
+```
+
 ### 3.1 Máy có LLM cục bộ (Ollama GPU/CPU)
 
 *(Copy khối bên dưới, điền `{{REPO_NAME}}`, `{{USER_TASK}}`, và `{{AGENT_ID}}` (khớp `TOKEN_CONTEXT_AGENT_ID` nếu server có đặt, hoặc để `agent_1` khi chỉ có một agent) rồi gửi cho Agent)*
@@ -220,20 +244,20 @@ NGUYÊN TẮC CỐT LÕI (XÁC ĐỊNH, LINH HOẠT & KHÔNG TỰ KHÓA):
 
 QUY TRÌNH THỰC HIỆN:
 1. Kiểm tra trạng thái (Pre-flight):
-   - Gọi `list_repositories()` nếu chưa rõ `repo_id`, sau đó gọi `get_index_status(repo_id="{{REPO_NAME}}")`. Ghi nhận trạng thái `fresh`/`stale` và `pending_paths` để chủ động đối chiếu source và tránh ghi `trajectory_record` vào file đã `stale`.
+   - Chỉ gọi `list_repositories()` nếu chưa rõ `repo_id`, và gọi `get_index_status(repo_id="{{REPO_NAME}}")` **tối đa 1 lần mỗi session nếu cần** (mọi MCP tool khác đều đã trả `freshness`). Ghi nhận `fresh`/`stale` và `pending_paths` để đối chiếu source và tránh ghi `trajectory_record` vào file `stale`.
 2. Nhớ lại từ Shared Memory (nếu có `memory_*`):
    - Tra `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` và `memory_search(query="<1-3 từ khóa>", scope="project", limit=5)`. Không có thì bỏ qua ngay.
 3. Định vị mã nguồn & Kiểm tra `prior_evidence` (Locate & Lungs):
-   - Gọi `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 từ khóa ASCII/tên symbol>")` hoặc `search_source(repo_id="{{REPO_NAME}}", query="<>=2 từ khóa ASCII/tên symbol>", profile="locate")` (chỉ hai tool này trả `data.prior_evidence`).
+   - Khi chưa rõ bố cục repo, gọi `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 từ khóa ASCII/tên symbol>", budget_tokens=1024)` (dùng `1024` thay cho `4096`) hoặc `search_source(repo_id="{{REPO_NAME}}", query="<>=2 từ khóa ASCII/tên symbol>", profile="locate")` (chỉ hai tool này trả `data.prior_evidence`).
    - Nếu có `prior_evidence`: ưu tiên xác minh trực tiếp `answers` qua `get_symbol_context` / `inspect_symbol`; nếu gặp `prior_evidence_unconfirmed` (`asserted`), tự kiểm tra độc lập; nếu `recheck_from` là `k`, giữ tiền tố `1..k-1` và kiểm chứng từ bước `k`. Tránh `decoys` khi thẻ `confirmed`.
    - Dùng `find_symbols(repo_id="{{REPO_NAME}}", pattern="<Ten*>")` và `get_file_skeleton(repo_id="{{REPO_NAME}}", path="<đường/dẫn>")` khi cần; đọc trực tiếp file ngoài AST.
-4. Kiểm tra chi tiết & Đọc code (Deep Inspection):
+4. Kiểm tra chi tiết & Chống đọc trùng (Deep Inspection & Anti-Double-Read):
    - Gọi `inspect_symbol(repo_id="{{REPO_NAME}}", query="<ten_symbol>", view="full")`.
-   - Nếu thân hàm lớn cần đọc tiếp, dùng `get_symbol_context(..., include_body=true, body_offset_line=...)` hoặc đọc trực tiếp khoảng dòng của file nguồn.
+   - **Quy tắc chống đọc trùng (Anti-Double-Read):** Nếu `get_file_skeleton` hoặc `inspect_symbol` trả về `freshness="fresh"` và `truncated=false` đã đủ trả lời, **KHÔNG đọc lại cả file**; nếu cần xem thêm dòng liền kề hoặc thân hàm bị cắt, chỉ đọc một dải dòng hẹp (`20–60` dòng) qua `read_file` hoặc `get_symbol_context(..., include_body=true, body_offset_line=...)`.
 5. Phân tích tác động (Impact):
    - Gọi `get_impact_slice(repo_id="{{REPO_NAME}}", symbol_id="<id>", direction="callers", depth=2)` và/hoặc `get_module_dependents`.
-6. Ghi Lá Phổi (`trajectory_record`) TRƯỚC khi sửa file (nếu có tool & file còn `fresh`):
-   - Sau khi đã xác minh vị trí trả lời trên mã nguồn còn `fresh` (và trước khi chỉnh sửa file), gọi:
+6. Ghi Lá Phổi (`trajectory_record`) có điều kiện TRƯỚC khi sửa file (nếu bật & file còn `fresh`):
+   - **Bỏ qua** trên Q&A chỉ đọc một lượt ngắn gọn; chỉ ghi khi cần lưu bằng chứng xuyên phiên hoặc trước khi sửa code trên mã nguồn còn `fresh`:
      `trajectory_record(repo_id="{{REPO_NAME}}", query="<>=2 từ khóa ASCII/tên symbol>", answers=["<canonical_symbol_id>@<line>"], steps=["<from_symbol_id>><to_symbol_id>@<line>"], decoys=["<symbol_id>!<no_reference|test_only|wrapper_only|unrelated>"], agent_id="{{AGENT_ID}}")`
    - Đảm bảo tên ngắn của `to_symbol` xuất hiện đúng tại dòng `<line>` của `steps`. Nếu file đã `stale`, bỏ qua bước này.
 7. Thực hiện thay đổi & Kiểm chứng xác định:
@@ -268,9 +292,9 @@ TIẾP TỤC NHIỆM VỤ (SESSION FOLLOW-UP):
 - Nhiệm vụ lượt này: {{USER_TASK}}
 
 NGUYÊN TẮC HOẠT ĐỘNG:
-1. Tiếp tục ưu tiên `token-context-mcp` (`get_repo_map`, `search_source`, `find_symbols`, `inspect_symbol`, `get_file_skeleton`) để định vị chính xác trước khi đọc mã nguồn.
-2. Chu trình Lá Phổi (Lungs): Khi gọi `get_repo_map(query=...)` / `search_source(query=...)`, tận dụng `prior_evidence` (giữ tiền tố `1..k-1` và kiểm chứng từ `recheck_from=k` nếu có). Khi đã xác minh đường đi trên file `fresh`, ghi `trajectory_record` (dùng `query` >= 2 từ khóa ASCII, mã decoy hợp lệ, `agent_id="{{AGENT_ID}}"`) **trước** khi sửa file.
-3. Fallback & Lưu hậu chỉnh sửa: Nếu thân hàm bị cắt, file ngoài AST, hoặc snapshot `stale`, đọc trực tiếp file nguồn liên quan (không báo blocked). Sau khi sửa file (`stale`) hoặc với kết luận ngoài AST, lưu vào `memory_put` (không gọi `trajectory_record` lên file chưa re-index) và chạy test liên quan.
+1. Ưu tiên MCP có chọn lọc & Chống đọc trùng: Dùng `get_repo_map(budget_tokens=1024)` (chỉ nếu cần), `search_source`, `find_symbols`, `inspect_symbol`, `get_file_skeleton`; không gọi lặp `get_index_status` (mọi tool đều trả `freshness`). Nếu `get_file_skeleton` / `inspect_symbol` trả `fresh` và `truncated=false` đã đủ trả lời, **KHÔNG đọc lại cả file**; nếu cần, chỉ đọc dải dòng hẹp (`20–60` dòng).
+2. Chu trình Lá Phổi (Lungs) có điều kiện: Khi gọi `get_repo_map(query=...)` / `search_source(query=...)`, tận dụng `prior_evidence` (giữ tiền tố `1..k-1` và kiểm chứng từ `recheck_from=k` nếu có). Chỉ gọi `trajectory_record` (`>=2` từ khóa ASCII, mã decoy hợp lệ, `agent_id="{{AGENT_ID}}"`) khi lưu bằng chứng xuyên phiên hoặc trước khi sửa file `fresh` — **bỏ qua** trên Q&A chỉ đọc một lượt ngắn.
+3. Fallback & Lưu hậu chỉnh sửa: Nếu thân hàm bị cắt, file ngoài AST, hoặc snapshot `stale`, đọc trực tiếp dải dòng liên quan (không báo blocked). Sau khi sửa file (`stale`) hoặc với kết luận ngoài AST, lưu vào `memory_put` (không gọi `trajectory_record` lên file chưa re-index) và chạy test liên quan.
 
 QUY CÁCH PHẢN HỒI (OUTPUT FORMAT):
 1. [Vấn đề / Mục tiêu]: Tóm tắt 1-2 câu.
@@ -530,6 +554,30 @@ The Evidence Ledger (`ledger.sqlite` next to `repos.toml`) serves a distinct rol
 
 ## 3. Agent Prompt Templates (Adaptive & Non-Blocking Design)
 
+### 3.0 Lean Selective Prompt — Recommended Default
+
+*(Recommended lightweight default for daily Antigravity, Cursor, Claude Code, or CLI sessions — under 400 prompt tokens, with inline 5-tool signatures to skip `.json` schema reads and prevent whole-file double-reads.)*
+
+```markdown
+Repo: {{REPO_NAME}} | Agent: {{AGENT_ID}}
+Task: {{USER_TASK}}
+
+Rules (Lean Selective MCP; read unindexed/stale files directly; cite path:line):
+1. Selective Dispatch:
+   - Exact file path given: skip list_repositories/get_repo_map/search_source. Use get_file_skeleton(repo_id, path, max_tokens=1024) for interface/signatures, or read_file for short files (<300 lines) needing full implementation.
+   - Unknown location / behavior / cross-module trace: call 1 MCP tool (search_source, inspect_symbol, or get_impact_slice) with budget 1024-1536.
+2. Anti-Double-Read:
+   - If get_file_skeleton or inspect_symbol returns freshness="fresh" & truncated=false and answers the task, STOP—do NOT read_file the whole file. Read ONLY a 20-60 line window if finer detail is needed.
+3. Zero-Ritual Budget:
+   - Do not repeat get_index_status (tools already return freshness). Call get_repo_map(budget_tokens=1024) at most once only if repo layout is unknown. trajectory_record/memory_put are opt-in (multi-session or requested; skip on one-shot Q&A).
+4. 5-Tool Cheat-Sheet (call directly; skip .json schema files unless error):
+   - search_source(repo_id, query, profile="locate", max_tokens=1280, limit=15)
+   - get_file_skeleton(repo_id, path, include_private=false, max_tokens=1536)
+   - inspect_symbol(repo_id, query, view="full", budget_tokens=1536)
+   - get_impact_slice(repo_id, symbol_id, direction="both", depth=2, max_tokens=1536)
+   - get_repo_map(repo_id, query=None, budget_tokens=1024, format="compact")
+```
+
 ### 3.1 Machine with a local LLM (Ollama GPU/CPU)
 
 *(Copy the block below, fill in `{{REPO_NAME}}`, `{{USER_TASK}}`, and `{{AGENT_ID}}`, then send it to the agent)*
@@ -628,20 +676,20 @@ CORE PRINCIPLES (DETERMINISTIC, ADAPTIVE & NON-BLOCKING):
 
 WORKFLOW:
 1. Pre-flight:
-   - Call `list_repositories()` if unsure of `repo_id`, then `get_index_status(repo_id="{{REPO_NAME}}")`. Note `fresh`/`stale` status and `pending_paths` so you verify changed files on disk and avoid calling `trajectory_record` on stale files.
+   - Call `list_repositories()` only if unsure of `repo_id`, and call `get_index_status(repo_id="{{REPO_NAME}}")` **at most once per session if needed** (all other MCP tool responses already carry `freshness`). Note `fresh`/`stale` and `pending_paths` so you cross-check modified files and avoid calling `trajectory_record` on stale files.
 2. Recall Shared Memory (if `memory_*` is enabled):
    - Check `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` and `memory_search(query="<1-3 keywords>", scope="project", limit=5)`. Skip if unavailable or empty.
 3. Orient, Locate & Check `prior_evidence` (Lungs):
-   - Call `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 ASCII/symbol keywords>")` or `search_source(repo_id="{{REPO_NAME}}", query="<>=2 ASCII/symbol keywords>", profile="locate")` (only these two return `data.prior_evidence`).
+   - Only if repo layout is unknown, call `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 ASCII/symbol keywords>", budget_tokens=1024)` (use `1024` instead of `4096`) or `search_source(repo_id="{{REPO_NAME}}", query="<>=2 ASCII/symbol keywords>", profile="locate")` (only these two return `data.prior_evidence`).
    - If `prior_evidence` hits: verify `answers` directly via `get_symbol_context` / `inspect_symbol`; treat `prior_evidence_unconfirmed` (`asserted`) cautiously; on `recheck_from = k`, keep prefix `1..k-1` and re-verify from step `k`. Skip `decoys` when `confirmed`.
    - Also use `find_symbols(repo_id="{{REPO_NAME}}", pattern="<Name*>")` and `get_file_skeleton(repo_id="{{REPO_NAME}}", path="<path/to/file>")`, or read unindexed files directly.
-4. Deep Inspection & Source Reading:
+4. Deep Inspection & Anti-Double-Read:
    - Call `inspect_symbol(repo_id="{{REPO_NAME}}", query="<symbol_name>", view="full")`.
-   - For large bodies or exact edit context, paginate with `get_symbol_context(..., include_body=true, body_offset_line=...)` or read the target line span directly from the file.
+   - **Anti-Double-Read Rule:** If `get_file_skeleton` or `inspect_symbol` returns `freshness="fresh"` and `truncated=false` and answers the task, **do NOT re-read the whole file**; if extra context is needed, read only a narrow line range (`20–60` lines) via `read_file` or `get_symbol_context(..., include_body=true, body_offset_line=...)`.
 5. Impact:
    - Call `get_impact_slice(repo_id="{{REPO_NAME}}", symbol_id="<id>", direction="callers", depth=2)` and/or `get_module_dependents`.
-6. Record Verified Lungs Evidence BEFORE Editing (if enabled & files are `fresh`):
-   - After verifying the answer/path on `fresh` disk files (and before applying edits), call:
+6. Conditionally Record Verified Lungs Evidence BEFORE Editing (if enabled & files are `fresh`):
+   - **Skip** on short read-only single-turn Q&A; use when persisting verified evidence across sessions or before editing `fresh` files:
      `trajectory_record(repo_id="{{REPO_NAME}}", query="<>=2 ASCII/symbol keywords>", answers=["<canonical_symbol_id>@<line>"], steps=["<from_symbol_id>><to_symbol_id>@<line>"], decoys=["<symbol_id>!<no_reference|test_only|wrapper_only|unrelated>"], agent_id="{{AGENT_ID}}")`
    - Ensure `to_symbol`'s short name appears on `<line>` in `steps`. Skip if target files are `stale`.
 7. Apply Changes & Deterministic Verification:
@@ -676,9 +724,9 @@ SESSION FOLLOW-UP TASK:
 - Task for this turn: {{USER_TASK}}
 
 OPERATIONAL CONSTRAINTS:
-1. Prioritize `token-context-mcp` tools (`get_repo_map`, `search_source`, `find_symbols`, `inspect_symbol`, `get_file_skeleton`) to localize targets with minimal token spend.
-2. Lungs cycle: Inspect `prior_evidence` on `get_repo_map(query=...)` / `search_source(query=...)` (keep prefix `1..k-1` and re-verify from `recheck_from=k` if set). Call `trajectory_record` (`>=2` ASCII keywords, valid decoy enum, `agent_id="{{AGENT_ID}}"`) on verified `fresh` paths **before** editing them.
-3. Seamless fallback & post-edit memory: Read target files directly if bodies are truncated, outside AST, or `stale` (never report blocked). After editing (`stale`) or for non-AST findings, update `memory_put` (do not call `trajectory_record` on un-reindexed edited files) and run relevant tests.
+1. Selective MCP & Anti-Double-Read: Use `get_repo_map(budget_tokens=1024)` (only if needed), `search_source`, `find_symbols`, `inspect_symbol`, `get_file_skeleton`; do NOT repeat `get_index_status` (every tool returns `freshness`). If `get_file_skeleton` / `inspect_symbol` returns `fresh` & `truncated=false` and suffices, **do NOT re-read the whole file**; read only a narrow line range (`20–60` lines) if extra lines are needed.
+2. Conditional Lungs cycle: Inspect `prior_evidence` on `get_repo_map(query=...)` / `search_source(query=...)` (keep prefix `1..k-1` and re-verify from `recheck_from=k` if set). Call `trajectory_record` (`>=2` ASCII keywords, valid decoy enum, `agent_id="{{AGENT_ID}}"`) when persisting multi-session evidence or before editing verified `fresh` files — **skip** on short read-only single-turn Q&A.
+3. Seamless fallback & post-edit memory: Read only relevant line spans directly if bodies are truncated, outside AST, or `stale` (never report blocked). After editing (`stale`) or for non-AST findings, update `memory_put` (do not call `trajectory_record` on un-reindexed edited files) and run relevant tests.
 
 OUTPUT FORMAT:
 1. [Core Issue / Goal]: 1-2 summary sentences.
@@ -935,6 +983,30 @@ Step 8-9: Edit src/auth/tokens.py -> file becomes `stale` against the snapshot
 
 ## 3. 智能体提示词模板（自适应、柔性防卡死设计）
 
+### 3.0 极简按需路由模板 — 默认推荐 (Lean Selective MCP)
+
+*(推荐用于 Antigravity、Cursor、Claude Code 或 CLI 日常会话的默认模板——Prompt 低于 400 Token，内联 5 个核心工具签名以跳过 `.json` Schema 读取，并防止重复整读源码文件。)*
+
+```markdown
+仓库: {{REPO_NAME}} | Agent: {{AGENT_ID}}
+任务: {{USER_TASK}}
+
+规则（非 AST/stale 文件直读；标注 path:line）:
+1. 按需选路:
+   - 已知路径：跳过 list_repositories/get_repo_map/search_source；查签名用 get_file_skeleton(repo_id, path, max_tokens=1024)，短文件(<300行)需全量实现直调 read_file。
+   - 未知位置/行为/跨模块：调 1 个 MCP 工具 (search_source/inspect_symbol/get_impact_slice)，预算 1024-1536。
+2. 禁止重读:
+   - 若 get_file_skeleton/inspect_symbol 返回 freshness="fresh" & truncated=false 且够用，停——勿 read_file 整文件；需细节仅读 20-60 行。
+3. 零仪式预算:
+   - 勿重复 get_index_status（工具自带 freshness）。结构未知最多 1 次 get_repo_map(budget_tokens=1024)。trajectory_record/memory_put 仅跨会话/要求时用（单轮跳过）。
+4. 5 工具速查（直调，报错外勿读 .json schema）:
+   - search_source(repo_id, query, profile="locate", max_tokens=1280, limit=15)
+   - get_file_skeleton(repo_id, path, include_private=false, max_tokens=1536)
+   - inspect_symbol(repo_id, query, view="full", budget_tokens=1536)
+   - get_impact_slice(repo_id, symbol_id, direction="both", depth=2, max_tokens=1536)
+   - get_repo_map(repo_id, query=None, budget_tokens=1024, format="compact")
+```
+
 ### 3.1 配备本地 LLM 的环境（Ollama GPU/CPU）
 
 *(复制下方代码块，替换 `{{REPO_NAME}}`、`{{USER_TASK}}` 与 `{{AGENT_ID}}` 后发送给智能体)*
@@ -1033,20 +1105,20 @@ Step 8-9: Edit src/auth/tokens.py -> file becomes `stale` against the snapshot
 
 执行流程 (WORKFLOW):
 1. 预检 (Pre-flight):
-   - 不确定 `repo_id` 时调用 `list_repositories()`，随后调用 `get_index_status(repo_id="{{REPO_NAME}}")`。记录 `fresh`/`stale` 状态与 `pending_paths`，以便对变更文件直接读源码核对并避免向 stale 文件写入 `trajectory_record`。
+   - 仅在不确定 `repo_id` 时调用 `list_repositories()`，且全会话**最多调用 1 次** `get_index_status(repo_id="{{REPO_NAME}}")`（其他 MCP 工具均已返回 `freshness`）。记录 `fresh`/`stale` 状态与 `pending_paths`，以便对变更文件读源码核对并避免向 stale 文件写入 `trajectory_record`。
 2. 唤醒共享记忆（若启用了 `memory_*`）:
    - 查询 `memory_get(key="task.progress", scope="session", namespace="{{AGENT_ID}}")` 与 `memory_search(query="<1-3 个关键词>", scope="project", limit=5)`。无结果则直接跳过。
 3. 定位源码并核对 `prior_evidence`（肺部）:
-   - 调用 `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 个 ASCII/符号关键词>")` 或 `search_source(repo_id="{{REPO_NAME}}", query="<>=2 个 ASCII/符号关键词>", profile="locate")`（仅这两个工具返回 `data.prior_evidence`）。
+   - 仅在未知仓库结构时调用 `get_repo_map(repo_id="{{REPO_NAME}}", query="<>=2 个 ASCII/符号关键词>", budget_tokens=1024)`（使用 `1024` 替代 `4096`）或 `search_source(repo_id="{{REPO_NAME}}", query="<>=2 个 ASCII/符号关键词>", profile="locate")`（仅这两个工具返回 `data.prior_evidence`）。
    - 若命中 `prior_evidence`：优先通过 `get_symbol_context` / `inspect_symbol` 核验 `answers`；遇到 `prior_evidence_unconfirmed`（`asserted`）时独立复核；若 `recheck_from` 为 `k`，保留 `1..k-1` 前缀并从第 `k` 步起复核。卡片为 `confirmed` 时避开 `decoys`。
    - 配合 `find_symbols(repo_id="{{REPO_NAME}}", pattern="<Name*>")` 与 `get_file_skeleton(repo_id="{{REPO_NAME}}", path="<路径>")`；非索引文件直接读取。
-4. 深度检查与源码读取 (Deep Inspection):
+4. 深度检查与防重复整读 (Deep Inspection & Anti-Double-Read):
    - 调用 `inspect_symbol(repo_id="{{REPO_NAME}}", query="<符号名>", view="full")`。
-   - 若函数体过大或需修改代码，使用 `get_symbol_context(..., include_body=true, body_offset_line=...)` 分页读取，或直接读取源文件目标行区间。
+   - **禁止重读规则 (Anti-Double-Read)：** 若 `get_file_skeleton` 或 `inspect_symbol` 返回 `freshness="fresh"` 且 `truncated=false` 并已足够作答，**切勿再对整文件执行全量读取**；若需补充细节，仅通过 `read_file` 或 `get_symbol_context(..., include_body=true, body_offset_line=...)` 读取窄行区间（`20–60` 行）。
 5. 影响面分析 (Impact):
    - 调用 `get_impact_slice(repo_id="{{REPO_NAME}}", symbol_id="<id>", direction="callers", depth=2)` 和/或 `get_module_dependents`。
-6. 在修改代码前记录肺部证据（若已启用且文件处于 `fresh`）:
-   - 核实源码路径后（且在改写文件前），调用：
+6. 在修改代码前按需记录肺部证据（若已启用且文件处于 `fresh`）:
+   - 短单轮只读问答**跳过此步**；仅在需要跨会话沉淀证据或修改 `fresh` 文件之前调用：
      `trajectory_record(repo_id="{{REPO_NAME}}", query="<>=2 个英文/符号 ASCII 关键词>", answers=["<canonical_symbol_id>@<line>"], steps=["<from_symbol_id>><to_symbol_id>@<line>"], decoys=["<symbol_id>!<no_reference|test_only|wrapper_only|unrelated>"], agent_id="{{AGENT_ID}}")`
    - 确保 `steps` 中 `to_symbol` 的短名称出现在该行源码中；若相关文件已是 `stale` 则跳过。
 7. 执行修改与确定性核验:
@@ -1081,9 +1153,9 @@ Step 8-9: Edit src/auth/tokens.py -> file becomes `stale` against the snapshot
 - 本轮任务目标: {{USER_TASK}}
 
 继续遵守核心原则:
-1. 始终优先调用 `token-context-mcp` 工具（`get_repo_map`、`search_source`、`find_symbols`、`inspect_symbol`、`get_file_skeleton`）进行精准定位，节省 Token。
-2. 肺部闭环（Lungs）：在 `get_repo_map(query=...)` / `search_source(query=...)` 中优先核查 `prior_evidence`（有 `recheck_from=k` 则保留 `1..k-1` 并从第 `k` 步起复核）。对在 `fresh` 文件上核实过的路径，**在改码前**调用 `trajectory_record`（`>=2` 个 ASCII 关键词、合法 decoy 枚举、`agent_id="{{AGENT_ID}}"`）。
-3. 兜底与改后记忆：遇截断、AST 外配置或快照 `stale` 时直接读取源文件，绝不擅自卡死或报 blocked。改码后（`stale`）或 AST 外的结论通过 `memory_put` 保存（勿对未重索引的已改文件调 `trajectory_record`），并运行相关测试。
+1. 按需选路与防重复整读：按需使用 `get_repo_map(budget_tokens=1024)`（仅未知结构时）、`search_source`、`find_symbols`、`inspect_symbol`、`get_file_skeleton`；勿重复调用 `get_index_status`（工具均自带 `freshness`）。若 `get_file_skeleton` / `inspect_symbol` 返回 `fresh` 且 `truncated=false` 并已足够，**切勿重读整文件**；如需更多行，仅读取窄行区间（`20–60` 行）。
+2. 按需肺部闭环（Lungs）：在 `get_repo_map(query=...)` / `search_source(query=...)` 中优先核查 `prior_evidence`（有 `recheck_from=k` 则保留 `1..k-1` 并从第 `k` 步起复核）。仅在跨会话调查或修改 `fresh` 文件前调用 `trajectory_record`（`>=2` 个 ASCII 关键词、合法 decoy 枚举、`agent_id="{{AGENT_ID}}"`）——短单轮只读问答**跳过**。
+3. 兜底与改后记忆：遇截断、AST 外配置或快照 `stale` 时直接读取对应行区间，绝不擅自卡死或报 blocked。改码后（`stale`）或 AST 外的结论通过 `memory_put` 保存（勿对未重索引的已改文件调 `trajectory_record`），并运行相关测试。
 
 回复格式要求 (OUTPUT FORMAT):
 1. [核心问题 / 目标]：1-2 句话概括。

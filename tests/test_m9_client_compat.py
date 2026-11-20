@@ -103,7 +103,7 @@ def test_auto_known_and_unknown_clients() -> None:
 
 
 def test_explicit_modes_are_untouched() -> None:
-    for mode in ("structured", "text", "legacy_dual"):
+    for mode in ("structured", "text", "compact_text", "legacy_dual"):
         assert resolve_output_mode(mode, None) == mode
         assert resolve_output_mode(mode, "claude-code") == mode
 
@@ -371,7 +371,7 @@ def test_locate_profile_budget_and_snippet_lines(cfg: Path) -> None:
     from token_context_mcp.config import DEFAULT_BUDGET_PROFILES
     from token_context_mcp.retrieve.service import RetrievalError, RetrievalService
 
-    assert DEFAULT_BUDGET_PROFILES["locate"]["budget_tokens"] == 2048
+    assert DEFAULT_BUDGET_PROFILES["locate"]["budget_tokens"] == 1280
     config = load_config(cfg)
     config.budget_profiles["locate"] = {"snippet_lines": 1}
     one = RetrievalService(config, cfg).search_source("demo", query="beta value", profile="locate")

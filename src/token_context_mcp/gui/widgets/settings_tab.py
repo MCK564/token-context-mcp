@@ -82,7 +82,7 @@ class SettingsTab(QWidget):
         form.addRow("Max Symbol Results:", self.spin_symbols)
 
         self.combo_output = QComboBox()
-        self.combo_output.addItems(["auto", "structured", "text", "legacy_dual"])
+        self.combo_output.addItems(["auto", "structured", "text", "compact_text", "legacy_dual"])
         self.combo_output.setMinimumWidth(200)
         form.addRow("Output Mode:", self.combo_output)
 

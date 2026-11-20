@@ -277,7 +277,7 @@ def build_server(
                 result = _profile_tools_list(
                     result,
                     _schema_profile(),
-                    include_output_schema=(finalizer.effective_mode != "text"),
+                    include_output_schema=(finalizer.effective_mode not in {"text", "compact_text"}),
                 )
             return result
 
@@ -297,7 +297,7 @@ def build_server(
     @server.tool(
         title="Repository map",
         description=(
-            "Ranked symbol map [id, path:line, kind/name] within budget (format='full' adds signatures; "
+            "Ranked symbol map within budget (format='compact' tuples, 'grouped' by file, or 'full' objects; "
             "omitted_count tracks cuts). query biases graph rank; use find_symbols for exact names."
         ),
         annotations=_READ_ONLY_ANNOTATIONS,
@@ -305,10 +305,11 @@ def build_server(
     def get_repo_map(
         repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path; errors with unknown_repo_id if unregistered).")],
         query: Annotated[str | None, Field(description="Optional symbol/topic terms that switch rank_mode from global centrality to seed-biased personalized graph ranking.")] = None,
-        budget_tokens: Annotated[int | None, Field(description="Token cap for the response (32 to max_result_tokens); defaults to 'orient' profile (4096) and sets truncated=true if symbols are omitted.")] = None,
+        budget_tokens: Annotated[int | None, Field(description="Token cap for the response (32 to max_result_tokens); defaults to 'orient' profile (1024) and sets truncated=true if symbols are omitted.")] = None,
         include_tests: Annotated[bool, Field(description="Include test files and test symbols in ranking when True; defaults to False to prioritize production code.")] = False,
         include_omitted_ids: Annotated[bool, Field(description="Include up to 10 truncated symbol IDs in omitted_symbol_ids for targeted follow-ups.")] = False,
-        format: Annotated[Literal["compact", "full"] | None, Field(description="Entry detail: 'compact' returns [id, path:line, kind/name] tuples; 'full' returns full symbol objects, signatures, and evidence.")] = None,
+        include_digests: Annotated[bool, Field(description="Include per-file 12-char SHA-256 file_digests map in compact or grouped mode (defaults to False).")] = False,
+        format: Annotated[Literal["compact", "grouped", "full"] | None, Field(description="Entry detail: 'compact' returns [id, path:line, kind/name] tuples; 'grouped' maps path to compact lines; 'full' returns full symbol objects, signatures, and evidence.")] = None,
         profile: Annotated[str | None, Field(description="Named budget profile preset ('locate', 'orient', 'impact', 'read'); explicit args override profile defaults (defaults to 'orient').")] = None,
     ) -> CallToolResult:
         return _wrap(
@@ -319,6 +320,7 @@ def build_server(
                     budget_tokens=budget_tokens,
                     include_tests=include_tests,
                     include_omitted_ids=include_omitted_ids,
+                    include_digests=include_digests,
                     format=format,
                     profile=profile,
                 ),
@@ -525,8 +527,9 @@ def build_server(
     )
     def get_index_status(
         repo_id: Annotated[str, Field(description="Registered repository ID from list_repositories (never a filesystem path; returns unknown_repo_id if unregistered).")],
+        verbose: Annotated[bool, Field(description="Include full diagnostic metadata (role_counts, entry_points, derived_defaults, added_paths, edge_precision); defaults to False for compact status.")] = False,
     ) -> CallToolResult:
-        return _wrap(_invoke(lambda: service.status(repo_id), tool_name="get_index_status"))
+        return _wrap(_invoke(lambda: service.status(repo_id, verbose=verbose), tool_name="get_index_status"))
 
     @server.tool(
         title="Inspect symbol (composite)",

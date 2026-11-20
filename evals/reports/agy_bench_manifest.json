@@ -1,0 +1,87 @@
+{
+  "benchmark": "antigravity_5prompt_token_efficiency",
+  "repo_id": "token-context",
+  "date": "2026-11-19",
+  "runs": [
+    {
+      "run_id": "flash_a0",
+      "model_tier": "flash",
+      "arm": "A0",
+      "arm_label": "No MCP (Plain)",
+      "conversation_id": "e2776e65-12ae-4d76-be0c-81e936f40d6c",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_native (MCP disabled), plain Vietnamese P1..P5"
+    },
+    {
+      "run_id": "flash_a1",
+      "model_tier": "flash",
+      "arm": "A1",
+      "arm_label": "MCP Enabled (Plain Chat)",
+      "conversation_id": "7ca854bc-ed3f-4419-b7ce-a01bb445e81b",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_mcp (23 tools enabled), plain Vietnamese P1..P5 without sample_prompt.md"
+    },
+    {
+      "run_id": "flash_a3",
+      "model_tier": "flash",
+      "arm": "A3",
+      "arm_label": "MCP + sample_prompt.md (3.2 + 3.3)",
+      "conversation_id": "15e9679e-8a95-43b7-bd11-3e9e6ef880f2",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_mcp (23 tools enabled), sample_prompt.md §3.2 P1 + §3.3 P2..P5; agent_id=bench_flash_a3; skipped trajectory_record/memory_put because task was read-only"
+    },
+    {
+      "run_id": "pro_a0",
+      "model_tier": "pro",
+      "arm": "A0",
+      "arm_label": "No MCP (Plain)",
+      "conversation_id": "697ed1d1-f4cf-42e9-b48c-a168685866e2",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_native (MCP disabled), plain Vietnamese P1..P5"
+    },
+    {
+      "run_id": "pro_a1",
+      "model_tier": "pro",
+      "arm": "A1",
+      "arm_label": "MCP Enabled (Plain Chat)",
+      "conversation_id": "5c8ad3a2-596a-44cf-a1a6-3734e3522bee",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_mcp (23 tools enabled), plain Vietnamese P1..P5 without sample_prompt.md"
+    },
+    {
+      "run_id": "pro_a3",
+      "model_tier": "pro",
+      "arm": "A3",
+      "arm_label": "MCP + sample_prompt.md (3.2 + 3.3)",
+      "conversation_id": "fbe5e355-f6be-4afe-b03c-6bf70a4c38e2",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 5,
+      "notes": "bench_mcp (23 tools enabled), sample_prompt.md §3.2 P1 + §3.3 P2..P5; agent_id=bench_pro_a3; wrote 5 verified ledger cards (card_id 1..5) and session task.progress"
+    },
+    {
+      "run_id": "flash_a4",
+      "model_tier": "flash",
+      "arm": "A4",
+      "arm_label": "MCP + Lean Selective (3.0)",
+      "conversation_id": "d8b02c5c-37f2-40fb-a8dd-aab6d83874c0",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_mcp (post full-reindex excluding .venv*), sample_prompt.md §3.0 Lean Selective + 5-tool inline cheat-sheet; agent_id=bench_flash_a4"
+    },
+    {
+      "run_id": "pro_a4",
+      "model_tier": "pro",
+      "arm": "A4",
+      "arm_label": "MCP + Lean Selective (3.0)",
+      "conversation_id": "92ce7d18-5a67-4bc3-8447-d397a7196359",
+      "cache_discount_factor": 0.05,
+      "ledger_cards_created": 0,
+      "notes": "bench_mcp (post full-reindex excluding .venv*), sample_prompt.md §3.0 Lean Selective + 5-tool inline cheat-sheet; agent_id=bench_pro_a4"
+    }
+  ]
+}

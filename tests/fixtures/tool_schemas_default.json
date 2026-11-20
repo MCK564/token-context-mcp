@@ -358,6 +358,12 @@
         "description": "Registered repository ID from list_repositories (never a filesystem path; returns unknown_repo_id if unregistered).",
         "title": "Repo Id",
         "type": "string"
+      },
+      "verbose": {
+        "default": false,
+        "description": "Include full diagnostic metadata (role_counts, entry_points, derived_defaults, added_paths, edge_precision); defaults to False for compact status.",
+        "title": "Verbose",
+        "type": "boolean"
       }
     },
     "required": [
@@ -444,7 +450,7 @@
           }
         ],
         "default": null,
-        "description": "Token cap for the response (32 to max_result_tokens); defaults to 'orient' profile (4096) and sets truncated=true if symbols are omitted.",
+        "description": "Token cap for the response (32 to max_result_tokens); defaults to 'orient' profile (1024) and sets truncated=true if symbols are omitted.",
         "title": "Budget Tokens"
       },
       "format": {
@@ -452,6 +458,7 @@
           {
             "enum": [
               "compact",
+              "grouped",
               "full"
             ],
             "type": "string"
@@ -461,8 +468,14 @@
           }
         ],
         "default": null,
-        "description": "Entry detail: 'compact' returns [id, path:line, kind/name] tuples; 'full' returns full symbol objects, signatures, and evidence.",
+        "description": "Entry detail: 'compact' returns [id, path:line, kind/name] tuples; 'grouped' maps path to compact lines; 'full' returns full symbol objects, signatures, and evidence.",
         "title": "Format"
+      },
+      "include_digests": {
+        "default": false,
+        "description": "Include per-file 12-char SHA-256 file_digests map in compact or grouped mode (defaults to False).",
+        "title": "Include Digests",
+        "type": "boolean"
       },
       "include_omitted_ids": {
         "default": false,

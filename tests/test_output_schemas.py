@@ -34,8 +34,8 @@ def test_output_schema_advertised_by_output_mode_and_client(indexed_config: Path
                 for prop_name, prop_schema in t.input_schema.get("properties", {}).items():
                     assert prop_schema.get("description"), f"{t.name}.{prop_name} missing description"
 
-        # 2. Text mode / Gemini auto mode: outputSchema omitted so ClientSession never expects structured_content
-        for mode, cname in (("text", "claude-code"), ("auto", "Antigravity-IDE")):
+        # 2. Text / compact_text mode / Gemini auto mode: outputSchema omitted so ClientSession never expects structured_content
+        for mode, cname in (("text", "claude-code"), ("compact_text", "claude-code"), ("auto", "Antigravity-IDE")):
             srv_text = build_server(
                 indexed_config,
                 enable_extensions=True,

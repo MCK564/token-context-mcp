@@ -10,12 +10,15 @@ _SECRET_LINE_RE = re.compile(
     r"(?i)\b(?:api[_-]?key|secret|token|password|passwd|private[_-]?key|authorization)\b\s*(?:=|:|=>)\s*(?:[\"'][^\"']{4,}[\"']|[^\s\"']{4,})"
 )
 _PEM_RE = re.compile(r"-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----")
+_VENV_DIR_RE = re.compile(r"^\.?venv(?:[._-].+|\d+)?$")
 
 
 def is_hard_denied(relative_path: str) -> bool:
     path = Path(relative_path)
     lowered_parts = {part.lower() for part in path.parts}
     if lowered_parts & HARD_DENY_DIRECTORIES:
+        return True
+    if any(_VENV_DIR_RE.match(part) for part in lowered_parts):
         return True
     name = path.name.lower()
     if name in HARD_DENY_FILE_NAMES or name.startswith(".env"):
