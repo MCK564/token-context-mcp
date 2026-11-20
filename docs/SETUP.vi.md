@@ -55,6 +55,37 @@ uv sync --all-extras
 
 `uv sync` tự tạo `.venv/` và cài đúng phiên bản trong `uv.lock`. Không cần `python -m venv` thủ công. `--all-extras` cài cả nhóm `dev`, `gui` và `watch` (mục 2.5); `uv sync` trơn chỉ cài phần server. Lưu ý `uv sync` là "exact": nó **gỡ** các gói không thuộc extra bạn truyền, nên luôn truyền đủ mọi extra cần dùng trong cùng một lệnh. Danh sách điều kiện tiên quyết đầy đủ và cách tải model nằm ở mục "Prerequisites and installation" của README.
 
+### 2.2b Cài đặt nhanh từ file Wheel (`.whl`) của bản Release (Máy mới hoặc Nâng cấp)
+
+Khi tải file `.whl` từ trang GitHub Releases (`token_context_mcp-<version>-py3-none-any.whl`), bạn có thể cài trọn gói kèm Desktop GUI chỉ với một lệnh:
+
+```powershell
+# Cài global bằng uv (khuyên dùng, tự tạo lệnh `token-context` và `token-context-gui`)
+uv tool install "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]" --upgrade
+
+# Hoặc cài trong môi trường ảo .venv có sẵn
+pip install --upgrade "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]"
+```
+
+Sau khi cài hoặc nâng cấp `.whl`, kích hoạt tự động gọi tool & tối ưu token cho Antigravity/IDE bằng **một trong hai cách** sau:
+
+- **Cách 1 — 1-Click trên Desktop GUI (khuyên dùng):**
+  1. Chạy `token-context-gui`.
+  2. Trên tab **Dashboard**, bấm **"Install Agent Rules & Setup"** (hoặc nút **"Install Lean Agent Rules..."** trong tab **Settings**).
+  3. Giữ nguyên các ô tick mặc định rồi bấm **"Install / Update Now"** — công cụ sẽ tự động gắn Rule Siêu Gọn vào `~/.gemini/GEMINI.md` và `.agents/rules/token-context-lean.md` của mọi repo, chuyển `output_mode = "compact_text"` trong `repos.toml`, và đăng ký/cập nhật server `token-context` vào `~/.gemini/config/mcp_config.json`.
+  4. Sang tab **Repositories** để **Add** repo mới hoặc bấm **"Re-index all"** nếu nâng cấp từ bản cũ.
+  5. Bấm **Reload / Refresh** cho `token-context` trong Antigravity (**MCP Servers**) là xong.
+
+- **Cách 2 — 1 lệnh CLI (không cần mở UI):**
+  ```powershell
+  # Máy mới (đăng ký repo đầu tiên + index + gắn rule + ghi mcp_config.json):
+  token-context quickstart D:\duong_dan\repo --full --install-rules --antigravity-mcp
+
+  # Hoặc máy đang nâng cấp từ bản cũ (cập nhật rule + compact_text + rebuild index mọi repo):
+  token-context install-rules --antigravity-mcp
+  token-context index --all --full
+  ```
+
 ### 2.3 Cài đặt trong Môi trường Air-Gapped / Không có mạng (Tải ZIP thủ công)
 
 Nếu máy làm việc nằm trong mạng nội bộ cô lập, không có mạng hoặc không truy cập được Git, bạn có thể tạo gói ZIP đầy đủ bánh xe (wheels) từ một máy có mạng:

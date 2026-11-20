@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 from PySide6.QtCore import Qt, QTimer
@@ -9,11 +10,13 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
@@ -24,6 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from token_context_mcp.agent_setup import LEAN_RULE_BODY
 from token_context_mcp.gui.bridge import RepoManager, ServerController, detect_ai_hardware
 from token_context_mcp.gui.icons import make_icon
 from token_context_mcp.gui.theme import (
@@ -69,9 +73,12 @@ class CopyConfigDialog(QDialog):
         opts.setSpacing(14)
         self.chk_admin = QCheckBox("Enable Admin Tools")
         self.chk_admin.toggled.connect(self._update_preview)
+        self.chk_compact = QCheckBox("Force --output-mode compact_text (Recommended, -76% tokens)")
+        self.chk_compact.toggled.connect(self._on_compact_toggled)
         self.chk_text = QCheckBox("Force --output-mode text")
-        self.chk_text.toggled.connect(self._update_preview)
+        self.chk_text.toggled.connect(self._on_text_toggled)
         opts.addWidget(self.chk_admin)
+        opts.addWidget(self.chk_compact)
         opts.addWidget(self.chk_text)
         opts.addStretch()
         layout.addLayout(opts)
@@ -104,6 +111,16 @@ class CopyConfigDialog(QDialog):
 
         self._update_preview()
 
+    def _on_compact_toggled(self, checked: bool) -> None:
+        if checked and self.chk_text.isChecked():
+            self.chk_text.setChecked(False)
+        self._update_preview()
+
+    def _on_text_toggled(self, checked: bool) -> None:
+        if checked and self.chk_compact.isChecked():
+            self.chk_compact.setChecked(False)
+        self._update_preview()
+
     def _update_preview(self) -> None:
         client = self.client_combo.currentText()
         raw = self.server_ctrl.get_client_config(client)
@@ -120,8 +137,16 @@ class CopyConfigDialog(QDialog):
             args = list(srv_obj.get("args") or [])
             if self.chk_admin.isChecked() and "--enable-admin-tools" not in args:
                 args.append("--enable-admin-tools")
-            if self.chk_text.isChecked() and "--output-mode" not in args:
-                args.extend(["--output-mode", "text"])
+            forced_mode = "compact_text" if self.chk_compact.isChecked() else ("text" if self.chk_text.isChecked() else None)
+            if forced_mode is not None:
+                if "--output-mode" in args:
+                    idx = args.index("--output-mode")
+                    if idx + 1 < len(args):
+                        args[idx + 1] = forced_mode
+                    else:
+                        args.append(forced_mode)
+                else:
+                    args.extend(["--output-mode", forced_mode])
             srv_obj["args"] = args
             agent_id = self.agent_id_input.text().strip()
             if agent_id:
@@ -141,6 +166,123 @@ class CopyConfigDialog(QDialog):
     def _reset_copy_btn(self) -> None:
         self.copy_btn.setText("Copy to Clipboard")
         self.copy_btn.setEnabled(True)
+
+
+class InstallRulesDialog(QDialog):
+    def __init__(self, repo_mgr: RepoManager, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.repo_mgr = repo_mgr
+        self.setWindowTitle("1-Click Install Lean Agent Rules & MCP Setup")
+        self.resize(680, 520)
+        self.setMinimumSize(540, 420)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(10)
+
+        title = QLabel("Configure AI Clients for Automatic Token-Saving Retrieval")
+        title.setProperty("class", "SectionTitle")
+        layout.addWidget(title)
+
+        hint = QLabel(
+            "Installs the 11-line Lean Selective rule (zero schema-read churn, anti-double-read) "
+            "and switches repos.toml to compact_text."
+        )
+        hint.setProperty("class", "MutedHint")
+        hint.setWordWrap(True)
+        layout.addWidget(hint)
+
+        self.chk_global_gemini = QCheckBox("Install Global Antigravity / Gemini Rule (~/.gemini/GEMINI.md)")
+        self.chk_global_gemini.setChecked(True)
+        layout.addWidget(self.chk_global_gemini)
+
+        self.chk_repos = QCheckBox("Install Workspace Rule (.agents/rules/token-context-lean.md) in all registered repos")
+        self.chk_repos.setChecked(True)
+        layout.addWidget(self.chk_repos)
+
+        self.chk_compact_text = QCheckBox("Set Server Output Mode to 'compact_text' in repos.toml (-76% wire tokens)")
+        self.chk_compact_text.setChecked(True)
+        layout.addWidget(self.chk_compact_text)
+
+        self.chk_ag_mcp = QCheckBox("Auto-register / Update Antigravity MCP (~/.gemini/config/mcp_config.json)")
+        self.chk_ag_mcp.setChecked(True)
+        layout.addWidget(self.chk_ag_mcp)
+
+        self.chk_global_claude = QCheckBox("Install Global Claude Rule (~/.claude/CLAUDE.md)")
+        self.chk_global_claude.setChecked(False)
+        layout.addWidget(self.chk_global_claude)
+
+        ws_row = QHBoxLayout()
+        ws_row.setSpacing(8)
+        ws_row.addWidget(QLabel("Extra Workspace Folder (optional):"))
+        self.extra_ws_input = QLineEdit()
+        self.extra_ws_input.setPlaceholderText("e.g. D:/AI or another project root")
+        ws_row.addWidget(self.extra_ws_input, 1)
+        self.browse_btn = QPushButton("Browse...")
+        self.browse_btn.clicked.connect(self._browse_workspace)
+        ws_row.addWidget(self.browse_btn)
+        layout.addLayout(ws_row)
+
+        self.preview = QPlainTextEdit()
+        self.preview.setReadOnly(True)
+        self.preview.setStyleSheet("font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 12px;")
+        self.preview.setPlainText(LEAN_RULE_BODY.strip())
+        layout.addWidget(self.preview, 1)
+
+        self.status_label = QLabel("")
+        self.status_label.setProperty("class", "MutedHint")
+        self.status_label.setWordWrap(True)
+        layout.addWidget(self.status_label)
+
+        btns = QHBoxLayout()
+        btns.addStretch()
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        self.install_btn = QPushButton("Install / Update Now")
+        self.install_btn.setIcon(make_icon("check", COLOR_CRUST))
+        self.install_btn.setProperty("class", "PrimaryButton")
+        self.install_btn.clicked.connect(self._on_install_clicked)
+        btns.addWidget(close_btn)
+        btns.addWidget(self.install_btn)
+        layout.addLayout(btns)
+
+    def _browse_workspace(self) -> None:
+        chosen = QFileDialog.getExistingDirectory(self, "Select Workspace Root Directory")
+        if chosen:
+            self.extra_ws_input.setText(chosen)
+
+    def run_install(self) -> dict[str, Any]:
+        extra = self.extra_ws_input.text().strip()
+        ws_dirs = [Path(extra)] if extra else []
+        srv_cfg = self.repo_mgr.get_server_config()
+        res = self.repo_mgr.install_agent_rules(
+            global_gemini=self.chk_global_gemini.isChecked(),
+            global_claude=self.chk_global_claude.isChecked(),
+            registered_repos=self.chk_repos.isChecked(),
+            workspace_dirs=ws_dirs,
+            set_compact_text=self.chk_compact_text.isChecked(),
+            install_antigravity_mcp=self.chk_ag_mcp.isChecked(),
+            enable_admin_tools=bool(srv_cfg.get("enable_admin_tools", False)),
+        )
+        lines = [
+            f"Config: {res['config_path']} (output_mode={res['output_mode']})",
+            f"Updated files ({len(res['updated_files'])}):",
+        ]
+        for item in res["updated_files"]:
+            lines.append(f"  - [{item['status']}] {item['path']} ({item['kind']})")
+        if res["skipped_repos"]:
+            lines.append(f"Skipped missing paths: {', '.join(res['skipped_repos'])}")
+        lines.append("")
+        lines.append("Next: Reload MCP server in Antigravity / your IDE to apply.")
+        self.preview.setPlainText("\n".join(lines))
+        self.status_label.setText("Installation complete! Restart or reload MCP in your AI client.")
+        return res
+
+    def _on_install_clicked(self) -> None:
+        try:
+            self.run_install()
+        except Exception as exc:
+            QMessageBox.critical(self, "Install Failed", str(exc))
 
 
 class DashboardTab(QWidget):
@@ -224,6 +366,11 @@ class DashboardTab(QWidget):
         s_header.addWidget(s_title)
         s_header.addStretch()
 
+        self.install_rules_btn = QPushButton("Install Agent Rules && Setup")
+        self.install_rules_btn.setIcon(make_icon("check", COLOR_TEXT_PRIMARY))
+        self.install_rules_btn.clicked.connect(self._open_install_rules_dialog)
+        s_header.addWidget(self.install_rules_btn)
+
         self.copy_cfg_btn = QPushButton("Copy Client Config")
         self.copy_cfg_btn.setIcon(make_icon("copy", COLOR_TEXT_PRIMARY))
         self.copy_cfg_btn.clicked.connect(self._open_copy_dialog)
@@ -291,6 +438,9 @@ class DashboardTab(QWidget):
 
     def _open_copy_dialog(self) -> None:
         CopyConfigDialog(self.server_ctrl, self).exec()
+
+    def _open_install_rules_dialog(self) -> None:
+        InstallRulesDialog(self.repo_mgr, self).exec()
 
     def update_telemetry(self, data: Any) -> None:
         g = (lambda k, d=0.0: data.get(k, d)) if isinstance(data, dict) else (lambda k, d=0.0: getattr(data, k, d))

@@ -59,6 +59,37 @@ uv sync --all-extras
 
 `uv sync` creates `.venv/` and installs the exact versions pinned in `uv.lock`. There is no separate `python -m venv` step. `--all-extras` installs the `dev`, `gui` and `watch` groups (2.5); plain `uv sync` installs the server only. `uv sync` is exact: it removes packages outside the extras you pass, so always pass every extra you need in one command. The full list of prerequisites and the model download is in the README section "Prerequisites and installation".
 
+### 2.2b Installing from a GitHub Release Wheel (`.whl`) (Fresh Machine or Upgrade)
+
+When installing a downloaded `.whl` from GitHub Releases (`token_context_mcp-<version>-py3-none-any.whl`):
+
+```powershell
+# Global install via uv (recommended — exposes `token-context` and `token-context-gui`)
+uv tool install "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]" --upgrade
+
+# Or inside an existing virtualenv
+pip install --upgrade "token_context_mcp-0.3.10-py3-none-any.whl[gui,watch]"
+```
+
+Then configure Lean Selective agent rules (`~/.gemini/GEMINI.md` & `.agents/rules/token-context-lean.md`), `output_mode = "compact_text"`, and Antigravity MCP registration using **either** option:
+
+- **Option 1 — 1-Click in Desktop GUI (Recommended):**
+  1. Launch `token-context-gui`.
+  2. On **Dashboard**, click **"Install Agent Rules & Setup"** (or **"Install Lean Agent Rules..."** in **Settings**).
+  3. Keep the recommended defaults checked and click **"Install / Update Now"**.
+  4. In the **Repositories** tab, add any new repositories or click **"Re-index all"** when upgrading from an older version.
+  5. Reload/Refresh `token-context` in Antigravity's **MCP Servers** panel.
+
+- **Option 2 — 1-Command CLI:**
+  ```powershell
+  # Fresh machine + first repo:
+  token-context quickstart D:\path\to\repo --full --install-rules --antigravity-mcp
+
+  # Upgrading an existing machine:
+  token-context install-rules --antigravity-mcp
+  token-context index --all --full
+  ```
+
 ### 2.3 Air-Gapped / Offline Installation (Manual ZIP Bundle)
 
 For isolated corporate networks, air-gapped workstations, or machines without direct Git connectivity, package the repository with binary wheels from an internet-connected machine:

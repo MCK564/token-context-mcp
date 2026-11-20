@@ -6,7 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from token_context_mcp.cli import build_parser
+from token_context_mcp.agent_setup import (
+    RULE_BEGIN_MARKER,
+    RULE_END_MARKER,
+    install_lean_rules,
+)
+from token_context_mcp.cli import build_parser, main as cli_main
 from token_context_mcp.client_profile import OUTPUT_MODES, resolve_output_mode
 from token_context_mcp.config import DEFAULT_BUDGET_PROFILES, load_config, save_config
 from token_context_mcp.index.runner import build_index
@@ -263,3 +268,96 @@ def test_mcp_server_get_index_status_defaults_slim_and_compact_text_mode(tmp_pat
     assert compact_res.structured_content is None
     assert compact_res.content[0].text.startswith("repo=demo freshness=fresh")
     assert "@ src/mod_" in compact_res.content[0].text
+
+
+def test_install_lean_rules_idempotent_and_mcp_config(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "my_repo"
+    repo_dir.mkdir(parents=True)
+    cfg_path = tmp_path / "cfg" / "repos.toml"
+    save_config(
+        cfg_path,
+        AppConfig(
+            repositories={"demo": RepositoryConfig(repo_id="demo", root=repo_dir.resolve())},
+            server=ServerConfig(output_mode="text"),
+        ),
+    )
+
+    home_dir = tmp_path / "home"
+    gemini_rule = home_dir / ".gemini" / "GEMINI.md"
+    gemini_rule.parent.mkdir(parents=True)
+    gemini_rule.write_text("# Gemini Global Rules\n- Keep responses concise.\n", encoding="utf-8")
+
+    mcp_cfg = home_dir / ".gemini" / "config" / "mcp_config.json"
+    mcp_cfg.parent.mkdir(parents=True)
+    mcp_cfg.write_text(
+        json.dumps({"mcpServers": {"other-server": {"command": "echo"}}}, indent=2),
+        encoding="utf-8",
+    )
+
+    res1 = install_lean_rules(
+        config_path=cfg_path,
+        home_dir=home_dir,
+        global_gemini=True,
+        global_claude=True,
+        registered_repos=True,
+        set_compact_text=True,
+        install_antigravity_mcp=True,
+    )
+    assert res1["output_mode"] == "compact_text"
+    assert load_config(cfg_path).server.output_mode == "compact_text"
+
+    gemini_text = gemini_rule.read_text(encoding="utf-8")
+    assert "- Keep responses concise." in gemini_text
+    assert gemini_text.count(RULE_BEGIN_MARKER) == 1
+    assert gemini_text.count(RULE_END_MARKER) == 1
+
+    claude_rule = home_dir / ".claude" / "CLAUDE.md"
+    assert claude_rule.is_file()
+    assert "# Token-Context MCP: Lean Selective" in claude_rule.read_text(encoding="utf-8")
+
+    ws_rule = repo_dir / ".agents" / "rules" / "token-context-lean.md"
+    assert ws_rule.is_file()
+    assert "# Token-Context MCP: Lean Selective" in ws_rule.read_text(encoding="utf-8")
+
+    parsed_mcp = json.loads(mcp_cfg.read_text(encoding="utf-8"))
+    assert "other-server" in parsed_mcp["mcpServers"]
+    tc_args = parsed_mcp["mcpServers"]["token-context"]["args"]
+    assert "--output-mode" in tc_args and "compact_text" in tc_args
+
+    # Calling a second time must remain idempotent without duplicating the block.
+    install_lean_rules(
+        config_path=cfg_path,
+        home_dir=home_dir,
+        global_gemini=True,
+        global_claude=True,
+        registered_repos=True,
+        set_compact_text=True,
+        install_antigravity_mcp=True,
+    )
+    gemini_text_2 = gemini_rule.read_text(encoding="utf-8")
+    assert gemini_text_2.count(RULE_BEGIN_MARKER) == 1
+    assert gemini_text_2.count(RULE_END_MARKER) == 1
+    assert "- Keep responses concise." in gemini_text_2
+
+
+def test_cli_install_rules(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    repo_dir = tmp_path / "cli_repo"
+    repo_dir.mkdir(parents=True)
+    cfg_path = tmp_path / "repos.toml"
+    save_config(
+        cfg_path,
+        AppConfig(
+            repositories={"cli_repo": RepositoryConfig(repo_id="cli_repo", root=repo_dir.resolve())},
+            server=ServerConfig(output_mode="text"),
+        ),
+    )
+    fake_home = tmp_path / "fake_home"
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+    rc = cli_main(["install-rules", "--config", str(cfg_path), "--antigravity-mcp"])
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["output_mode"] == "compact_text"
+    assert (fake_home / ".gemini" / "GEMINI.md").is_file()
+    assert (repo_dir / ".agents" / "rules" / "token-context-lean.md").is_file()
+    assert (fake_home / ".gemini" / "config" / "mcp_config.json").is_file()

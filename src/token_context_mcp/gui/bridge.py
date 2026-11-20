@@ -347,6 +347,35 @@ class RepoManager:
         save_config(self.config_path, new_app)
         self.invalidate_cache()
 
+    def install_agent_rules(
+        self,
+        *,
+        global_gemini: bool = True,
+        global_claude: bool = False,
+        registered_repos: bool = True,
+        workspace_dirs: list[Path] | None = None,
+        set_compact_text: bool = True,
+        install_antigravity_mcp: bool = False,
+        enable_admin_tools: bool = False,
+        home_dir: Path | None = None,
+    ) -> dict[str, Any]:
+        """Install Lean Selective agent rules, update output_mode, and optionally register MCP."""
+        from token_context_mcp.agent_setup import install_lean_rules
+
+        result = install_lean_rules(
+            config_path=self.config_path,
+            home_dir=home_dir,
+            global_gemini=global_gemini,
+            global_claude=global_claude,
+            registered_repos=registered_repos,
+            workspace_dirs=workspace_dirs,
+            set_compact_text=set_compact_text,
+            install_antigravity_mcp=install_antigravity_mcp,
+            enable_admin_tools=enable_admin_tools,
+        )
+        self.invalidate_cache()
+        return result
+
     def get_repo_insights(self, repo_id: str, query: str = "", limit: int = 30) -> dict[str, Any]:
         """Return role distribution and top/matching symbols from the active snapshot."""
         config = load_config(self.config_path)

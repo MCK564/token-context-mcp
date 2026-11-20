@@ -17,7 +17,7 @@ from token_context_mcp.gui.bridge import AgentSecurityController, RepoManager, S
 from token_context_mcp.gui.main_window import MainWindow
 from token_context_mcp.gui.widgets.agents_tab import AgentsTab
 from token_context_mcp.gui.widgets.cache_tab import CacheTab
-from token_context_mcp.gui.widgets.dashboard_tab import DashboardTab
+from token_context_mcp.gui.widgets.dashboard_tab import CopyConfigDialog, DashboardTab, InstallRulesDialog
 from token_context_mcp.gui.widgets.repositories_tab import RepositoriesTab
 from token_context_mcp.gui.widgets.settings_tab import SettingsTab
 from token_context_mcp.gui.widgets.tasks_tab import TasksTab
@@ -93,6 +93,7 @@ def test_individual_widgets(qapp, temp_gui_env):
     dashboard = DashboardTab(repo_mgr, server_ctrl)
     sync_render(dashboard)
     assert dashboard.stat_repos.text() == "1"
+    assert dashboard.install_rules_btn is not None
 
     # Repositories tab
     repos_tab = RepositoriesTab(repo_mgr)
@@ -133,6 +134,16 @@ def test_individual_widgets(qapp, temp_gui_env):
     sync_render(settings_tab)
     assert settings_tab.spin_tokens.value() > 0
     assert settings_tab.chk_ledger_enabled.isChecked() is True
+    assert settings_tab.install_rules_btn is not None
+
+    # 1-Click Installer dialog & CopyConfigDialog compact_text toggle
+    install_dlg = InstallRulesDialog(repo_mgr)
+    assert install_dlg.chk_global_gemini.isChecked() is True
+    assert install_dlg.chk_compact_text.isChecked() is True
+    assert install_dlg.chk_repos.isChecked() is True
+    copy_dlg = CopyConfigDialog(server_ctrl)
+    copy_dlg.chk_compact.setChecked(True)
+    assert "compact_text" in copy_dlg.preview.toPlainText()
 
     # Ledger tab
     from token_context_mcp.gui.widgets.ledger_tab import LedgerTab

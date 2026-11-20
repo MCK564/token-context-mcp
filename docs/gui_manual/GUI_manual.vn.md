@@ -55,7 +55,9 @@ Giao diện được phân bổ thành 6 Tab điều khiển chuyên biệt trê
 - **Active Servers Panel:**
   - Liệt kê thời gian thực các phiên MCP Server đang chạy ngầm (`stdio`), kèm PID, thời gian heartbeat gần nhất, `output_mode` và `schema_profile` đang hoạt động.
 - **Nút "Copy Client Config":**
-  - Cho phép chọn nhanh client (Claude Desktop, Claude Code, VS Code Copilot, Antigravity, Cursor) để copy khối JSON cấu hình chuẩn.
+  - Cho phép chọn nhanh client (Claude Desktop, Claude Code, VS Code Copilot, Antigravity, Cursor) để copy khối JSON cấu hình chuẩn (có tùy chọn bật `--output-mode compact_text`).
+- **Nút "Install Agent Rules & Setup" (Cài đặt nhanh 1-click):**
+  - Mở hộp thoại cài đặt tự động: ghi Rule Siêu Gọn (`token-context-lean`) vào `~/.gemini/GEMINI.md` (hoặc `~/.claude/CLAUDE.md`) và `.agents/rules/token-context-lean.md` của mọi repo đã đăng ký, chuyển `output_mode = "compact_text"` trong `repos.toml`, và tùy chọn ghi/cập nhật mục `token-context` vào `~/.gemini/config/mcp_config.json`.
 
 ---
 
@@ -106,8 +108,9 @@ Bảng điều khiển trung tâm để quản lý mọi kho mã nguồn đã đ
 - **Trình chỉnh sửa `repos.toml`:** Xem và chỉnh sửa trực tiếp các tham số server:
   - `max_request_bytes`: Giới hạn payload truyền nhận (mặc định: 64 KB).
   - `max_result_tokens`: Giới hạn token trả về tối đa (mặc định: 8192).
-  - `enable_extensions`: Bật/tắt 9 công cụ mở rộng (Memory, Tool Discovery, Sampling).
-  - `output_mode`: Chế độ xuất dữ liệu (`auto`, `structured`, `text`).
+  - `enable_extensions`: Bật/tắt 11 công cụ mở rộng (Discovery, Memory, Sampling, Trajectory Record).
+  - `output_mode`: Chế độ xuất dữ liệu (`auto`, `structured`, `text`, `compact_text`, `legacy_dual` — khuyên dùng `compact_text` cho Antigravity/Gemini để giảm ~76% wire token).
+- Nút **"Install Lean Agent Rules..."** mở nhanh bộ cài 1-click cho Rule & MCP Client và tự làm mới cấu hình sau khi lưu.
 - Lưu và tải lại cấu hình mà không cần khởi động lại toàn bộ ứng dụng.
 
 ---

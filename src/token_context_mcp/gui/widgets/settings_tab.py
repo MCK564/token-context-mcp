@@ -86,7 +86,10 @@ class SettingsTab(QWidget):
         self.combo_output.setMinimumWidth(200)
         form.addRow("Output Mode:", self.combo_output)
 
-        tip = QLabel("Tip: 'auto' detects client capability; 'text' avoids truncation in Gemini / Antigravity.")
+        tip = QLabel(
+            "Tip: 'compact_text' cuts wire tokens by ~76% (recommended for Antigravity/Gemini); "
+            "'auto' detects client capability."
+        )
         tip.setProperty("class", "MutedHint")
         tip.setWordWrap(True)
         form.addRow("", tip)
@@ -184,6 +187,10 @@ class SettingsTab(QWidget):
         self.reset_ledger_btn = QPushButton("Reset Ledger Defaults")
         self.reset_ledger_btn.clicked.connect(self._reset_ledger_defaults)
         btn_row.addWidget(self.reset_ledger_btn)
+
+        self.install_rules_btn = QPushButton("Install Lean Agent Rules...")
+        self.install_rules_btn.clicked.connect(self._open_install_rules)
+        btn_row.addWidget(self.install_rules_btn)
         btn_row.addStretch()
 
         self.save_btn = QPushButton("Save Server Settings")
@@ -220,6 +227,12 @@ class SettingsTab(QWidget):
         self.dspin_ans_jaccard.setValue(float(cfg.get("ledger_answer_jaccard_min", LedgerConfig.answer_jaccard_min)))
         self.spin_ans_overlap.setValue(int(cfg.get("ledger_answer_min_overlap", LedgerConfig.answer_min_overlap)))
         self.dspin_decoy_jaccard.setValue(float(cfg.get("ledger_decoy_jaccard_min", LedgerConfig.decoy_jaccard_min)))
+
+    def _open_install_rules(self) -> None:
+        from token_context_mcp.gui.widgets.dashboard_tab import InstallRulesDialog
+
+        InstallRulesDialog(self.repo_mgr, self).exec()
+        self.refresh()
 
     def _reset_ledger_defaults(self) -> None:
         d = LedgerConfig()

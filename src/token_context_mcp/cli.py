@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TextIO
 
 from token_context_mcp import __version__
+from token_context_mcp.agent_setup import install_lean_rules
 from token_context_mcp.config import (
     ConfigError,
     default_config_path,
@@ -112,8 +113,65 @@ def build_parser() -> argparse.ArgumentParser:
     quickstart.add_argument("--repo-id", help="Repository ID (default: folder name)")
     quickstart.add_argument("--config", type=Path, default=default_config_path())
     quickstart.add_argument("--full", action="store_true", help="Ignore existing snapshot and index from scratch")
+    quickstart.add_argument(
+        "--install-rules",
+        action="store_true",
+        help="Install Lean Selective agent rules (~/.gemini/GEMINI.md & .agents/rules) and set output_mode='compact_text'",
+    )
+    quickstart.add_argument(
+        "--antigravity-mcp",
+        action="store_true",
+        help="Register/update token-context in ~/.gemini/config/mcp_config.json",
+    )
     quickstart.add_argument("--serve", action="store_true", help="Start MCP stdio server immediately after indexing")
     quickstart.add_argument("--gui", action="store_true", help="Launch Desktop GUI controller")
+
+    install_rules = subparsers.add_parser(
+        "install-rules",
+        help="Install Lean Selective agent rules (GEMINI.md / .agents/rules), set compact_text, and optionally register Antigravity MCP",
+    )
+    install_rules.add_argument("--config", type=Path, default=default_config_path())
+    install_rules.add_argument(
+        "--global-gemini",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Update ~/.gemini/GEMINI.md global rule (default: true)",
+    )
+    install_rules.add_argument(
+        "--global-claude",
+        action="store_true",
+        help="Also update ~/.claude/CLAUDE.md global rule",
+    )
+    install_rules.add_argument(
+        "--repos",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Install .agents/rules/token-context-lean.md into all registered repos (default: true)",
+    )
+    install_rules.add_argument(
+        "-w",
+        "--workspace",
+        action="append",
+        type=Path,
+        default=[],
+        help="Additional workspace directory to install .agents/rules/token-context-lean.md into",
+    )
+    install_rules.add_argument(
+        "--compact-text",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Set server.output_mode = 'compact_text' in repos.toml (default: true)",
+    )
+    install_rules.add_argument(
+        "--antigravity-mcp",
+        action="store_true",
+        help="Register/update token-context in ~/.gemini/config/mcp_config.json",
+    )
+    install_rules.add_argument(
+        "--enable-admin-tools",
+        action="store_true",
+        help="Include --enable-admin-tools when writing mcp_config.json",
+    )
 
     ledger = subparsers.add_parser("ledger", help="Manage the verified evidence ledger")
     ledger_sub = ledger.add_subparsers(dest="ledger_command", required=True)
@@ -178,6 +236,19 @@ def main(argv: list[str] | None = None) -> int:
             _emit({key: str(value) for key, value in write_release_materials(Path.cwd(), args.output).items()})
         elif args.command == "quickstart":
             return _run_quickstart(args)
+        elif args.command == "install-rules":
+            _emit(
+                install_lean_rules(
+                    config_path=args.config,
+                    global_gemini=args.global_gemini,
+                    global_claude=args.global_claude,
+                    registered_repos=args.repos,
+                    workspace_dirs=args.workspace,
+                    set_compact_text=args.compact_text,
+                    install_antigravity_mcp=args.antigravity_mcp,
+                    enable_admin_tools=args.enable_admin_tools,
+                )
+            )
         elif args.command == "ledger":
             return _run_ledger(args)
         return 0
@@ -285,10 +356,23 @@ def _run_quickstart(args: argparse.Namespace) -> int:
     print('      "mcpServers": {')
     print('        "token-context": {')
     print('          "command": "uvx",')
-    print('          "args": ["token-context-mcp", "serve", "--output-mode", "text", "--schema-profile", "gemini_safe"]')
+    print('          "args": ["token-context-mcp", "serve", "--schema-profile", "gemini_safe", "--output-mode", "compact_text"]')
     print("        }")
     print("      }")
     print("    }")
+    if args.install_rules or args.antigravity_mcp:
+        setup_res = install_lean_rules(
+            config_path=args.config,
+            global_gemini=True,
+            registered_repos=True,
+            workspace_dirs=[root],
+            set_compact_text=True,
+            install_antigravity_mcp=bool(args.antigravity_mcp),
+        )
+        print("-" * 65)
+        print(f" [OK] Lean Agent Rules installed (output_mode={setup_res['output_mode']}):")
+        for item in setup_res["updated_files"]:
+            print(f"      - [{item['status']}] {item['path']}")
     print("=" * 65)
 
     if args.gui:

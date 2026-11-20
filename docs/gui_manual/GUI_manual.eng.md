@@ -55,7 +55,9 @@ The interface is structured into 6 specialized tabs accessible via the left navi
 - **Active MCP Servers Panel:**
   - Real-time discovery of running MCP `stdio` server sessions, showing PID, heartbeat timestamps, active `output_mode`, and active `schema_profile`.
 - **"Copy Client Config" Button:**
-  - Instant one-click JSON configuration generation tailored for major MCP clients (Claude Desktop, Claude Code, VS Code Copilot, Google Antigravity, Cursor, and Codex CLI).
+  - Instant one-click JSON configuration generation tailored for major MCP clients (Claude Desktop, Claude Code, VS Code Copilot, Google Antigravity, Cursor, and Codex CLI), with optional `--output-mode compact_text`.
+- **"Install Agent Rules & Setup" Button (1-Click Installer):**
+  - Opens a wizard dialog to idempotently install the Lean Selective rule into `~/.gemini/GEMINI.md` (or `~/.claude/CLAUDE.md`) and `.agents/rules/token-context-lean.md` across all registered repositories, switch `repos.toml` to `output_mode = "compact_text"`, and register/update `token-context` in `~/.gemini/config/mcp_config.json`.
 
 ---
 
@@ -106,8 +108,9 @@ Central control table managing all registered codebases:
 - **Visual `repos.toml` Editor:** Review and adjust key server parameters:
   - `max_request_bytes`: Maximum request wire size (default: 64 KB).
   - `max_result_tokens`: Maximum response token ceiling (default: 8192).
-  - `enable_extensions`: Enable/disable 9 extended tools (Memory, Tool Discovery, Sampling).
-  - `output_mode`: Output mode (`auto`, `structured`, `text`).
+  - `enable_extensions`: Enable/disable the 11 extended tools (Discovery, Memory, Sampling, Trajectory Record).
+  - `output_mode`: Output mode (`auto`, `structured`, `text`, `compact_text`, `legacy_dual` — `compact_text` is recommended for Antigravity/Gemini for ~76% wire-token savings).
+- **"Install Lean Agent Rules..."** button opens the 1-click rule & MCP setup dialog and refreshes Settings immediately after completion.
 - Hot-reloads configuration without requiring a full desktop application restart.
 
 ---
