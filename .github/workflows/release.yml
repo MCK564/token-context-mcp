@@ -13,6 +13,7 @@ jobs:
   build-and-publish:
     name: Build, Release and Publish to PyPI
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +28,51 @@ jobs:
       - name: Build sdist and wheel
         run: uv build
 
+      - name: Verify tag version and clean-room wheel smoke test
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import shutil
+          import subprocess
+          import sys
+          import tomllib
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          tag_version = tag[1:] if tag.startswith("v") else tag
+          pyproject_version = tomllib.loads(pathlib.Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          assert tag_version == pyproject_version, f"Tag {tag} != pyproject.toml {pyproject_version}"
+
+          venv_dir = pathlib.Path("release-venv")
+          subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
+          try:
+              vpy = venv_dir / "bin/python"
+              vcli = venv_dir / "bin/token-context"
+              wheel = sorted(pathlib.Path("dist").glob("*.whl"))[-1]
+              subprocess.run([str(vpy), "-m", "pip", "install", str(wheel)], check=True)
+              installed_version = subprocess.check_output([str(vcli), "--version"], text=True).strip()
+              assert installed_version == tag_version, f"Installed CLI {installed_version} != {tag_version}"
+              subprocess.run([str(vpy), "evals/stdio_smoke.py"], check=True)
+          finally:
+              shutil.rmtree(venv_dir, ignore_errors=True)
+          PY
+
+      - name: Extract release notes for tag
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          ver = tag[1:] if tag.startswith("v") else tag
+          changelog = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          pattern = re.compile(rf"^##\s+{re.escape(ver)}\b.*?(?=^##\s+|\Z)", re.MULTILINE | re.DOTALL)
+          match = pattern.search(changelog)
+          notes = match.group(0).strip() if match else changelog.strip()
+          pathlib.Path("/tmp/release_notes.md").write_text(notes + "\n", encoding="utf-8")
+          PY
+
       - name: Attach CI-built wheel to the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -34,10 +80,13 @@ jobs:
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "Release $GITHUB_REF_NAME already exists. Updating artifacts..."
             gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --notes-file /tmp/release_notes.md
           else
             echo "Creating release $GITHUB_REF_NAME..."
-            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file /tmp/release_notes.md
           fi
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

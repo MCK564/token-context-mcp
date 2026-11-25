@@ -57,6 +57,7 @@ from token_context_mcp.security.content_policy import (
 )
 from token_context_mcp.security.path_policy import (
     PathPolicyError,
+    canonical_repository_root,
     relative_posix,
     safe_relative_path,
 )
@@ -240,6 +241,16 @@ class RetrievalService:
         self._ledger_store: Any | None = None
         self._ledger_verifier: Any | None = None
 
+    def close(self) -> None:
+        """Close pooled SQLite connections and any opened ledger store."""
+        self._pool.close_all()
+        if self._ledger_store is not None:
+            try:
+                self._ledger_store.close()
+            except Exception:
+                pass
+            self._ledger_store = None
+
     def _lookup_prior_evidence(
         self,
         repo_id: str,
@@ -333,11 +344,17 @@ class RetrievalService:
         self._validate_request_bytes(repo_id=repo_id)
         repository = get_repository(self.config, repo_id)
         store = self._store(repository.repo_id)
-        metadata = store.metadata()
-        files = store.files()
+        try:
+            metadata = store.metadata()
+            files = store.files()
+        except Exception as error:
+            raise RetrievalError("active index missing; run the admin index command") from error
+        index_run_id = str(metadata.get("index_run_id", ""))
+        if not self._freshness_cache.has_fresh_cached(repository.repo_id, index_run_id):
+            canonical_repository_root(repository.root)
         snapshot = self._freshness_cache.get_snapshot(
             repository.repo_id,
-            str(metadata.get("index_run_id", "")),
+            index_run_id,
             repository.root,
             files,
             metadata=metadata,
@@ -2002,6 +2019,7 @@ class RetrievalService:
 
     def _repository_store_uncached(self, repo_id: str) -> tuple[Any, SQLiteStore, dict[str, Any]]:
         repository = get_repository(self.config, repo_id)
+        canonical_repository_root(repository.root)
         store = self._store(repo_id)
         try:
             metadata = store.metadata()
@@ -2012,13 +2030,20 @@ class RetrievalService:
     def _store(self, repo_id: str) -> SQLiteStore:
         idx_dir = index_directory(self.config_path)
         ptr_file = current_pointer_path(idx_dir, repo_id)
-        now = time.monotonic()
         cached = self._pointer_cache.get(repo_id)
-        if cached is not None and (now - cached[0]) <= 1.0:
+        ptr_stamp: tuple[int, int] | None = None
+        try:
+            st = ptr_file.stat()
+            ptr_stamp = (st.st_mtime_ns, st.st_ino)
+        except OSError:
+            ptr_stamp = None
+
+        db_path: Path | None = None
+        if cached is not None and ptr_stamp is not None and cached[0] == ptr_stamp and cached[1].exists():
             db_path = cached[1]
         else:
-            db_path = None
-            if ptr_file.is_file():
+            index_run_id: str | None = None
+            if ptr_stamp is not None:
                 try:
                     data = json.loads(ptr_file.read_text(encoding="utf-8"))
                     db_name = data.get("db")
@@ -2029,15 +2054,25 @@ class RetrievalService:
                             if cached is not None and (cached[1] != cand or cached[2] != index_run_id):
                                 self._pool.close_db(cached[1])
                             db_path = cand
-                            self._pointer_cache[repo_id] = (now, cand, index_run_id)
+                            self._pointer_cache[repo_id] = (ptr_stamp, cand, index_run_id)
                 except Exception:
                     pass
             if db_path is None:
                 cand = database_path(idx_dir, repo_id)
-                if cached is not None and cached[1] != cand:
+                if not cand.exists():
+                    if cached is not None:
+                        self._pool.close_db(cached[1])
+                        self._pointer_cache.pop(repo_id, None)
+                    raise RetrievalError("active index missing; run the admin index command")
+                try:
+                    legacy_st = cand.stat()
+                    legacy_stamp: Any = (legacy_st.st_mtime_ns, legacy_st.st_ino)
+                except OSError:
+                    legacy_stamp = None
+                if cached is not None and (cached[1] != cand or cached[0] != legacy_stamp):
                     self._pool.close_db(cached[1])
                 db_path = cand
-                self._pointer_cache[repo_id] = (now, db_path, None)
+                self._pointer_cache[repo_id] = (legacy_stamp, db_path, index_run_id)
 
         return SQLiteStore(db_path, read_only=True, pool=self._pool)
 

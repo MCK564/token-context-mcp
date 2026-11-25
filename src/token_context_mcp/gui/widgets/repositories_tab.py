@@ -34,7 +34,7 @@ from token_context_mcp.gui.theme import (
 )
 from token_context_mcp.gui.workers import is_ui_thread, run_async
 
-_REPO_ID_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$")
+_REPO_ID_RE = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
 
 
 class AddRepoDialog(QDialog):
@@ -88,14 +88,22 @@ class AddRepoDialog(QDialog):
         if folder:
             self.path_input.setText(folder)
             if not self.repo_id_input.text().strip():
-                suggested = re.sub(r"[^a-zA-Z0-9_-]+", "-", Path(folder).name.lower()).strip("-")
-                self.repo_id_input.setText(suggested or "repo")
+                suggested = re.sub(r"[^a-z0-9_-]+", "-", Path(folder).name.lower()).strip("-_")
+                if not suggested:
+                    suggested = "repo"
+                elif not suggested[0].isalpha():
+                    suggested = f"repo-{suggested}"
+                self.repo_id_input.setText(suggested[:64])
 
     def _accept_validated(self) -> None:
         rid = self.repo_id_input.text().strip()
         path = self.path_input.text().strip()
         if not rid or not _REPO_ID_RE.match(rid):
-            QMessageBox.warning(self, "Invalid Repository ID", "Use letters, digits, '-' or '_' starting with alphanumeric.")
+            QMessageBox.warning(
+                self,
+                "Invalid Repository ID",
+                "Use 1-64 lowercase letters, digits, '-' or '_', starting with a lowercase letter (e.g. my-service).",
+            )
             return
         if not path or not Path(path).is_dir():
             QMessageBox.warning(self, "Invalid Directory", "Please select an existing directory on disk.")
@@ -119,6 +127,9 @@ class RepositoriesTab(QWidget):
         self._queue: list[tuple[str, bool]] = []
         self._current_repo: str = ""
         self._current_full: bool = False
+        self._had_failure: bool = False
+        self._last_error: str = ""
+        self._last_repo_failed: str = ""
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
@@ -202,6 +213,7 @@ class RepositoriesTab(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setAlternatingRowColors(True)
         self.table.setSortingEnabled(True)
+        self.table.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
@@ -242,6 +254,11 @@ class RepositoriesTab(QWidget):
             self.progress_status.setText(f"Cancelling {self._current_repo}...")
             self.indexing_log.emit(f"[CANCEL] Terminating indexing process for {self._current_repo}...")
             self._proc.cancel()
+        elif not self.add_btn.isEnabled():
+            self._set_busy_ui(False)
+            self.progress_status.setText("Indexing Cancelled")
+            self.progress_status.setStyleSheet(f"color: {COLOR_DANGER}; font-weight: 600;")
+            self.indexing_finished.emit(self._current_repo, False, "Cancelled")
 
     def refresh(self) -> None:
         run_async(self.fetch, on_ok=self.render)
@@ -316,6 +333,9 @@ class RepositoriesTab(QWidget):
         if self.isIndexing():
             QMessageBox.warning(self, "Indexing Busy", "An indexing task is already running.")
             return
+        self._had_failure = False
+        self._last_error = ""
+        self._last_repo_failed = ""
         self._queue = list(items)
         self._set_busy_ui(True)
         self._start_next_in_queue()
@@ -332,12 +352,20 @@ class RepositoriesTab(QWidget):
     def _start_next_in_queue(self) -> None:
         if not self._queue:
             self._set_busy_ui(False)
-            self.progress_status.setText("Indexing Completed")
-            self.progress_status.setStyleSheet(f"color: {COLOR_SUCCESS}; font-weight: 600;")
+            if self._had_failure:
+                self.progress_card.setVisible(True)
+                self.progress_bar.setRange(0, 100)
+                self.progress_bar.setValue(0)
+                self.progress_status.setText(f"Failed ({self._last_repo_failed}): {self._last_error}")
+                self.progress_status.setStyleSheet(f"color: {COLOR_DANGER}; font-weight: 600;")
+            else:
+                self.progress_status.setText("Indexing Completed")
+                self.progress_status.setStyleSheet(f"color: {COLOR_SUCCESS}; font-weight: 600;")
             self.refresh()
             return
 
         self._current_repo, self._current_full = self._queue.pop(0)
+        self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         mode_lbl = "full rebuild" if self._current_full else "incremental"
         self.progress_status.setText(f"Indexing ({mode_lbl}): {self._current_repo}...")
@@ -345,26 +373,61 @@ class RepositoriesTab(QWidget):
         self.indexing_log.emit(f"[START] Indexing '{self._current_repo}' ({mode_lbl})...")
         self.indexing_started.emit(self._current_repo)
 
-        proc = IndexProcess(self.repo_mgr.config_path, self._current_repo, full=self._current_full, parent=self)
-        proc.progress.connect(self._on_progress)
-        proc.log_line.connect(self._on_log)
-        proc.finished.connect(self._on_finished)
-        self._proc = proc
-        proc.start()
+        try:
+            proc = IndexProcess(
+                self._current_repo,
+                self.repo_mgr.config_path,
+                parent=self,
+                full=self._current_full,
+            )
+            proc.progress_changed.connect(self._on_progress)
+            proc.log_emitted.connect(self._on_log)
+            proc.index_finished.connect(self._on_index_finished)
+            proc.index_failed.connect(self._on_index_failed)
+            self._proc = proc
+            proc.start()
+        except Exception as exc:
+            self._proc = None
+            self._on_index_failed(self._current_repo, str(exc))
 
-    def _on_progress(self, current: int, total: int, msg: str) -> None:
-        if total > 0:
-            pct = int(current * 100 / total)
-            self.progress_bar.setMaximum(100)
+    def _on_progress(self, msg: str, current: int, total: int) -> None:
+        is_post_scan = any(
+            kw in msg
+            for kw in (
+                "Assigning",
+                "Resolving",
+                "Computing",
+                "Writing",
+                "roles",
+                "edges",
+                "ranks",
+                "write",
+            )
+        )
+        if total > 0 and not is_post_scan and 0 <= current <= total:
+            pct = max(0, min(100, int(current * 100 / total)))
+            self.progress_bar.setRange(0, 100)
             self.progress_bar.setValue(pct)
             self.progress_status.setText(f"Indexing {self._current_repo} ({current}/{total}): {msg}")
         else:
-            self.progress_bar.setMaximum(0)
+            self.progress_bar.setRange(0, 0)
             self.progress_status.setText(f"Indexing {self._current_repo}: {msg}")
         self.indexing_progress.emit(self._current_repo, current, total, msg)
 
     def _on_log(self, line: str) -> None:
         self.indexing_log.emit(line)
+
+    def _on_index_finished(self, _repo_id: str, result: dict[str, Any]) -> None:
+        files_n = result.get("files_indexed", 0)
+        syms_n = result.get("symbols_indexed", 0)
+        edges_n = result.get("edges_indexed", 0)
+        self._on_finished(True, f"{files_n} files, {syms_n} symbols, {edges_n} edges")
+
+    def _on_index_failed(self, repo_id: str, error: str) -> None:
+        self._had_failure = True
+        self._last_repo_failed = repo_id
+        self._last_error = error
+        self._on_finished(False, error)
 
     def _on_finished(self, ok: bool, message: str) -> None:
         proc = self._proc
@@ -373,7 +436,8 @@ class RepositoriesTab(QWidget):
             proc.deleteLater()
 
         repo_id = self._current_repo
-        self.progress_bar.setMaximum(100)
+        self.repo_mgr.invalidate_cache()
+        self.progress_bar.setRange(0, 100)
         if ok:
             self.progress_bar.setValue(100)
             self.indexing_log.emit(f"[DONE] '{repo_id}' indexed successfully: {message}")

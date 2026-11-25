@@ -161,7 +161,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
+          if [ -f evals/oracle/targets.json ]; then
+            cp evals/oracle/targets.json /tmp/oracle_targets.json
+          else
+            echo "[]" > /tmp/oracle_targets.json
+          fi
+
           # Check if oracle-data branch exists
           if git ls-remote --exit-code --heads origin oracle-data; then
             git checkout oracle-data
@@ -177,7 +183,7 @@ jobs:
           manifest = {"timestamp": os.environ.get("GITHUB_RUN_ID"), "artifacts": {}}
           
           # Map repo_id to role
-          targets = json.load(open("evals/oracle/targets.json")) if os.path.exists("evals/oracle/targets.json") else []
+          targets = json.load(open("/tmp/oracle_targets.json")) if os.path.exists("/tmp/oracle_targets.json") else []
           role_map = {t["repo_id"]: t["role"] for t in targets}
           
           art_dir = "downloaded-artifacts"

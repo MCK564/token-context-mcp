@@ -53,7 +53,7 @@ from token_context_mcp.security.local_privacy import (
     secure_file,
     secure_sqlite_artifacts,
 )
-from token_context_mcp.security.path_policy import is_reparse_point, relative_posix
+from token_context_mcp.security.path_policy import canonical_repository_root, is_reparse_point, relative_posix
 
 # A file whose mtime is within this window before the previous scan started may have been written again
 # inside the filesystem's timestamp granularity, so (size, mtime_ns) cannot vouch for its content: rehash it.
@@ -658,6 +658,7 @@ def build_index(
     tree-sitter.  ``verify_hashes`` makes every file be read and hashed, ``full_rebuild`` ignores the active
     snapshot entirely.  The result is equivalent to a from-scratch build (invariant I1, ``evals/index_equivalence.py``).
     """
+    canonical_repository_root(repository.root)
     secure_directory(index_directory)
     timings = _Timings()
     scan_started_at_ns = time.time_ns()
@@ -1018,6 +1019,7 @@ def build_index(
     run_db_name = f"{repository.repo_id}.{index_run_id}.sqlite"
     run_destination = index_directory / run_db_name
     temporary = index_directory / f"{run_db_name}.tmp-{uuid.uuid4().hex}.sqlite"
+    temporary_manifest: Path | None = None
     try:
         if progress_callback:
             progress_callback("Computing global symbol PageRank...", files_seen, len(symbols))
@@ -1074,7 +1076,9 @@ def build_index(
         timings.add("finalize", _t_final)
         manifest["timings_ms"] = timings.as_dict()
         manifest_json = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-        temporary_manifest = manifest_path(index_directory, repository.repo_id).with_suffix(".tmp.json")
+        temporary_manifest = manifest_path(index_directory, repository.repo_id).with_name(
+            f"{repository.repo_id}.manifest.tmp-{uuid.uuid4().hex}.json"
+        )
         temporary_manifest.write_text(manifest_json, encoding="utf-8", newline="\n")
         secure_file(temporary_manifest)
         _retry_on_permission_error(lambda: temporary_manifest.replace(manifest_path(index_directory, repository.repo_id)))
@@ -1083,6 +1087,8 @@ def build_index(
             progress_callback("Index snapshot complete!", files_seen, len(symbols))
     finally:
         temporary.unlink(missing_ok=True)
+        if temporary_manifest is not None:
+            temporary_manifest.unlink(missing_ok=True)
     return manifest
 
 

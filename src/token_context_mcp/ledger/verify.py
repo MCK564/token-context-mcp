@@ -176,7 +176,7 @@ class LedgerVerifier:
             return None, [], ledger_rev
 
         item_paths = list({it.path for it in card.items})
-        db_key = str(getattr(idx_store, "db_path", ""))
+        db_key = str(getattr(idx_store, "path", getattr(idx_store, "db_path", "")))
         sym_by_key: dict[tuple[str, str], SymbolRecord] = {}
         file_by_path: dict[str, FileRecord] = {}
         uncached_paths: list[str] = []

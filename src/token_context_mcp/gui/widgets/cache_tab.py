@@ -210,7 +210,7 @@ class CacheTab(QWidget):
     def _render_db_table(self) -> None:
         dbs = list(self._last_stats.get("databases", []))
         if self.stale_only_chk.isChecked():
-            dbs = [d for d in dbs if d.get("status") != "ACTIVE"]
+            dbs = [d for d in dbs if d.get("status") in {"SUPERSEDED", "ORPHAN"}]
         self.table.setRowCount(len(dbs))
         for row, db in enumerate(dbs):
             status = str(db.get("status", "ACTIVE"))
@@ -220,6 +220,8 @@ class CacheTab(QWidget):
                 st_item.setForeground(QColor(COLOR_SUCCESS))
             elif status == "SUPERSEDED":
                 st_item.setForeground(QColor(COLOR_WARNING))
+            elif status == "LEGACY":
+                st_item.setForeground(QColor(COLOR_TEXT_MUTED))
             else:
                 st_item.setForeground(QColor(COLOR_DANGER))
 
@@ -272,6 +274,7 @@ class CacheTab(QWidget):
         run_async(self.cache_mgr.clean_stale_snapshots, on_ok=self._on_clean_done, on_err=self._on_op_error)
 
     def _on_clean_done(self, removed: list[str]) -> None:
+        self.repo_mgr.invalidate_cache()
         if removed:
             QMessageBox.information(self, "Snapshots Cleaned", f"Removed {len(removed)} stale/orphan snapshot file(s).")
         else:
@@ -289,5 +292,6 @@ class CacheTab(QWidget):
             run_async(self.cache_mgr.purge_all_cache, on_ok=self._on_purge_done, on_err=self._on_op_error)
 
     def _on_purge_done(self, cnt: int) -> None:
+        self.repo_mgr.invalidate_cache()
         QMessageBox.information(self, "Cache Purged", f"Deleted {cnt} index cache file(s).")
         self.refresh()

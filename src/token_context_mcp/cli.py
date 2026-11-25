@@ -217,7 +217,10 @@ def main(argv: list[str] | None = None) -> int:
             _emit(harden_registry(args.config, check_only=args.check))
         elif args.command == "status":
             service = RetrievalService(load_config(args.config), args.config)
-            _emit(service.status(args.repo_id))
+            try:
+                _emit(service.status(args.repo_id))
+            finally:
+                service.close()
         elif args.command == "serve":
             run_stdio(
                 args.config,
@@ -394,34 +397,37 @@ def _run_ledger(args: argparse.Namespace) -> int:
     from token_context_mcp.ledger.service import LedgerService
 
     svc = LedgerService(load_config(args.config), args.config)
-    cmd = args.ledger_command
-    if cmd == "list":
-        _emit({"cards": svc.list_cards(repo_id=args.repo_id)})
-    elif cmd == "show":
-        card = svc.show_card(args.card_id)
-        if card is None:
-            raise ValueError(f"unknown card_id: {args.card_id}")
-        _emit(card)
-    elif cmd == "confirm":
-        if not svc.confirm_card(args.card_id):
-            raise ValueError(f"unknown card_id: {args.card_id}")
-        _emit({"card_id": args.card_id, "status": "confirmed"})
-    elif cmd == "forget":
-        if not svc.forget_card(args.card_id):
-            raise ValueError(f"unknown card_id: {args.card_id}")
-        _emit({"card_id": args.card_id, "deleted": True})
-    elif cmd == "prune":
-        removed = svc.prune(repo_id=args.repo_id)
-        _emit({"pruned": removed})
-    elif cmd == "export":
-        rendered = svc.export_cards(repo_id=args.repo_id, fmt=args.format)
-        if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(rendered + "\n", encoding="utf-8")
-            _emit({"exported_to": str(args.output), "format": args.format})
-        else:
-            sys.stdout.write(rendered + "\n")
-    return 0
+    try:
+        cmd = args.ledger_command
+        if cmd == "list":
+            _emit({"cards": svc.list_cards(repo_id=args.repo_id)})
+        elif cmd == "show":
+            card = svc.show_card(args.card_id)
+            if card is None:
+                raise ValueError(f"unknown card_id: {args.card_id}")
+            _emit(card)
+        elif cmd == "confirm":
+            if not svc.confirm_card(args.card_id):
+                raise ValueError(f"unknown card_id: {args.card_id}")
+            _emit({"card_id": args.card_id, "status": "confirmed"})
+        elif cmd == "forget":
+            if not svc.forget_card(args.card_id):
+                raise ValueError(f"unknown card_id: {args.card_id}")
+            _emit({"card_id": args.card_id, "deleted": True})
+        elif cmd == "prune":
+            removed = svc.prune(repo_id=args.repo_id)
+            _emit({"pruned": removed})
+        elif cmd == "export":
+            rendered = svc.export_cards(repo_id=args.repo_id, fmt=args.format)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(rendered + "\n", encoding="utf-8")
+                _emit({"exported_to": str(args.output), "format": args.format})
+            else:
+                sys.stdout.write(rendered + "\n")
+        return 0
+    finally:
+        svc.close()
 
 
 def _index_kwargs(args: argparse.Namespace) -> dict[str, object]:

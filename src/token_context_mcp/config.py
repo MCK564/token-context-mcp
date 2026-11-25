@@ -9,7 +9,7 @@ from pathlib import Path
 from token_context_mcp.constants import DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILES
 from token_context_mcp.models import AppConfig, LedgerConfig, RankingConfig, RepositoryConfig, ServerConfig
 from token_context_mcp.security.local_privacy import secure_directory, secure_file
-from token_context_mcp.security.path_policy import canonical_repository_root
+from token_context_mcp.security.path_policy import canonical_repository_root, is_reparse_point
 
 _REPO_ID_RE = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
 
@@ -96,7 +96,11 @@ def load_config(path: Path) -> AppConfig:
         validate_repo_id(repo_id)
         if not isinstance(settings, dict) or "root" not in settings:
             raise ConfigError(f"repos.{repo_id} must have a root")
-        root = canonical_repository_root(Path(str(settings["root"])))
+        raw_root = Path(str(settings["root"]))
+        if raw_root.exists() or is_reparse_point(raw_root):
+            root = canonical_repository_root(raw_root)
+        else:
+            root = raw_root.expanduser()
         raw_ranking = settings.get("ranking", {})
         query_expansions: dict[str, list[str]] = {}
         for k, v in raw_ranking.get("query_expansions", {}).items():
@@ -135,6 +139,7 @@ def load_config(path: Path) -> AppConfig:
 
 
 def save_config(path: Path, config: AppConfig) -> None:
+    _validate_server(config.server)
     secure_directory(path.parent)
     lines = [
         "[server]",

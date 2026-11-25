@@ -197,6 +197,7 @@ class MainWindow(QMainWindow):
         # Connect Signals
         self.btn_group.idClicked.connect(self._on_nav_clicked)
         self.sys_monitor.telemetry_updated.connect(self._on_telemetry_update)
+        self.security_ctrl.active_servers_updated.connect(self.tab_dashboard._apply_running_servers)
         self.tab_repos.indexing_log.connect(self.tab_tasks.append_log)
         self.tab_repos.indexing_started.connect(self._on_indexing_started)
         self.tab_repos.indexing_progress.connect(self._on_indexing_progress)
@@ -277,8 +278,11 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(f"Background indexing started for '{repo_id}'...")
 
     def _on_indexing_progress(self, repo_id: str, current: int, total: int, msg: str) -> None:
-        if total > 0:
-            pct = int(current * 100 / total)
+        is_post_scan = any(
+            kw in msg for kw in ("Assigning", "Resolving", "Computing", "Writing", "roles", "edges", "ranks", "write")
+        )
+        if total > 0 and not is_post_scan and 0 <= current <= total:
+            pct = max(0, min(100, int(current * 100 / total)))
             self.task_badge.setText(f"Indexing {repo_id} ({pct}%)")
         else:
             self.task_badge.setText(f"Indexing {repo_id}...")

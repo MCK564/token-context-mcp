@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -184,53 +185,66 @@ class RepoManager:
         results: list[dict[str, Any]] = []
         service: RetrievalService | None = None
 
-        for repo_id in sorted(config.repositories):
-            repo = config.repositories[repo_id]
-            db_path = database_path(idx_dir, repo_id)
-            mf_path = manifest_path(idx_dir, repo_id)
+        try:
+            for repo_id in sorted(config.repositories):
+                repo = config.repositories[repo_id]
+                db_path = database_path(idx_dir, repo_id)
+                mf_path = manifest_path(idx_dir, repo_id)
 
-            db_size_mb = 0.0
-            if db_path.exists():
-                db_size_mb = round(db_path.stat().st_size / (1024 * 1024), 2)
+                db_size_mb = 0.0
+                if db_path.exists():
+                    db_size_mb = round(db_path.stat().st_size / (1024 * 1024), 2)
 
-            status_data: dict[str, Any] | None = None
-            manifest: dict[str, Any] = {}
-            edge_precision: dict[str, Any] = {}
-            if db_path.exists() and mf_path.exists():
-                try:
-                    manifest = json.loads(mf_path.read_text(encoding="utf-8"))
-                except Exception as e:
-                    logger.debug("Failed reading manifest for %s: %s", repo_id, e)
-                try:
-                    if service is None:
-                        service = RetrievalService(config, self.config_path)
-                    response = service.status(repo_id)  # M7.6 status: manifest aggregates, no table scans
-                    status_data = {**response.get("data", {}), "freshness": response.get("freshness")}
-                    edge_precision = response.get("edge_precision") or {}
-                except Exception as e:
-                    logger.debug("status failed for %s: %s", repo_id, e)
-                    status_data = {"index_schema_version": manifest.get("index_schema_version"), "freshness": "unknown"}
+                status_data: dict[str, Any] | None = None
+                manifest: dict[str, Any] = {}
+                edge_precision: dict[str, Any] = {}
+                root_exists = repo.root.is_dir()
+                if db_path.exists() and mf_path.exists():
+                    try:
+                        manifest = json.loads(mf_path.read_text(encoding="utf-8"))
+                    except Exception as e:
+                        logger.debug("Failed reading manifest for %s: %s", repo_id, e)
+                    if root_exists:
+                        try:
+                            if service is None:
+                                service = RetrievalService(config, self.config_path)
+                            response = service.status(repo_id)  # M7.6 status: manifest aggregates, no table scans
+                            status_data = {**response.get("data", {}), "freshness": response.get("freshness")}
+                            edge_precision = response.get("edge_precision") or {}
+                        except Exception as e:
+                            logger.debug("status failed for %s: %s", repo_id, e)
+                            status_data = {"index_schema_version": manifest.get("index_schema_version"), "freshness": "unknown"}
 
-            ambiguous_rate = float(edge_precision.get("ambiguous_rate") or 0.0)
-            parsers = manifest.get("parser_versions", {}) if isinstance(manifest, dict) else {}
-            results.append(
-                {
-                    "repo_id": repo_id,
-                    "root": repo.root.as_posix(),
-                    "allow_symlinks": repo.allow_symlinks,
-                    "max_file_bytes": repo.max_file_bytes,
-                    "max_files": repo.max_files,
-                    "status": classify_repo(status_data),
-                    "freshness": (status_data or {}).get("freshness") or "not_indexed",
-                    "index_schema_version": (status_data or {}).get("index_schema_version"),
-                    "pending_path_count": int((status_data or {}).get("pending_path_count") or 0),
-                    "symbols_count": int((status_data or {}).get("symbols_indexed") or manifest.get("symbols_indexed", 0) or 0),
-                    "files_count": int((status_data or {}).get("files_indexed") or manifest.get("files_indexed", 0) or 0),
-                    "db_size_mb": db_size_mb,
-                    "ambiguous_rate": ambiguous_rate,
-                    "languages": parsers.get("languages", []) if isinstance(parsers, dict) else [],
-                }
-            )
+                ambiguous_rate = float(
+                    edge_precision.get("ambiguous_rate")
+                    or (manifest.get("edge_precision") or {}).get("ambiguous_rate", 0.0)
+                    or 0.0
+                )
+                parsers = manifest.get("parser_versions", {}) if isinstance(manifest, dict) else {}
+                badge = "MISSING_ROOT" if not root_exists else classify_repo(status_data)
+                freshness = "missing_root" if not root_exists else ((status_data or {}).get("freshness") or "not_indexed")
+                results.append(
+                    {
+                        "repo_id": repo_id,
+                        "root": repo.root.as_posix(),
+                        "allow_symlinks": repo.allow_symlinks,
+                        "max_file_bytes": repo.max_file_bytes,
+                        "max_files": repo.max_files,
+                        "status": badge,
+                        "freshness": freshness,
+                        "index_schema_version": (status_data or {}).get("index_schema_version") or manifest.get("index_schema_version"),
+                        "pending_path_count": int((status_data or {}).get("pending_path_count") or 0),
+                        "symbols_count": int((status_data or {}).get("symbols_indexed") or manifest.get("symbols_indexed", 0) or 0),
+                        "files_count": int((status_data or {}).get("files_indexed") or manifest.get("files_indexed", 0) or 0),
+                        "edges_count": int((status_data or {}).get("edges_indexed") or manifest.get("edges_indexed", 0) or 0),
+                        "db_size_mb": db_size_mb,
+                        "ambiguous_rate": ambiguous_rate,
+                        "languages": parsers.get("languages", []) if isinstance(parsers, dict) else [],
+                    }
+                )
+        finally:
+            if service is not None:
+                service.close()
 
         self._cached_repos = results
         return results
@@ -286,12 +300,18 @@ class RepoManager:
         unregister_repository(self.config_path, repo_id)
         if purge_db:
             idx_dir = self.get_index_dir()
-            db_file = database_path(idx_dir, repo_id)
-            mf_file = manifest_path(idx_dir, repo_id)
-            if db_file.exists():
-                db_file.unlink(missing_ok=True)
-            if mf_file.exists():
-                mf_file.unlink(missing_ok=True)
+            if idx_dir.exists():
+                targets = (
+                    list(idx_dir.glob(f"{repo_id}.sqlite*"))
+                    + list(idx_dir.glob(f"{repo_id}.*.sqlite*"))
+                    + [manifest_path(idx_dir, repo_id), current_pointer_path(idx_dir, repo_id)]
+                )
+                for target in targets:
+                    try:
+                        if target.exists():
+                            target.unlink(missing_ok=True)
+                    except (PermissionError, OSError) as exc:
+                        logger.warning("Skipping locked artifact %s during repo purge: %s", target.name, exc)
         self.invalidate_cache()
 
     def get_server_config(self) -> dict[str, Any]:
@@ -502,11 +522,13 @@ class IndexProcess(QObject):
         parent: QObject | None = None,
         *,
         all_repos: bool = False,
+        full: bool = False,
         command: tuple[str, list[str]] | None = None,
     ) -> None:
         super().__init__(parent)
         self.repo_id = "*" if all_repos else (repo_id or "")
         self.all_repos = all_repos
+        self.full = bool(full)
         self.config_path = config_path or default_config_path()
         self._command = command
         self._process: QProcess | None = None
@@ -516,6 +538,7 @@ class IndexProcess(QObject):
         self._stderr_tail: list[str] = []
         self._result: dict[str, Any] | None = None
         self.cancelled = False
+        self._done_emitted = False
         self.killed_pids: list[int] = []
         self._timer = QTimer(self)
         self._timer.setInterval(self.FLUSH_INTERVAL_MS)
@@ -528,9 +551,17 @@ class IndexProcess(QObject):
         args = ["-m", "token_context_mcp", "index"]
         args += ["--all"] if self.all_repos else ["--repo-id", self.repo_id]
         args += ["--config", str(self.config_path), "--progress-format", "ndjson"]
+        if self.full:
+            args.append("--full")
         return sys.executable, args
 
     def start(self) -> None:
+        self._done_emitted = False
+        self.cancelled = False
+        self._result = None
+        self._stderr_tail = []
+        self._out_buffer = ""
+        self._latest = None
         program, args = self.build_command()
         self._process = QProcess(self)
         self._process.setProgram(program)
@@ -540,8 +571,10 @@ class IndexProcess(QObject):
         self._process.finished.connect(self._on_finished)
         self._process.errorOccurred.connect(self._on_error)
         self._log.append(f"Starting index build for '{self.repo_id}' (child process)...")
-        self._process.start()  # asynchronous: no waitForStarted on the UI thread
         self._timer.start()
+        self._process.start()  # asynchronous: no waitForStarted on the UI thread
+        if self._done_emitted:
+            self._timer.stop()
 
     def isRunning(self) -> bool:
         return self._process is not None and self._process.state() != QProcess.ProcessState.NotRunning
@@ -610,6 +643,12 @@ class IndexProcess(QObject):
     def _on_error(self, error: Any) -> None:
         if self._process is not None and self._process.state() == QProcess.ProcessState.NotRunning and not self.cancelled:
             self._log.append(f"Index process error: {error}")
+            if not self._done_emitted:
+                self._timer.stop()
+                self._flush()
+                self._done_emitted = True
+                detail = " | ".join(self._stderr_tail) or f"Process failed to start ({error})"
+                self.index_failed.emit(self.repo_id, detail)
 
     def _on_finished(self, exit_code: int, exit_status: Any) -> None:
         self._timer.stop()
@@ -620,6 +659,9 @@ class IndexProcess(QObject):
             self._handle_line(self._out_buffer.strip())
             self._out_buffer = ""
         self._flush()
+        if self._done_emitted:
+            return
+        self._done_emitted = True
         if self.cancelled:
             self.index_failed.emit(self.repo_id, "Cancelled")
         elif exit_code == 0 and self._result is not None:
@@ -693,6 +735,16 @@ class CacheManager:
                 if legacy.is_file():
                     active_files[rid] = legacy.name
 
+        active_inodes: dict[str, tuple[int, int]] = {}
+        for rid, db_name in active_files.items():
+            cand = idx_dir / db_name
+            try:
+                st = cand.stat()
+                if st.st_ino:
+                    active_inodes[rid] = (st.st_dev, st.st_ino)
+            except OSError:
+                pass
+
         total_bytes = 0
         active_bytes = 0
         stale_bytes = 0
@@ -700,18 +752,30 @@ class CacheManager:
 
         if idx_dir.exists():
             for sqlite_file in sorted(idx_dir.glob("*.sqlite")):
-                sz = sqlite_file.stat().st_size
-                total_bytes += sz
+                st = sqlite_file.stat()
+                sz = st.st_size
                 repo_id = sqlite_file.name.split(".", 1)[0]
                 if repo_id not in active_repos:
                     status = "ORPHAN"
                     stale_bytes += sz
+                    total_bytes += sz
                 elif active_files.get(repo_id) == sqlite_file.name:
                     status = "ACTIVE"
                     active_bytes += sz
+                    total_bytes += sz
+                elif sqlite_file.name == f"{repo_id}.sqlite" and repo_id in active_files:
+                    status = "LEGACY"
+                    same_inode = (
+                        st.st_ino != 0
+                        and repo_id in active_inodes
+                        and (st.st_dev, st.st_ino) == active_inodes[repo_id]
+                    )
+                    if not same_inode:
+                        total_bytes += sz
                 else:
                     status = "SUPERSEDED"
                     stale_bytes += sz
+                    total_bytes += sz
                 repo_dbs.append(
                     {
                         "repo_id": repo_id,
@@ -830,7 +894,7 @@ class CacheManager:
                 except Exception:
                     pass
             try:
-                removed_gc = gc_snapshots(idx_dir, repo_id, current_db_name=current_db)
+                removed_gc = gc_snapshots(idx_dir, repo_id, current_db_name=current_db, max_age_seconds=0.0)
                 removed.extend(removed_gc)
             except PermissionError:
                 logger.warning("Skipping locked snapshot during GC for repo %s", repo_id)
@@ -942,28 +1006,44 @@ class AgentSecurityController(QObject):
         worker.start()
         self._governance_refresh_worker = worker
 
+    def _normalize_agent_rows(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        default_pol = self._access_control.default_policy.value
+        normalized: list[dict[str, Any]] = []
+        for ag in rows:
+            status = str(ag.get("status") or ag.get("state") or "ACTIVE").upper()
+            policy = str(ag.get("policy") or ag.get("policy_profile") or default_pol) or default_pol
+            calls = int(ag.get("call_count", ag.get("tool_calls_count", 0)) or 0)
+            entry = dict(ag)
+            entry["status"] = status
+            entry["state"] = status
+            entry["policy"] = policy
+            entry["policy_profile"] = policy
+            entry["call_count"] = calls
+            entry["tool_calls_count"] = calls
+            normalized.append(entry)
+        return normalized
+
     def _on_governance_agents(self, governance_agents: list[dict[str, Any]]) -> None:
         """Merge governance agents into local view (read-only merge, no SQLite I/O on UI thread)."""
+        from token_context_mcp.security.governance_store import merge_seen_agents
+
         local_agents: list[dict[str, Any]] = []
         for agent_id, meta in list(self._access_control._agent_metadata.items()):
             state = self._access_control._states.get(agent_id)
             policy = self._access_control._policies.get(agent_id, self._access_control.default_policy)
+            st_val = state.value if state else "ACTIVE"
             local_agents.append({
                 "agent_id": agent_id,
                 "role": meta.get("role", "agent"),
-                "state": state.value if state else "active",
+                "status": st_val,
+                "state": st_val,
                 "policy": policy.value,
                 "call_count": meta.get("call_count", 0),
                 "last_active": meta.get("last_active", 0.0),
                 "reason": self._access_control._reasons.get(agent_id, ""),
             })
-        local_ids = {a["agent_id"] for a in local_agents}
-        # Add agents seen by the live server but not yet in local view
-        for ga in governance_agents:
-            if ga["agent_id"] not in local_ids:
-                local_agents.append(ga)
-                local_ids.add(ga["agent_id"])
-        self.agents_updated.emit(local_agents)
+        merged = merge_seen_agents(governance_agents, local_agents)
+        self.agents_updated.emit(self._normalize_agent_rows(merged))
 
     def _on_governance_halt(self, is_halted: bool, reason: str) -> None:
         """Reflect server-side halt state in the GUI (read-only, no SQLite I/O on UI thread)."""
@@ -1017,7 +1097,7 @@ class AgentSecurityController(QObject):
 
         merged = merge_seen_agents(agents, traces)
         return {
-            "agents": merged,
+            "agents": self._normalize_agent_rows(merged),
             "locks": locks,
             "logs": logs,
             "halted": self._access_control.is_emergency_halted,
@@ -1173,30 +1253,35 @@ class LedgerController:
         if not mem_db.is_file():
             return []
         entries: list[dict[str, Any]] = []
+        now = time.time()
         try:
             con = sqlite3.connect(f"file:{mem_db}?mode=ro", uri=True, timeout=0.5)
             try:
                 tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-                if "memory_entries" not in tables:
-                    return []
-                cols = {r[1] for r in con.execute("PRAGMA table_info(memory_entries)").fetchall()}
-                ns_col = "namespace" if "namespace" in cols else "'' AS namespace"
-                key_col = "key" if "key" in cols else ("entry_key" if "entry_key" in cols else "id")
-                val_col = "value" if "value" in cols else ("content" if "content" in cols else "''")
-                upd_col = "updated_at" if "updated_at" in cols else "0"
-                rows = con.execute(
-                    f"SELECT {ns_col}, {key_col}, {val_col}, {upd_col} FROM memory_entries ORDER BY rowid DESC LIMIT ?",
-                    (limit,),
-                ).fetchall()
-                for ns, key, val, upd in rows:
-                    entries.append(
-                        {
-                            "namespace": str(ns or "default"),
-                            "key": str(key or ""),
-                            "value": str(val or "")[:240],
-                            "updated_at": str(upd or ""),
-                        }
-                    )
+                if "key_values" in tables:
+                    rows = con.execute(
+                        "SELECT scope, namespace, key, value_json, created_at, expires_at "
+                        "FROM key_values "
+                        "WHERE expires_at IS NULL OR expires_at >= ? "
+                        "ORDER BY created_at DESC LIMIT ?",
+                        (now, limit),
+                    ).fetchall()
+                    for scope, ns, key, val_json, created_at, _exp in rows:
+                        ns_label = f"{scope}/{ns}" if ns else str(scope or "session")
+                        ts_str = ""
+                        if isinstance(created_at, (int, float)) and created_at > 0:
+                            try:
+                                ts_str = datetime.fromtimestamp(created_at).strftime("%Y-%m-%d %H:%M:%S")
+                            except Exception:
+                                ts_str = str(created_at)
+                        entries.append(
+                            {
+                                "namespace": ns_label,
+                                "key": str(key or ""),
+                                "value": str(val_json or "")[:240],
+                                "updated_at": ts_str,
+                            }
+                        )
             finally:
                 con.close()
         except Exception:

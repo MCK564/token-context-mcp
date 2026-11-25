@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from token_context_mcp.config import get_repository, index_directory
+from token_context_mcp.config import get_repository, index_directory, load_config
 from token_context_mcp.index.runner import current_pointer_path, database_path
 from token_context_mcp.index.sqlite_store import SQLiteStore
 from token_context_mcp.kernel.context import get_current_context
@@ -22,8 +22,12 @@ class LedgerService:
     """Coordinates verified writes and operator management of ledger.sqlite."""
 
     def __init__(self, config: AppConfig, config_path: Path) -> None:
-        self.config = config
+        self._cached_config = config
         self.config_path = config_path
+        try:
+            self._config_mtime = config_path.stat().st_mtime_ns
+        except OSError:
+            self._config_mtime = 0
         self.store = LedgerStore(
             config_path.parent / "ledger.sqlite",
             max_cards_per_repo=config.ledger.max_cards_per_repo,
@@ -31,6 +35,24 @@ class LedgerService:
         )
         self.gate = WriteGate()
         self.freshness = FreshnessCache()
+
+    @property
+    def config(self) -> AppConfig:
+        try:
+            mtime = self.config_path.stat().st_mtime_ns
+        except OSError:
+            mtime = 0
+        if mtime != self._config_mtime:
+            self._cached_config = load_config(self.config_path)
+            self._config_mtime = mtime
+        return self._cached_config
+
+    @config.setter
+    def config(self, value: AppConfig) -> None:
+        self._cached_config = value
+
+    def close(self) -> None:
+        self.store.close()
 
     def _index_store(self, repo_id: str) -> SQLiteStore:
         idx_dir = index_directory(self.config_path)

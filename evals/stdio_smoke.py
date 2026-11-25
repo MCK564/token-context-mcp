@@ -53,6 +53,7 @@ EXTENDED_TOOLS = CORE_TOOLS | {
     "memory_unlock",
     "memory_consolidate",
     "sample_summarize",
+    "trajectory_record",
 }
 
 
@@ -102,6 +103,17 @@ async def _run(output_mode: str) -> None:
                 if res.is_error:
                     raise AssertionError(f"search_source returned error: {res.content}")
                 payload = getattr(res, "structured_content", None)
+                if output_mode == "compact_text":
+                    if payload is not None:
+                        raise AssertionError("output_mode=compact_text: unexpected structured_content")
+                    text_out = res.content[0].text if res.content and hasattr(res.content[0], "text") else ""
+                    if "repo=smoke" not in text_out or "freshness=fresh" not in text_out:
+                        raise AssertionError(f"compact_text missing header: {text_out!r}")
+                    if "lookup_value" not in text_out and "read_row" not in text_out:
+                        raise AssertionError(f"compact_text missing match symbols: {text_out!r}")
+                    if expand == "none" and "neighbors:" in text_out:
+                        raise AssertionError(f"compact_text expand='none' must not carry neighbors: {text_out!r}")
+                    continue
                 if (payload is not None) != (output_mode == "structured"):
                     raise AssertionError(f"output_mode={output_mode}: unexpected structured_content={payload is not None}")
                 if not payload and res.content and hasattr(res.content[0], "text"):
@@ -128,8 +140,8 @@ async def _run(output_mode: str) -> None:
 
 
 def main() -> None:
-    # M9.2: the payload must arrive whether the server sends it as structuredContent or as JSON text.
-    for output_mode in ("structured", "text"):
+    # M9.2 + compact_text: the payload must arrive in structuredContent, JSON text, or compact_text.
+    for output_mode in ("structured", "text", "compact_text"):
         asyncio.run(_run(output_mode))
         print(f"stdio_smoke ok: output_mode={output_mode}")
 

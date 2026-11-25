@@ -13,8 +13,16 @@ class LoadingSpinner(QWidget):
         self.setFixedSize(size, size)
         self._angle = 0
         self._timer = QTimer(self)
+        self._timer.setInterval(40)  # ~25 FPS
         self._timer.timeout.connect(self._rotate)
-        self._timer.start(40)  # ~25 FPS
+
+    def start(self) -> None:
+        if not self._timer.isActive():
+            self._timer.start(40)
+
+    def stop(self) -> None:
+        if self._timer.isActive():
+            self._timer.stop()
 
     def _rotate(self) -> None:
         self._angle = (self._angle + 30) % 360
@@ -71,9 +79,11 @@ class LoadingOverlay(QWidget):
         if self.parentWidget():
             self.resize(self.parentWidget().size())
             self.raise_()
+        self.spinner.start()
         self.show()
 
     def hide_loading(self) -> None:
+        self.spinner.stop()
         self.hide()
 
     def paintEvent(self, event) -> None:

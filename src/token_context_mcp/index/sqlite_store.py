@@ -143,6 +143,8 @@ class ReadConnectionPool:
         self._connections: dict[tuple[int, str], sqlite3.Connection] = {}
 
     def get_connection(self, path: Path) -> sqlite3.Connection:
+        if not path.exists():
+            raise StoreError(f"index database does not exist: {path}")
         tid = threading.get_ident()
         resolved = str(path.resolve())
         key = (tid, resolved)

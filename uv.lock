@@ -1269,7 +1269,7 @@ wheels = [
 
 [[package]]
 name = "token-context-mcp"
-version = "0.3.10"
+version = "0.3.12"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },

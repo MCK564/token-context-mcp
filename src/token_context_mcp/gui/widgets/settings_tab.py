@@ -58,26 +58,26 @@ class SettingsTab(QWidget):
         form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
         self.spin_tokens = QSpinBox()
-        self.spin_tokens.setRange(32, 65536)
+        self.spin_tokens.setRange(32, 8192)
         self.spin_tokens.setSingleStep(512)
         self.spin_tokens.setMinimumWidth(160)
         self.spin_tokens.setSuffix(" tokens")
         form.addRow("Max Result Tokens:", self.spin_tokens)
 
         self.spin_req_bytes = QSpinBox()
-        self.spin_req_bytes.setRange(1024, 16_777_216)
+        self.spin_req_bytes.setRange(1024, 1_048_576)
         self.spin_req_bytes.setSingleStep(16384)
         self.spin_req_bytes.setMinimumWidth(160)
         self.spin_req_bytes.setSuffix(" bytes")
         form.addRow("Max Request Bytes:", self.spin_req_bytes)
 
         self.spin_nodes = QSpinBox()
-        self.spin_nodes.setRange(10, 5000)
+        self.spin_nodes.setRange(1, 500)
         self.spin_nodes.setMinimumWidth(160)
         form.addRow("Max Graph Nodes:", self.spin_nodes)
 
         self.spin_symbols = QSpinBox()
-        self.spin_symbols.setRange(5, 500)
+        self.spin_symbols.setRange(1, 100)
         self.spin_symbols.setMinimumWidth(160)
         form.addRow("Max Symbol Results:", self.spin_symbols)
 

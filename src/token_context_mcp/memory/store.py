@@ -487,6 +487,12 @@ class MemoryStore:
             )
             return cur.rowcount > 0
 
+    def force_release_lock(self, resource_key: str) -> bool:
+        """Forcefully release a resource lock regardless of owner (GUI / admin use)."""
+        with self._connection() as conn:
+            cur = conn.execute("DELETE FROM locks WHERE resource_key = ?", (resource_key,))
+            return cur.rowcount > 0
+
     def release_lock(self, resource_key: str, agent_id: str) -> dict[str, Any]:
         released = self.unlock(resource_key, agent_id)
         return {"resource_key": resource_key, "released": released}

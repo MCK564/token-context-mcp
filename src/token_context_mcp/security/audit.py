@@ -16,6 +16,7 @@ logger = logging.getLogger("token_context_mcp.audit")
 AUDIT_SCHEMA = """
 PRAGMA journal_mode=WAL;
 PRAGMA synchronous=NORMAL;
+PRAGMA busy_timeout=5000;
 
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -207,7 +208,8 @@ class AuditLogger:
             query += " ORDER BY timestamp DESC, id DESC LIMIT ?"
             params.append(limit)
 
-            rows = self._conn.execute(query, params).fetchall()
+            with self._write_lock:
+                rows = self._conn.execute(query, params).fetchall()
             results: list[dict[str, Any]] = []
             for r in rows:
                 try:
@@ -236,9 +238,10 @@ class AuditLogger:
             lg.flush()
         try:
             cutoff = time.time() - (days_to_keep * 86400)
-            with self._conn:
-                cur = self._conn.execute("DELETE FROM audit_logs WHERE timestamp < ?", (cutoff,))
-                return cur.rowcount
+            with self._write_lock:
+                with self._conn:
+                    cur = self._conn.execute("DELETE FROM audit_logs WHERE timestamp < ?", (cutoff,))
+                    return cur.rowcount
         except Exception:
             logger.exception("Failed to purge old audit logs")
             return 0

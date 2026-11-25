@@ -13,6 +13,7 @@ STATUS_COLORS = {
     "STALE": "#eed49f",
     "DOCS_CHANGED": "#8aadf4",
     "SCHEMA_OUTDATED": "#f5a97f",
+    "MISSING_ROOT": "#ed8796",
     "NOT_INDEXED": "#6e738d",
 }
 STATUS_HINTS = {
@@ -20,6 +21,7 @@ STATUS_HINTS = {
     "STALE": "Indexed files changed since the last index: re-index.",
     "DOCS_CHANGED": "Only files that are not indexed changed (docs, configs): the index is still valid.",
     "SCHEMA_OUTDATED": "The index was built by an older schema: re-index to use the current one.",
+    "MISSING_ROOT": "The registered root directory no longer exists on disk.",
     "NOT_INDEXED": "No index yet.",
 }
 
@@ -36,6 +38,9 @@ class RepoTableModel(QAbstractTableModel):
         self.beginResetModel()
         self._rows = list(rows)
         self.endResetModel()
+
+    def rows(self) -> list[dict[str, Any]]:
+        return list(self._rows)
 
     def row_at(self, row: int) -> dict[str, Any] | None:
         return self._rows[row] if 0 <= row < len(self._rows) else None

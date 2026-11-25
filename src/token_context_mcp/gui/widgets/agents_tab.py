@@ -33,6 +33,7 @@ from token_context_mcp.gui.theme import (
     COLOR_WARNING,
 )
 from token_context_mcp.gui.workers import is_ui_thread, run_async
+from token_context_mcp.security.access_control import PolicyProfile
 
 
 class AgentsTab(QWidget):
@@ -258,8 +259,8 @@ class AgentsTab(QWidget):
         self.agents_table.setRowCount(len(agents))
         for row, ag in enumerate(agents):
             aid = str(ag["agent_id"])
-            status = str(ag["status"])
-            policy = str(ag.get("policy_profile", "FULL_ACCESS"))
+            status = str(ag.get("status") or ag.get("state") or "ACTIVE").upper()
+            policy = str(ag.get("policy") or ag.get("policy_profile") or "FULL_ACCESS") or "FULL_ACCESS"
 
             self.agents_table.setItem(row, 0, QTableWidgetItem(aid))
             self.agents_table.setItem(row, 1, QTableWidgetItem(str(ag.get("role", "agent"))))
@@ -278,7 +279,8 @@ class AgentsTab(QWidget):
             pol_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.agents_table.setItem(row, 3, pol_item)
 
-            calls_item = QTableWidgetItem(str(ag.get("tool_calls_count", 0)))
+            calls = int(ag.get("call_count", ag.get("tool_calls_count", 0)) or 0)
+            calls_item = QTableWidgetItem(str(calls))
             calls_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             self.agents_table.setItem(row, 4, calls_item)
 
@@ -339,7 +341,7 @@ class AgentsTab(QWidget):
             return
         aid, status = sel
         if status == "PAUSED":
-            self._run_security_op(lambda: self.security_ctrl._access_control.resume_agent(aid, reason="Resumed by operator via GUI"))
+            self._run_security_op(lambda: self.security_ctrl._access_control.resume_agent(aid))
         else:
             self._run_security_op(lambda: self.security_ctrl._access_control.pause_agent(aid, reason="Paused by operator via GUI"))
 
@@ -349,7 +351,7 @@ class AgentsTab(QWidget):
             return
         aid, status = sel
         if status == "BLOCKED":
-            self._run_security_op(lambda: self.security_ctrl._access_control.unblock_agent(aid, reason="Unblocked by operator via GUI"))
+            self._run_security_op(lambda: self.security_ctrl._access_control.unblock_agent(aid))
         else:
             reply = QMessageBox.warning(
                 self,
@@ -373,7 +375,7 @@ class AgentsTab(QWidget):
             return
         aid, _ = sel
         pol = self.policy_combo.currentText()
-        self._run_security_op(lambda: self.security_ctrl._access_control.set_policy(aid, pol))
+        self._run_security_op(lambda: self.security_ctrl._access_control.set_agent_policy(aid, PolicyProfile(pol)))
 
     def _on_release_selected_lock(self) -> None:
         row = self.locks_table.currentRow()

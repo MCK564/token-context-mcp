@@ -37,6 +37,9 @@ from token_context_mcp.gui.theme import (
 from token_context_mcp.gui.workers import is_ui_thread, run_async
 
 
+_UNSET = object()
+
+
 class LedgerTab(QWidget):
     """Inspector & lifecycle manager for Verified Evidence Ledger ('Lá Phổi') and Episodic Memory."""
 
@@ -45,6 +48,7 @@ class LedgerTab(QWidget):
         self.repo_mgr = repo_mgr
         self.ctrl = LedgerController(repo_mgr.config_path)
         self._cards: list[dict[str, Any]] = []
+        self._selected_repo_filter: str | None = None
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -77,7 +81,7 @@ class LedgerTab(QWidget):
         self.repo_filter = QComboBox()
         self.repo_filter.setMinimumWidth(140)
         self.repo_filter.addItem("All Repositories")
-        self.repo_filter.currentTextChanged.connect(lambda _: self.refresh())
+        self.repo_filter.currentTextChanged.connect(self._on_repo_filter_changed)
         s_layout.addWidget(self.repo_filter)
         layout.addWidget(sum_card)
 
@@ -180,13 +184,19 @@ class LedgerTab(QWidget):
             return None
         return txt
 
+    def _on_repo_filter_changed(self, text: str) -> None:
+        self._selected_repo_filter = None if (not text or text == "All Repositories") else text
+        self.refresh()
+
     def refresh(self) -> None:
         rid = self._current_repo_filter()
+        self._selected_repo_filter = rid
         run_async(lambda: self.fetch(rid), on_ok=self.render)
 
-    def fetch(self, repo_id: str | None = None) -> dict[str, Any]:
+    def fetch(self, repo_id: Any = _UNSET) -> dict[str, Any]:
         assert not is_ui_thread(), "LedgerTab.fetch must run off the UI thread"
-        return self.ctrl.fetch_snapshot(repo_id=repo_id)
+        rid = self._selected_repo_filter if repo_id is _UNSET else repo_id
+        return self.ctrl.fetch_snapshot(repo_id=rid)
 
     def render(self, snap: dict[str, Any]) -> None:
         assert is_ui_thread(), "LedgerTab.render must run on the UI thread"
@@ -214,6 +224,7 @@ class LedgerTab(QWidget):
             self.repo_filter.addItem(r)
         if cur and (cur == "All Repositories" or cur in repos):
             self.repo_filter.setCurrentText(cur)
+        self._selected_repo_filter = self._current_repo_filter()
         self.repo_filter.blockSignals(False)
 
         cards = snap.get("cards", [])

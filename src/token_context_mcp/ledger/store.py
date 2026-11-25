@@ -57,6 +57,8 @@ class LedgerStore:
         self.max_cards_per_repo = max_cards_per_repo
         self.ttl_days = ttl_days
         self._local = threading.local()
+        self._conns_lock = threading.Lock()
+        self._conns: list[sqlite3.Connection] = []
         secure_directory(self.db_path.parent)
         self._init_db()
 
@@ -74,8 +76,21 @@ class LedgerStore:
         conn.execute("PRAGMA synchronous = NORMAL")
         conn.execute("PRAGMA foreign_keys = ON")
         conn.execute("PRAGMA busy_timeout = 5000")
+        with self._conns_lock:
+            self._conns.append(conn)
         self._local.conn = conn
         return conn
+
+    def close(self) -> None:
+        """Close all tracked SQLite connections opened by this store."""
+        with self._conns_lock:
+            for conn in self._conns:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            self._conns.clear()
+        self._local.conn = None
 
     def _init_db(self) -> None:
         with self._connect() as conn:

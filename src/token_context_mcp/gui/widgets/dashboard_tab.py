@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import tomllib
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -124,6 +126,43 @@ class CopyConfigDialog(QDialog):
     def _update_preview(self) -> None:
         client = self.client_combo.currentText()
         raw = self.server_ctrl.get_client_config(client)
+        forced_mode = "compact_text" if self.chk_compact.isChecked() else ("text" if self.chk_text.isChecked() else None)
+        agent_id = self.agent_id_input.text().strip()
+
+        if client == "codex":
+            try:
+                parsed = tomllib.loads(raw)
+                srv = (parsed.get("mcp_servers") or {}).get("token-context") or {}
+                args = list(srv.get("args") or [])
+                if self.chk_admin.isChecked() and "--enable-admin-tools" not in args:
+                    args.append("--enable-admin-tools")
+                if forced_mode is not None:
+                    if "--output-mode" in args:
+                        idx = args.index("--output-mode")
+                        if idx + 1 < len(args):
+                            args[idx + 1] = forced_mode
+                        else:
+                            args.append(forced_mode)
+                    else:
+                        args.extend(["--output-mode", forced_mode])
+                rendered_args = ", ".join(json.dumps(a) for a in args)
+                lines = [
+                    "[mcp_servers.token-context]",
+                    f"command = {json.dumps(srv.get('command', ''))}",
+                    f"args = [{rendered_args}]",
+                ]
+                if agent_id:
+                    lines.extend(
+                        ["", "[mcp_servers.token-context.env]", f"TOKEN_CONTEXT_AGENT_ID = {json.dumps(agent_id)}"]
+                    )
+                self.preview.setPlainText("\n".join(lines) + "\n")
+                self.copy_btn.setText("Copy to Clipboard")
+                self.copy_btn.setEnabled(True)
+                return
+            except Exception:
+                self.preview.setPlainText(raw)
+                return
+
         try:
             data = json.loads(raw)
         except Exception:
@@ -137,7 +176,6 @@ class CopyConfigDialog(QDialog):
             args = list(srv_obj.get("args") or [])
             if self.chk_admin.isChecked() and "--enable-admin-tools" not in args:
                 args.append("--enable-admin-tools")
-            forced_mode = "compact_text" if self.chk_compact.isChecked() else ("text" if self.chk_text.isChecked() else None)
             if forced_mode is not None:
                 if "--output-mode" in args:
                     idx = args.index("--output-mode")
@@ -148,7 +186,6 @@ class CopyConfigDialog(QDialog):
                 else:
                     args.extend(["--output-mode", forced_mode])
             srv_obj["args"] = args
-            agent_id = self.agent_id_input.text().strip()
             if agent_id:
                 env = dict(srv_obj.get("env") or {})
                 env["TOKEN_CONTEXT_AGENT_ID"] = agent_id
@@ -285,6 +322,16 @@ class InstallRulesDialog(QDialog):
             QMessageBox.critical(self, "Install Failed", str(exc))
 
 
+def _format_last_seen(raw_ts: Any) -> str:
+    if not raw_ts:
+        return "-"
+    try:
+        dt = datetime.fromisoformat(str(raw_ts))
+        return dt.astimezone().strftime("%H:%M:%S")
+    except Exception:
+        return str(raw_ts)[:19]
+
+
 class DashboardTab(QWidget):
     def __init__(
         self,
@@ -295,6 +342,7 @@ class DashboardTab(QWidget):
         super().__init__(parent)
         self.repo_mgr = repo_mgr
         self.server_ctrl = server_ctrl
+        self._cached_hw: str | None = None
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -457,6 +505,10 @@ class DashboardTab(QWidget):
         self.ram_label.setText(f"RAM Usage: {ram_used:.1f} / {ram_tot:.1f} GB ({ram_pct:.1f}%)")
         self.ram_bar.setValue(int(ram_pct))
         self.disk_label.setText(f"Disk Free: {disk_free:.1f} / {disk_tot:.1f} GB")
+        ai_hw = g("ai_hardware", "")
+        if isinstance(ai_hw, str) and ai_hw and ai_hw != "Detecting hardware...":
+            self._cached_hw = ai_hw
+            self.hw_label.setText(f"Host Compute: {ai_hw}")
 
     def refresh(self) -> None:
         from token_context_mcp.gui.workers import run_async
@@ -480,10 +532,12 @@ class DashboardTab(QWidget):
         except Exception:
             pass
 
+        hw = self._cached_hw or detect_ai_hardware()
+        self._cached_hw = hw
         return {
-            "hw": detect_ai_hardware(),
+            "hw": hw,
             "servers": self.repo_mgr.fetch_active_servers(),
-            "repos": self.repo_mgr.list_repositories(),
+            "repos": self.repo_mgr.list_repositories(force_refresh=True),
             "ledger_cards": ledger_cards,
         }
 
@@ -504,14 +558,15 @@ class DashboardTab(QWidget):
         else:
             rates = [float(r.get("ambiguous_rate", 0.0) or 0.0) for r in repos]
             weighted_ambig = (sum(rates) / len(rates)) if rates else 0.0
+        weighted_ambig_pct = weighted_ambig * 100.0 if weighted_ambig <= 1.0 else weighted_ambig
 
         self.stat_repos.setText(str(len(repos)))
         self.stat_files.setText(f"{total_files:,}")
         self.stat_size.setText(f"{total_mb:.1f} MB")
         self.stat_ledger.setText(str(snap.get("ledger_cards", 0)))
-        self.stat_ambig.setText(f"{weighted_ambig:.1f}%")
+        self.stat_ambig.setText(f"{weighted_ambig_pct:.1f}%")
 
-        if weighted_ambig > 30:
+        if weighted_ambig_pct > 30:
             self.stat_ambig.setStyleSheet(f"color: {COLOR_WARNING};")
         else:
             self.stat_ambig.setStyleSheet(f"color: {COLOR_SUCCESS};")
@@ -528,7 +583,7 @@ class DashboardTab(QWidget):
                 srv.get("client_name") or "unknown",
                 srv.get("output_mode") or "-",
                 srv.get("schema_profile") or "-",
-                srv.get("last_seen_str", "-"),
+                srv.get("last_seen_str") or _format_last_seen(srv.get("last_seen")),
             ]
             for col, val in enumerate(vals):
                 item = QTableWidgetItem(val)

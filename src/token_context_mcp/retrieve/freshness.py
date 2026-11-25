@@ -84,6 +84,11 @@ class FreshnessCache:
             return "fresh", curr_hash
         return "changed", curr_hash
 
+    def has_fresh_cached(self, repo_id: str, index_run_id: str) -> bool:
+        """Return True if a non-expired cached snapshot exists for (repo_id, index_run_id)."""
+        cached = self._snapshots.get((repo_id, index_run_id))
+        return cached is not None and (time.monotonic() - cached.timestamp) <= self.ttl
+
     def get_snapshot(
         self,
         repo_id: str,

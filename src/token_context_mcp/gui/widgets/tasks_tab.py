@@ -191,7 +191,7 @@ class TasksTab(QWidget):
 
     def fetch(self) -> dict[str, Any]:
         assert not is_ui_thread(), "TasksTab.fetch must run off the UI thread"
-        repos = self.repo_mgr.list_repositories()
+        repos = self.repo_mgr.list_repositories(force_refresh=True)
         first_id = repos[0]["repo_id"] if repos else ""
         insights = self.repo_mgr.get_repo_insights(first_id, query="", limit=30) if first_id else {}
         return {"repos": repos, "insights": insights, "insights_repo": first_id}
@@ -248,7 +248,8 @@ class TasksTab(QWidget):
         self.lang_label.setText(lang_str)
 
         ambig = float(target.get("ambiguous_rate", 0.0) or 0.0)
-        resolved_pct = max(0, min(100, int(100 - ambig)))
+        ambig_pct = ambig * 100.0 if ambig <= 1.0 else ambig
+        resolved_pct = max(0, min(100, round(100.0 - ambig_pct)))
         self.precision_bar.setValue(resolved_pct)
         chunk_color = COLOR_SUCCESS if resolved_pct >= 75 else (COLOR_WARNING if resolved_pct >= 50 else COLOR_DANGER)
         self.precision_bar.setStyleSheet(f"QProgressBar::chunk {{ background-color: {chunk_color}; border-radius: 5px; }}")

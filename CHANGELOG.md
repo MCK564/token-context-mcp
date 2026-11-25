@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.12 — Indexing Reliability, GUI Bugfixes & Store/Server Hardening (2026-11-25)
+
+**Upgrade:** no index rebuild needed. Upgrade the installed package (`uv tool install ... --upgrade` or `pip install --upgrade ...`) and relaunch `token-context-gui` / reload the MCP server.
+
+- **Fix Infinite-Loading & Crash in GUI Indexing (`gui/bridge.py`, `gui/widgets/repositories_tab.py`, `gui/models.py`)**:
+  - Fixed `IndexProcess.__init__` signature (`full: bool = False`) and argument order mismatch in `RepositoriesTab._start_next_in_queue()` that raised `TypeError: IndexProcess.__init__() got an unexpected keyword argument 'full'` and left the progress bar stuck at 0% indefinitely.
+  - Fixed `IndexProcess` signal connections (`progress_changed`, `log_emitted`, `index_finished`, `index_failed`), added `--full` CLI forwarding, clamped progress percentage across post-scan stages, added single-emission `_done_emitted` + `FailedToStart` error handling (stopping `_timer` cleanly even on synchronous start failures), and wrapped worker startup in `try/except` so failed runs always unlock the UI.
+  - Added `RepoTableModel.rows()` (fixing `AttributeError` on **Re-index All**), aligned `AddRepoDialog` repo-ID regex/suggestions with `config.py`, and ensured deterministic ascending table sort order.
+- **Server, Retrieval, Ledger, Audit & Config Fixes (`config.py`, `index/runner.py`, `index/sqlite_store.py`, `retrieve/service.py`, `cli.py`, `ledger/*`, `security/audit.py`, `memory/store.py`)**:
+  - Replaced the 1.0s `_pointer_cache` TTL in `RetrievalService._store()` with `(st_mtime_ns, st_ino)` pointer-file tracking so reindexed snapshots are picked up with 0ms delay and old Windows SQLite handles are closed immediately.
+  - Added `RetrievalService.close()` and `LedgerStore.close()`, ensured `RepoManager.list_repositories()` and CLI `status` / `ledger` release SQLite handles cleanly, and purged all `<repo>.*` snapshot files on `RepoManager.delete_repository(purge_db=True)`.
+  - Prevented a single deleted repository folder from breaking `load_config` or `unregister_repository` (reported in GUI as `MISSING_ROOT`), while still validating roots via `canonical_repository_root` during `build_index` and retrieval.
+  - Fixed `ReadConnectionPool.get_connection` missing-DB error handling, `RetrievalService.status()` clean error on unindexed repos (returning `invalid_request` instead of `internal_error`), `LedgerVerifier._idx_path_cache` key (`idx_store.path`), `LedgerService` config hot-reload, `AuditLogger` lock safety (`busy_timeout=5000` + `_write_lock` around `query_logs`), `save_config` `_validate_server` check, and `MemoryStore.force_release_lock()`.
+- **Desktop GUI Tab & Bridge Fixes (`main_window.py`, `dashboard_tab.py`, `tasks_tab.py`, `cache_tab.py`, `ledger_tab.py`, `agents_tab.py`, `settings_tab.py`, `loading_overlay.py`)**:
+  - Wired `active_servers_updated` to `DashboardTab`, formatted `last_seen` timestamps, fixed percentage scaling (`0.159` -> `15.9%` ambiguous / `84% Resolved`) in `DashboardTab` and `TasksTab`, cached hardware probe across refreshes, and added Codex TOML flag/env injection in `CopyConfigDialog`.
+  - Fixed `CacheManager` classification of `<repo>.sqlite` compatibility copies as `LEGACY` (excluding hardlinks from double-counted totals and stale-only filter) and made `clean_stale_snapshots()` clean superseded snapshots immediately (`max_age_seconds=0.0`).
+  - Fixed `LedgerController.list_memory_entries()` to read `key_values` (excluding expired rows), preserved active repo filter across `LedgerTab` refreshes, fixed `AgentsTab` Pause/Resume, Block/Unblock, Apply Policy (`set_agent_policy`), Force Release Lock, and live `GovernanceRefreshWorker` merge, aligned `SettingsTab` spinbox limits with `config.py`, and stopped `LoadingSpinner` timer when hidden.
+- **Smoke Test & CI/CD Fixes (`evals/stdio_smoke.py`, `.github/workflows/*.yml`)**:
+  - Updated `EXTENDED_TOOLS` set to include `trajectory_record` (21 extended tools) and added `compact_text` verification to `evals/stdio_smoke.py`.
+  - Fixed `.github/workflows/ci.yml` (`QT_QPA_PLATFORM=offscreen`, `uv sync --all-extras`, `libxcb-cursor0`/`libfontconfig1`, job timeouts, GUI entrypoint check), `release.yml` (tag/wheel smoke gate, per-version release notes extraction, `skip-existing: true`), and `scip-oracle.yml` (preserve `targets.json` across `oracle-data` branch checkout).
+
 ## 0.3.11 — Lean Selective MCP, Compact-Text Wire Mode & 1-Click Agent Rules Installer (2026-11-20)
 
 **Upgrade:** If upgrading from `<= 0.3.10`, run `token-context install-rules --antigravity-mcp` (or click **Install Agent Rules & Setup** in `token-context-gui`) and run `token-context index --all --full` to purge backup `.venv*` directories from older snapshots and enable `compact_text`.
