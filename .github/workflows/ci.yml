@@ -10,6 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
@@ -36,6 +37,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
@@ -63,8 +65,10 @@ jobs:
           artifact_command_gui = root / ("Scripts/token-context-gui.exe" if sys.platform == "win32" else "bin/token-context-gui")
           wheel = sorted(pathlib.Path("dist").glob("*.whl"))[-1]
           subprocess.run([str(artifact_python), "-m", "pip", "install", str(wheel)], check=True)
-          subprocess.run([str(artifact_python), "-c", "import token_context_mcp, token_context_mcp.security, token_context_mcp.gui.bridge"], check=True)
+          subprocess.run([str(artifact_python), "-c", "import token_context_mcp, token_context_mcp.security, token_context_mcp.gui.main"], check=True)
           assert artifact_command_gui.exists(), f"missing GUI entrypoint: {artifact_command_gui}"
+          res = subprocess.run([str(artifact_command_gui)], capture_output=True, text=True, check=False)
+          assert res.returncode == 1 and "uv sync --all-extras" in res.stderr and "Traceback" not in res.stderr, (res.returncode, res.stderr)
           subprocess.run([str(artifact_command), "--version"], check=True)
           subprocess.run([str(artifact_command_mcp), "--version"], check=True)
           subprocess.run([str(artifact_python), "evals/stdio_smoke.py"], check=True)
