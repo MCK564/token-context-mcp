@@ -374,3 +374,83 @@ def test_incremental_equals_full_when_a_type_dependency_changes(tmp_path) -> Non
                 ie.dump_snapshot(ie.database_path(full, "demo")), ie.dump_snapshot(ie.database_path(incremental, "demo"))
             )
             assert not problems, (index, problems)
+
+
+def test_java_typed_lambda_var_inference_and_wildcard_guard() -> None:
+    source = """
+class Order { void confirm() {} String code() { return ""; } }
+class Handler {
+    void handle() {
+        Consumer<Order> c = o -> o.confirm();
+        Function<Order, String> f = (o) -> o.code();
+        Function<?, String> w = x -> x.toString();
+    }
+}
+"""
+    calls = parse_source("Handler.java", source.encode("utf-8"), "java").calls
+    by_name = {c.name: c for c in calls}
+    assert by_name["confirm"].receiver_type == "Order"
+    assert by_name["code"].receiver_type == "Order"
+    assert by_name["toString"].receiver_type is None
+
+
+def test_csharp_typed_lambda_var_inference_and_tuple_guard() -> None:
+    source = """
+class Order { public void Confirm() {} public string Code() => ""; }
+class Handler {
+    void Handle() {
+        Action<Order> a = o => o.Confirm();
+        Func<Order, string> f = (o) => o.Code();
+        Func<(int, string), bool> t = pair => pair.Equals(null);
+    }
+}
+"""
+    calls = parse_source("Handler.cs", source.encode("utf-8"), "c_sharp").calls
+    by_name = {c.name: c for c in calls}
+    assert by_name["Confirm"].receiver_type == "Order"
+    assert by_name["Code"].receiver_type == "Order"
+    assert by_name["Equals"].receiver_type is None
+
+
+def test_build_index_java_and_csharp_with_typed_lambdas(tmp_path) -> None:
+    from token_context_mcp.config import RepositoryConfig
+    from token_context_mcp.index.runner import build_index
+
+    repo = tmp_path / "ava_api_like"
+    repo.mkdir()
+    (repo / "Service.java").write_text(
+        """
+import java.util.function.Consumer;
+import java.util.function.Function;
+class Order { void confirm() {} String code() { return "ok"; } }
+public class Service {
+    void run() {
+        Consumer<Order> c = o -> o.confirm();
+        Function<Order, String> f = o -> o.code();
+    }
+}
+""",
+        encoding="utf-8",
+    )
+    (repo / "Service.cs").write_text(
+        """
+using System;
+class Order { public void Confirm() {} public string Code() => "ok"; }
+class Service {
+    void Run() {
+        Action<Order> a = o => o.Confirm();
+        Func<Order, string> f = o => o.Code();
+    }
+}
+""",
+        encoding="utf-8",
+    )
+    manifest = build_index(
+        RepositoryConfig(repo_id="ava_api_like", root=repo, allow_symlinks=False, max_file_bytes=100_000, max_files=100),
+        tmp_path / "idx",
+        network_policy="declared-deny-not-enforced",
+    )
+    assert manifest["indexer_version"] == "0.3.13"
+    assert manifest["files_indexed"] == 2
+    assert manifest["symbols_indexed"] > 0
+

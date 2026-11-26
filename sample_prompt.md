@@ -1,4 +1,4 @@
-# SAMPLE PROMPT TEMPLATE / MẪU PROMPT / 提示词模板 (`token-context-mcp` v0.3.12)
+# SAMPLE PROMPT TEMPLATE / MẪU PROMPT / 提示词模板 (`token-context-mcp` v0.3.13)
 
 > 🌐 **Ngôn ngữ / Languages / 语言版本**:
 > - [🇻🇳 PHẦN 1: TIẾNG VIỆT](#phần-1-tiếng-việt)
@@ -7,7 +7,7 @@
 >
 > Mẫu prompt chuẩn với cơ chế **Thích ứng Linh hoạt (MCP-First & Graceful Source Fallback)** và **Sổ Bằng Chứng Kiểm Chứng ("Lá Phổi" — Evidence Ledger mặc định BẬT)** cho AI Agent dùng `token-context-mcp`: danh sách 23 tool đầy đủ (`10` lõi + `11` mở rộng gồm `trajectory_record` thuộc nhóm `memory_state` + `2` admin), ranh giới rõ ràng giữa Sổ Bằng Chứng (`ledger.sqlite`) và Bộ Nhớ Chia Sẻ (`memory.sqlite`), quy ước `prior_evidence` / `recheck_from` và Write Gate G1–G6 để tránh `stale_file` / `empty_signature`, giúp truy xuất tiết kiệm token mà **không bao giờ tự khóa (non-blocking)**.
 >
-> Đối chiếu với bản **v0.3.12**: `TOOL_CATALOG` (`src/token_context_mcp/discovery/catalog.py`), `ledger/` ("Lá Phổi"), `kernel/` (Cordis Waterfall), `retrieve/service.py`, `retrieve/batch.py`, `server.py`, `memory/service.py`, `memory/store.py`, `security/access_control.py`. Placeholder: `{{REPO_NAME}}`, `{{USER_TASK}}`, `{{AGENT_ID}}`.
+> Đối chiếu với bản **v0.3.13**: `TOOL_CATALOG` (`src/token_context_mcp/discovery/catalog.py`), `ledger/` ("Lá Phổi"), `kernel/` (Cordis Waterfall), `retrieve/service.py`, `retrieve/batch.py`, `server.py`, `memory/service.py`, `memory/store.py`, `security/access_control.py`. Placeholder: `{{REPO_NAME}}`, `{{USER_TASK}}`, `{{AGENT_ID}}`.
 
 ---
 

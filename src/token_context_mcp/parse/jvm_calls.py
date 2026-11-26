@@ -22,6 +22,7 @@ from __future__ import annotations
 from typing import Any
 
 from token_context_mcp.parse.jvm_types import (
+    clean_type,
     element_type_of,
     extract_generic_args,
     split_params,
@@ -629,8 +630,9 @@ class JvmCallExtractor:
                 inferred_lambda_types: list[str | None] | None = None
                 parent = getattr(node, "parent", None)
                 if parent is not None:
-                    if parent.type == "variable_declarator":
-                        pdecl = getattr(parent, "parent", None)
+                    decl_node = getattr(parent, "parent", None) if parent.type == "equals_value_clause" else parent
+                    if decl_node is not None and decl_node.type == "variable_declarator":
+                        pdecl = getattr(decl_node, "parent", None)
                         if pdecl is not None:
                             t_node = self._field(pdecl, "type")
                             t_text = self.text(t_node).strip() if t_node else ""
@@ -638,11 +640,11 @@ class JvmCallExtractor:
                                 gargs = extract_generic_args(t_text)
                                 clean_c = clean_type(t_text)
                                 if clean_c in {"Action", "Consumer"} and gargs:
-                                    inferred_lambda_types = [f"T:{type_ref(a)}" for a in gargs]
+                                    inferred_lambda_types = [f"T:{ref}" if (ref := type_ref(a)) else None for a in gargs]
                                 elif clean_c in {"Func", "Function"} and len(gargs) >= 2:
-                                    inferred_lambda_types = [f"T:{type_ref(a)}" for a in gargs[:-1]]
+                                    inferred_lambda_types = [f"T:{ref}" if (ref := type_ref(a)) else None for a in gargs[:-1]]
                     elif parent.type in {"argument", "argument_list"}:
-                        inv = parent.parent if parent.type == "argument_list" else parent.parent.parent
+                        inv = parent.parent if parent.type == "argument_list" else getattr(parent.parent, "parent", None)
                         if inv is not None and getattr(inv, "type", "") in {"invocation_expression", "method_invocation"}:
                             fn = self._field(inv, "function") if not self.java else inv
                             rec_expr = self._field(fn, "expression") if not self.java else self._field(inv, "object")

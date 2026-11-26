@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.13 — JVM/C# Lambda Extraction Fix & Clean-Room CI Hardening (2026-11-26)
+
+**Upgrade:** no index rebuild required for existing snapshots; repositories with Java/C# typed lambdas that previously failed during indexing will now index cleanly.
+
+- **Fix `NameError: name 'clean_type' is not defined` (`parse/jvm_calls.py`)**:
+  - Imported missing `clean_type` helper from `token_context_mcp.parse.jvm_types` in `JvmCallExtractor._enter()`, which raised `NameError` when indexing Java or C# files assigning lambdas to generic delegate/functional variables (`Consumer<T>`, `Function<T, R>`, `Action<T>`, `Func<T, R>`).
+  - Unwrapped C# `equals_value_clause` between `variable_declarator` and `lambda_expression`, guarded `type_ref(arg)` against empty/wildcard/tuple types (avoiding malformed `"T:"` types), and guarded `getattr(parent.parent, "parent", None)` against `None`.
+- **CI Clean-Room Wheel Verification (`.github/workflows/ci.yml`)**:
+  - Switched the minimal base-wheel smoke check (installed without `[gui]`) from importing `token_context_mcp.gui.bridge` (`psutil`) to `token_context_mcp.gui.main` + verifying `token-context-gui` exits cleanly with code `1` and installation guidance, and added `fail-fast: false` to CI strategy matrices.
+
 ## 0.3.12 — Indexing Reliability, GUI Bugfixes & Store/Server Hardening (2026-11-25)
 
 **Upgrade:** no index rebuild needed. Upgrade the installed package (`uv tool install ... --upgrade` or `pip install --upgrade ...`) and relaunch `token-context-gui` / reload the MCP server.
